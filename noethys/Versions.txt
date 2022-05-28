@@ -1,0 +1,1833 @@
+version 1.3.1.0 (28/05/2022):
+
+- Branche Matthania - Noethys Python3 seul, transposition adaptation
+
+Version 1.3.0.8 (30/03/2022) :
+
+- Reprise des évolutions de Noethys original par fusion et basculement Python3
+
+Version 1.2.9.05 (17/05/2022)
+
+- Les groupes campeurs permettent aussi l'inscription des anims
+- Meilleure gestion en cas d'incohérence de paramétrage (distingo 'Encadrement' et 'Anims')
+
+Version 1.2.9.03 (04/05/2022)
+
+- Suppression du message 'Absence de date de Naissance' intempestif lors d'inscription
+
+Version 1.2.9.02 (03/05/2022)
+
+- 'Recherche élargie' remplacée par 'Recherche payeurs' n'est plus par défaut. Recherche sur nonNaissance intégrée de base.
+- Infos versions décodées en utf-8
+
+
+Version 1.2.9.01 (02/05/2022)
+
+- Sauvegarde immédiate des pages 'identité' et 'coordonnées' lors de changement de page
+- Nouvelle inscription, l'avertissement nbre maxi atteint seulement sur les campeurs
+- Nouvelle inscription, l'absence de date de naissance s'écrit en rouge, le message ne vient qu'en cas d'anomalie
+- Tableau de remplissage: Mise en place d'un choix possible des activités exportées
+- Ecran d'accueil, recherche client: case cochée 'Recherche élargie' cherche aussi dans le nom de naissance et les payeurs
+- Date de modification d'une pièce = date du jour et non la date d'édition qui peut être future
+- En cas de lettrage, actualisation de la page active au retour (règlements, le à ventiler est mis à jour)
+
+Version 1.2.8.99 (30/04/2022)
+
+- Correction mauvaise suppression de la date de facturation en retrogradation facture
+- GestionCohérence : message erroné corrigé
+
+
+Version 1.2.8.32 (28/04/2022)
+
+- Correction sur l'ordre des groupes dans l'export remplissage
+
+Version 1.2.8.31 (27/04/2022)
+
+- Nouveau type d'activité '2 Formations' dans laquelle j'ai déplacé les bafas et théosud qui gardent leur codes antérieurs historiques
+- Tableau de synthèse: export des types d'activité de 1 à 6 (donc les bafas y sont)
+
+Version 1.2.8.30 (27/04/2022)
+
+- Correction du bug 'couleur' dans le remplissage quand un groupe tombe pile sur le seuil d'alerte
+
+Version 1.2.8.29 (26/04/2022)
+
+- Mise en place d'un suivi des effectifs par groupe, dans l'écran d'accueil
+- Export remplissage: ajout des camps "8x"
+
+
+Version 1.2.8.28 (23/04/2022)
+
+- Correction du bug sur choix de liste ('parrainage, ajout de lignes et autres...)
+- Nouvelle version d'export vers tableaux de bord avec calcul des sans acomptes revu selon principes retenus
+- Export vers tableaux de bord un seul fichier de connées à générer
+
+
+Version 1.2.8.27 (19/04/2022)
+
+- CatégoriesTarifs: Ajout du champ type d'effectif: 'animateurs' 'campeur' 'autres'
+- Groupes: Abandon de l'analytique groupe, le champ type d'effectif filtre les catégories
+- Nouvel export des effectifs de remplissage
+- Gestion des tarifs: un doubleClic sur liste d'en bas, étend la sélection à l'ensemble des groupes de la catégorie
+- Affectation des tarifs: filtrage des possibilités aux groupes et catégories_tarifs compatibles sur type campeur ou pas
+- ObjectListView: Documentation de lstCtrl.Select à remplacer par olv.SelectObject
+
+Version 1.2.8.26 (17/04/2022)
+
+- Importation du paramétrage des maximum d'inscrits par groupe avec suivi d'effectif et non plus seulement par activité
+- Ajout d'un avertissement non bloquant si une inscription dépasse le maxi (pour un tarif avec contrôle d'effectif)
+- Gestion des maxi par la coche 'InEffectif' du tarif et du nbre maxi dans le groupe
+- Export du remplissage vers synthèse excel, mis au menu dans individus sous les listes par activités
+- Inscription: le contrôle non bloquant s'applique aussi aux non campeurs, si le nombre maxi à été renseigné pour le groupe
+
+Version 1.2.8.25 (15/04/2022)
+
+- Catégories Tarifs dans fiche activité: Gestion d'une coche pour décompter les inscrits dans le suivi des effectifs
+- Correction du bug lors de la création d'une fiche avortée
+- Travaux préparatoires pour export des effectifs
+
+Version 1.2.8.24 (14/04/2022)
+
+- Fiche famille: pour les caisses remplacement du titulaire par case à cocher 'Bénéficiaire AVE'
+- Liste des caisses: ajout d'une colonne 'AidesOK'
+- Saisie des groupes: Gestion d'un nombre maxi de présents par groupe pour export vers tableau effectifs
+- De matGroupes à groupes: permet de récupérer les paramètres de groupes (ages mini maxi et nbreMaxi) lors des duplications d'activités
+
+Version 1.2.8.23 (13/04/2022)
+
+- Nouvel individu: Amélioration de la mise en forme du prénom (ex: Jean Marc)
+- Listes avec coches: Modification de la gestion du risque de quiproquo, priorité à ce qui est coché
+- liste des caisses: modification de la requête d'appel
+- Liste des caisses et régimes, seules les familles ayant une caisse apparaissent
+
+
+Version 1.2.8.22 (11/04/2022)
+
+- Normalisation des interlignes dans les modèles de mails
+- Liste par cafs: résolution du bug en cas d'inscription sans rattachement à une famille existante
+- Suppression de l'inscription de 2014 de Stgnitta shaka sans aucun rattachement famille
+
+
+Version 1.2.8.21 (02/04/2022)
+
+- Présence de non diffusé Noethys gestion db et mailer
+- Troncature des civilités 'M' pour adresses sans civilités
+
+
+Version 1.2.8.20 (30/03/2022)
+
+- Remise en service des lettres de rappels (génération et liste)
+- correction parrainage
+
+Version 1.2.8.19 (29/03/2022)
+
+- Inscription de plusieurs enfants: correction du bug sur la reprise du niveau famille
+- cohérences: Régénération automatique d'une inscription disparue
+- correction bug parrainage
+
+Version 1.2.8.17 (28/03/2022)
+
+- Cohérences: Corrections sur l'ensemble de cas. Ok pour transferts en compta
+- Ajout d'un lancement manuel des cohérences dans les outils (Famille ou MenuOUtils)
+- Historisation des corrections automatiques
+- Amélioration des fermetures de base pour éviter les plantages
+
+Version 1.2.8.16 (24/03/2022)
+
+- Cohérences: Ajouts de nouveaux contrôles sur les montants
+- Cohérences: Amélioration des corrections automatiques
+
+Version 1.2.8.15 (23/03/2022)
+
+- Envoi mail: Modulation du nom du fichier pièce jointe selon nature de pièce
+- Envoi mail: Shunt de l'affichage visu du texte
+- Bug détachement de famille
+- non diffusé: Cohérences: Ajouts de nouveaux contrôles sur les montants
+- non diffusé:  Cohérences: Amélioration des corrections automatiques
+
+Version 1.2.8.14 (18/03/2022)
+
+- Divers bugs mineurs
+- Génération de la prestation lors de la création ou modification d'une commande
+- Correction auto supprime la pièce vide, maintient si le total des lignes présentes = 0€
+- Modifications sur les fermetures de bases de données
+- Dans les outils systeme, ajout du lancement possible des cohérences
+
+Version 1.2.8.13 (16/03/2022)
+
+- Refonte des corrections automatiques
+- Reécriture de la gestion des tables lors des modifs
+- Vérif du transfert en compta
+
+
+Version 1.2.8.12 (12/03/2022)
+
+- Ajout de la correction automatique si trace de ID prestation dans Reservation (cas Mahoba)
+- Ajout de correction automatique si prestation orpheline (cas MAYER)
+- Possibilité de lancer 'imprimer tout' même en l'absence de factures cochées
+
+
+Version 1.2.8.11 (11/03/2022)
+
+- Rodage des versions antérieures
+
+
+Version 1.2.8.10 (10/03/2022)
+
+- Bug corrigé: Suppression d'inscription mal généréeVersion 1.2.8.10 (10/03/2022)
+
+- Bug corrigé: Suppression d'inscription mal générée
+- Bug: rodage des appels DB simplifiés
+
+Version 1.2.8.09 (09/03/2022)
+
+- Bug corrigé: lié au changement de nature de la pièce famille via l'individu
+- Reécriture des tests de cohérence, avec moins de corrections automatiques et aveugles
+- Reécriture des changement de nature d'un devis
+- Modification de l'ergonomie du choix des lignes dans facturation
+- Gestion des alertes de choix ambigüs entre selection et check
+- Modification de la gestion des connexions pour limiter les plantages après longue utilisation.
+- Factures : intégration du no client dans le numéro de référence des devis
+
+
+Version 1.2.8.08 (03/03/2022)
+
+- Bug 'montant' % 'total' corrigé
+- Liste des règlements vitesse d'affichage optimisée
+- Modif dans les contrôles de cohérence
+- amélioration de 20% de la vitesse d'accès à facturation
+
+
+Version 1.2.8.07 (02/03/2022)
+
+- Edition des factures gestion des reports dûs et affectation automatique des règlements non imputés
+- Envois par mail des factures et des devis groupés ou non
+- Attestation de présence: adaptation de l'édition des factures pour les attestations
+- listes de transport, correction de l'incidence des modifs sur les contacts
+- Vérif du lancement du bon modèle de mail.
+- Création d'individu, gestion de saisie incomplète.
+
+
+Version 1.2.8.06 (01/03/2022)
+
+- Réecriture du programme d'édition des factures, devis etc
+- Optimisation de l'affichage de la liste de factures
+- Lettres de relances, correction du bug suite à la réorganisation des programmes
+- Correction du bug lors du lancement de l'édition des devis
+- Gestion de articles, modification dans la recherche des dates d'ouvertures
+
+
+Version 1.2.8.05 (24/02/2022)
+
+- Réactivation de l'édition via liste de factures
+
+Version 1.2.8.04 (24/02/2022)
+
+- Bugs sur les selections de listes avec coches
+
+Version 1.2.8.03 (23/02/2022)
+
+- Bug sur lancement édition depuis facturation
+- Bug liste des transports appel des contacts mails et téléphones
+
+
+Version 1.2.8.02 (13/02/2022)
+
+- Envoi des mails: affichage de l'écran fusion des mots clés en préambule, évite de passer par outils si on veut se rassurer.
+- Envoi de plusieurs factues par mail: Cumul des montants et des soldes pour l'ensemble
+- Choix de listes, si plusieurs lignes sont cochées pour imprimer, c'est le groupe coché qui sera traité
+- Possibilité d'envoi de plusieurs factures dans un seul mail.
+- Ecran des factures: Remplacement de la colonne solde actuel par montant réglé
+- Envois de mail: stockés dans l'historique
+- Edition Cerfas: Export excel dans menu contextuel
+- Présentation facture: bloc 'totaux' remanié (ajout des règlements non imputés)
+- Envoi des factures par mail, ajout de possibilités de soldes
+- Ajout de textes plus explicites pour les mots clés à insérer dans les mails
+- Si action sur des lignes cochées et la sélection n'est pas cochée => message quiproquo
+
+Version 1.2.8.01 (11/02/2022)
+
+- Cerfas: Affichage de l'adresse du correspondant dans la liste
+- Diverses corrections suite à la réorganisation des programmes
+
+Version 1.2.7.999 (09/02/2022)
+
+- Cerfas: Envois des attestations par mails groupés
+- Reorganisation des programmes aDLG, aCTRL, aGestion, aOL, aUTILS
+
+Version 1.2.7.68 (07/02/2022)
+
+- Cerfas: Amélioration de l'impression, optimisation de la vitesse écrans
+- Gestion des états: correction des déplacements par les flêches
+
+Version 1.2.7.67 (02/02/2022)
+
+- Cerfas: prise en compte des lignes de factures 'DON*' et non plus strictement 'DON'
+- Création fiches clients: Bug corrigé en création
+
+Version 1.2.7.66 (27/01/2022)
+
+- Pièces: Changement de correspondant retour de la bonne adresses dans la fiche individu
+
+Version 1.2.7.65 (19/01/2022)
+
+- Pièces: Glissement de la notion d'exercice vers l'année académique
+- niveau famille: Meilleure gestion des années antérieures
+- amélioration de la gestion des couleur d'anomalies
+- parrainages: correction bug en suppression de pièce
+
+Version 1.2.7.64 (10/01/2022)
+
+- Lettrage des Parrainages: on peut désormais forcer des lettres sans contreparties
+- LIens: ajout de liens possibles pour les organismes.
+
+Version 1.2.7.63 (23/12/2021)
+
+- Parrainage abandonné au filleul: la réduction est fixe pour chaque inscription
+
+Version 1.2.7.62 (16/12/2021)
+
+- Gestion du lettrage règlement et son remboursement
+- Possibilité de saisir un prénom pour tous les individus y compris fournisseurs
+- Ajout d'un contrôle en saisie sur la longueur nom et prénom inférieurs à 39 caractères
+- Ajout d'un contrôle en saisie si Nom + Prénom a plus de 39 caractère et l'adresse utilise toutes les lignes
+- Etiquette Individu: si désignation trop longue, le prénom passe sur la ligne suivante si des lignes de l'adresse sont vides
+- Etiquette Individu: Si le nom préexistant a plus de 39c, les derniers mots du nom passent devant le prénom sur 2eme ligne
+
+Version 1.2.7.61 (05/12/2021)
+
+- Bugs collatéraux lors de suppression de fiches ( à suivre )
+
+Version 1.2.7.60 (25/11/2021)
+
+- Bugs lors de suppression de fiches
+
+Version 1.2.7.59 (24/11/2021)
+
+- Réduction cumul patch release 46, plusieurs factures d'une même activité s'entend pour un même individu
+
+
+Version 1.2.7.58 (19/11/2021)
+
+- Ajout de la civilité 'Fournisseur'
+- Etiquettes: Suppression rémanence de la rue pécédente pour les adresses invalides.
+
+Version 1.2.7.57 (12/11/2021)
+
+- Etiquettes: Correction bug pour étiquettes familles en cas d'absence de mail.
+
+Version 1.2.7.56 (27/10/2021)
+
+- Facturation: Date de facturation sur exercice fermé: un écran permet de saisir une date dans un exercice ouvert.
+
+Version 1.2.7.55 (25/10/2021)
+
+- Amélioration balance âgée: avec 'non transfert en compta', les règlements à venir vus comme encaissés.
+
+Version 1.2.7.54 (22/10/2021)
+
+- Changement de méthode pour fermer les connexions restées ouvertes, fermeture forcée en sortie de famille.
+
+Version 1.2.7.53 (19/10/2021)
+
+- Balance âgée: Si décoche 'seulement compta', désactive la date et prend tout idem solde client.
+
+
+Version 1.2.7.52 (17/10/2021)
+
+- Lettres de rappel,génération: Ajout de l'accès direct à  Famille
+- Lettres de rappel,liste: correction bug
+- Facturation, ajout de fermetures de connexions
+- Ajout d'un message plus de 50 connexions restées ouvertes
+
+Version 1.2.7.51 (27/09/2021)
+
+- Facturation famille: Amélioration de la reprise de cotisation déjà facturée
+- Facturation famille: Autre cas du bug IDprestation
+- Suppression de pièce en cas de plusieurs pièces sur même inscription: on conserve l'inscription et les consos
+
+Version 1.2.7.50 (20/09/2021)
+
+- Nb jours d'activité retourné en Float et non en decimal
+- Correction de l'anomalie de reprise de niveau famille, via correction d'activité.
+
+Version 1.2.7.49 (11/09/2021)
+
+- Facturation: correction du bug IDprestation sur clients sans niveau famille en cours
+- Modifs sur création de nouvelles bases
+- bug de 2020 sur création d'articles
+
+Version 1.2.7.48 (06/09/2021)
+
+- Impression facture : correction du bug de la perte du numéro de facture
+- Liste des facturations: suppression de rafraichissement en retour d'accès famille
+
+Version 1.2.7.47 (30/08/2021)
+
+- Attestation présence : correction du bug en cas de plusieurs lignes pour un séjour avec un transport facturé
+
+Version 1.2.7.46 (28/07/2021)
+
+- Reduction cumul : correction du bug en cas de plusieurs facturation d'une meme inscription
+- Refonte des reprises de pièces familles : couleurs, précoches, propositions non imposées
+- Refonte du lettrage des parrainages
+- Possibilité d'affecter une refacturation à une réduc parrainage indue
+
+Version 1.2.7.44 (15/07/2021)
+
+- Gestion des référence, échéance et acquitté, adaptés selon les types de piéce
+- modification du modéle de facture par défaut, inclus TEXTE_NUMERO  et TEXTE_ECHEANCE
+
+Version 1.2.7.43 (12/07/2021)
+
+- Meilleure gestion des téléphones et mails dans les listes,
+- Réorganisation de nombreux programmes pour harmoniser les téléphones et mails
+- Lors du détachement, proposition de création d'une nouvelle famille avec pour correspondant soi-même
+- Lors du détachement, l'individu récupère l'adresse de son ancienne famille en propre (lien coupé)
+- Saisie des adresses famille, le correspondant lui-même reste visible dans sa propre fiche
+
+Version 1.2.7.42 (01/07/2021)
+
+- Lancement de Noethys avec GestionDB, affichage de l'adresse IP lors de la connection
+- Gestion des transports sans lien avec une activité
+
+Version 1.2.7.41 (21/06/2021)
+
+- Civilité des associations remplacement du None par '' et ajout de strip()
+
+Version 1.2.7.40 (17/06/2021)
+
+- Correctif du bug sur la civilité des associations dans la désignation famille
+
+Version 1.2.7.39 (10/06/2021)
+
+- Listes de transports: gestion de l'absence de correspondant de la famille substitué par '!!!NomPrenom' de l'individu
+- Lors d'un détachement d'un individu puis création d'une nouvelle famille pour lui, amélioration de la gestion du correspondant
+- Ajout d'un test en entrée de famille si pas de correspondant famille un message invite à s'en occuper
+- Listes d'inscriptions: l'accès à une fiche famille ne pose plus de problème au retour
+- Parrainages: si un filleul n'a pas validé son inscription, un message le signale sans créer de plantage
+
+Version 1.2.7.38 (28/05/2021)
+
+- Ajout d'une civilité MrMme sur le premier titulaire de la famille pour une désignation famille optimisée
+- Ajout de la civilité dans la composition automatique de la désignation famille
+- Gère la saisie d'adresse en différé après création d'une première inscription. Le destinataire reste la désignation famille
+- Correction de l'analyse de l'existence de la cotisation non encore facturée mais à conserver. Reste cochée en bleu et non supprimée en rouge
+
+Version 1.2.7.37 (27/05/2021)
+
+- Listes des inscriptions paramétrable: si choix 'prestations' le montant réglé vient par défaut
+
+Version 1.2.7.36 (10/05/2021)
+
+- Modification des exports excel, le nom de colonne est idem dans excel et l'écran
+
+Version 1.2.7.35 (30/04/2021)
+
+- Suppression de fiche individu impossible si présence d'une inscription
+
+Version 1.2.7.34(28/04/2021)
+
+- Création de fiche individu: gestion d'intinéraire atypique pour reprise des coordonnées
+
+Version 1.2.7.33(28/04/2021)
+
+- Liste des règlements et autres listes: les dates à blanc sont tolérées dans les filtres sur colonnes dates.
+
+Version 1.2.7.32(12/04/2021)
+
+- Liste récap des transports, bug des lieux inconnus qui ne disparaissaient pas
+- Saisie d'adresse pour départements commençant par '0' correction du bug des villes non trouvées
+
+Version 1.2.7.31(02/04/2021)
+
+- inversion du prénom nom dans la génération de la désignation famille, pas mis la civilité ni les deux titulaires car trop risqué vu la structure originale du programme
+- correction du bug sur les listes de transports
+
+Version 1.2.7.30(27/03/2021)
+
+- Blocage de la suppression d'une catégorie tarif si présence d'une inscription déjà faite avec.
+
+Version 1.2.7.29(26/03/2021)
+
+- Impression factures: Désignation sans civilité, bug des prénoms commençant par 'FA'
+- Ajout d'un filtre sur caracères spéciaux dans le nom à l'édition (filtre l'antérieur où c'était possible).
+
+Version 1.2.7.28(25/03/2021)
+
+- Facturation: retour à la version antérieure (problème de coche avec l'optimisation rapidité)
+- Refus pub, mis à blanc au lieu de indéterminé
+- Identité :  filtre des caractères spéciaux provoquant des problèmes d'édition
+
+
+Version 1.2.7.27(24/03/2021)
+
+- Activités : affectation des tarifs, l'exclusion des réductions cumuls est possible pour le tarif du groupe
+- Liste de contrôle des parrainage : nouvel outil dans Noethys/Facturation
+- Lettrage parrainages : possibilité d'associer plusieurs réductions à une famille filleule, ou lettrer une seule ligne pour ok
+- Génération Avoirs : plus de question posées sur la date, remet dans l'exercice de la facture s'il est toujours ouvert
+- Cohérence facture, en cas d'avoir suppression de prestations en surnombre
+- Modifications sur la gestion de plusieurs cohérences en entrant dans facturation
+
+Version 1.2.7.25(6/03/2021)
+
+- Balance âgée
+- correction format date sur édition des factures
+
+Version 1.2.7.23(20/02/2021)
+
+- suppression du passage systématique du niveau famille à l'entrée de la fiche
+- extension des missions à la réduction serviteur
+- duplication activités: transposition des affectations de tarifs
+- ajout d’une gestion des affectation de tarifs Matthania dans la fiche activité, la gestion précédente étaient restée mais inutilisées
+- gestion d'un prix de l'activité qui force le prix des articles de type séjours
+- table matTarifs: changement nom champ trfIDcategorieTarif en trfIDcategorie_tarif, ajout du champ trfPrix
+
+Version 1.2.7.22(15/02/2021)
+
+- Gestion des tarifs: optimisation de l'appel des données, pour accès à distance
+- Suppression de la sécurité d'un tarif déjà affecté à une activité/groupe/categ : On écrase l'existant sans sommation
+
+Version 1.2.7.21(10/02/2021)
+
+- réécriture de l'entrée dans la fiche, teste la présence de nouveaux parrainages
+- Réécriture du niveau famille qui est chaîné à l'entrée si modifications nécessaires
+- La réinitialisation de la saisie famille, permet de voir la version antérieure, puis revient à  la nouvelle proposition
+- Affichage des facturation des années antérieures à partir de la saisie famille
+- plus de 'sous réserve' dans les parrainages
+- Lors de la suppression d'une inscription parrainée, un message invite à aller chez le parrain si elle avait été imputée
+
+Version 1.2.7.20(14/01/2021)
+
+- Suppression du contrôle de fermeture des bases
+- Réduction cumul: amélioration du décompte des nuits en cas de camp incomplet
+
+Version 1.2.7.19(08/01/2021)
+
+- Tolérance du null pour les export compta
+
+Version 1.2.7.18(07/01/2021)
+
+- bug sur entrée dans famille
+
+Version 1.2.7.17(06/01/2021)
+
+- ajout de la catégorie 'donsscerfa'
+- correction du  bug sur le prix famille
+
+Version 1.2.7.16(05/01/2021)
+
+- Réductions : implémentation des nouvelles règles de réductions de prix
+- Parrainages : corrections effectives si lettrage ou délettrage, corrections automatiques d'anomalies
+- Niveau Famille : nombreuses modifications sur la gestion des articles
+
+Version 1.2.7.15(11/12/2020)
+
+- Cerfas: reécriture de nombreuses parties
+	.Ajout d'une confirmation de génération d'attestation et du nombre généré
+	.Interprétation plus laxiste de la notion de paiement dans la période
+	.Ajout de la colonne correspondant sans sa civilité, tri sur cette colonne
+	.Ajout d'un chaînage sur famille par double clic
+	.Corrections pour éviter les doublons pour les dons en niveau famille
+- Gestion des ventilations : reécriture de l'outil
+
+
+Version 1.2.7.14(27/11/2020)
+
+- Remaniement de UTILS_Titulaires pour harmoniser les adresses
+- Remise en service de la liste familles originale noethys
+- encore quelques bugs GROUB BY latents repérés
+
+Version 1.2.7.13(26/11/2020)
+
+- Ratachement famille: correction du bug si le rattaché a conservé une adresse pointant son ancienne famille
+
+Version 1.2.7.12(19/11/2020)
+
+- Gestion des articles: quantités en nombre réel au lieu de entier
+- Attestations Cerfas: ajout d'une bascule de période facile
+
+Version 1.2.7.11(13/11/2020)
+
+- Gestion des désignations correspondants: mise à part de la civilité pour adresses
+- Liste des inscription, compactage des adresses
+- Saisie adresses : Acceptation ou refus dynamique des modifications
+-                 : Priorité à la postion initiale si doute
+
+Version 1.2.7.10(07/11/2020)
+
+- liste etiquettes: meilleure gestion de l'ajout des 'sans familles'
+- Correction: les contacts, ne sont plus des titulaires s'ajoutant aux civilités
+
+Version 1.2.7.9(06/11/2020)
+
+- liste etiquettes: gestion de l'ajout des 'sans familles' à la liste 'familles'
+
+Version 1.2.7.8(05/11/2020)
+
+- saisie d'adresses: gestion des no d'appartements ou étages précédant le mot clé
+
+Version 1.2.7.7(05/11/2020)
+
+- etiquettes : Normalisation des listes individus et familles
+- saisie d'adresses: gestion des espaces non significtifs
+
+Version 1.2.7.6(04/11/2020)
+
+- Edition d'étiquettes, correction bug sur filtre départements nuls.
+
+Version 1.2.7.5(21/10/2020)
+
+- Correction bug sur filtres champs 'integer'
+
+Version 1.2.7.4(01/10/2020)
+
+- Possibilité de refaire une facture après un avoir non modifiable.
+- Correction d'un bug lors de suppression de prestation
+- Modif sur la gestion des tables
+
+Version 1.2.7.3(10/09/2020)
+
+- Gestion des bugs liés à l'absence de consos
+
+Version 1.2.7.2(04/09/2020)
+
+- Impression pièces: remis la possibilité de joindre commandes et factures dans une seule impression
+
+Version 1.2.7.1(04/09/2020)
+
+- Saisie transport: correction d'un bug sur vérif localisation
+- Liste Inscriptions: regroupement sur le premier champ des tables secondaires (doublons)
+
+Version 1.2.7.0(28/08/2020)
+
+- Dans toutes les listes: Recherche possible de mots avec apostrophes
+
+Version 1.2.6.36(15/08/2020)
+
+- Attestations : Modification nécessitée par changement de version MySQL
+
+Version 1.2.6.35(05/08/2020)
+
+- Transfert en compta : correction des arrondis tronqués
+- Parrainages : correction bug délettrage en l'absence de sélection
+- Gestion Articles : modif fonction GroupeActivite()
+
+Version 1.2.6.34(23/07/2020)
+
+- Réduction Service: teste le mot 'EQUIPIER','ANIMATEUR' dans le groupe de l'année précédente
+- Menu Noethys transports: Remaniment de la gestion du sous menu, déplacé pour faciliter les évolutions
+
+Version 1.2.6.33(22/07/2020)
+
+- Réduction Service: teste la présence de 'PERSONNEL','EQUIPIER','ANIMATEUR' dans le groupe de l'année précédente
+
+-Version 1.2.6.32(20/07/2020)
+
+- Transports: Correction du bug sur navettes
+- Transports: Pointe la ligne lors de la gestion d'un arrêt en saisie transport
+- Transports: Désactivation de l'option 'seulement dates futures' lors du retour de la gestion d'un transport.
+
+Version 1.2.6.31(19/07/2020)
+
+- Transports: Correction du bug sur intercamp
+- Transports fiche individu: Gestion du seul départ ou arrivée idem gestion par la pièce
+
+Version 1.2.6.30(18/07/2020)
+
+- Transports: Obligation de saisir un arrêt pour les modes avec lignes de transport
+- Transports: Choix par défaut quand un seul arrêt sur une ligne (cas des intercamps et navettes)
+
+Version 1.2.6.29(17/07/2020)
+
+- Liste de consommations: correction du bug GroupBy
+
+Version 1.2.6.28(16/07/2020)
+
+- Edition pièces: ajout de l'arrêt d'arrivée si renseigné (intercamps en lieu de retour)
+- Liste transports détaillée : Ajout des champs de correspondants mails et téléphones
+
+Version 1.2.6.27(15/07/2020)
+
+- Transports : application d'un lieu ou d'un arrêt, navettes avec arrêts et non plus les gares
+- Transports : Gestion départ et arrivée possible en fiche Individu
+- Edition pièces : Gestion différente de la ligne transport, enrichissement aller et retour
+
+Version 1.2.6.25(13/07/2020)
+
+- Liste Inscriptions une activité : correction de bug sur les adresses de correspondants
+- Transports: dissociation des navettes et intercamps, nécessité de paramétrer les différents intercamps
+
+Version 1.2.6.24(07/07/2020)
+
+- Liste Transports détaillés : nom activité en clair, oubli de l'heure
+
+Version 1.2.6.23(03/07/2020)
+
+- Saisie d'adresse : modification mineure
+- Création individu dans une famille: correction du bug
+- Changement de date d'activité: correction de divers bugs
+
+
+Version 1.2.6.22(01/07/2020)
+
+- Saisie prestations: correction bug d'individus détachés de la famille
+
+Version 1.2.6.21(26/06/2020)
+
+- Saisie adresses: meilleure gestion du forçage
+- parrainages: en correction de saisie, gestion de l'évènement avrec Select == None
+
+Version 1.2.6.20(20/06/2020)
+
+- Activités: Obligation de saisie de codes analytiques
+- Gestion parrainage: bug altOK corrigé
+- Désactivation de modules inutiles au lancement
+- Gestion de l'erreur de versions avec Pb d'ouverture des fichiers shelve
+
+Version 1.2.6.19(18/06/2020)
+
+- Relevé de prestations : abandon des dates de différé, date du reglement = date de saisie
+- Blocage de la gestion des consos pour les devis
+- Changement de l'adressage des rapports de bug, désormais envoyés à JB
+- Saisie des réglements : Autocorrection des surventilations de prestations
+- Inscriptions Famille : prise en compte du nouveau codage analytique
+
+Version 1.2.6.18(08/06/2020)
+
+- Changement de date d'activité, contrôle de présence de consos
+- Liste inscriptions MULTI: ajout de labels composés dans le choix des colonnes
+- Liste inscriptions Une Activité: Gestion des mails et téléphones de tous les représentants de la famille
+- Liste inscriptions Une Activité: Gestion des années proposées limitées aux existantes.
+- Saisie d'adresse correction de bug sur l'accès à Geographie.dat
+
+Version 1.2.6.17(31/05/2020)
+
+- Ajout de champs de listes inscriptions : date d'inscription, date début activité ...
+- Sauvegarde des paramètres en liste inscriptions: correction du bug lors de modification d'un existant
+- Export compta : journaux possibles à trois caractères, collectif inclus, libellé du client dans le don
+
+Version 1.2.6.16(24/05/2020)
+
+- Modification du contrôle de sortie d'un individu d'une famille
+- Saisie adresse: possibilité de gérer l'étranger sans créer nécessairement la ville
+
+Version 1.2.6.15(21/05/2020)
+
+- Correction bug en création d'individu
+
+Version 1.2.6.14(12/05/2020)
+
+- Modificaton des tables pour gérer l'analytique au niveau de l'activité au lieu du groupe d'activité
+- Transposition de l'actuel code dans le groupe vers l'activité
+- Réduction automatique du nombre de groupes d'activité sur le premier caractère
+- Réaffectation des activités aux groupes
+- Adaptation des listes de convois/transport
+- Export compta adapté pour Quadratus et à la nouvelle gestion des codes analytiques
+- Export du plan comptable pour Quadratus
+- Détachement d'un individu : possible sans définir un autre correspondant s'il est seul dans la famille.
+
+Version 1.2.6.13(06/05/2020)
+
+- Duplication d'activité avec transposition des ouvertures ou ouvertures automatiques
+
+Version 1.2.6.12(03/05/2020)
+
+- Impression des étiquettes améliorée: accès fiche famille, compteurs, couleurs nopub
+- Saisie adesse: Gestion des refus distincts mel et papier : bug corrigé
+- Familles: Ajout d'une fonction 'definir correspondant' par clic droit sur un titulaire
+- Gestion de prestations de la famille: consultation possible même si modif impossible
+- Cerfas mise à jour de la date d'édition
+- Ficher PDF des Cerfas: nom du client si pdf unique
+
+Version 1.2.6.11(28/04/2020)
+
+- Gestion des villes avec apostrophe dans saisie d'adresses
+- Editions Cerfas revu
+- Table 'matCerfasLignes' modifiée au premier lancement
+- Relevé de prestation, correction bug si une seule ligne en ventilation
+
+Version 1.2.6.10(22/04/2020)
+
+- Liste inscriptions modif de la recherche du correspondant famille
+
+Version 1.2.6.9(21/04/2020)
+
+- Liste inscriptions paramétrable: Gestion de la modification des paramétrages stockés
+- Liste inscriptions mono activité: correction requete group by
+
+Version 1.2.6.8(20/04/2020)
+
+- module Relevé de prestation et Situation comptable, ajustement de cas particuliers
+
+Version 1.2.6.7(20/04/2020)
+
+- Refonte du module Relevé de prestation et Situation comptable
+- Modif pour mieux voir les pièces ajoutées à un mail
+
+Version 1.2.6.6(16/04/2020)
+
+- Nouveau group by sur choix des groupes en inscription
+
+Version 1.2.6.5(16/04/2020)
+
+- Autre série de Modification des requetes suite à upgrade de MySQL (facturation, inscriptions, listes...)
+- Gestion adresse : cas des villes avec une apostrophe
+
+Version 1.2.6.4(15/04/2020)
+
+- Modification des requetes suite à upgrade de MySQL
+- Programmes modifiés : Facturation,GestionPieces, GestionArticles, Etiquettes,ExportCompta
+
+Version 1.2.6.3(07/04/2020)
+
+- correction bug en saisie d'adresse du titulaire famille
+- Amélioration du relevé prestations
+
+Version 1.2.6.2(01/04/2020)
+
+- correction bug en création de contact dans une famille
+- Remise en service du relevé de prestations
+- Correction du bug de l'affichage du facturé dans prix_famille
+- Modification sur la gestion des adresses et des pays
+- Bug lettrage des parrainages corrigé
+
+Version 1.2.6.1(16/03/2020)
+
+- amélioration du lettrage automatique des parrainages
+- déblocage des contrôles d'accès au parrainage
+
+Version 1.2.5.93(04/03/2020)
+
+- Modification tables familles et individus, ajouts de champs refus pub
+- Nouvelle notion de désignation famille gérée en auto
+- Modification table correction_villes pour ajout du pays
+- préparation de l'Interface de saisie des adresses gestion des secteurs = pays postaux
+- Gestion des liste de diffusion ou des refus globalement par famille
+
+Version 1.2.5.30(24/01/2020)
+
+- Etiquettes : Gestion de la découpe des adresses et séparation des noms
+
+Version 1.2.5.29(23/01/2020)
+
+- Etiquettes : Mise à blanc des adresses perdues
+
+Version 1.2.5.28(23/01/2020)
+
+- Bug sur reprise facturation par correctifs
+
+Version 1.2.5.27(18/01/2020)
+
+- Blocage des modifs de dépôts dont les règlements sont transférés en compta
+- ajout du solde comptable dans l'affichage de la famille en plus du solde final.
+- programme Liste des soldes, modifié pour Matthania
+
+Version 1.2.5.26(10/01/2020)
+
+- Abandon du message d'alerte sur les incohérences de parrainages imputés sans trace du filleul
+
+Version 1.2.5.25(09/01/2020)
+
+- Correction sur les filtres des listes de transport
+- Correction sur le précochage des lignes dans les modifs de pièces
+
+
+Version 1.2.5.24(04/01/2020)
+
+- Finition de la réorganisation de la gestion des pièces (bug non vu en création)
+- Refus de facturer une pièce sur un exercice fermé au lieu de la date du jour mise par défaut.
+- Meilleure gestion de l'abandon quand il y a un choix d'exercice (l'abandon était la date du jour)
+- Reécriture de la sélection des activités sur paramètres écran d'accueil
+
+Version 1.2.5.23(21/12/2019)
+
+- Impression du correctif transport dans tous les cas
+- L'abandon en cours de saisie d'avoir ne le crée plus
+- Modification du libéllé du bouton pour les avoirs partiels ou les compléments de facture. Nouveau nom : 'Correctif + -'
+- Pas de passage par le choix d'activité si on fait un complément de facture (l'activité était selectionnée)
+- Les compléments ou correctifs sur activité ne précochent plus les lignes.
+
+
+Version 1.2.5.22(01/12/2019)
+
+- Civilités, le nombre a été réduit selon la demande
+- Filtres de liste, possibilité du 'or' au lieu du 'and'
+- Listes étiquettes, la civilité n'était pas considérée comme alpha
+
+Version 1.2.5.21(20/11/2019)
+
+- Liste des inscriptions: correction bug sur année
+
+Version 1.2.5.20(03/11/2019)
+
+- Liste des inscriptions à une activité : limitation à une année des activités proposées.
+- Modif du compteur Footer pour les nombres de lignes (cf DLG_Liste_inscriptions)
+- Meilleure gestion du titre du regroupement.
+- Modif paramètre Sauvegarde "--column-statistics=0"
+
+Version 1.2.5.19(26/10/2019)
+
+- Ajout de civilités
+
+Version 1.2.5.18(26/10/2019)
+
+- Possibilité de saisir des codes postaux alpha
+
+Version 1.2.5.17(25/10/2019)
+
+- Nouveau module Suivi facturation : non transféré en compta
+- Réécriture des listes des familles pour adresses
+- Etiquettes ajout de deux préparation : Familles actives et Bénévole actifs
+
+Version 1.2.5.16(15/10/2019)
+
+- Correction de bug sur les montants des listes d'inscriptions
+- nouveau module liste des non transferts en compta
+
+Version 1.2.5.15(12/09/2019)
+
+- Améliorations de la gestion des récup de parrainages et auto corrections
+- Possibilité de faire générer après accord d'une pseudo inscription sur une ligne veuve dans une pièce.
+- gestion des modes de règlements : correction d'un oubli lié au nouveau type d'export
+
+Version 1.2.5.14(08/09/2019)
+
+- gestion des dépôts de règlements : correction du bug sur les tris, nouvelle gestion des libellés des tris possibles
+- gestion des modes de règlements, nouveau type d'export compta : avec détail et date du règlement, au lieu de date dépôt
+
+Version 1.2.5.13(16/08/2019)
+
+- l'option inversion de sens ne devait pas s'appliquer sur les commandes et devis
+
+Version 1.2.5.12(31/07/2019)
+
+- complément à la correction sur conso de la 5.11
+
+Version 1.2.5.11(29/07/2019)
+
+- Ajout de la possibilité de toujours modifier un parrain si la réduction n'a pas encore été imputée
+- Correction d'un bug sur l'affichage des consos en cas d'inscription a une seule activité.
+
+Version 1.2.5.10(25/07/2019)
+
+- L'appel des parrainages se faisait encore à tort sur les individus et non sur les familles
+- Encodage était mal géré pour les avoirs globaux
+- Modification des références pieces dans l'export compta pour récup du payeur dans le rapprochement banque
+
+Version 1.2.5.9(15/07/2019)
+
+- Bug sur la grille des consommations, individus ayant changé de famille
+- Modif des format de dates dans les vieilles inscriptions
+
+Version 1.2.5.8(22/06/2019)
+
+- Modification d'affichage des transports
+
+Version 1.2.5.7(03/06/2019)
+
+- Modification Noethys original pour aligner le payeur sur
+la famille
+
+Version 1.2.5.6(30/05/2019)
+
+- Ajout de la date dans les lignes règlements sur les impression de pièces
+- Remise en service du relevé de prestation avec regroupement des règlements sans ventilations
+- Insertion du choix de famille en modif de pièce pour les individus en plusieurs familles
+
+Version 1.2.5.5(28/05/2019)
+
+- complément de correction sur bug précédent
+
+Version 1.2.5.4(24/05/2019)
+
+- correction de bug lié au retour sur ReqInsert
+- Suppression des parrainages en cas de suppression de pièce en contenant
+
+Version 1.2.5.3(16/05/2019)
+
+- le parrain est une famille et non plus un individu
+- une même inscription ne peut être parrainée qu'une seule fois, même si plusieurs pièces
+- modification du retour ID en insertion d'une ligne (peut révéler des bugs)
+
+Version 1.2.5.2(15/05/2019)
+
+- création table matParrainage
+
+Version 1.2.5.1(11/04/2019)
+
+- Bug réduction âge enfant si 100%
+- Recalcul réductions si changement
+- Rappel d'aller dans Famille en cas de suppresion de pièces non facturées
+- correction de Bug dans mySQL connector
+
+Version 1.2.4.128(06/04/2019):
+
+- Liste inscriptions : récriture pour contourner les plantages sur le serveur du siège
+
+Version 1.2.4.127(04/04/2019):
+
+- Liste inscriptions la gestion des téléphones et mails est élargie aux infos famille
+- Parrainages : correction d'un bug qui grisait intempestivement les zones
+
+Version 1.2.4.126(02/04/2019):
+
+- Liste des inscriptions élargissement fenêtre
+- Modification dans le menu de Noethys, pour gérer les articles et tarifs dans les paramétres facturation
+- Modification pour ne pas généraliser l'apparition des articles 'X' mais seulement les 'x' dans les lignes factures.
+- gestion des exercices comptables remplacement du terme suppression par fermeture
+- corrections de mauvais codage dans le suivi historique
+- Export compta proposé jusqu'à la date du jour et non fin d'exercice
+- Correction de bugs lors d'un usage en local 'encodage Sqlite')
+
+Version 1.2.4.125(23/03/2019):
+
+- Ajout de la fonction 'Commence par' dans les filtres
+- Parrainage les contacts deviennent sans incidence sur la possibilité de parrainage.
+
+Version 1.2.4.124(20/03/2019):
+
+- Réduction enfants moins d'un an, corrigée
+- Modification des totaux des devis à l'impression (pas de facture acquitté, et rappel de l'antérieur)
+- Liste d'inscriptions, correction du bug sur l'option colonnes 'consommations'
+
+Version 1.2.4.123(07/03/2019):
+
+- Lettres de rappels : Correction de la date d'antériorité créances
+
+Version 1.2.4.122(06/03/2019):
+
+- Editions d'étiquettes, ajout du nombre de lignes
+- Correction bug sur la case à cocher sans les codes postaux à zéro
+
+Version 1.2.4.121(04/03/2019):
+
+- Modification du détail des impayés dans l'impression des pièces
+- Modification du relevé de prestations pour les relances
+- Epuration du menu Noethys, des modules incompatibles.
+
+Version 1.2.4.120(27/02/2019):
+
+- Modification du rapport d'export compta
+- Option skip-column-statistics dans sauvegarde
+
+Version 1.2.4.119(18/02/2019):
+
+- Modif sur le calcul de millésime de la condition unique dans l'année exercice
+- Finalisation des editions cerfa dons aux oeuvres
+
+Version 1.2.4.118(07/02/2019):
+
+- Améliorations listes étiquettes
+- Cerfas : gestions du stockage et des réguls
+
+Version 1.2.4.117(30/01/2019):
+
+- Ajout des tables Cerfas
+
+Version 1.2.4.116(29/01/2019):
+
+- Liste inscriptions : Correction sur l'absence du détail des lignes facture
+- Cerfas Dons aux oeuvres : première version sans les numéros de reçus
+
+Version 1.2.4.115(26/01/2019):
+
+- Liste prestations : Réécriture des filtres et ajout de tris
+
+Version 1.2.4.113(19/01/2019):
+
+- Liste étiquettes : filtre sur code postal '00' mis en option
+- Ignore les individus non rattachés dans la liste famille
+- Les individus sans adrsse sortent dans la liste,
+- Ajout d'un avertissement si des étiquettes sortiront sans code postal
+
+Version 1.2.4.112(17/01/2019):
+
+- Saisie prestations: la saisie n'est plus possible sur les exercices passés (meilleur contrôle des dates)
+- Impression pièces : plusieurs bugs en situation atypique sont corrigés
+- Cerfa pour les dons, mise en place de la liste (en attendant l'édition non développée)
+
+Version 1.2.4.111(13/01/2019):
+
+- Parrainages: les réductions ne sont plus proposées si utilisées
+- Mise en place dans les menus des futurs Cerfa
+- Modification du rapport de la liste des transferts en compta
+
+Version 1.2.4.110(08/01/2019):
+
+- Facturation : possibilité de transformer un lot de devis ou reservations en commandes
+
+Version 1.2.4.109(07/01/2019):
+
+- Listes inscriptions : possibilité de stocher et reprendre des paramètres sur les colonnes,
+- Listes inscriptions : possibilité de changer l'ordre des colonnes
+- Gestion des règlements et prestations, meilleur contrôle des blocages
+- Export compta: modifs de libellés
+
+Version 1.2.4.108(19/12/2018):
+
+- pièce famille : suppression de l'arrondi à 0.10€
+- Saisie modif d'un règlement: imputation possible de montants négatifs
+- Export compta: modif du libellé quand écritures détaillées par règlement
+
+Version 1.2.4.107(14/12/2018):
+
+- Impression d'étiquettes : correction de bug et implémentation de l'export Excel sur seules cases cochées
+- Correction du bug type Ramel sur accès famille
+
+Version 1.2.4.106(13/12/2018):
+
+- Changement de l'ordre des réglements dans la gestion des dépôts
+- Coche 'inactif' pour masquer les attentes et les différés dans la gestion des dépôts
+- Listes inscriptions, ajout du champ échéance si on coche l'option 'Pièces'
+- Ajout de la possibilité d'inscrire un individu le même jour à deux groupes
+
+Version 1.2.4.105(09/12/2018):
+
+- transfert en compta modifié, dépôts obligatoires pour être transféré
+- Inscriptions sans transport : correction du message mal géré
+- Vérifié si devis n'inscrivent pas les consos : OK
+- Bug sur avoir global corrigé
+
+
+Version 1.2.4.104(25/11/2018):
+
+- modification des alertes pour opérations hors exercice ouvert
+- Réduction famille nombreuse calculée sur l'exercice et non sur l'année civile
+- Création de nouvelles conditions soit sur exercice soit sur année civile  (attention licences sur années civiles)
+- Modif des arrondis et reprise des couleurs en cas de forçage.
+- Prise en compte de la date de différé comme date comptable si pas de dépôt.
+- Saisie règlements : la case 'attente' et le compte d'encaissement ne se vérouillent plus après un transfert en compta
+
+
+Version 1.2.4.103(21/11/2018):
+
+- suppression du terme 'sieste' au profit de 'infos complémentaires'
+- listes d'inscription correction d'un bug sur filtres CatégoriesTarifs et Groupes
+- Dans familles possibilité de détacher l'individu même si présence d'inscriptions ( génère des memos individu parti et famille veuve)
+- dans individus zone pour cocher changement de famille et année du dernier changement plus mémo (renseigné en automatique)
+- blocage de la consultation d'une inscription dont l'individu a changé de famille.(seule la ligne est visible)
+- Ajout du secteur adresse dans les étiquettes et mailing
+- Ajout d'un titulaire par défaut dans les familles (on prend l'aîné)
+- Etiquettes : gestion des listes de diffusion pour les familles selon le principe un individu dans une liste emporte la famille
+
+
+Version 1.2.4.102(08/11/2018) :
+
+- Gestion des dépôts : ajout 'tous les règlements' limité à ceux visibles.
+
+
+Version 1.2.4.101(07/11/2018) :
+
+- Gestion activité limite à un seul groupe d'activité maxi par activité
+- Modifs sur l'export compta : pieces orphelines, ajout d'un document de contrôle solde
+- blocage des règlements si transférés en compta
+
+Version 1.2.4.100(25/10/2018) :
+
+- Inscriptions : Blocage de l'inscription si aucune  journée d'ouverture du groupe
+- Export compta : vérifications
+- Impression avec noms ayant des caractères spéciaux
+
+
+Version 1.2.4.99(24/10/2018) :
+
+- Listes : Possibilité de n'avoir qu'un nom prénom dans les adresses familles, colonne département en plus
+
+Version 1.2.4.98(20/10/2018) :
+
+- Listes : concept de l'inversion des coches jusqu'à la sélection
+
+Version 1.2.4.97(19/10/2018) :
+
+- Etiquettes Matthania : améliorations par choix ou non des colonnes questionnaires et diffusion
+- Gestion des individus isolés (sans rattachement à une famille)
+
+Version 1.2.4.96(13/10/2018) :
+
+- Liste inscriptions : sauvegarde et reprise des paramètres de liste
+
+Version 1.2.4.95(10/10/2018) :
+
+- Affichage de règlements anciens : bug corrigé
+- Duplication de règlements : mise à blanc du flag compta
+- Liste inscriptions : option famille opérationnelle
+
+Version 1.2.4.94(08/10/2018) :
+
+- Nouvelle version des listes d'inscriptions
+
+Version 1.2.4.93(28/09/2018) :
+
+- Modif du calcul des réductions famille pour la saison année
+
+Version 1.2.4.91(26/09/2018) :
+
+- Implantation de nouvelles fonctions liste inscriptions.
+
+Version 1.2.4.90(18/09/2018) :
+
+- Gestion des lettres de rappel et mailer : débug, raccourcis et optimisation.
+
+Version 1.2.4.89(10/09/2018) :
+
+- Modif des réductions multi activité pour éviter les doubles lignes qui se compensent.
+
+Version 1.2.4.88(8/09/2018) :
+
+Envoi mail des attestations :
+- Suppression de la recherche de nouvelles adresses à ajouter (trop lente au chargement).
+- possibilité d'ajout libre d'une adresse
+- coche des adresses mails pour envoi ou pas,
+- l’attestation est mise en pièce commune
+- Conservations des choix si coché lors de la  génération d'un pdf,
+
+Version 1.2.4.87(6/09/2018) :
+
+- corrections sur attestation : nombre de jours, gestion du lien avec les prestations.
+
+Version 1.2.4.86(5/09/2018) :
+
+- corrections provisoires sur attestations
+
+Version 1.2.4.85(26/07/2018) :
+
+- meilleure gestion des transports pointés par plusieurs pièces
+
+Version 1.2.4.84(23/07/2018) :
+
+- bug sur appel transports
+
+Version 1.2.4.83(22/07/2018) :
+
+- Suppression d'un message intempestif en création d'avoir global
+- Conservation du prix transport facturé, même si suppression transport en avoir global
+- Accès aux consommations quand la quantité de jours est modifée
+- Avertissement quand deux transports sont saisis sur une même activité.
+
+Version 1.2.4.82(20/07/2018) :
+
+- Possibilité de réinscrire après un avoir global
+- Demande de suppression des transports lors d'un avoir global
+
+Version 1.2.4.81(18/07/2018) :
+
+- possibilité d'ajouter un transport dans une pièce complémentaire qui s'ajoute à ceux déjà existants.
+- Notion de 'Pas de transport' qui ne génère pas l'enregistrement transport
+
+
+Version 1.2.4.80(15/07/2018) :
+
+- Modif impression des pièces si transport disparu, le montant facturé est conservé
+- Gestion d'un transport présent respecté en cas d'ajout de pièce complémentaire, modification des messages d'anomalies
+- En cas d'ajout de pièce complémentaire, le transport proposé doit ignorer l'antérieur et s'ajouter s'il y a lieu
+- Affichage de tous les tranports futurs et passés, dans la fiche individu (seuls les futurs étaient visibles...)
+- Possibilité de modifier un transport même si une pièce complémentaire a été été faite (pour récupérer l'antérieur en rétrogradant la facture pour la refaire à l'identique)
+
+
+Version 1.2.4.79(21/06/2018) :
+
+- Export compta gestion image
+- Rétrogradation Avoirs en facture sans problème
+- Génération avoir global associe le niveau famille corrigé avec numéro facture = celui de l'avoir
+
+Version 1.2.4.78(17/06/2018) :
+
+- Export compta modifié pour ne pas oublier des transports orphelins de lignes
+- Modification des arrondis sur l'impression facture pour que les reste à payer ou impayés < 0.1€ soient ignorés
+- Modification de gestion des reports en cas d'avoirs, affichage impayés et soldes modifiés
+
+Version 1.2.4.77(16/06/2018) :
+
+- Conservation de la ventilation sur modif du niveau famille
+
+Version 1.2.4.76(14/06/2018) :
+
+- Bug sur les liste de consommations si unités non renseignées
+
+Version 1.2.4.75(13/06/2018) :
+
+- Implémentation de l'analytique surles transports par convoi
+- Bug sur les corrections automatiques en présence d'avoirs
+
+Version 1.2.4.74(02/06/2018) :
+
+- Enrichissement des champs dans liste transport (prix, convoi, ligne...)
+- Gestion des codes convois dans les groupes d'activités, abandon du séparateur en saisie de l'analytique
+- Suppression de la table matConvois, création d'index sur IDtransport dans matPieces
+- Ajout du champ analytique transports dans  les groupes_activites
+
+Version 1.2.4.73(30/05/2018) :
+
+- activation de la case à cocher 'futur' sur la liste des transports
+- maintien des filtres antérieurs sur la liste des transports
+- Création de la table 'matConvois' pour procédures access sur l'analytique convois de l'export compta
+- modification du menu Noethys/paramétres/transports pour la gestion des lignes de trains
+
+
+Version 1.2.4.72(30/05/2018) :
+
+- Ajout de l'age dans la liste des transports
+
+Version 1.2.4.71(26/05/2018) :
+
+- Correction recherche si local
+- Bug en cas d'exercice non ouvert
+- Modif sur couleur rouge, reste bleu si pas de changement nécessaire
+
+Version 1.2.4.70(24/05/2018) :
+
+- Vérifie l'identité des libellés de réduction en cas de changement d'inscriptions
+- Colore en rouge les lignes d'anomalies dans le niveau famille.
+
+Version 1.2.4.69(12/05/2018) :
+
+- Modification du format des libellés d'écritures comptables
+- Allongement du nom des fichiers d'impression de pièce pour unicité et absence de conflit
+- Priorité donnée aux liens pièce ID transport sur les impressions, seulement si echec : prise des transports en fonction de la date
+- Gestion d'un transport mal formaté
+
+
+Version 1.2.4.68(10/05/2018) :
+
+- Modification sur les calculs des dates d'exercices lors des réductions
+
+Version 1.2.4.67(10/05/2018) :
+
+- Création bouton retour inscription sans enregistrement du niveau famille
+- amélioration de la reprise de nature de l'inscription sur le niveau famille
+- amélioration de la condition annuelle sur niveau famille
+- controle de l'unicité d'un no en facture ou en avoir
+- Correction sur niveau famille en cas d'avoir...
+
+Version 1.2.4.66(08/05/2018) :
+
+- Arrondis au 1/10ème d'€ dans les factures niveau famille et dans les éditions
+
+Version 1.2.4.65(07/05/2018) :
+
+- Le bouton réinitialiser a été modifié pour ignorer toute saisie antérieure
+
+Version 1.2.4.65(06/05/2018) :
+
+- Correction de bug sur reprise d'une réduction famille forcée
+
+Version 1.2.4.64(02/05/2018) :
+
+- Le fichier prend le nom de la famille en impression facture ou devis
+
+Version 1.2.4.63(30/04/2018) :
+
+- La saisie à zéro d'une ligne de facture force l'enregistrement et revient à zéro lors d'un retour à l'écran.
+- Pour éluder une ligne de facture il faut décocher avant d'enregistrer
+- Le bouton réinitialiser est l'équivalent d'une sortie puis rerentrée dans l'écran.
+
+Version 1.2.4.62(26/04/2018) :
+
+- Travail sur l'ajout d'une réduction famille nombreuse forcée et conservée si modifs de camps.
+
+Version 1.2.4.61(24/04/2018) :
+
+- Amélioration des contrôles d'exercices et dates de facturation
+- Impossibilité de facturer sur des exercices non ouverts
+
+Version 1.2.4.60(20/04/2018) :
+
+- Réactivation de la recherche sur numéro de famille ou d'individu
+- correction des Date d'avoir en impression
+- réactivation de la recherche individu en création (sur chaque caractère pas nécessaire de valider)
+
+Version 1.2.4.59(19/04/2018) :
+
+- Travail sur les filtres et les tris
+
+Version 1.2.4.58(18/04/2018) :
+
+- Indexation des tables individus et rattachements
+
+Version 1.2.4.57(12/04/2018) :
+
+- bug sur l'édition de l'attestation de présence
+
+Version 1.2.4.56(08/04/2018) :
+
+- divers bug sur correctifs des pièces et sur recherche client
+
+Version 1.2.4.55(02/04/2018) :
+
+- modification de la recherche client
+
+Version 1.2.4.54(25/03/2018) :
+
+- conservation de la nature de pièce si entrée directement par niveau famille
+- Modification du comportement dans l'écran facturation, pour ne pas confondre selection et case cochée
+
+Version 1.2.4.53(22/03/2018) :
+
+- Possibilité de modifier la nature d'une pièce directement dans Facturation
+- renforcement des traitements de mise en cohérence
+
+Version 1.2.4.52(09/03/2018) :
+
+- Nouvelle gestion des parrainages
+
+Version 1.2.4.52(09/03/2018) :
+
+- Modifications de la synthèse consos pour gérer toutes les activités d'une période
+
+Version 1.2.4.51(19/02/2018) :
+
+- Gestion du forçage des jours en saisie d'inscription pour gérer l'info sur la facture
+
+Version 1.2.4.50(17/02/2018) :
+
+- Gestion des exercices comptables en facturation
+
+Version 1.2.4.49(01/02/2018) :
+
+- Liste d'inscriptions en cas d'avoirs refacturés
+
+Version 1.2.4.48(29/01/2018) :
+
+- Reductions alignées sur le nombre de nuit et non le nombre de jours
+
+Version 1.2.4.47(25/01/2018) :
+
+- Reduction enfant hiver modifiée pour compter les nuits
+
+Version 1.2.4.46(22/01/2018) :
+
+- modification du calcul des soldes comptables
+
+Version 1.2.4.45(04/01/2018) :
+
+- bug sur lettres de rappel
+
+Version 1.2.4.44(28/12/2017) :
+
+- évolution des listes d'inscriptions pour plus d'infos
+
+Version 1.2.4.43(16/12/2017) :
+
+- Bug sur les consos d'individus contacts rattachés
+
+Version 1.2.4.42(8/12/2017) :
+
+- Bug d'affichage suite à mauvais encodage dans les pièces en modif
+
+Version 1.2.4.41(30/11/2017) :
+
+- Modification du format d'export
+
+Version 1.2.4.40(16/11/2017) :
+
+- Gestion des devis en niveau famille
+- suppressiond des reprise de soldes en impression devis
+
+Version 1.2.4.39(15/11/2017) :
+
+- Correction de l'interférence de réduction enfant entre saisons
+
+Version 1.2.4.38(12/11/2017) :
+
+- Export comptable des écritures négatives des avoirs,
+- Bug en création de prestation pour familles avec contact inscrit
+
+Version 1.2.4.37(11/11/2017) :
+
+- Export comptable des écritures négatives,
+- Amélioration de la gestion des incohérences en entrée facturation
+
+Version 1.2.4.36(05/11/2017) :
+
+- Modfication export comptable, priorité aux compte à plus de 3 chiffres sur l'analytique
+
+Version 1.2.4.35(17/10/2017) :
+
+- Modfication export comptable
+
+Version 1.2.4.34(14/10/2017) :
+
+- Gestion des lettres de relance, génération et liste
+
+Version 1.2.4.33(30/09/2017) :
+
+- Lors des sélecions de groupes d'activités toutes les lignes sont précochées
+- Relances : se font sur le total des prestations et non les seules positives des seules activités pointées
+- shunté la page sélection des activités cat tout est pris.
+
+Version 1.2.4.32(28/09/2017) :
+
+- Correction de bug sur Relevé des prestations
+
+- Version 1.2.4.31(24/09/2017) :
+
+- Amélioration des réparations automatiques des pièces
+- Incorporation de la réparation automatique dans la génération des factures en lot.
+- Adaptation des liste de commandes à facturer pour la gestion par lot.
+- modification sur la gestion des articles
+
+
+Version 1.2.4.30(20/09/2017) :
+
+- Obligation de saisir un code analytique pour tous les groupes d'activité
+- Réduction famille nombreuse pour activites d'un groupe ayant un code analytique commençant par 7
+- Modif des contrôles pour supprimer un article
+- filtre d'année des activités pour l'affectation des tarifs
+- Sur Ignorer les transports, question de suppression pour faire disparaître les transports de la facture
+- correction des caractères €, ° etc
+- ajout d'un caractère fin de fichier à l'export
+
+Version 1.2.4.28 (15/09/2017) :
+
+- ajout de l'Obligation de rattacher une activité à un groupe
+
+Version 1.2.4.27 (13/09/2017) :
+
+- Export des écritures comptables Façon Matthania
+- Modif de la gestion des modes de réglements avec incidence sur les exports compta
+
+Version 1.2.4.26 (31/08/2017) :
+
+- Gestion de la mixité de pièces Avoir&Facture sur un même numéro de facture
+- Modification sur les totalisation de restant à régler en présence d'avoir
+
+Version 1.2.4.25 (26/08/2017) :
+
+- Transferts en compta : modifs des priorités des comptes comptables au vu de l'existant
+
+Version 1.2.4.24 (24/08/2017) :
+
+- Impression par lots de factures générées
+- optimisation du temps des vérifs cohérences
+
+Version 1.2.4.23 (23/08/2017) :
+
+- Facturation par lot sur activité
+
+Version 1.2.4.22 (20/08/2017) :
+
+- Migration comptable
+- Modification des contrôles de cohérence facturation
+- Interdiction des modification après migration comptable
+
+Version 1.2.4.21 (08/08/2017) :
+
+- Modif pour faire les attestations en série sur des activités
+
+Version 1.2.4.20 (07/08/2017) :
+
+- Reécriture du programme des attestations
+
+Version 1.2.4.19 (28/07/2017) :
+
+- Ajout de l'impression 'factures seulement' comme 'avoirs seulement'
+- meilleur regroupement des pièces ayant les mêmes numéros factures
+
+Version 1.2.4.18 (27/07/2017) :
+
+- Réecriture du module impressions
+- La liste des impayés est une situation comptable imprimé sur la première pièce
+
+Version 1.2.4.17 (20/07/2017) :
+
+- Retour aux impressions antérieures
+- Modif des listes inscriptions qui ignorent les avoirs
+
+Version 1.2.4.16 (19/07/2017) :
+
+- Option d'impression une seule pièce : facture ou avoir
+- Amélioation importante des correctifs automatiques pour remise en cohérence
+- Après un avoir de pièce, le niveau famille reste en commande.
+- (abandon du numéro commun entre correctif famille et avoir de l'inscription)
+
+Version 1.2.4.15 (16/07/2017) :
+
+- Gestion d'un avoir partiel sur  transport
+- Gestion de groupe d'activité mal paramétré
+
+Version 1.2.4.14 (14/07/2017) :
+
+- Gestion de l'inversion avoir factures sur soldes négatifs
+
+
+Version 1.2.4.12 (12/07/2017) :
+
+- Gestion de l'annulation transport si montants négatifs ou nuls
+
+Version 1.2.4.11 (05/10/2017) :
+
+- Gestion des attestations de présence sur dates consos
+
+Version 1.2.4.11 (05/07/2017) :
+
+- Ajout de champs transfert compta, transfert pièces
+
+Version 1.2.4.10 (29/06/2017) :
+
+- Correction si ajout d'un transport sans lignes dans la pièce
+
+Version 1.2.4.9 (28/06/2017) :
+
+- Amélioration de la dégradation d'une facture en commande
+- En complément de facturation plus de proposition d'article
+
+Version 1.2.4.8 (24/06/2017) :
+
+- Adjontion d'acquittement si solde crédit.
+- Contrôle des doublons de consommations sur une date/ individu /activite
+
+
+Version 1.2.4.7 (22/06/2017) :
+
+- Affichage de la date de transport sur la facture si <> des bornes du camp
+
+
+Version 1.2.4.6 (18/06/2017) :
+
+- Gestion d'un avoir sur le niveau famille pour réintégrer les réductions indues par des avoirs sur activités.
+- nombreuses modification sur l'édition de la facture pour gérer les avoirs sur le niveau famille
+- ajout d'une option d'impression pour occulter les factures originales lors des impressions d'avoirs.
+
+Version 1.2.4.5 (15/06/2017) :
+
+- Modification texte avoir, chainage sur famille après avoir, modif calcul réduction famille
+
+Version 1.2.4.4 (14/06/2017) :
+
+- Modification de la réduction Service, modif mineure sur le pied de facture et relevé prestations
+
+Version 1.2.4.3 (14/06/2017) :
+
+- Meilleure gestion des consommations en intervention manuelle
+
+Version 1.2.4.2 (13/06/2017) :
+
+- Bug sur corrections des ventilations
+
+Version 1.2.4.1 (12/06/2017) :
+
+- Gestion du parrainage abandonné au filleul
+
+Version 1.2.4.0 (09/06/2017) :
+
+- Contrôle des ID transports dans les pièces et dans transports
+
+Version 1.2.3.21 (07/06/2017) :
+
+- Impression du pied de facture idem relevé de compte
+- Corrections divers bugs
+- Date différé dans les listes règlements
+
+Version 1.2.3.19 (04/06/2017) :
+
+- Modification de la liste des prestations pour devenir relevé de compte
+- Amélioration de la trace historique consultable écran famille
+- Réparation suivi chronologie des évènements
+
+Version 1.2.3.18 (30/05/2017) :
+
+- Gestion des modifs d'inscriptions, on repasse par le prix et force le passage par transport pour vérif des dates.
+
+Version 1.2.3.17 (28/05/2017) :
+
+- Gestion des natures de pieces familles qui suit les devis et réservations
+- INfos médicales 'autres' description confidentialisée
+- Modifs dans le calcul des articles déjà facturés à la famille
+- Possibilité de forcer un parrainage.Bug sur l'affichage du nom parrainage
+- $RedServ remettre la condition 'serviceN-1' dans l'article
+
+
+Version 1.2.3.16 (26/05/2017) :
+
+- Bugs dans le calcul des pièces et dans les modifications
+
+Version 1.2.3.15 (23/05/2017) :
+
+- Réduction parrainage selon le nombre de jours de l'activité du filleul
+
+Version 1.2.3.14 (22/05/2017) :
+
+- Modifs dans la gestion des orphelines et création d'avoir;
+
+Version 1.2.3.13 (21/05/2017) :
+
+- Gestion des envois mail, refonte du module impression
+
+Version 1.2.3.12 (12/05/2017) :
+
+- Mode de calcul 'Parrain'
+
+Version 1.2.3.12 (10/05/2017) :
+
+- Meilleure gestion des dates d'activités et d'ouvertures
+- Gestion de la condition sur article Parrain et calcul provisoire
+
+Version 1.2.3.11 (09/05/2017) :
+
+- Possibilité de supprimer un montant dans transport au lieu de mettre zéro
+
+Version 1.2.3.10 (07/05/2017) :
+
+- Court circuit possible des transports en modif
+- Bug sur la transformation en fichier local, et création des index (restructuration)
+- Gestion des accents dans les noms de groupes
+- Création d’une nouvelle table matParrains
+
+Version 1.2.3.9 (06/05/2017) :
+
+- Bug sur la transformation en fichier local, et création des index
+
+Version 1.2.3.8 (05/05/2017) :
+
+- Bug sur nombre de jours en cas d'ouvertures hors période d'activité
+
+Version 1.2.3.7 (04/05/2017) :
+
+- Bug sur rétrogradation facture et sur inscription sans séjour
+- réorganisation des tables en vue de gestion parrainage
+
+Version 1.2.3.6 (26/04/2017) :
+
+- ajout de la condition article 'Service N-1'
+
+Version 1.2.3.5 (24/04/2017) :
+
+- ajout de la colonne type de pièce dans la liste d'inscription
+
+Version 1.2.3.4 (23/04/2017) :
+
+- correction de bug sur affichage de date transport
+
+Version 1.2.3.3 (18/04/2017) :
+
+- gestion du decode('utf8')
+- corrections pour migration vers MySQL de toutes les tables
+- modifs sur les listes inscriptions pour gérer l'absence de catégorie
+- gestion des activités de l'année seulement
+
+Version 1.2.3.0 (12/04/2017) :
+
+- corrections syntaxe pour MySQL
+
+Version 1.2.2.15 (05/04/2017) :
+
+- Ajout des transports dans les détail de liste prestations
+
+Version 1.2.2.14 (01/04/2017) :
+
+- Correction bug envois par mails des factures
+
+Version 1.2.2.13 (31/03/2017) :
+
+- Gestion des transports modifiée pour gérer les intercamps
+
+Version 1.2.2.12 (30/03/2017) :
+
+- Nouvelle réduction ttjours
+
+Version 1.2.2.11 (29/03/2017) :
+
+- Liste des prestations, ajout des lignes détails en sus et filtrage des activités limitées à l'année
+
+Version 1.2.2.10 (27/03/2017) :
+
+- Filtrage des codes non ascii
+
+Version 1.2.2.9 (24/03/2017) :
+
+- Gestion des échéances de facture et devis
+
+Version 1.2.2.8 (22/03/2017) :
+
+- Gestion de la civilité devant le nom dans les factures
+- Recherche possible d'une famille par son code numérique. Pour cela il faut taper le nombre dans la barre de recherche puis ‘entrer’, la fiche famille s’ouvre
+
+Version 1.2.2.7 (18/03/2017) :
+
+- Modifs des libellés fax et sieste
+- Bug de l'inversion du signe sur réduction, ajout de message sur signe inversé
+- Suppression de la recherche auto sur ajout individu
+- passage à cinq caractères avant de lancer le filtre
+
+
+Version 1.2.2.6 (16/03/2017) :
+
+- Correction de bug sur la liste de transport Noethys
+- Mise en place de préalimentation du transport retour selon aller et répétition prix.
+- Ajouts de la gestion des lieux pour intercamp et navette, préalimentation du montant à zéro
+
+Version 1.2.2.5 (15/03/2017) :
+
+- Conditions et calcul ajout des fonctions 'annuelles' et 'AnnuellesFamille'
+- Ajout de messages 'Pas de séjour facturé'
+- Non affichage des trajets nulls
+
+Version 1.2.2.4 (12/03/2017) :
+
+- Pb des comparaison de dates avec ou sans heures réglé par date1 < date2+1jour au lieu de <=
+- Modifs d'encodage pour les accents dans facturation
+
+Version 1.2.2.3 (10/03/2017) :
+
+- Creation d'une nouvelle table matGroupes
+- Gestion des ages mini et maxi dans les groupes et déplacement de l'info analytique groupe
+- Filtre des groupes selon l'age de l'individu
+
+Version 1.2.2.2 (04/03/2017) :
+
+- Meilleure gestion des réglements,
+- Reglements inversion dans la colonne : Ventilé / A Ventiler, ajout du nombre de lignes de ventilations
+- ventilation automatique prend d'abord les négatifs
+- Envoi par mail et impression du menu famille/facture facture idem  que celle de la page Facturation
+
+Version 1.2.2.2 (02/03/2017) :
+
+- Impression des avoirs
+- Gestion des paramétres avant impression
+
+Version 1.2.2.1 (27/02/2017) :
+
+- Ajout d'une deuxième pièce possible sur la même ativité
+- Affichage des no factures dans la ventilation des réglements
+
+Version 1.2.2.0 (26/02/2017) :
+
+- Coherence comptable lors du clic Facturation, ajout de contrôles entre Pieces % Prestations % Factures et corrections automatiques
+- Dans facturation possibilité de rétrograder en commande une facture non transférée en compta
+- Gestion des avoirs pour une pièce
+- Impasse possible sur le niveau famille
+- Saisie de règlements aux montants négatifs.
+
+Version 1.2.1.5 (16/02/2017) :
+
+- Coherence ventilation supprime les ventilations orphelines de prestations lors du clic Facturation
+- Modif portant sur payeurs/comptePayeurs suite à analyse de la structure des tables
+- création fonction getNomFamille pour pb sur nouvelles familles
+
+Version 1.2.1.4 (15/02/2017) :
+
+- Bugs DLG_famille, GestionInscriptions
+
+Version 1.2.1.3 (13/02/2017) :
+
+- Récupération du no de facture antérieure si suppression
+- Ajout de contrôle de cohérence entre pièces factures et prestations
+
+Version 1.2.1.2 (12/02/2017) :
+
+- Travail sur l'affichage des articles niveau famille en cas de facturation antérieure
+- Gestion des articles préfixés 'X'
+- Amélioration des modifs proposée par ctrl veuves et orphelines en cas de factures non transférées.
+
+Version 1.2.1.1 (11/02/2017) :
+
+- Premier ensemble de modifs Matthania
+
+Version 1.1.5.7 (09/11/2015) :
+
+- Dernière version Lucas utilisée
+
+Version 0.0.0.1 (15/02/2010) :
+
+- Version alpha

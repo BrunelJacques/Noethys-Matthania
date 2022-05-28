@@ -1,0 +1,274 @@
+#!/usr/bin/env python
+# -*- coding: iso-8859-15 -*-
+#------------------------------------------------------------------------
+# Application :    Noethys branche Matthania
+# Site internet :  www.noethys.com
+# Auteur:           Ivan LUCAS, JB
+# Copyright:       (c) 2010-12 Ivan LUCAS, JB
+# Licence:         Licence GNU GPL
+#------------------------------------------------------------------------
+
+
+import Chemins
+from Utils.UTILS_Traduction import _
+import GestionDB
+import datetime
+from Utils import UTILS_Dates
+from Ctrl.CTRL_Questionnaire import LISTE_CONTROLES
+from Ctrl.CTRL_ObjectListView import ColumnDefn
+
+
+def DateEngEnDateDD(date):
+    if date in (None, "") : return None
+    if type(date) == datetime.date :
+        return UTILS_Dates.DateDDEnFr(date)
+    return datetime.date(int(date[:4]), int(date[5:7]), int(date[8:10]))
+
+def FormateStr(valeur=""):
+    try :
+        if valeur == None : return ""
+        elif type(valeur) == int : return str(valeur)
+        elif type(valeur) == float : return str(valeur)
+        else : return valeur
+    except : 
+        return ""
+
+def GetReponse(dictReponses={}, IDquestion=None, ID=None):
+    if IDquestion in dictReponses :
+        if ID in dictReponses[IDquestion] :
+            return dictReponses[IDquestion][ID]
+    return ""
+
+def FormateDate(date):
+    if date in (None, "") : return ""
+    if type(date) == datetime.date :
+        return UTILS_Dates.DateDDEnFr(date)
+    return datetime.date(int(date[:4]), int(date[5:7]), int(date[8:10]))
+
+def GetColonnesForOL(liste_questions=[]):
+    """ Ajout des questions des questionnaires aux colonnes d'un OL """
+    liste_colonnes = []
+    for dictQuestion in liste_questions:
+        Formatter = None
+        filtre = dictQuestion["filtre"]
+        if filtre == "texte":
+            typeDonnee = "texte"
+        elif filtre == "entier":
+            typeDonnee = "entier"
+        elif filtre == "montant":
+            typeDonnee = "montant"
+        elif filtre == "choix":
+            typeDonnee = "texte"
+        elif filtre == "coche":
+            typeDonnee = "texte"
+        elif filtre == "date":
+            typeDonnee = "date"
+            Formatter = FormateDate
+        else:
+            typeDonnee = "texte"
+        liste_colonnes.append(ColumnDefn(dictQuestion["label"], "left", 150, "question_%d" % dictQuestion["IDquestion"], stringConverter=Formatter, typeDonnee=typeDonnee))
+    return liste_colonnes
+
+
+
+
+class Questionnaires():
+    def __init__(self,lstIDfamilles=[]):
+        self.lstIDfamilles = lstIDfamilles
+        if len(lstIDfamilles) >0:
+            self.conditionFamille = "AND IDfamille in (%s)"% str(lstIDfamilles)[1:-1]
+        else: self.conditionFamille = ""
+        self.dictControles = self.GetControles()
+        self.InitDonnees()
+    
+    def InitDonnees(self):
+        self.dictChoix = self.GetChoix()
+    
+    def GetControles(self):
+        dictControles = {}
+        for dictControle in LISTE_CONTROLES :
+            dictControles[dictControle["code"]] = dictControle
+        return dictControles
+    
+    def GetChoix(self):
+        DB = GestionDB.DB()
+        req = """SELECT IDchoix, IDquestion, label
+        FROM questionnaire_choix;"""
+        DB.ExecuterReq(req, MsgBox="UTILS_Questionnaires.GetChoix")
+        listeChoix = DB.ResultatReq()
+        dictChoix = {}
+        for IDchoix, IDquestion, label in listeChoix :
+            dictChoix[IDchoix] = label
+        DB.Close() 
+        return dictChoix
+    
+    def GetFiltre(self, controle=""):
+        filtre = self.dictControles[controle]["filtre"]
+        return filtre
+
+    def FormatageReponse(self, reponse="", controle=""):
+        filtre = self.GetFiltre(controle)
+        texteReponse = ""
+        if filtre == "texte" : texteReponse = reponse
+        if filtre == "entier" :
+            try:
+                texteReponse = int(float(reponse))
+            except:
+                pass
+        if filtre == "montant" :
+            try:
+                texteReponse = float(reponse)#decimal.Decimal(reponse)
+            except:
+                pass
+        if filtre == "choix" :
+            if reponse != None :
+                if type(reponse) == int:
+                    listeTemp = [reponse,]
+                else:
+                    listeTemp = reponse.split(";")
+                listeTemp2 = []
+                for IDchoix in listeTemp :
+                    try :
+                        IDchoix = int(IDchoix)
+                        if IDchoix in self.dictChoix :
+                            listeTemp2.append(self.dictChoix[IDchoix])
+                    except :
+                        pass
+                texteReponse = ", ".join(listeTemp2)
+        if filtre == "coche" : 
+            if reponse in (1, "1") :
+                texteReponse = _("Oui")
+            else :
+                texteReponse = _("Non")
+        if filtre == "date" :
+            try:
+                texteReponse = DateEngEnDateDD(reponse)
+            except:
+                pass
+        if filtre == "decimal":
+            try:
+                texteReponse = float(reponse)
+            except:
+                pass
+        return texteReponse
+
+
+    def GetQuestions(self, type="individu", avec_filtre=True):
+        """ Type = None (tout) ou 'individu' ou 'famille' """
+        if type == None :
+            condition = ""
+        else :
+            condition = "WHERE questionnaire_categories.type = '%s'" % type
+        # Importation des questions
+        DB = GestionDB.DB()
+        req = """SELECT IDquestion, questionnaire_questions.label, type, controle, defaut
+        FROM questionnaire_questions
+        LEFT JOIN questionnaire_categories ON questionnaire_categories.IDcategorie = questionnaire_questions.IDcategorie
+        %s
+        ORDER BY questionnaire_questions.ordre
+        ;""" % condition
+        DB.ExecuterReq(req, MsgBox="UTILS_Questionnaires.GetQuestions")
+        listeQuestions = DB.ResultatReq()
+        DB.Close()
+        listeResultats = []
+        for IDquestion, label, type, controle, defaut in listeQuestions :
+            if avec_filtre == False or self.GetFiltre(controle) != None :
+                listeResultats.append({"IDquestion":IDquestion, "label":label, "type":type, "controle":controle, "defaut":defaut, "filtre":self.GetFiltre(controle)})
+
+        return listeResultats
+
+
+    def GetReponses(self, type="individu"):
+        """ Récupération des réponses des questionnaires """
+        # Importation des questions
+        DB = GestionDB.DB()
+        req = """SELECT IDreponse, questionnaire_reponses.IDquestion, IDindividu, IDfamille, reponse, controle
+        FROM questionnaire_reponses
+        LEFT JOIN questionnaire_questions ON questionnaire_questions.IDquestion = questionnaire_reponses.IDquestion
+        LEFT JOIN questionnaire_categories ON questionnaire_categories.IDcategorie = questionnaire_questions.IDcategorie
+        WHERE questionnaire_categories.type='%s'
+        %s
+        ;""" %(type,self.conditionFamille)
+        ret = DB.ExecuterReq(req, MsgBox="UTILS_Questionnaires.GetRéponses")
+        listeReponses = DB.ResultatReq()
+        DB.Close() 
+        
+        dictReponses = {}
+        for IDreponse, IDquestion, IDindividu, IDfamille, reponse, typeDonnee, IDdonnee, controle in listeReponses :
+            filtre = self.GetFiltre(controle)
+            if filtre != None :
+                
+                # Formatage de la réponse
+                if reponse == None :
+                    texteReponse = ""
+                else :
+                    texteReponse = self.FormatageReponse(reponse, controle)
+
+                # Mémorisation
+                if IDindividu != None :
+                    ID = IDindividu
+                elif IDfamille != None :
+                    ID = IDfamille
+                else :
+                    ID = IDdonnee
+                if (IDquestion in dictReponses) == False :
+                    dictReponses[IDquestion] = {}
+                if (ID in dictReponses[IDquestion]) == False :
+                    dictReponses[IDquestion][ID] = texteReponse
+            
+        return dictReponses
+
+    def GetReponse(self, IDquestion=None, IDfamille=None, IDindividu=None):
+        DB = GestionDB.DB()
+        req = """SELECT IDreponse, IDindividu, IDfamille, reponse, controle
+        FROM questionnaire_reponses
+        LEFT JOIN questionnaire_questions ON questionnaire_questions.IDquestion = questionnaire_reponses.IDquestion
+        WHERE questionnaire_reponses.IDquestion=%d AND (IDindividu=%d OR IDfamille=%d)
+        ;""" % (IDquestion, IDindividu, IDfamille)
+        DB.ExecuterReq(req, MsgBox="UTILS_Questionnaires.GetRéponse2")
+        listeReponses = DB.ResultatReq()
+        DB.Close() 
+        if len(listeReponses) == 0 :
+            return None
+        dictReponses = {}
+        IDreponse, IDindividu, IDfamille, reponse, controle = listeReponses[0]
+        filtre = self.GetFiltre(controle)
+        texteReponse = None
+        if filtre != None :
+            # Formatage de la réponse
+            if reponse == None :
+                texteReponse = ""
+            else :
+                texteReponse = self.FormatageReponse(reponse, controle)
+        return texteReponse
+        
+
+class ChampsEtReponses():
+    """ Retourne une donnée de type "{QUESTION_24}" = valeur """
+    def __init__(self, type="individu",lstIDfamilles=[]):
+        Q = Questionnaires(lstIDfamilles=lstIDfamilles)
+        self.listeQuestions = Q.GetQuestions(type=type)
+        self.dictReponses = Q.GetReponses(type=type)
+
+    def GetDonnees(self, ID, formatStr=True):
+        listeDonnees = []
+        for dictQuestion in self.listeQuestions :
+            reponse = GetReponse(self.dictReponses, dictQuestion["IDquestion"], ID)
+            if formatStr == True :
+                reponse = FormateStr(reponse)
+            champ = "{QUESTION_%d}" % dictQuestion["IDquestion"]
+            dictReponse = {
+                "champ":champ, "reponse":reponse, "IDquestion":dictQuestion["IDquestion"], "label":dictQuestion["label"], 
+                "type":dictQuestion["type"], "controle":dictQuestion["controle"], "defaut":dictQuestion["defaut"]
+                }
+            listeDonnees.append(dictReponse)
+        return listeDonnees
+
+
+
+
+
+if __name__ == '__main__':
+    pass
+    
+    

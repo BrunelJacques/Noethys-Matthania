@@ -1,0 +1,463 @@
+#!/usr/bin/env python
+# -*- coding: iso-8859-15 -*-
+#------------------------------------------------------------------------
+# Application :    Noethys, gestion multi-activités
+# Site internet :  www.noethys.com
+# Auteur:          Ivan LUCAS
+# Copyright:       (c) 2010-17 Ivan LUCAS
+# Licence:         Licence GNU GPL
+#------------------------------------------------------------------------
+
+
+import Chemins
+from Utils import UTILS_Adaptations
+from Utils.UTILS_Traduction import _
+import wx
+import datetime
+import GestionDB
+from Utils import UTILS_Interface
+from Utils import UTILS_Questionnaires
+from Utils import UTILS_Locations
+from Utils import UTILS_Titulaires
+
+from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, CTRL_Outils
+
+
+class Track(object):
+    def __init__(self, parent=None, donnees=None):
+        self.IDproduit = donnees[0]
+        self.nom = donnees[1]
+        self.observations = donnees[2]
+        self.nomCategorie = donnees[3]
+        self.quantite = donnees[4]
+        if self.quantite == None :
+            self.quantite = 1
+        self.position = None
+        self.disponible = int(self.quantite)
+
+        # Recherche si le produit est en cours de location
+        if self.IDproduit in parent.dictLocations:
+            liste_locations = parent.dictLocations[self.IDproduit]
+            for dictLocation in liste_locations :
+                self.disponible -= dictLocation["quantite"]
+
+                if len(liste_locations) == 1 :
+                    self.IDfamille = dictLocation["IDfamille"]
+                    if self.IDfamille in parent.dict_titulaires:
+                        self.nomTitulaires = parent.dict_titulaires[self.IDfamille]["titulairesSansCivilite"]
+                    self.date_debut = dictLocation["date_debut"]
+                    self.date_fin = dictLocation["date_fin"]
+                else :
+                    self.nomTitulaires = _("%d loueurs") % len(liste_locations)
+
+        # Récupération des réponses des questionnaires
+        for dictQuestion in parent.liste_questions :
+            setattr(self, "question_%d" % dictQuestion["IDquestion"], parent.GetReponse(dictQuestion["IDquestion"], self.IDproduit))
+
+    
+class ListView(FastObjectListView):
+    def __init__(self, *args, **kwds):
+        # Récupération des paramètres perso
+        self.selection_multiple = kwds.pop("selection_multiple", False)
+        self.afficher_locations = kwds.pop("afficher_locations", True)
+        self.afficher_detail_location = kwds.pop("afficher_detail_location", True)
+        self.on_double_click = kwds.pop("on_double_click", "modification")
+        self.afficher_uniquement_disponibles = False
+        self.coche_uniquement_disponibles = False
+        self.selectionID = None
+        self.selectionTrack = None
+        self.criteres = ""
+        self.itemSelected = False
+        self.popupIndex = -1
+        self.listeFiltres = []
+        self.filtreListeID = None
+        self.dictPositions = None
+
+        # Initialisation du listCtrl
+        self.nom_fichier_liste = __file__
+        FastObjectListView.__init__(self, *args, **kwds)
+        # Binds perso
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
+        self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
+        
+    def OnItemActivated(self,event):
+        if self.on_double_click == "modification" :
+            self.Modifier(None)
+        elif self.on_double_click == "consultation" :
+            self.Consulter(None)
+        else :
+            return
+
+    def InitModel(self):
+        # MAJ du listview
+        self.donnees = self.GetTracks()
+
+    def GetTracks(self):
+        """ Récupération des données """
+        listeID = None
+
+        # Importation des titulaires
+        if self.afficher_locations == True :
+            self.dict_titulaires = UTILS_Titulaires.GetTitulaires()
+
+        # Initialisation des questionnaires
+        categorie = "produit"
+        self.UtilsQuestionnaires = UTILS_Questionnaires.Questionnaires()
+        self.liste_questions = self.UtilsQuestionnaires.GetQuestions(type=categorie)
+        self.dict_questionnaires = self.UtilsQuestionnaires.GetReponses(type=categorie)
+
+        DB = GestionDB.DB()
+
+        # Importation des locations en cours
+        self.dictLocations = UTILS_Locations.GetProduitsLoues(DB=DB)
+
+        # Importation des produits
+        if self.filtreListeID == None :
+            condition = ""
+        else :
+            if len(self.filtreListeID) == 0: condition = "WHERE produits.IDproduit IN ()"
+            elif len(self.filtreListeID) == 1: condition = "WHERE produits.IDproduit IN (%d)" % self.filtreListeID[0]
+            else: condition = "WHERE produits.IDproduit IN %s" % str(tuple(self.filtreListeID))
+
+        req = """SELECT IDproduit, produits.nom, produits.observations, produits_categories.nom, quantite
+        FROM produits
+        LEFT JOIN produits_categories ON produits_categories.IDcategorie = produits.IDcategorie
+        %s;""" % condition
+        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        listeDonnees = DB.ResultatReq()
+        DB.Close()
+        listeListeView = []
+        for item in listeDonnees :
+            track = Track(parent=self, donnees=item)
+
+            valide = True
+            if listeID != None :
+                if item[0] not in listeID :
+                    valide = False
+
+            # Mémorisation position
+            if self.dictPositions != None and track.IDproduit in self.dictPositions:
+                track.position = self.dictPositions[track.IDproduit]
+
+            # Coche afficher uniquement les disponibles
+            if self.coche_uniquement_disponibles == True and track.disponible == 0 :
+                valide = False
+
+            if valide == True :
+                listeListeView.append(track)
+                if self.selectionID == item[0] :
+                    self.selectionTrack = track
+        return listeListeView
+      
+    def InitObjectListView(self):            
+        # Couleur en alternance des lignes
+        self.oddRowsBackColor = UTILS_Interface.GetValeur("couleur_tres_claire", wx.Colour(240, 251, 237))
+        self.evenRowsBackColor = wx.Colour(255, 255, 255)
+        self.useExpansionColumn = True
+
+        # Préparation de la listeImages
+        self.AddNamedImages("indisponible", wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Interdit.png"), wx.BITMAP_TYPE_PNG))
+        self.AddNamedImages("disponible", wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ok4.png"), wx.BITMAP_TYPE_PNG))
+
+        def GetImageDisponible(track):
+            if track.disponible > 0 :
+                return "disponible"
+            else:
+                return "indisponible"
+
+        def FormateDate(date):
+            if date == None :
+                return _("")
+            else :
+                return datetime.datetime.strftime(date, "%d/%m/%Y - %Hh%M")
+
+        def FormatePosition(position):
+            if position == None :
+                return _("")
+            elif position == 1 :
+                return _("1er")
+            else :
+                return _("%dème") % position
+
+        def FormateDisponible(disponible):
+            if disponible == 1 :
+                return _("1 disponible")
+            if disponible > 1 :
+                return _("%d disponibles") % disponible
+            return _("Non")
+
+
+        dict_colonnes = {
+            "IDproduit" : ColumnDefn(u"", "left", 0, "IDproduit", typeDonnee="entier"),
+            "nom": ColumnDefn(_("Nom"), 'left', 170, "nom", typeDonnee="texte"),
+            "nomCategorie": ColumnDefn(_("Catégorie"), 'left', 170, "nomCategorie", typeDonnee="texte"),
+            "quantite": ColumnDefn(_("Stock initial"), "left", 70, "quantite", typeDonnee="entier"),
+            "disponible": ColumnDefn(_("Disponibilité"), "left", 110, "disponible", typeDonnee="texte", stringConverter=FormateDisponible, imageGetter=GetImageDisponible),
+            "nomTitulaires": ColumnDefn(_("Loueur"), "left", 200, "nomTitulaires", typeDonnee="texte"),
+            "date_debut": ColumnDefn(_("Début"), "left", 120, "date_debut", typeDonnee="texte", stringConverter=FormateDate),
+            "date_fin": ColumnDefn(_("Fin"), "left", 120, "date_fin", typeDonnee="texte", stringConverter=FormateDate),
+            "position": ColumnDefn(u"Position", "left", 80, "position", typeDonnee="entier", stringConverter=FormatePosition),
+        }
+
+        if self.afficher_locations == True:
+            if self.afficher_detail_location == True :
+                liste_temp = ["IDproduit", "nom", "nomCategorie", "quantite", "disponible", "nomTitulaires", "date_debut", "date_fin"]
+            else :
+                liste_temp = ["IDproduit", "nom", "nomCategorie", "quantite", "disponible"]
+        else :
+            liste_temp = ["IDproduit", "nom", "nomCategorie", "quantite"]
+
+        if self.dictPositions != None :
+            liste_temp.append("position")
+
+        liste_Colonnes = []
+        for code in liste_temp :
+            liste_Colonnes.append(dict_colonnes[code])
+
+        # Ajout des questions des questionnaires
+        liste_Colonnes.extend(UTILS_Questionnaires.GetColonnesForOL(self.liste_questions))
+
+        self.SetColumns(liste_Colonnes)
+        if self.selection_multiple == True :
+            self.CreateCheckStateColumn(0)
+
+        self.SetEmptyListMsg(_("Aucun produit"))
+        self.SetEmptyListMsgFont(wx.FFont(11, wx.DEFAULT, False, "Tekton"))
+        self.SetSortColumn(self.columns[1])
+        self.SetObjects(self.donnees)
+       
+    def MAJ(self, ID=None):
+        if ID != None :
+            self.selectionID = ID
+            self.selectionTrack = None
+        else:
+            self.selectionID = None
+            self.selectionTrack = None
+        self.InitModel()
+        self.InitObjectListView()
+        # Sélection d'un item
+        if self.selectionTrack != None :
+            self.SelectObject(self.selectionTrack, deselectOthers=True, ensureVisible=True)
+        self.selectionID = None
+        self.selectionTrack = None
+
+    def GetReponse(self, IDquestion=None, ID=None):
+        if IDquestion in self.dict_questionnaires :
+            if ID in self.dict_questionnaires[IDquestion] :
+                return self.dict_questionnaires[IDquestion][ID]
+        return ""
+
+    def Selection(self):
+        return self.GetSelectedObjects()
+
+    def OnContextMenu(self, event):
+        """Ouverture du menu contextuel """
+        if len(self.Selection()) == 0:
+            noSelection = True
+        else:
+            noSelection = False
+
+        # Création du menu contextuel
+        menuPop = UTILS_Adaptations.Menu()
+
+        if self.on_double_click == "modification":
+
+            # Item Ajouter
+            item = wx.MenuItem(menuPop, 10, _("Ajouter"))
+            bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_PNG)
+            item.SetBitmap(bmp)
+            menuPop.AppendItem(item)
+            self.Bind(wx.EVT_MENU, self.Ajouter, id=10)
+
+            menuPop.AppendSeparator()
+
+            # Item Ajouter
+            item = wx.MenuItem(menuPop, 20, _("Modifier"))
+            bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"), wx.BITMAP_TYPE_PNG)
+            item.SetBitmap(bmp)
+            menuPop.AppendItem(item)
+            self.Bind(wx.EVT_MENU, self.Modifier, id=20)
+            if noSelection == True: item.Enable(False)
+
+            # Item Supprimer
+            item = wx.MenuItem(menuPop, 30, _("Supprimer"))
+            bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_PNG)
+            item.SetBitmap(bmp)
+            menuPop.AppendItem(item)
+            self.Bind(wx.EVT_MENU, self.Supprimer, id=30)
+            if noSelection == True: item.Enable(False)
+
+        if self.on_double_click == "consultation":
+            # Item Consulter
+            item = wx.MenuItem(menuPop, 70, _("Consulter la fiche produit"))
+            bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Loupe.png"), wx.BITMAP_TYPE_PNG)
+            item.SetBitmap(bmp)
+            menuPop.AppendItem(item)
+            self.Bind(wx.EVT_MENU, self.Consulter, id=70)
+            if noSelection == True: item.Enable(False)
+
+        menuPop.AppendSeparator()
+
+        # Génération automatique des fonctions standards
+        self.GenerationContextMenu(menuPop, titre=_("Liste des produits"))
+
+        self.PopupMenu(menuPop)
+        menuPop.Destroy()
+
+    def Ajouter(self, event):
+        from Dlg import DLG_Saisie_produit
+        dlg = DLG_Saisie_produit.Dialog(self, IDproduit=None)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.MAJ(dlg.GetIDproduit() )
+        dlg.Destroy()
+
+    def Modifier(self, event):
+        if len(self.Selection()) == 0 :
+            dlg = wx.MessageDialog(self, _("Vous n'avez sélectionné aucun produit à modifier dans la liste !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
+        track = self.Selection()[0]
+        from Dlg import DLG_Saisie_produit
+        dlg = DLG_Saisie_produit.Dialog(self, IDproduit=track.IDproduit)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.MAJ(dlg.GetIDproduit() )
+        dlg.Destroy()
+
+    def Supprimer(self, event):
+        if len(self.Selection()) == 0 :
+            dlg = wx.MessageDialog(self, _("Vous n'avez sélectionné aucun produit à supprimer dans la liste !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
+        track = self.Selection()[0]
+        
+        # Vérifie que ce produit n'a pas déjà été attribué à une location
+        DB = GestionDB.DB()
+        req = """SELECT COUNT(IDlocation)
+        FROM locations 
+        WHERE IDproduit=%d
+        ;""" % track.IDproduit
+        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        nbreLocationsRattachees = int(DB.ResultatReq()[0][0])
+        DB.Close()
+        if nbreLocationsRattachees > 0 :
+            dlg = wx.MessageDialog(self, _("Ce produit a déjà été attribué à %d location(s).\n\nVous ne pouvez donc pas le supprimer !") % nbreLocationsRattachees, _("Suppression impossible"), wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
+
+        # Suppression
+        dlg = wx.MessageDialog(self, _("Souhaitez-vous vraiment supprimer ce produit ?"), _("Suppression"), wx.YES_NO|wx.NO_DEFAULT|wx.CANCEL|wx.ICON_INFORMATION)
+        if dlg.ShowModal() == wx.ID_YES :
+            DB = GestionDB.DB()
+            DB.ReqDEL("produits", "IDproduit", track.IDproduit)
+            DB.ExecuterReq("DELETE FROM questionnaire_reponses WHERE type='produit' AND IDdonnee=%d;" % track.IDproduit)
+            DB.Close()
+            self.MAJ()
+        dlg.Destroy()
+    
+    def GetID(self):
+        if len(self.Selection()) > 0 :
+            return self.Selection()[0].IDproduit
+        else :
+            return None
+
+    def SetID(self, IDproduit=None):
+        for track in self.donnees :
+            if track.IDproduit == IDproduit :
+                self.SelectObject(track, deselectOthers=True, ensureVisible=True)
+                return True
+        return False
+
+    def GetListeProduits(self):
+        liste_produits = []
+        for track in self.GetCheckedObjects():
+            liste_produits.append(track.IDproduit)
+        return liste_produits
+
+    def SetListeProduits(self, liste_produits=[]):
+        if self.GetFilter() != None:
+            listeObjets = self.GetFilteredObjects()
+        else:
+            listeObjets = self.GetObjects()
+        for track in listeObjets:
+            if track.IDproduit in liste_produits :
+                self.Check(track)
+                self.RefreshObject(track)
+
+    def SetFiltreIDproduit(self, listeID=[]):
+        self.filtreListeID = listeID
+        self.MAJ()
+
+    def SetDictPropositions(self, dictPropositions={}, IDdemande=False):
+        listeID = []
+        self.dictPositions = {}
+        for IDdemandeTemp, liste_produits in dictPropositions.items():
+            if IDdemande == False or IDdemande == IDdemandeTemp :
+                for dictProduit in liste_produits:
+                    if dictProduit["disponible"] > 0 or self.afficher_uniquement_disponibles == False :
+                        listeID.append(dictProduit["IDproduit"])
+                        self.dictPositions[dictProduit["IDproduit"]] = dictProduit["position"]
+
+        # Affiche meilleure position
+        position = UTILS_Locations.GetMeilleurePosition(dictPropositions=dictPropositions, IDdemande=IDdemande)
+        if position == 1 :
+            texte_position = "1er"
+        elif position > 1 :
+            texte_position = "%dème" % position
+        else :
+            texte_position = ""
+
+        # Met à jour la liste des propositions
+        self.SetFiltreIDproduit(listeID)
+
+        # Création d'un label
+        if len(listeID) == 0 :
+            texte = _("Aucun produit proposé.")
+        elif len(listeID) == 1 :
+            texte = _("1 produit proposé (meilleure position : %s) :") % texte_position
+        else :
+            texte = _("%d produits proposés (meilleure position : %s) :") % (len(listeID), texte_position)
+        return texte
+
+
+    def Consulter(self, event=None):
+        """ Consulter la fiche produit """
+        if len(self.Selection()) == 0 :
+            dlg = wx.MessageDialog(self, _("Vous n'avez sélectionné aucun produit à consulter dans la liste !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
+
+        # Ouverture de la fiche produit
+        track = self.Selection()[0]
+        from Dlg import DLG_Fiche_produit
+        dlg = DLG_Fiche_produit.Dialog(self, IDproduit=track.IDproduit)
+        dlg.ShowModal()
+        dlg.Destroy()
+        self.MAJ(track.IDproduit)
+
+# -------------------------------------------------------------------------------------------------------------------------------------------
+
+class MyFrame(wx.Frame):
+    def __init__(self, *args, **kwds):
+        wx.Frame.__init__(self, *args, **kwds)
+        panel = wx.Panel(self, -1, name="test1")
+        sizer_1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_1.Add(panel, 1, wx.ALL|wx.EXPAND)
+        self.SetSizer(sizer_1)
+        self.myOlv = ListView(panel, id=-1, selection_multiple=True, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
+        self.myOlv.MAJ() 
+        sizer_2 = wx.BoxSizer(wx.VERTICAL)
+        sizer_2.Add(self.myOlv, 1, wx.ALL|wx.EXPAND, 4)
+        panel.SetSizer(sizer_2)
+        self.Layout()
+
+if __name__ == '__main__':
+    app = wx.App(0)
+    #wx.InitAllImageHandlers()
+    frame_1 = MyFrame(None, -1, "OL TEST")
+    app.SetTopWindow(frame_1)
+    frame_1.Show()
+    app.MainLoop()

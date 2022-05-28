@@ -1,0 +1,665 @@
+#!/usr/bin/env python
+# -*- coding: iso-8859-15 -*-
+#------------------------------------------------------------------------
+# Application :    Noethys, gestion multi-activités
+# Site internet :  www.noethys.com
+# Auteur:           Ivan LUCAS
+# Copyright:       (c) 2010-13 Ivan LUCAS
+# Licence:         Licence GNU GPL
+#------------------------------------------------------------------------
+
+
+import Chemins
+from Utils.UTILS_Traduction import _
+import datetime
+import string
+import six
+from xml.dom.minidom import Document
+from six.moves.urllib.request import urlretrieve
+from Utils import UTILS_Fichiers, UTILS_Texte
+import zipfile
+from lxml import etree
+
+
+def GetLigneEmetteur(dictDonnees={}) :
+    """ Création de la première ligne avec les infos sur l'émetteur """
+    """
+    dictDonnees = {
+        "type_prelevement" : "0308",
+        "numero_emetteur" : "222222",
+        "date" : datetime.date.today(),
+        "raison_sociale" : _("CENTRE SOCIAL"),
+        "reference_virement" : _("VIR.ALSH"),
+        "monnaie" : "E",
+        "numero_guichet" : "02902",
+        "numero_compte" : "01234567895",
+        "numero_etablissement" : "12345",
+        }
+    """
+    
+    texte = ""
+    texte += "{:<4}".format(dictDonnees["type_prelevement"])
+    texte += "{:<8}".format("")
+    texte += "{:<6}".format(dictDonnees["numero_emetteur"][:6])
+    texte += "{:<7}".format("")
+    texte += "%02d%02d%s" % (dictDonnees["date"].day, dictDonnees["date"].month, str(dictDonnees["date"])[3])
+    texte += "{:<24}".format(dictDonnees["raison_sociale"][:24])
+    texte += "{:<11}".format("")#dictDonnees["reference_virement"])
+    texte += "{:<15}".format("")
+    texte += "{:<1}".format(dictDonnees["monnaie"])
+    texte += "{:<5}".format("")
+    texte += "{:<5}".format(dictDonnees["numero_guichet"][:5])
+    texte += "{:<11}".format(dictDonnees["numero_compte"][:11])
+    texte += "{:<47}".format("")
+    texte += "{:<5}".format(dictDonnees["numero_etablissement"][:5])
+    texte += "{:<6}".format("")
+    texte += "\n"
+    return texte
+
+
+def GetLigneDestinataire(dictDonnees={}) :
+    """ Création de la ligne destinataire """
+    """
+    dictDonnees = {
+        "type_prelevement" : "0608",
+        "numero_emetteur" : "222222",
+        "reference_ligne" : "1",
+        "nom_destinataire" : _("S.A Matériaux plus"),
+        "nom_banque" : _("Crédit agricole"),
+        "numero_guichet" : "02902",
+        "numero_compte" : "01234567895",
+        "montant" : "1201",
+        "libelle" : _("Vir. facture 12345"),
+        "numero_etablissement" : "12345",
+        }
+    """
+        
+    texte = ""
+    texte += "{:<4}".format(dictDonnees["type_prelevement"])
+    texte += "{:<8}".format("")
+    texte += "{:<6}".format(dictDonnees["numero_emetteur"][:6])
+    texte += "{:<12}".format(dictDonnees["reference_ligne"][:12])
+    texte += "{:<24}".format(dictDonnees["nom_destinataire"][:24])
+    texte += "{:<20}".format(dictDonnees["nom_banque"][:20])
+    texte += "{:<12}".format("")
+    texte += "{:<5}".format(dictDonnees["numero_guichet"][:5])
+    texte += "{:<11}".format(dictDonnees["numero_compte"][:11])
+    texte += u'{:0>16}'.format(dictDonnees["montant"])
+    texte += "{:<31}".format(dictDonnees["libelle"][:31])
+    texte += "{:<5}".format(dictDonnees["numero_etablissement"][:5])
+    texte += "{:<6}".format("")
+    texte += "\n"
+    return texte
+
+
+def GetLigneTotal(dictDonnees={}) :
+    """ Création de la dernière ligne avec les totaux """
+    """
+    dictDonnees = {
+        "type_prelevement" : "0808",
+        "numero_emetteur" : "222222",
+        "total" : "1200",
+        }
+    """
+    
+    texte = ""
+    texte += "{:<4}".format(dictDonnees["type_prelevement"])
+    texte += "{:<8}".format("")
+    texte += "{:<6}".format(dictDonnees["numero_emetteur"][:6])
+    texte += "{:<84}".format("")
+    texte += "{:0>16}".format(dictDonnees["total"])
+    texte += "{:<42}".format("")
+    texte += "\n"
+    return texte
+
+
+
+def AlgoControleRIB(bic):
+    replacement_table = {
+            'AJaj': '1',
+            'BKSbks': '2',
+            'CLTclt': '3',
+            'DMUdmu': '4',
+            'ENVenv': '5',
+            'FOWfow': '6',
+            'GPXgpx': '7',
+            'HQYhqy': '8',
+            'IRZirz': '9',
+            }
+    if len(bic) != 23:
+        return False
+    for i in range(len(bic)):
+        char = bic[i]
+        for pattern in list(replacement_table.keys()):
+            if char in pattern:
+                bic = bic.replace(char, replacement_table[pattern])
+    bankcode = int(bic[:5])
+    counter = int(bic[5:10])
+    account = int(bic[10:21])
+    key = int(bic[21:])
+    return (bankcode*89 + counter*15 + account*3 + key) % 97 == 0
+
+
+def ConvertirRIBenIBAN(rib="", codePays="FR"):
+    """ rib = codebanque+ codeGuichet + numerocompte + cle """
+    cle = CalcCleBAN(rib, codePays)
+    iban = codePays + cle + rib
+    return iban
+    
+def CalcCleBAN(rib="", codePays="FR"):
+    """ rib = codebanque+ codeGuichet + numerocompte + cle """
+    tmp = rib + codePays + "00"
+    alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    tmp2 = ""
+    for c in tmp :
+        if c in alphabet :
+            position = alphabet.index(c)
+            c = str(position + 10)
+        tmp2 += c
+    cle = str(98 - (int(tmp2) % 97))
+    if len(cle) == 1 :
+        cle = "0%s" % cle
+    return cle
+
+
+def ControleIBAN(iban=""):
+    """IBAN Python validation"""
+    IBAN_CHAR_MAP = {"A":"10", "B":"11", "C":"12", "D":"13", "E":"14", "F":"15", 
+                     "G":"16", "H":"17", "I":"18", "J":"19", "K":"20", "L":"21",
+                     "M":"22", "N":"23", "O":"24", "P":"25", "Q":"26", "R":"27",
+                     "S":"28", "T":"29", "U":"30", "V":"31", "W":"32", "X":"33", 
+                     "Y":"34", "Z":"35"}
+     
+    def replaceAll(text, char_map):
+        """Replace the char_map in text"""
+        for k, v in char_map.items():
+            text = text.replace(k, v)
+        return text
+    
+    try :
+        iban = iban.replace('-', '').replace(' ', '')
+        iban = replaceAll(iban[4:]+iban[0:4], IBAN_CHAR_MAP)
+        res = int(iban) % 97    
+        return res == 1
+    except :
+        return False
+
+
+def ControleBIC(bic):
+    """ Validation for ISO 9362:2009 (SWIFT-BIC). """
+    # Length is 8 or 11.
+    swift_bic_length = len(bic)
+    if swift_bic_length != 8 and swift_bic_length != 11:
+        return False
+
+    # First 4 letters are A - Z.
+    for x in bic[:4]:
+        if x not in string.ascii_uppercase:
+            return False
+
+    return True
+
+
+def GetXMLSepa(dictDonnees):
+    """ Génération du fichier XML SEPA """
+    doc = Document()
+    
+    # Variables principales
+    type_remise = dictDonnees["type_remise"]
+    nom_fichier = dictDonnees["nom_fichier"]
+    remise_nom = dictDonnees["remise_nom"]
+    remise_date_heure = dictDonnees["remise_date_heure"]
+    remise_nbre = dictDonnees["remise_nbre"]
+    remise_montant = dictDonnees["remise_montant"]
+    
+    creancier_nom = dictDonnees["creancier_nom"]
+    creancier_rue = dictDonnees["creancier_rue"]
+    creancier_cp = dictDonnees["creancier_cp"]
+    creancier_ville = dictDonnees["creancier_ville"]
+    creancier_pays = dictDonnees["creancier_pays"]
+    creancier_siret = dictDonnees["creancier_siret"]
+    
+    listeLots = dictDonnees["lots"]
+
+    # Génération du document XML
+    racine = doc.createElement("Document")
+    racine.setAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
+    racine.setAttribute("xmlns", "urn:iso:std:iso:20022:tech:xsd:pain.008.001.02")
+    doc.appendChild(racine)
+    
+    # CstmrDrctDbtInitn
+    CstmrDrctDbtInitn = doc.createElement("CstmrDrctDbtInitn")
+    racine.appendChild(CstmrDrctDbtInitn)
+    
+    # ----------------------------------------------------------- NIVEAU MESSAGE ------------------------------------------------------------------------------
+    
+    # ------------- Caractéristiques générales du prélèvement -------------------
+    
+    # GrpHdr
+    GrpHdr = doc.createElement("GrpHdr")
+    CstmrDrctDbtInitn.appendChild(GrpHdr)
+
+    # MsgId
+    MsgId = doc.createElement("MsgId")
+    GrpHdr.appendChild(MsgId)
+    if type_remise == "public_dft":
+        MsgId.appendChild(doc.createTextNode(nom_fichier))
+    else:
+        MsgId.appendChild(doc.createTextNode(remise_nom))
+
+    # CreDtTm
+    CreDtTm = doc.createElement("CreDtTm")
+    GrpHdr.appendChild(CreDtTm)
+    CreDtTm.appendChild(doc.createTextNode(remise_date_heure))
+
+    # NbOfTxs
+    NbOfTxs = doc.createElement("NbOfTxs")
+    GrpHdr.appendChild(NbOfTxs)
+    NbOfTxs.appendChild(doc.createTextNode(remise_nbre))
+
+    # CtrlSum
+    CtrlSum = doc.createElement("CtrlSum")
+    GrpHdr.appendChild(CtrlSum)
+    CtrlSum.appendChild(doc.createTextNode(remise_montant))
+
+    # ------------- Créantier (organisateur) -------------------
+
+    # InitgPty
+    InitgPty = doc.createElement("InitgPty")
+    GrpHdr.appendChild(InitgPty)
+
+    # Nm
+    Nm = doc.createElement("Nm")
+    InitgPty.appendChild(Nm)
+    Nm.appendChild(doc.createTextNode(creancier_nom[:70]))
+
+    # Id
+    Id = doc.createElement("Id")
+    InitgPty.appendChild(Id)
+    
+    # OrgId
+    OrgId = doc.createElement("OrgId")
+    Id.appendChild(OrgId)
+    
+    # Othr
+    Othr = doc.createElement("Othr")
+    OrgId.appendChild(Othr)
+    
+    # Id
+    Id = doc.createElement("Id")
+    Othr.appendChild(Id)
+    Id.appendChild(doc.createTextNode(creancier_siret))
+
+    # SchmeNm
+    SchmeNm = doc.createElement("SchmeNm")
+    Othr.appendChild(SchmeNm)
+    
+    # Prtry
+    Prtry = doc.createElement("Prtry")
+    SchmeNm.appendChild(Prtry)
+    Prtry.appendChild(doc.createTextNode("SIRET"))
+
+    # ----------------------------------------------------------- NIVEAU LOT ------------------------------------------------------------------------------
+    
+    for dictLot in listeLots :
+
+        lot_nom = dictLot["lot_nom"]
+        lot_nbre = dictLot["lot_nbre"]
+        lot_montant = dictLot["lot_montant"]
+        lot_date = dictLot["lot_date"]
+        lot_iban = dictLot["lot_iban"]
+        lot_bic = dictLot["lot_bic"]
+        lot_ics = dictLot["lot_ics"]
+        lot_dft_titulaire = dictLot["dft_titulaire"]
+        lot_dft_iban = dictLot["dft_iban"]
+        lot_motif = dictLot["motif"]
+        lot_sequence = dictLot["lot_sequence"]
+        listeTransactions = dictLot["transactions"]
+
+        # PmtInf
+        PmtInf = doc.createElement("PmtInf")
+        CstmrDrctDbtInitn.appendChild(PmtInf)
+
+        # PmtInfId
+        PmtInfId = doc.createElement("PmtInfId")
+        PmtInf.appendChild(PmtInfId)
+        PmtInfId.appendChild(doc.createTextNode(lot_nom))
+
+        # PmtMtd
+        PmtMtd = doc.createElement("PmtMtd")
+        PmtInf.appendChild(PmtMtd)
+        PmtMtd.appendChild(doc.createTextNode("DD")) 
+
+        # NbOfTxs
+        NbOfTxs = doc.createElement("NbOfTxs")
+        PmtInf.appendChild(NbOfTxs)
+        NbOfTxs.appendChild(doc.createTextNode(lot_nbre))
+
+        # CtrlSum
+        CtrlSum = doc.createElement("CtrlSum")
+        PmtInf.appendChild(CtrlSum)
+        CtrlSum.appendChild(doc.createTextNode(lot_montant))
+
+        # PmtTpInf
+        PmtTpInf = doc.createElement("PmtTpInf")
+        PmtInf.appendChild(PmtTpInf)
+
+        # SvcLvl
+        SvcLvl = doc.createElement("SvcLvl")
+        PmtTpInf.appendChild(SvcLvl)
+
+        # Cd
+        Cd = doc.createElement("Cd")
+        SvcLvl.appendChild(Cd)
+        Cd.appendChild(doc.createTextNode("SEPA"))
+
+        # LclInstrm
+        LclInstrm = doc.createElement("LclInstrm")
+        PmtTpInf.appendChild(LclInstrm)
+
+        # Cd
+        Cd = doc.createElement("Cd")
+        LclInstrm.appendChild(Cd)
+        Cd.appendChild(doc.createTextNode("CORE"))
+
+        # SeqTp
+        SeqTp = doc.createElement("SeqTp")
+        PmtTpInf.appendChild(SeqTp)
+        SeqTp.appendChild(doc.createTextNode(lot_sequence))
+
+        # ReqdColltnDt
+        ReqdColltnDt = doc.createElement("ReqdColltnDt")
+        PmtInf.appendChild(ReqdColltnDt)
+        ReqdColltnDt.appendChild(doc.createTextNode(lot_date))
+
+        # Cdtr
+        Cdtr = doc.createElement("Cdtr")
+        PmtInf.appendChild(Cdtr)
+
+        if type_remise == "prive":
+            # Cdtr
+            Nm = doc.createElement("Nm")
+            Cdtr.appendChild(Nm)
+            Nm.appendChild(doc.createTextNode(creancier_nom))
+
+        if type_remise == "public_dft":
+            perception = dictDonnees["perception"]
+
+            # Cdtr
+            Nm = doc.createElement("Nm")
+            Cdtr.appendChild(Nm)
+            Nm.appendChild(doc.createTextNode(perception["nom"]))
+
+            # PstlAdr
+            PstlAdr = doc.createElement("PstlAdr")
+            Cdtr.appendChild(PstlAdr)
+
+            # Ctry
+            Ctry = doc.createElement("Ctry")
+            PstlAdr.appendChild(Ctry)
+            Ctry.appendChild(doc.createTextNode("FR"))
+
+            # AdrLine
+            AdrLine = doc.createElement("AdrLine")
+            PstlAdr.appendChild(AdrLine)
+            AdrLine.appendChild(doc.createTextNode(perception["rue_resid"]))
+
+            # AdrLine
+            AdrLine = doc.createElement("AdrLine")
+            PstlAdr.appendChild(AdrLine)
+            AdrLine.appendChild(doc.createTextNode(u"%s %s" % (perception["cp_resid"], perception["ville_resid"])))
+
+        # CdtrAcct
+        CdtrAcct = doc.createElement("CdtrAcct")
+        PmtInf.appendChild(CdtrAcct)
+
+        # Id
+        Id = doc.createElement("Id")
+        CdtrAcct.appendChild(Id)
+
+        # IBAN
+        IBAN = doc.createElement("IBAN")
+        Id.appendChild(IBAN)
+        IBAN.appendChild(doc.createTextNode(lot_iban))
+
+        # CdtrAgt
+        CdtrAgt = doc.createElement("CdtrAgt")
+        PmtInf.appendChild(CdtrAgt)
+
+        # FinInstnId
+        FinInstnId = doc.createElement("FinInstnId")
+        CdtrAgt.appendChild(FinInstnId)
+
+        # BIC
+        BIC = doc.createElement("BIC")
+        FinInstnId.appendChild(BIC)
+        BIC.appendChild(doc.createTextNode(lot_bic))
+
+        if type_remise == "public_dft":
+
+            # UltmtCdtr
+            UltmtCdtr = doc.createElement("UltmtCdtr")
+            PmtInf.appendChild(UltmtCdtr)
+
+            # Nm
+            Nm = doc.createElement("Nm")
+            UltmtCdtr.appendChild(Nm)
+            Nm.appendChild(doc.createTextNode(lot_dft_titulaire))
+
+            # Id
+            Id = doc.createElement("Id")
+            UltmtCdtr.appendChild(Id)
+
+            # OrgId
+            OrgId = doc.createElement("OrgId")
+            Id.appendChild(OrgId)
+
+            # Othr
+            Othr = doc.createElement("Othr")
+            OrgId.appendChild(Othr)
+
+            # Id
+            Id = doc.createElement("Id")
+            Othr.appendChild(Id)
+            Id.appendChild(doc.createTextNode(lot_dft_iban))
+
+            # ChrgBr
+            ChrgBr = doc.createElement("ChrgBr")
+            PmtInf.appendChild(ChrgBr)
+            ChrgBr.appendChild(doc.createTextNode("SLEV"))
+
+        # CdtrSchmeId
+        CdtrSchmeId = doc.createElement("CdtrSchmeId")
+        PmtInf.appendChild(CdtrSchmeId)
+
+        # Id
+        Id = doc.createElement("Id")
+        CdtrSchmeId.appendChild(Id)
+        
+        # PrvtId
+        PrvtId = doc.createElement("PrvtId")
+        Id.appendChild(PrvtId)
+
+        # Othr
+        Othr = doc.createElement("Othr")
+        PrvtId.appendChild(Othr)
+
+        # Id
+        Id = doc.createElement("Id")
+        Othr.appendChild(Id)
+        Id.appendChild(doc.createTextNode(lot_ics))
+        
+        # SchmeNm
+        SchmeNm = doc.createElement("SchmeNm")
+        Othr.appendChild(SchmeNm)
+
+        # Prtry
+        Prtry = doc.createElement("Prtry")
+        SchmeNm.appendChild(Prtry)
+        Prtry.appendChild(doc.createTextNode("SEPA"))
+        
+        
+        # ----------------------------------------------------------- NIVEAU TRANSACTION ------------------------------------------------------------------------------
+        
+        for dictTransaction in listeTransactions :
+        
+            transaction_id = dictTransaction["transaction_id"]
+            transaction_montant = dictTransaction["transaction_montant"]
+            transaction_mandat_id = dictTransaction["transaction_mandat_id"]
+            transaction_mandat_date = dictTransaction["transaction_mandat_date"]
+            transaction_bic = dictTransaction["transaction_bic"]
+            transaction_debiteur = dictTransaction["transaction_debiteur"]
+            transaction_iban = dictTransaction["transaction_iban"]
+
+            # DrctDbtTxInf
+            DrctDbtTxInf = doc.createElement("DrctDbtTxInf")
+            PmtInf.appendChild(DrctDbtTxInf)
+            
+            # PmtId
+            PmtId = doc.createElement("PmtId")
+            DrctDbtTxInf.appendChild(PmtId)
+            
+            # EndToEndId
+            EndToEndId = doc.createElement("EndToEndId")
+            PmtId.appendChild(EndToEndId)
+            if type_remise == "public_dft":
+                endtoend = "1D%s0%s" % (dictDonnees["poste_comptable"], transaction_id)
+                EndToEndId.appendChild(doc.createTextNode(endtoend))
+            else:
+                EndToEndId.appendChild(doc.createTextNode(transaction_id))
+
+            # InstdAmt
+            InstdAmt = doc.createElement("InstdAmt")
+            DrctDbtTxInf.appendChild(InstdAmt)
+            InstdAmt.appendChild(doc.createTextNode(transaction_montant))
+            InstdAmt.setAttribute("Ccy", "EUR")
+            
+            # DrctDbtTx
+            DrctDbtTx = doc.createElement("DrctDbtTx")
+            DrctDbtTxInf.appendChild(DrctDbtTx)
+
+            # MndtRltdInf
+            MndtRltdInf = doc.createElement("MndtRltdInf")
+            DrctDbtTx.appendChild(MndtRltdInf)
+            
+            # MndtId
+            MndtId = doc.createElement("MndtId")
+            MndtRltdInf.appendChild(MndtId)
+            MndtId.appendChild(doc.createTextNode(transaction_mandat_id))
+            
+            # DtOfSgntr
+            DtOfSgntr = doc.createElement("DtOfSgntr")
+            MndtRltdInf.appendChild(DtOfSgntr)
+            DtOfSgntr.appendChild(doc.createTextNode(transaction_mandat_date))
+
+            # AmdmntInd
+            AmdmntInd = doc.createElement("AmdmntInd")
+            MndtRltdInf.appendChild(AmdmntInd)
+            AmdmntInd.appendChild(doc.createTextNode("false"))
+
+            # DbtrAgt
+            DbtrAgt = doc.createElement("DbtrAgt")
+            DrctDbtTxInf.appendChild(DbtrAgt)
+
+            # FinInstnId
+            FinInstnId = doc.createElement("FinInstnId")
+            DbtrAgt.appendChild(FinInstnId)
+
+            # Dbtr
+            BIC = doc.createElement("BIC")
+            FinInstnId.appendChild(BIC)
+            BIC.appendChild(doc.createTextNode(transaction_bic))
+
+            # Dbtr
+            Dbtr = doc.createElement("Dbtr")
+            DrctDbtTxInf.appendChild(Dbtr)
+
+            # Nm
+            Nm = doc.createElement("Nm")
+            Dbtr.appendChild(Nm)
+            Nm.appendChild(doc.createTextNode(UTILS_Texte.Supprime_accent(transaction_debiteur[:70])))
+
+            # DbtrAcct
+            DbtrAcct = doc.createElement("DbtrAcct")
+            DrctDbtTxInf.appendChild(DbtrAcct)
+
+            # Id
+            Id = doc.createElement("Id")
+            DbtrAcct.appendChild(Id)
+
+            # IBAN
+            IBAN = doc.createElement("IBAN")
+            Id.appendChild(IBAN)
+            IBAN.appendChild(doc.createTextNode(transaction_iban))
+
+            if type_remise == "public_dft":
+
+                # RmtInf
+                RmtInf = doc.createElement("RmtInf")
+                DrctDbtTxInf.appendChild(RmtInf)
+
+                # Ustrd
+                Ustrd = doc.createElement("Ustrd")
+                RmtInf.appendChild(Ustrd)
+                Ustrd.appendChild(doc.createTextNode(lot_motif))
+
+    return doc
+
+
+def EnregistrerXML(doc=None, nomFichier=""):
+    """ Enregistre le fichier XML """
+    f = open(nomFichier, "w")
+    try:
+        f.write(doc.toprettyxml(indent="  "))
+    finally:
+        f.close()
+
+
+def ValidationXSD(xml=""):
+    try :
+
+        # Téléchargement du fichier XSD
+        url = "http://www.noethys.com/fichiers/sepa/schema_sepa.zip"
+        fichier_dest = UTILS_Fichiers.GetRepTemp(fichier="schema_sepa.zip")
+        urlretrieve(url, fichier_dest)
+
+        # Décompression du zip XSD
+        z = zipfile.ZipFile(fichier_dest, 'r')
+        rep_dest = UTILS_Fichiers.GetRepTemp() + "/schema_sepa"
+        z.extractall(rep_dest)
+        z.close()
+
+        # Lecture du XSD
+        fichier = rep_dest + "/pain.008.001.02.xsd"
+        xmlschema_doc = etree.parse(fichier)
+        xsd = etree.XMLSchema(xmlschema_doc)
+
+        # Lecture du XML
+        doc = etree.parse(six.BytesIO(xml))
+
+        # Validation du XML avec le XSD
+        if xsd.validate(doc) == True :
+            return True
+
+        # Affichage des erreurs
+        liste_erreurs = []
+        for error in xsd.error_log :
+            liste_erreurs.append(u"Ligne %d : %s" % (error.line, error.message))
+        return liste_erreurs
+
+    except Exception as err:
+        print("Erreur dans validation XSD :")
+        print(err)
+        return True
+
+    
+    
+if __name__ == "__main__":
+    # rib = "20041010011505203J02242"
+    # print(ControleIBAN(iban="FR76"+rib))
+    # print(CalcCleBAN(rib))
+
+    from xml.dom import minidom
+    doc = minidom.parse("")
+    xml = doc.toprettyxml(encoding="UTF-8")
+    print(ValidationXSD(xml))

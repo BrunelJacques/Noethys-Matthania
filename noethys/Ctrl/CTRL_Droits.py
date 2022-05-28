@@ -1,0 +1,1039 @@
+#!/usr/bin/env python
+# -*- coding: iso-8859-15 -*-
+#------------------------------------------------------------------------
+# Application :    Noethys, gestion multi-activités
+# Site internet :  www.noethys.com
+# Auteur:           Ivan LUCAS
+# Copyright:       (c) 2010-13 Ivan LUCAS
+# Licence:         Licence GNU GPL
+#------------------------------------------------------------------------
+
+
+import Chemins
+from Utils import UTILS_Adaptations
+from Utils.UTILS_Traduction import _
+import wx
+from Ctrl import CTRL_Bouton_image
+import sys
+import wx.grid as gridlib
+import wx.lib.mixins.gridlabelrenderer as glr
+import GestionDB
+from Ctrl import CTRL_Selection_activites
+import wx.lib.agw.supertooltip as STT
+import textwrap
+
+if 'phoenix' in wx.PlatformInfo:
+    from wx.grid import GridCellRenderer
+else :
+    from wx.grid import PyGridCellRenderer as GridCellRenderer
+
+
+
+LISTE_CATEGORIES = [
+
+    _("Gestion des fichiers"),
+    { "label" : _("Fichier de données"), "code" : "fichier_fichier", "actions" : ["modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Sauvegarde manuelle"), "code" : "fichier_sauvegarde_manuelle", "actions" : ["creer",], "restriction" : False },
+    { "label" : _("Restauration de sauvegarde"), "code" : "fichier_restauration", "actions" : ["creer",], "restriction" : False },
+    { "label" : _("Sauvegardes automatiques"), "code" : "fichier_sauvegardes_auto", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Conversions local/réseau"), "code" : "fichier_conversions", "actions" : ["creer",], "restriction" : False },
+
+    _("Paramétrage"),
+    { "label" : _("Préférences"), "code" : "parametrage_preferences", "actions" : ["consulter", "modifier"], "restriction" : False },
+    { "label" : _("Enregistrement"), "code" : "parametrage_enregistrement", "actions" : ["consulter", "modifier"], "restriction" : False },
+    { "label" : _("Utilisateurs"), "code" : "parametrage_utilisateurs", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Modèles de droits"), "code" : "parametrage_modeles_droits", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Utilisateurs réseau"), "code" : "parametrage_utilisateurs_reseau", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Organisateur"), "code" : "parametrage_organisateur", "actions" : ["consulter", "modifier"], "restriction" : False },
+    { "label" : _("Comptes bancaires"), "code" : "parametrage_comptes_bancaires", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Groupes d'activités"), "code" : "parametrage_groupes_activites", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Activités"), "code" : "parametrage_activites", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : True },
+    { "label" : _("Modèles de documents"), "code" : "parametrage_modeles_docs", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Modèles d'Emails"), "code" : "parametrage_modeles_emails", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Modèles de tickets"), "code" : "parametrage_modeles_tickets", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Modèles de plannings"), "code" : "parametrage_modeles_plannings", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Modèles de contrats"), "code" : "parametrage_modeles_contrats", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Procédures de badgeage"), "code" : "parametrage_procedures_badgeage", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Synthèse vocale"), "code" : "parametrage_vocal", "actions" : ["consulter", "modifier"], "restriction" : False },
+    { "label" : _("Périodes de gestion"), "code" : "parametrage_periodes_gestion", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Catégories de messages"), "code" : "parametrage_categories_messages", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Types de pièces"), "code" : "parametrage_types_pieces", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Catégories sociopro."), "code" : "parametrage_categories_travail", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Villes et codes postaux"), "code" : "parametrage_villes", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Secteurs géographiques"), "code" : "parametrage_secteurs", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Types de sieste"), "code" : "parametrage_types_siestes", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Vacances"), "code" : "parametrage_vacances", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Jours fériés"), "code" : "parametrage_feries", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Maladies"), "code" : "parametrage_maladies", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Vaccins"), "code" : "parametrage_vaccins", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Médecins"), "code" : "parametrage_medecins", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Restaurateurs"), "code" : "parametrage_restaurateurs", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Modes de règlements"), "code" : "parametrage_modes_reglements", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Emetteurs de règlements"), "code" : "parametrage_emetteurs", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Etablissements bancaires"), "code" : "parametrage_banques", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Préfixes de factures"), "code" : "parametrage_prefixes_factures", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Lots de factures"), "code" : "parametrage_lots_factures", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Lots de rappels"), "code" : "parametrage_lots_rappels", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Régimes sociaux"), "code" : "parametrage_regimes", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Caisses"), "code" : "parametrage_caisses", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Types de quotients"), "code" : "parametrage_types_quotients", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Modèles d'aides journalières"), "code" : "parametrage_modeles_aides", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Types de cotisations"), "code" : "parametrage_types_cotisations", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Adresses d'expédition d'Emails"), "code" : "parametrage_emails_exp", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Listes de diffusion"), "code" : "parametrage_listes_diffusion", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Questionnaires"), "code" : "parametrage_questionnaires", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Niveaux scolaires"), "code" : "parametrage_niveaux_scolaires", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Ecoles"), "code" : "parametrage_ecoles", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Classes"), "code" : "parametrage_classes", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Compagnies de transports"), "code" : "parametrage_compagnies", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Lieux de transports"), "code" : "parametrage_lieux", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Lignes de transports"), "code" : "parametrage_lignes", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Arrêts de transports"), "code" : "parametrage_arrets", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    
+    _("Outils"),
+    { "label" : _("Statistiques"), "code" : "outils_stats", "actions" : ["consulter",], "restriction" : False },
+    { "label" : _("Editeur d'Emails"), "code" : "outils_editeur_emails", "actions" : ["consulter",], "restriction" : False },
+    { "label" : _("Messages"), "code" : "outils_messages", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Historique"), "code" : "outils_historique", "actions" : ["consulter",], "restriction" : False },
+    { "label" : _("Utilitaires administrateur"), "code" : "outils_utilitaires", "actions" : ["consulter",], "restriction" : False },
+    
+    _("Gestion des consommations"),
+    { "label" : _("Consommations"), "code" : "consommations_conso", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : True },
+    
+    _("Gestion des familles"),
+    { "label" : _("Fiche familiale"), "code" : "familles_fiche", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Messages"), "code" : "familles_messages", "actions" : ["modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Questionnaires"), "code" : "familles_questionnaires", "actions" : ["consulter", "modifier",], "restriction" : False },
+    { "label" : _("Pièces"), "code" : "familles_pieces", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Cotisations"), "code" : "familles_cotisations", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Aides journalières"), "code" : "familles_aides", "actions" : ["modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Caisse"), "code" : "familles_caisse", "actions" : ["consulter", "modifier",], "restriction" : False },
+    { "label" : _("Quotients familiaux"), "code" : "familles_quotients", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Prestations"), "code" : "familles_prestations", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Factures"), "code" : "familles_factures", "actions" : ["consulter", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Param. factures par Email"), "code" : "familles_factures_email", "actions" : ["modifier",], "restriction" : False },
+    { "label" : _("Règlements"), "code" : "familles_reglements", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Remboursements"), "code" : "familles_remboursements", "actions" : ["creer",], "restriction" : False },
+    { "label" : _("Param. prélèvement"), "code" : "familles_prelevement", "actions" : ["modifier",], "restriction" : False },
+    { "label" : _("Mandats SEPA"), "code" : "familles_mandats", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Param. reçu par Email"), "code" : "familles_recu_email", "actions" : ["modifier",], "restriction" : False },
+    { "label" : _("Param. avis dépôt par Email"), "code" : "familles_depot_email", "actions" : ["modifier",], "restriction" : False },
+    { "label" : _("Compte internet"), "code" : "familles_compte_internet", "actions" : ["modifier",], "restriction" : False },
+    { "label" : _("Relevé des prestations"), "code" : "familles_releve_prestations", "actions" : ["creer",], "restriction" : False },
+    { "label" : _("Attestation de présence"), "code" : "familles_attestation_presences", "actions" : ["creer",], "restriction" : False },
+    { "label" : _("Lettre de rappel"), "code" : "familles_lettre_rappel", "actions" : ["creer",], "restriction" : False },
+    { "label" : _("Historique"), "code" : "familles_historique", "actions" : ["consulter",], "restriction" : False },
+    { "label" : _("Chronologie"), "code" : "familles_chronologie", "actions" : ["consulter",], "restriction" : False },
+
+    _("Gestion des individus"),
+    { "label" : _("Fiche individuelle"), "code" : "individus_fiche", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Photo"), "code" : "individus_photo", "actions" : ["modifier",], "restriction" : False },
+    { "label" : _("Messages"), "code" : "individus_messages", "actions" : ["modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Identité"), "code" : "individus_identite", "actions" : ["modifier",], "restriction" : False },
+    { "label" : _("Liens"), "code" : "individus_liens", "actions" : ["modifier",], "restriction" : False },
+    { "label" : _("Questionnaires"), "code" : "individus_questionnaires", "actions" : ["modifier",], "restriction" : False },
+    { "label" : _("Coordonnées"), "code" : "individus_coordonnees", "actions" : ["modifier",], "restriction" : False },
+    { "label" : _("Inscriptions"), "code" : "individus_inscriptions", "actions" : ["modifier", "creer", "supprimer"], "restriction" : True },
+    { "label" : _("Scolarité"), "code" : "individus_scolarite", "actions" : ["modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Pièces"), "code" : "individus_pieces", "actions" : ["modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Cotisations"), "code" : "individus_cotisations", "actions" : ["modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Transports"), "code" : "individus_transports", "actions" : ["modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Transports programmés"), "code" : "individus_prog_transports", "actions" : ["modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Vaccins"), "code" : "individus_vaccins", "actions" : ["modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Informations médicales"), "code" : "individus_pb_sante", "actions" : ["modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Médecin traitant"), "code" : "individus_medecin", "actions" : ["modifier",], "restriction" : False },
+    { "label" : _("Historique"), "code" : "individus_historique", "actions" : ["consulter",], "restriction" : False },
+    { "label" : _("Chronologie"), "code" : "individus_chronologie", "actions" : ["consulter",], "restriction" : False },
+
+    _("Gestion de la facturation"),
+    { "label" : _("Vérification ventilation"), "code" : "facturation_ventilation", "actions" : ["consulter",], "restriction" : False },
+    { "label" : _("Factures"), "code" : "facturation_factures", "actions" : ["consulter", "creer", "supprimer"], "restriction" : True },
+    { "label" : _("Rappels"), "code" : "facturation_rappels", "actions" : ["consulter", "creer", "supprimer"], "restriction" : True },
+    { "label" : _("Attestations"), "code" : "facturation_attestations", "actions" : ["consulter", "creer", "supprimer"], "restriction" : True },
+    { "label" : _("Prélèvements auto."), "code" : "facturation_prelevements", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Export Trésor Public"), "code" : "facturation_helios", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    { "label" : _("Solder impayés"), "code" : "facturation_solder_impayes", "actions" : ["creer",], "restriction" : False },
+
+    _("Gestion des cotisations"),
+    { "label" : _("Liste des cotisations"), "code" : "cotisations_liste", "actions" : ["consulter",], "restriction" : False },
+    { "label" : _("Cotisations manquantes"), "code" : "cotisations_manquantes", "actions" : ["consulter", ], "restriction" : False },
+    { "label" : _("Dépôts de cotisations"), "code" : "cotisations_depots", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+
+    _("Gestion des règlements"),
+    { "label" : _("Liste des reçus"), "code" : "reglements_recus", "actions" : ["consulter",], "restriction" : False },
+    { "label" : _("Liste des règlements"), "code" : "reglements_liste", "actions" : ["consulter",], "restriction" : False },
+    { "label" : _("Dépôts de règlements"), "code" : "reglements_depots", "actions" : ["consulter", "modifier", "creer", "supprimer"], "restriction" : False },
+    
+    ]
+
+
+##x = 0
+##for item in LISTE_CATEGORIES :
+##    if type(item) == dict :
+##        x += len(item["actions"])
+##print "%d verrous" % x
+
+
+LISTE_ACTIONS = [
+    
+    { "label" : _("Consulter"), "code" : "consulter"},
+    { "label" : _("Modifier"), "code" : "modifier"},
+    { "label" : _("Créer"), "code" : "creer"},
+    { "label" : _("Supprimer"), "code" : "supprimer"},
+
+    ]
+
+COULEUR_CASE_AUTORISATION = wx.Colour(156, 218, 0) 
+COULEUR_CASE_RESTRICTION = wx.Colour(255, 198, 45) 
+COULEUR_CASE_INTERDICTION = wx.Colour(249, 66, 66) 
+COULEUR_CASE_INACTIVE = wx.Colour(215, 215, 215)
+COULEUR_CASE_GROUPE = wx.Colour(192, 192, 192)
+COULEUR_CASE_DISABLE = wx.Colour(230, 230, 230)
+
+
+
+class MyRowLabelRenderer(glr.GridLabelRenderer):
+    def __init__(self, bgcolor):
+        self._bgcolor = bgcolor
+        
+    def Draw(self, grid, dc, rect, row):
+        dc.SetBrush(wx.Brush(self._bgcolor))
+        dc.SetPen(wx.TRANSPARENT_PEN)
+        if 'phoenix' in wx.PlatformInfo:
+            dc.DrawRectangle(rect)
+        else :
+            dc.DrawRectangleRect(rect)
+        hAlign, vAlign = grid.GetRowLabelAlignment()
+        text = grid.GetRowLabelValue(row)
+##        self.DrawBorder(grid, dc, rect)
+        self.DrawText(grid, dc, rect, text, hAlign, vAlign)
+
+class MyColLabelRenderer(glr.GridLabelRenderer):
+    def __init__(self, bgcolor):
+        self._bgcolor = bgcolor
+        
+    def Draw(self, grid, dc, rect, col):
+        dc.SetBrush(wx.Brush(self._bgcolor))
+        dc.SetPen(wx.TRANSPARENT_PEN)
+        if 'phoenix' in wx.PlatformInfo:
+            dc.DrawRectangle(rect)
+        else :
+            dc.DrawRectangleRect(rect)
+        hAlign, vAlign = grid.GetColLabelAlignment()
+        text = grid.GetColLabelValue(col)
+        self.DrawBorder(grid, dc, rect)
+        self.DrawText(grid, dc, rect, text, hAlign, vAlign)
+
+
+
+
+
+
+class Case():
+    def __init__(self, grid, numLigne=None, numColonne=None, dictCategorie=None, dictAction=None, numGroupe=None, nomGroupe="", etat=None):
+        self.grid = grid
+        self.numLigne = numLigne
+        self.numColonne = numColonne
+        self.dictCategorie = dictCategorie
+        self.dictAction = dictAction
+        self.numGroupe = numGroupe
+        self.nomGroupe = nomGroupe
+        if type(self.dictCategorie) == dict :
+            self.typeLigne = "categorie"
+        else :
+            self.typeLigne = "groupe"
+            
+        self.etat = etat # états possibles = groupe, inactif, autorisation, interdiction, restriction
+        
+        # Dessin de la case
+        self.renderer = RendererCase(self)
+        self.grid.SetCellValue(self.numLigne, self.numColonne, "")
+        self.grid.SetCellAlignment(self.numLigne, self.numColonne, wx.ALIGN_LEFT, wx.ALIGN_CENTRE)
+        self.grid.SetCellRenderer(self.numLigne, self.numColonne, self.renderer)
+        self.grid.SetReadOnly(self.numLigne, self.numColonne, True)
+
+    def GetRect(self):
+        return self.grid.CellToRect(self.numLigne, self.numColonne)
+
+    def Refresh(self):
+        rect = self.GetRect()
+        x, y = self.grid.CalcScrolledPosition(rect.GetX(), rect.GetY())
+        rect = wx.Rect(x, y, rect.GetWidth(), rect.GetHeight())
+        self.grid.GetGridWindow().Refresh(False, rect)
+
+    def OnClickGauche(self):
+        # Si inactif
+        if self.etat == "inactif" : 
+            return
+        # Si autorisation, interdiction ou restriction
+        if self.etat == "autorisation" : 
+            self.SetEtat("interdiction")
+        elif self.etat == "interdiction" : 
+            self.SetEtat("autorisation")
+        elif self.etat.startswith("restriction") : 
+            self.SetEtat("autorisation")
+    
+    def SetEtat(self, etat=""):
+        if etat.startswith("restriction") and self.dictCategorie["restriction"] == False :
+            return
+        self.etat = etat
+        self.Refresh() 
+
+    def GetStatutTexte(self, x, y):
+        try :
+            texte = "%s - %s" % (self.dictCategorie["label"], self.dictAction["label"])
+        except :
+            texte = ""
+        return texte
+
+    def GetTexteInfobulle(self):
+        """ Renvoie le texte pour l'infobulle de la case """
+        if self.etat in ("inactif", "groupe") :
+            return None
+        
+        dictDonnees = {}
+        # Titre
+        dictDonnees["titre"] = self.dictCategorie["label"]
+        # Image
+        dictDonnees["bmp"] = self.renderer.bmp
+        # Texte
+        texte = ""
+        if self.dictAction["code"] == "consulter" : texte = _("Consultation")
+        if self.dictAction["code"] == "modifier" : texte = _("Modification")
+        if self.dictAction["code"] == "creer" : texte = _("Création")
+        if self.dictAction["code"] == "supprimer" : texte = _("Suppression")
+        
+        if self.etat == "autorisation" : texte += _(" autorisée")
+        if self.etat == "interdiction" : texte += _(" interdite")
+        if self.etat.startswith("restriction") : 
+            code = self.etat.replace("restriction_", "")
+            mode, listeID = code.split(":")
+            listeID = [int(x) for x in listeID.split(";")]
+            labelRestriction = self.grid.GetNomsActivites(mode, listeID)
+            texte += _(" autorisée mais restreinte %s") % labelRestriction
+
+        dictDonnees["texte"] = "\n".join(textwrap.wrap(texte, 50)) + "\n\n\n"
+        # Pied
+        dictDonnees["pied"] = _("Cliquez sur le bouton droit pour afficher le menu contextuel")
+        # Couleur
+        dictDonnees["couleur"] = self.renderer.couleurFond
+        return dictDonnees
+
+        
+class RendererCase(GridCellRenderer):
+    def __init__(self, case):
+        GridCellRenderer.__init__(self)
+        self.case = case
+        self.grid = None
+
+    def Draw(self, grid, attr, dc, rect, row, col, isSelected):
+        self.grid = grid
+        
+        # Recherche couleur case
+        bmp = None
+        
+        if self.case.etat == "groupe" :
+            couleurFond = COULEUR_CASE_GROUPE
+        elif self.case.etat == "inactif" :
+            couleurFond = COULEUR_CASE_INACTIVE
+        elif self.case.etat == "autorisation" :
+            couleurFond = COULEUR_CASE_AUTORISATION
+            bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ok4.png"), wx.BITMAP_TYPE_ANY) 
+            if self.grid.modeDisable == True : couleurFond = COULEUR_CASE_DISABLE
+        elif self.case.etat == "interdiction" :
+            couleurFond = COULEUR_CASE_INTERDICTION
+            bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Interdit2.png"), wx.BITMAP_TYPE_ANY) 
+            if self.grid.modeDisable == True : couleurFond = COULEUR_CASE_DISABLE
+        else :
+            couleurFond = COULEUR_CASE_RESTRICTION
+            bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ok4_orange.png"), wx.BITMAP_TYPE_ANY) 
+            if self.grid.modeDisable == True : couleurFond = COULEUR_CASE_DISABLE
+        
+        # Dessin du fond de couleur
+        dc.SetBackgroundMode(wx.SOLID)
+        dc.SetBrush(wx.Brush(couleurFond, wx.SOLID))
+        dc.SetPen(wx.TRANSPARENT_PEN)
+        if 'phoenix' in wx.PlatformInfo:
+            dc.DrawRectangle(rect)
+        else :
+            dc.DrawRectangleRect(rect)
+        
+        # Dessin d'une image
+        if bmp != None :
+            tailleImage = 16
+            paddingImage = 3
+            dc.DrawBitmap(bmp, rect[0] + ((rect[2] - tailleImage) / 2.0), rect[1] + ((rect[3] - tailleImage) / 2.0))
+        
+        # Mémorisation pour infobulle
+        self.bmp = bmp
+        self.couleurFond = couleurFond
+        
+        # Ecrit les restrictions
+##        dc.SetBackgroundMode(wx.TRANSPARENT)
+##        dc.SetFont(attr.GetFont())
+##        hAlign, vAlign = grid.GetCellAlignment(row, col)
+##        if self.case.etat.startswith("restriction") :
+##            texte = _("Uniquement pour le centre de loisirs")
+##            texte = self.AdapteTailleTexte(dc, texte, rect[2]-6)
+##            largeur, hauteur = dc.GetTextExtent(texte)
+##            x = rect[0] + ((rect[2] - largeur) / 2.0)
+##            y = rect[1] + ((rect[3] - hauteur) / 2.0)
+##            dc.DrawText(texte, x, y)
+
+        
+        
+    def DrawBorder(self, grid, dc, rect):
+        """
+        Draw a standard border around the label, to give a simple 3D
+        effect like the stock wx.grid.Grid labels do.
+        """
+        top = rect.top
+        bottom = rect.bottom
+        left = rect.left
+        right = rect.right        
+        dc.SetPen(wx.Pen(wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DSHADOW)))
+        dc.DrawLine(right, top, right, bottom)
+        dc.DrawLine(left, top, left, bottom)
+        dc.DrawLine(left, bottom, right, bottom)
+        dc.SetPen(wx.WHITE_PEN)
+        dc.DrawLine(left+1, top, left+1, bottom)
+        dc.DrawLine(left+1, top, right, top)
+
+            
+    def MAJ(self):
+        if self.grid != None :
+            self.grid.Refresh()
+
+    def GetBestSize(self, grid, attr, dc, row, col):
+        text = grid.GetCellValue(row, col)
+        dc.SetFont(attr.GetFont())
+        w, h = dc.GetTextExtent(text)
+        return wx.Size(w, h)
+
+    def Clone(self):
+        return RendererCase()
+    
+    def AdapteTailleTexte(self, dc, texte, tailleMaxi):
+        """ Raccourcit le texte de l'intitulé en fonction de la taille donnée """
+        # Pas de retouche nécessaire
+        if dc.GetTextExtent(texte)[0] < tailleMaxi : return texte
+        # Renvoie aucun texte si tailleMaxi trop petite
+        if tailleMaxi <= dc.GetTextExtent("W...")[0] : return "..."
+        # Retouche nécessaire
+        tailleTexte = dc.GetTextExtent(texte)[0]
+        texteTemp = ""
+        texteTemp2 = ""
+        for lettre in texte :
+            texteTemp += lettre
+            if dc.GetTextExtent(texteTemp +"...")[0] < tailleMaxi :
+               texteTemp2 = texteTemp 
+            else:
+                return texteTemp2 + "..." 
+
+
+
+
+
+
+
+
+
+
+class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin): 
+    def __init__(self, parent, IDutilisateur=None, IDmodele=None):
+        gridlib.Grid.__init__(self, parent, -1, style=wx.WANTS_CHARS)
+        glr.GridWithLabelRenderersMixin.__init__(self)
+        self.parent = parent
+        self.IDutilisateur = IDutilisateur
+        self.IDmodele = IDmodele
+        
+        self.SetMinSize((10, 10))
+        self.moveTo = None
+        self.CreateGrid(1, 1)
+        self.SetRowLabelSize(180)
+        self.DisableDragColSize()
+        self.DisableDragRowSize()
+        self.ImportationActivites() 
+        self.modeDisable = False
+
+        # Init Tooltip
+        self.tip = STT.SuperToolTip(u"")
+        self.tip.SetEndDelay(10000) # Fermeture auto du tooltip après 10 secs
+        
+        # Binds
+        self.Bind(gridlib.EVT_GRID_CELL_LEFT_CLICK, self.OnLeftClick)
+        self.Bind(gridlib.EVT_GRID_CELL_RIGHT_CLICK, self.OnRightClick)
+        self.GetGridWindow().Bind(wx.EVT_MOTION, self.OnMouseOver)
+        self.GetGridWindow().Bind(wx.EVT_LEAVE_WINDOW, self.OnLeaveWindow)
+    
+    def SetModeDisable(self, etat=True):
+        self.modeDisable = etat
+        self.MAJ() 
+        
+    def ImportationActivites(self):
+        """ Importation des activités et groupes d'activités """
+        DB = GestionDB.DB()
+        
+        req = """SELECT IDactivite, nom FROM activites;"""
+        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        listeDonnees = DB.ResultatReq()
+        self.dictActivites = {}
+        for IDactivite, nom in listeDonnees :
+            self.dictActivites[IDactivite] = nom
+        
+        req = """SELECT IDtype_groupe_activite, nom FROM types_groupes_activites;"""
+        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        listeDonnees = DB.ResultatReq()
+        self.dictGroupesActivites = {}
+        for IDtype_groupe_activite, nom in listeDonnees :
+            self.dictGroupesActivites[IDtype_groupe_activite] = nom
+        
+        DB.Close()
+    
+    def GetNomsActivites(self, mode="", listeID=[]):
+        listeNoms = []
+        texte = ""
+        if mode == "groupes" :
+            for ID in listeID :
+                if ID in self.dictGroupesActivites :
+                    listeNoms.append(self.dictGroupesActivites[ID])
+            if len(listeNoms) == 0 : texte = ""
+            if len(listeNoms) == 1 : texte = _("au groupe d'activités %s") % listeNoms[0]
+            if len(listeNoms) == 2 : texte = _("aux groupes d'activités %s et %s") % (listeNoms[0], listeNoms[1])
+            if len(listeNoms) > 2 : texte = _("aux groupes d'activités %s et %s") % (", ".join(listeNoms[:-1]), listeNoms[-1])
+        if mode == "activites" :
+            for ID in listeID :
+                if ID in self.dictActivites :
+                    listeNoms.append(self.dictActivites[ID])
+            if len(listeNoms) == 0 : texte = ""
+            if len(listeNoms) == 1 : texte = "à l'activité %s" % listeNoms[0]
+            if len(listeNoms) == 2 : texte = _("aux activités %s et %s") % (listeNoms[0], listeNoms[1])
+            if len(listeNoms) > 2 : texte = _("aux activités %s et %s") % (", ".join(listeNoms[:-1]), listeNoms[-1])
+        return texte
+    
+    def Importation(self):
+        """ Importation des droits """
+        self.dictDroits = {}
+        
+        # EXEMPLE DE DONNEES
+##        self.dictDroits = {
+##            ("parametrage_utilisateurs", "consulter") : {"etat" : "autorisation", "IDdroit" : None"},
+##            ("parametrage_utilisateurs", "modifier") : {"etat" : "autorisation", "IDdroit" : None"},
+##            ("parametrage_utilisateurs", "creer") : {"etat" : ""restriction_groupes:1"", "IDdroit" : None"},
+##            ("parametrage_utilisateurs", "supprimer") : {"etat" : "interdiction", "IDdroit" : None"},
+##            ("parametrage_modes_reglements", "supprimer") : {"etat" : "autorisation", "IDdroit" : None"},
+##            }
+        
+        # Condition
+        if self.IDutilisateur != None :
+            condition = "IDutilisateur=%d" % self.IDutilisateur
+        elif self.IDmodele != None :
+            condition = "IDmodele=%d" % self.IDmodele
+        else :
+            return
+        
+        # Consultation de la base
+        DB = GestionDB.DB()
+        req = """SELECT IDdroit, categorie, action, etat
+        FROM droits
+        WHERE %s;""" % condition
+        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        listeDonnees = DB.ResultatReq()
+        DB.Close()
+        
+        # Mémorisation dans le dictDroits
+        for IDdroit, categorie, action, etat in listeDonnees :
+            self.dictDroits[(categorie, action)] = {"etat" : etat, "IDdroit" : IDdroit}
+    
+    def Sauvegarde(self, IDmodele=None, IDutilisateur=None):
+        """ Sauvegarde des droits dans la base """
+        if IDmodele != None : self.IDmodele = IDmodele
+        if IDutilisateur != None : self.IDutilisateur = IDutilisateur
+        
+        DB = GestionDB.DB()
+        
+        listeValeurs = self.GetValeurs()
+        
+        listeAjouts = []
+        for categorie, action, etat in listeValeurs :
+            key = (categorie, action)
+            listeDonnees = [("IDutilisateur", self.IDutilisateur), ("IDmodele", self.IDmodele), ("categorie", categorie), ("action", action), ("etat", etat)]
+            
+            if key in self.dictDroits :
+                # Modification d'un état existant
+                ancienEtat = self.dictDroits[key]["etat"]
+                IDdroit = self.dictDroits[key]["IDdroit"]
+                if etat != ancienEtat :
+                    DB.ReqMAJ("droits", listeDonnees, "IDdroit", IDdroit)
+            else :
+                # Saisie d'un nouvel état
+                listeAjouts.append((self.IDutilisateur, self.IDmodele, categorie, action, etat))
+        
+        # Ajout optimisé
+        if len(listeAjouts) > 0 :
+            DB.Executermany("INSERT INTO droits (IDutilisateur, IDmodele, categorie, action, etat) VALUES (?, ?, ?, ?, ?)", listeAjouts, commit=False)
+            DB.Commit() 
+        
+        # Recherche des suppressions à réaliser
+        for key, dictValeurs in self.dictDroits.items() :
+            found = False
+            for categorie, action, etat in listeValeurs :
+                if categorie == key[0] and action == key[1] : 
+                    found = True
+            if found == False :
+                DB.ReqDEL("droits", "IDdroit", dictValeurs["IDdroit"])
+        
+        DB.Close()
+    
+    def GetValeurs(self):
+        """ Récupère les valeurs des cases """
+        listeValeurs = []
+        for coords, case in self.dictCases.items() :
+            if case.typeLigne == "categorie" :
+                codeCategorie = case.dictCategorie["code"]
+                codeAction = case.dictAction["code"]
+                etat = case.etat
+                if etat != "inactif" :
+                    listeValeurs.append((codeCategorie, codeAction, etat))
+        return listeValeurs
+        
+        
+    def MAJ(self):
+        if self.GetNumberRows() > 0 : 
+            self.DeleteRows(0, self.GetNumberRows())
+        if self.GetNumberCols() > 0 : 
+            self.DeleteCols(0, self.GetNumberCols())
+        self.ClearGrid()
+        self.caseSurvolee = None
+        self.Importation() 
+        self.InitGrid()
+        self.Refresh()
+        
+    def InitGrid(self):
+        self.dictCases = {}
+        
+        # ----------------- Création des colonnes --------------------------
+        nbreColonnes = len(LISTE_ACTIONS)
+        largeurColonneAction = 100
+        self.AppendCols(nbreColonnes)
+        numColonne = 0
+        
+        for dictAction in LISTE_ACTIONS :
+            self.SetColLabelValue(numColonne, dictAction["label"])
+            self.SetColSize(numColonne, largeurColonneAction)
+            numColonne += 1
+        
+        # ------------------ Création des lignes -------------------------------------------------------
+        nbreLignes = len(LISTE_CATEGORIES)
+        self.AppendRows(nbreLignes)
+        
+        numLigne = 0
+        numGroupe = -1
+        nomGroupe = ""
+        for dictCategorie in LISTE_CATEGORIES :
+            
+            # Groupe de catégorie
+            if type(dictCategorie) != dict :
+                typeLigne = "groupe"
+                nomGroupe = dictCategorie
+                hauteurLigne = 20
+                self.SetRowLabelValue(numLigne, nomGroupe)
+                self.SetRowSize(numLigne, hauteurLigne)
+                self.SetRowLabelRenderer(numLigne, MyRowLabelRenderer(COULEUR_CASE_GROUPE))
+                numGroupe += 1
+            
+            
+            # Catégorie
+            if type(dictCategorie) == dict :
+                typeLigne = "categorie"
+                hauteurLigne = 30
+                label = dictCategorie["label"]
+                if dictCategorie["restriction"] == True :
+                    label += "*"
+                self.SetRowLabelValue(numLigne, label)
+                self.SetRowSize(numLigne, hauteurLigne)
+                self.SetRowLabelRenderer(numLigne, None)
+            
+            # Cases
+            numColonne = 0
+            for dictAction in LISTE_ACTIONS :
+                
+                # Recherche de l'état de la case
+                if typeLigne == "groupe" :
+                    etat = "groupe"
+                    
+                if typeLigne == "categorie" :
+                    if dictAction["code"] not in dictCategorie["actions"] :
+                        etat = "inactif"
+                    else :
+                        etat = "autorisation"
+                        key = (dictCategorie["code"], dictAction["code"])
+                        if key in self.dictDroits :
+                            etat = self.dictDroits[key]["etat"]
+                
+                # Création de la case
+                case = Case(self, numLigne, numColonne, dictCategorie, dictAction, numGroupe, nomGroupe, etat)
+                self.dictCases[(numLigne, numColonne)] = case
+                numColonne += 1
+                        
+            numLigne += 1    
+
+    def OnLeaveWindow(self, event):
+        self.ActiveTooltip(False) 
+        self.EcritStatusbar(None)
+
+    def OnMouseOver(self, event):
+        x, y = self.CalcUnscrolledPosition(event.GetPosition())
+        numLigne = self.YToRow(y)
+        numColonne = self.XToCol(x)
+        if (numLigne, numColonne) in self.dictCases :
+            case = self.dictCases[(numLigne, numColonne)]
+        else :
+            case = None
+        if case != None :
+            if case != self.caseSurvolee :
+                self.ActiveTooltip(actif=False)
+                # Attribue une info-bulle
+                self.ActiveTooltip(actif=True, case=case)
+                self.caseSurvolee = case
+        else:
+            self.caseSurvolee = None
+            self.ActiveTooltip(actif=False)
+        self.EcritStatusbar(case, x, y)
+        event.Skip()
+
+    def OnLeftClick(self, event):
+        numLigne = event.GetRow()
+        numColonne = event.GetCol()
+        self.ActiveTooltip(actif=False)
+        if (numLigne, numColonne) in self.dictCases :
+            case = self.dictCases[(numLigne, numColonne)]
+            case.OnClickGauche()
+        event.Skip()
+
+    def OnRightClick(self, event):
+        numLigne = event.GetRow()
+        numColonne = event.GetCol()
+        self.ActiveTooltip(actif=False)
+        self.case_selection = None
+        if (numLigne, numColonne) in self.dictCases :
+            case = self.dictCases[(numLigne, numColonne)]
+            if case.typeLigne == "categorie" and case.etat != "inactif" :
+                self.case_selection = case
+        if self.case_selection == None :
+            return
+        
+        # Création du menu contextuel
+        menuPop = UTILS_Adaptations.Menu()
+        
+        nomCategorie = self.GetRowLabelValue(numLigne)
+        nomAction = self.GetColLabelValue(numColonne)
+        nomGroupe = case.nomGroupe
+        
+        # Titre
+        titre = "%s - %s" % (nomCategorie, nomAction)
+        item = wx.MenuItem(menuPop, 10, titre)
+        menuPop.AppendItem(item)
+        item.Enable(False)
+        
+        menuPop.AppendSeparator()
+        
+        listeItems = [
+            (100, _("Autoriser")),
+            (200, _("Interdire")),
+            (300, _("Restreindre")),
+            ]
+            
+        listeSousItems = [
+            (1, _("La case"), _("Uniquement sur la case"), "Images/16x16/Tableau_case.png"),
+            (2, _("Toute la ligne"), _("Sur toute la ligne"), "Images/16x16/Tableau_ligne.png"),
+            (3, _("Toute la colonne"), _("Sur toute la colonne"), "Images/16x16/Tableau_colonne.png"),
+            (4, _("Tout le tableau"), _("Sur toutes les lignes du tableau"), "Images/16x16/Tableau_zone.png"),
+            (5, _("Toutes les cases du groupe '%s'") % nomGroupe, _("Sur toutes les cases du groupe '%s'") % nomGroupe, "Images/16x16/Tableau_zone.png"),
+            (6, _("Toute la colonne du groupe '%s'") % nomGroupe, _("Sur toute la colonne du groupe '%s'") % nomGroupe, "Images/16x16/Tableau_colonne.png"),
+            ]           
+
+        for IDitem, labelItem in listeItems :
+            sousMenu = UTILS_Adaptations.Menu()
+            for IDsousItem, labelSousItem, tip, bmp in listeSousItems :
+                ID = IDitem+IDsousItem
+                item = wx.MenuItem(menuPop, ID, labelSousItem, tip)
+                item.SetBitmap(wx.Bitmap(Chemins.GetStaticPath(bmp), wx.BITMAP_TYPE_PNG))
+                sousMenu.AppendItem(item)
+                self.Bind(wx.EVT_MENU, self.OnActionMenuContextuel, id=ID)
+            item = menuPop.AppendMenu(IDitem, labelItem, sousMenu)
+
+        self.PopupMenu(menuPop)
+        menuPop.Destroy()
+    
+    def OnActionMenuContextuel(self, event):
+        ID = event.GetId() 
+        
+        # Sélectionne l'état à appliquer
+        if str(ID)[0] == "1" : 
+            etat = "autorisation"
+            IDcommande = ID-100
+        if str(ID)[0] == "2" : 
+            etat = "interdiction"
+            IDcommande = ID-200
+        if str(ID)[0] == "3" : 
+            etat = "restriction"
+            IDcommande = ID-300
+            etat = self.DemanderRestrictions()
+            
+        if etat == None :
+            return
+        
+        # Appliquer
+        for case in self.RechercherCases(IDcommande, self.case_selection) :
+            case.SetEtat(etat)
+    
+    def DemanderRestrictions(self):
+        code = None
+        dlg = DLG_Restrictions(self)
+        if dlg.ShowModal() == wx.ID_OK :
+            code = "restriction_" + dlg.GetCode() 
+        dlg.Destroy()
+        return code
+        
+    def RechercherCases(self, IDcommande=None, caseReference=None):
+        """ Rechercher les cases par case, ligne, colonne, ligne du groupe, etc... """
+        listeCases = []
+        # La case
+        if IDcommande == 1 :
+            if caseReference.etat not in ("inactif", "groupe") :
+                listeCases.append(caseReference)
+        # Toute la ligne
+        if IDcommande == 2 :
+            for coords, case in self.dictCases.items() :
+                if caseReference.numLigne == case.numLigne and case.etat not in ("inactif", "groupe") :
+                    listeCases.append(case)
+        # Toute la colonne
+        if IDcommande == 3 :
+            for coords, case in self.dictCases.items() :
+                if caseReference.numColonne == case.numColonne and case.etat not in ("inactif", "groupe") :
+                    listeCases.append(case)
+        # Toute le tableau
+        if IDcommande == 4 :
+            for coords, case in self.dictCases.items() :
+                if case.etat not in ("inactif", "groupe") :
+                    listeCases.append(case)
+        # Toute les lignes du groupe
+        if IDcommande == 5 :
+            for coords, case in self.dictCases.items() :
+                if caseReference.numGroupe == case.numGroupe and case.etat not in ("inactif", "groupe") :
+                    listeCases.append(case)
+        # Toute la colonne du groupe
+        if IDcommande == 6 :
+            for coords, case in self.dictCases.items() :
+                if caseReference.numColonne == case.numColonne and caseReference.numGroupe == case.numGroupe and case.etat not in ("inactif", "groupe") :
+                    listeCases.append(case)
+        return listeCases
+        
+    def AfficheTooltip(self):
+        """ Création du supertooltip """
+        case = self.tip.case
+        
+        # Récupération des données du tooltip
+        dictDonnees = case.GetTexteInfobulle()
+        if dictDonnees == None :
+            self.ActiveTooltip(actif=False)
+            return
+        
+        # Paramétrage du tooltip
+        font = self.GetFont()
+        self.tip.SetHyperlinkFont(wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, 'Arial'))
+        
+        if "couleur" in dictDonnees :
+            couleur = dictDonnees["couleur"]
+            self.tip.SetTopGradientColour(couleur)
+            self.tip.SetMiddleGradientColour(wx.Colour(255,255,255))
+            self.tip.SetBottomGradientColour(wx.Colour(255,255,255))
+            self.tip.SetTextColor(wx.Colour(76,76,76))
+        else :
+            styleTooltip = "Office 2007 Blue"
+            self.tip.ApplyStyle(styleTooltip)
+            
+        # Titre du tooltip
+        bmp = None
+        if "bmp" in dictDonnees :
+            bmp = dictDonnees["bmp"]
+        self.tip.SetHeaderBitmap(bmp)
+        
+        titre = None
+        if "titre" in dictDonnees :
+            titre = dictDonnees["titre"]
+            self.tip.SetHeaderFont(wx.Font(10, font.GetFamily(), font.GetStyle(), wx.BOLD, font.GetUnderlined(), font.GetFaceName()))
+            self.tip.SetHeader(titre)
+            self.tip.SetDrawHeaderLine(True)
+
+        # Corps du message
+        texte = dictDonnees["texte"]
+        self.tip.SetMessage(texte)
+
+        # Pied du tooltip
+        pied = None
+        if "pied" in dictDonnees :
+            pied = dictDonnees["pied"]
+        self.tip.SetDrawFooterLine(True)
+        self.tip.SetFooterBitmap(wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Aide.png"), wx.BITMAP_TYPE_ANY))
+        self.tip.SetFooterFont(wx.Font(7, font.GetFamily(), font.GetStyle(), wx.LIGHT, font.GetUnderlined(), font.GetFaceName()))
+        self.tip.SetFooter(pied)
+
+        # Affichage du Frame tooltip
+        self.tipFrame = STT.ToolTipWindow(self, self.tip)
+        self.tipFrame.CalculateBestSize()
+        x, y = wx.GetMousePosition()
+        self.tipFrame.SetPosition((x+15, y+17))
+        self.tipFrame.DropShadow(True)
+        self.tipFrame.Show()
+        #self.tipFrame.StartAlpha(True) # ou .Show() pour un affichage immédiat
+        
+        # Arrêt du timer
+        self.timerTip.Stop()
+        del self.timerTip
+
+    def CacheTooltip(self):
+        # Fermeture du tooltip
+        if hasattr(self, "tipFrame"):
+            try :
+                self.tipFrame.Destroy()
+                del self.tipFrame
+            except :
+                pass
+
+    def ActiveTooltip(self, actif=True, case=None):
+        if actif == True :
+            # Active le tooltip
+            if hasattr(self, "tipFrame") == False and hasattr(self, "timerTip") == False :
+                self.timerTip = wx.PyTimer(self.AfficheTooltip)
+                self.timerTip.Start(1500)
+                self.tip.case = case
+        else:
+            # Désactive le tooltip
+            if hasattr(self, "timerTip"):
+                if self.timerTip.IsRunning():
+                    self.timerTip.Stop()
+                    del self.timerTip
+                    self.tip.case = None
+            self.CacheTooltip() 
+            self.caseSurvolee = None
+
+    def EcritStatusbar(self, case=None, x=None, y=None):
+        if case == None : 
+            texte = ""
+        else :
+            texte = case.GetStatutTexte(x, y)
+            if texte == None : texte = ""
+        try :
+            topWindow = wx.GetApp().GetTopWindow() 
+            topWindow.SetStatusText(texte)
+        except : 
+            pass
+        
+
+
+
+
+
+
+# -------------------------------------------------------------------------------------------------------------------------------------------
+
+class DLG_Restrictions(wx.Dialog):
+    def __init__(self, parent):
+        wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
+        self.parent = parent
+        
+        self.label_intro = wx.StaticText(self, wx.ID_ANY, _("Vous pouvez sélectionner des activités ou des groupes d'activités :"))
+        self.ctrl_activites = CTRL_Selection_activites.CTRL(self)
+        self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
+        self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"), cheminImage="Images/32x32/Valider.png")
+        self.bouton_annuler = CTRL_Bouton_image.CTRL(self, texte=_("Annuler"), cheminImage="Images/32x32/Annuler.png")
+        
+        # Propriétés
+        self.SetTitle(_("Appliquer des restrictions"))
+        self.bouton_aide.SetToolTip(wx.ToolTip(_("Cliquez ici pour obtenir de l'aide")))
+        self.bouton_ok.SetToolTip(wx.ToolTip(_("Cliquez ici pour valider")))
+        self.bouton_annuler.SetToolTip(wx.ToolTip(_("Cliquez ici pour annuler")))
+        self.SetMinSize((500, 500))
+        
+        # Layout
+        grid_sizer_base = wx.FlexGridSizer(3, 1, 5, 5)
+        grid_sizer_boutons = wx.FlexGridSizer(1, 4, 10, 10)
+        grid_sizer_base.Add(self.label_intro, 0, wx.ALL, 10)
+        grid_sizer_base.Add(self.ctrl_activites, 0, wx.LEFT | wx.RIGHT | wx.EXPAND, 10)
+        grid_sizer_boutons.Add(self.bouton_aide, 0, 0, 0)
+        grid_sizer_boutons.Add((20, 20), 0, wx.EXPAND, 0)
+        grid_sizer_boutons.Add(self.bouton_ok, 0, 0, 0)
+        grid_sizer_boutons.Add(self.bouton_annuler, 0, 0, 0)
+        grid_sizer_boutons.AddGrowableCol(1)
+        grid_sizer_base.Add(grid_sizer_boutons, 1, wx.ALL | wx.EXPAND, 10)
+        self.SetSizer(grid_sizer_base)
+        grid_sizer_base.Fit(self)
+        grid_sizer_base.AddGrowableRow(1)
+        grid_sizer_base.AddGrowableCol(0)
+        self.Layout()
+        self.CenterOnScreen()
+
+        self.Bind(wx.EVT_BUTTON, self.OnBoutonAide, self.bouton_aide)
+        self.Bind(wx.EVT_BUTTON, self.OnBoutonOk, self.bouton_ok)
+        self.Bind(wx.EVT_BUTTON, self.OnBoutonAnnuler, self.bouton_annuler)
+
+    def OnBoutonAide(self, event):
+        from Utils import UTILS_Aide
+        UTILS_Aide.Aide("Utilisateurs")
+
+    def OnBoutonAnnuler(self, event):
+        self.EndModal(wx.ID_CANCEL)
+
+    def OnBoutonOk(self, event):  
+        if self.ctrl_activites.Validation() == False :
+            return
+        self.EndModal(wx.ID_OK)
+        
+    def GetCode(self):
+        mode, listeID = self.ctrl_activites.GetValeurs() 
+        code = "%s:%s" % (mode, ";".join([str(x) for x in listeID]))
+        return code
+    
+    def SetCode(self, code=""):
+        mode, listeID = code.split(":")
+        listeID = [int(x) for x in listeID]
+        self.ctrl_activites.SetValeurs(mode, listeID)
+        
+
+
+# -------------------------------------------------------------------------------------------------------------------------------------------
+
+class MyFrame(wx.Frame):
+    def __init__(self, *args, **kwds):
+        wx.Frame.__init__(self, *args, **kwds)
+        panel = wx.Panel(self, -1, name="test1")
+        sizer_1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_1.Add(panel, 1, wx.ALL|wx.EXPAND)
+        self.SetSizer(sizer_1)
+        self.ctrl = CTRL(panel)
+        self.ctrl.MAJ() 
+        self.bouton1 = wx.Button(panel, -1, _("Test"))
+        sizer_2 = wx.BoxSizer(wx.VERTICAL)
+        sizer_2.Add(self.ctrl, 1, wx.ALL|wx.EXPAND, 4)
+        sizer_2.Add(self.bouton1, 0, wx.ALL|wx.EXPAND, 4)
+        panel.SetSizer(sizer_2)
+        self.SetSize((800, 500))
+        self.Layout()
+        self.Bind(wx.EVT_BUTTON, self.OnBouton1, self.bouton1)
+    
+    def OnBouton1(self, event):
+        for x in self.ctrl.GetValeurs() :
+            print(x)
+        
+
+if __name__ == '__main__':
+    app = wx.App(0)
+    #wx.InitAllImageHandlers()
+    frame_1 = MyFrame(None, -1, "OL TEST")
+##    frame_1 = DLG_Restrictions(None)
+    app.SetTopWindow(frame_1)
+    frame_1.Show()
+    app.MainLoop()
+    
