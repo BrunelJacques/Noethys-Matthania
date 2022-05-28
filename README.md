@@ -1,16 +1,10 @@
-Noethys
+Noethys-Matthania
 ==================
-Logiciel de gestion libre et gratuit de gestion multi-activités pour 
-les accueils de loisirs, crèches, garderies périscolaires, cantines, 
-TAP ou NAP, clubs sportifs et culturels...
+Le célébre outil de gestion Noethys a été repris par Matthania pour ses besoin de gestion de camps.
+Les spécificités ajoutées permettent de gérer des articles et des tarifs avec des modules de réductions spécifiques.
+L'autre particularité est de gérer des pièces changeant d'état: Devis, Réservation, Commande, Facture, Avoir.
 
-Plus d'infos sur www.noethys.com
-
-
-Installation sur Windows
-------------------
-
-Allez dans la rubrique Téléchargements du site www.noethys.com pour télécharger la version compilée pour Windows.
+Plus d'infos sur les fonctions de base de Noethys sur : www.noethys.com
 
 
 Installation sur Ubuntu 20.04
