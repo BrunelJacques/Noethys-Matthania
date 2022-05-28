@@ -6,6 +6,7 @@ L'autre particularité est de gérer des pièces changeant d'état: Devis, Rése
 
 Plus d'infos sur les fonctions de base de Noethys sur : www.noethys.com
 
+Les premières modification ont été apportées à partir de Noethys 2016, à l'occasion de la transposition en python3 un merge a été fait à partir de Noethys 1.3.0.8 (30/03/2022)
 
 Installation sur Ubuntu 20.04
 ------------------
@@ -18,7 +19,6 @@ git clone https://github.com/Noethys/Noethys
 pip3 install -r Noethys/requirements.txt
 python3 Noethys/noethys/Noethys.py
 ```
-
 
 
 Installation depuis les sources
