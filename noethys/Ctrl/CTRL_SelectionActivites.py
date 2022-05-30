@@ -74,7 +74,7 @@ class ACheckListBox(wx.CheckListBox):
                     self.dictDonnees[nom][nomlien] = []
                 if IDlien !=None:
                     self.dictDonnees[nom][nomlien].append(IDlien)
-                if not nom in self.listeDonnees:
+                if nom and not nom in self.listeDonnees:
                     self.listeDonnees.append(nom)
 
     def GetListeIDlienChecked(self,nomlien="lstIDlien"):
@@ -479,7 +479,7 @@ class CTRL(wx.Panel):
 class Dialog(wx.Dialog):
     def __init__(self, parent, minSize=(100, 600)):
         wx.Dialog.__init__(self, parent, -1,
-                           style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX | wx.THICK_FRAME)
+                           style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX)
         self.parent = parent
         self.SetMinSize(minSize)
 
