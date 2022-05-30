@@ -437,7 +437,7 @@ class MainFrame(wx.Frame):
         # Panneau Effectifs
         self.ctrl_remplissage = DLG_Effectifs.CTRL(self)
         self._mgr.AddPane(self.ctrl_remplissage, aui.AuiPaneInfo().Name("effectifs").Caption(_("Tableau de bord")).
-                          Left().Layer(1).Position(0).CloseButton(True).MaximizeButton(True).MinimizeButton(True).MinSize((580, 200)).BestSize((630, 600)) )
+                Left().Layer(1).Position(0).CloseButton(True).MaximizeButton(True).MinimizeButton(True).MinSize((580, 200)).BestSize((630, 600)) )
 
         if ("page_ctrl_effectifs" in self.userConfig) == True :
             self.ctrl_remplissage.SetPageActive(self.userConfig["page_ctrl_effectifs"])
@@ -445,7 +445,7 @@ class MainFrame(wx.Frame):
         # Panneau Messages
         self.ctrl_messages = CTRL_Messages.Panel(self)
         self._mgr.AddPane(self.ctrl_messages, aui.AuiPaneInfo().Name("messages").Caption(_("Messages")).
-                          Left().Layer(1).Position(2).CloseButton(True).MinSize((200, 100)).MaximizeButton(True).MinimizeButton(True) )
+                          Left().Layer(1).Position(2).CloseButton(True).MinSize((600, 100)).MaximizeButton(True).MinimizeButton(True) )
         pi = self._mgr.GetPane("messages")
         pi.dock_proportion = 50000 # Proportion
         

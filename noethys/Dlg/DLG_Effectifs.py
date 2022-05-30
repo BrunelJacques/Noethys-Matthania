@@ -26,12 +26,14 @@ class CTRL(aui.AuiNotebook):
         self.parent = parent
         
         # CTRL Remplissage
+        """
         self.ctrl_remplissage = DLG_Remplissage.Panel(self)
         self.AddPage(self.ctrl_remplissage, _("Consommations"))
         try :
             self.SetPageTooltip(0, _("Affiche l'état des consommations. \nVous pouvez glisser-déposer cet onglet pour déplacer la page."))
         except :
             pass
+        """
 
         # CTRL Inscriptions par groupes
         self.ctrl_nbre_groupe = DLG_Nbre_groupe.Panel(self)
@@ -77,11 +79,11 @@ class CTRL(aui.AuiNotebook):
         self.MAJ()
 
     def MAJ(self):
+        #if self.GetPageActive() == 0 :
+        #    self.ctrl_remplissage.MAJ()
         if self.GetPageActive() == 0 :
-            self.ctrl_remplissage.MAJ()
-        if self.GetPageActive() == 1 :
             self.ctrl_nbre_groupe.MAJ()
-        if self.GetPageActive() == 2 :
+        if self.GetPageActive() == 1 :
             self.ctrl_nbre_inscrits.MAJ()
         """
         if self.GetPageActive() == 2 :
