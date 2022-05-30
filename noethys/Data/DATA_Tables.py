@@ -8,20 +8,25 @@
 # Licence:         Licence GNU GPL
 #-----------------------------------------------------------
 
-TABLES_IMPORTATION_OPTIONNELLES = [ 
-        ["Périodes de vacances", ("vacances",), True],
+TABLES_IMPORTATION_OPTIONNELLES = [
+        ["Périodes de vacances, scolarité", ("vacances","scolarite","classes",), True],
         ["Jours fériés", ("jours_feries",), True],
-        ["Vaccins et maladies", ("types_vaccins", "vaccins_maladies", "types_maladies",), True],
+        ["Vaccins et maladies", ("types_vaccins", "vaccins_maladies", "types_maladies","categories_medicales",), True],
         ["Types de sieste", ("types_sieste",), True],
         ["Catégories socio-professionnelles", ("categories_travail",), True],
-        ["Modes et émetteurs de règlements", ("modes_reglements", "emetteurs"), True],
-        ["Régimes d'appartenance", ("regimes",), True],
-        ["Modèles d'Emails", ("modeles_emails",), True],
         ["Niveaux scolaires", ("niveaux_scolaires",), True],
-        ["Comptes comptables", ("compta_comptes_comptables",), True],
         ["Types de quotients", ("types_quotients",), True],
-        ["Catégories médicales", ("categories_medicales",), True],
         ["Eléments de pages du portail", ("portail_elements",), True],
+        ['Aides sociales', ('aides','aides_beneficiaires','aides_combi_unites','aides_combinaisons','aides_montants','deductions',), True],
+        ['Badges', ('badgeage_actions','badgeage_archives','badgeage_journal','badgeage_messages','badgeage_procedures',), True],
+        ['Budgets', ('compta_budgets','compta_categories_budget','compta_operations_budgetaires',), True],
+        ['Contrats Noethys', ('contrats','contrats_tarifs','corrections_phoniques',), True],
+        ['Cotisations Noethys', ('cotisations_activites','depots_cotisations',), True],
+        ['Etats nominatifs', ('etat_nomin_champs','etat_nomin_profils','etat_nomin_selections',), True],
+        ['Portail', ('portail_actions','portail_blocs','portail_messages',
+                     'portail_pages','portail_periodes','portail_renseignements',
+                     'portail_reservations','portail_reservations_locations','portail_unites',), True],
+        ['Tarifs Noethys', ('combi_tarifs','combi_tarifs_unites',), True],
         ] # [Nom Categorie, (liste des tables...,), Selectionné]
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2212,6 +2217,20 @@ def GetDdRecords(DB,nomTable,where,lstChamps=None,mess=None):
                 continue
             ddRetour[IDinscription].update(dic)
     return ddRetour
+
+def GetLstTablesOptionnelles(listeDonnees=[]):
+    # fonctionne soit en choix de sélection ou en exclusion selon arg
+    lstTables = []
+    if len(listeDonnees) == 0:
+        listeTablesOptionnelles = TABLES_IMPORTATION_OPTIONNELLES
+    else:
+        listeTablesOptionnelles = listeDonnees
+
+    # Importation des tables optionnelles
+    for nomCategorie, listeTables, selection in listeTablesOptionnelles:
+        if selection == True:
+            for nomTable in listeTables:
+                lstTables(nomTable)
 
 
 if __name__ == "__main__":

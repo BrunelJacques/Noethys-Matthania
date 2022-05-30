@@ -724,26 +724,6 @@ class DB():
                 listeChamps.append( (valeurs[0], valeurs[1]) )
         return listeChamps
 
-    def Importation_valeurs_defaut(self, listeDonnees=[]):
-        """ Importe dans la base de données chargée toutes les valeurs de la base des valeurs par défaut """
-        # Récupération du dictionnaire des tables Optionnelles pour l'importation
-        if len(listeDonnees) == 0:
-            listeTablesOptionnelles = DATA_Tables.TABLES_IMPORTATION_OPTIONNELLES  # DICT_TABLES_IMPORTATION
-        else:
-            listeTablesOptionnelles = listeDonnees
-
-        # Importation des tables optionnelles
-        for nomCategorie, listeTables, selection in listeTablesOptionnelles:
-            if selection == True:
-                for nomTable in listeTables:
-                    self.Importation_table(nomTable)
-
-        # Importation des tables obligatoires
-        for nomTable in DATA_Tables.TABLES_IMPORTATION_OBLIGATOIRES:
-            self.Importation_table(nomTable)
-
-        return True
-
     def GetDataBases(self):
         self.cursor.execute("SHOW DATABASES;")
         listeBases = self.cursor.fetchall()

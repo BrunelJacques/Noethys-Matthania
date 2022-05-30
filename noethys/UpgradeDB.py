@@ -10,6 +10,7 @@
 
 import wx,os
 import Chemins
+import Data.DATA_Tables
 import GestionDB
 import FonctionsPerso as fp
 from Data import DATA_Tables
@@ -432,6 +433,14 @@ class DB(GestionDB.DB):
         connexionDefaut.close()
         return (True, None)
 
+    def Importation_valeurs_defaut(self, listeDonnees=[]):
+        # Récupération du dictionnaire des tables Optionnelles pour l'importation
+        lstTables = DATA_Tables.GetLstTablesOptionnelles(listeDonnees)
+        # importation des tables et valeurs par défaut
+        for nomTable in lstTables:
+            self.Importation_table(nomTable)
+        return True
+
     def CtrlTables(self, parent, dicTables, tables):
         # création de table ou ajout|modif des champs selon description fournie
         if not tables or tables == []:
@@ -745,20 +754,18 @@ def Init_tables(parent=None, mode='creation',tables=[],db_tables=None,db_ix=None
 
 def MAJ_TablesEtChamps(parent=None, mode='ctrl',lstTables=[]):
     # Complète une bd spécifique pour fonctionner avec cette version Noethys
-    from Data.DATA_Tables import DB_DATA,TABLES_IMPORTATION_OPTIONNELLES,DB_INDEX
+    from Data.DATA_Tables import DB_DATA,DB_INDEX
     tblOptionnelles = []
     allTables = False
     if not lstTables: lstTables = []
     if len(lstTables) == 0 :
         allTables = True
-        tblOptionnelles = [ y[0] for x,y,z in TABLES_IMPORTATION_OPTIONNELLES]
+        tblOptionnelles = Data.DATA_Tables.GetLstTablesOptionnelles()
     tables = []
     db_tables = {}
     db_ix = {}
     for nomTable, dicTable in DB_DATA.items():
         if nomTable in tblOptionnelles:
-            continue
-        if nomTable.startswith("portail_"):
             continue
         if (not allTables) and not (nomTable in lstTables):
             continue

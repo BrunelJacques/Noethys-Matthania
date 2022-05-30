@@ -898,7 +898,7 @@ class Dialog(wx.Dialog):
                     couleurFond="#FFA5A5"
                 else:
                     couleurFond="#FDF095"
-                self.AfficheToaster(titre=_("Message"), texte=texteToaster, couleurFond=couleurFond)
+                self.AfficheToaster(titre="Message", texte=texteToaster, couleurFond=couleurFond)
 
     def AfficheToaster(self, titre=u"", texte=u"", taille=(200, 100), couleurFond="#F0FBED"):
         """ Affiche une boîte de dialogue temporaire """

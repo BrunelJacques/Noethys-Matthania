@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-15 -*-
 #------------------------------------------------------------------------
-# Application :    Noethys, Matthania
-# Auteur:           Ivan LUCAS, JB, Jacques Brunel
+# Application :    Noethys, complété Matthania
+# Auteur:           Ivan LUCAS, JB
 # Copyright:       (c) 2010-11 Ivan LUCAS
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
