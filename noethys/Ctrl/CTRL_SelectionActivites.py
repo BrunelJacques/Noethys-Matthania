@@ -479,7 +479,7 @@ class CTRL(wx.Panel):
 class Dialog(wx.Dialog):
     def __init__(self, parent, minSize=(100, 600)):
         wx.Dialog.__init__(self, parent, -1,
-                           style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX)
+                           style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX | wx.THICK_FRAME)
         self.parent = parent
         self.SetMinSize(minSize)
 

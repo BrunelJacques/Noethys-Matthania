@@ -1147,8 +1147,6 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
 
         # Cloture de la BD
         return dictRemplissage, dictUnitesRemplissage, dictConsoAttente
-    
-
 
     def GetDictGroupes(self):
         dictGroupes = {}
