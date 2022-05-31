@@ -160,7 +160,7 @@ class CTRL(ULC.UltimateListCtrl):
                     listeID.append(int(ID))
             condition = "WHERE inscriptions.IDactivite IN %s" % GestionDB.ConvertConditionChaine(listeID)
         else:
-            condition = "1 = 0"
+            condition = "WHERE 1 = 0"
 
         # Tri
         choixTri= UTILS_Config.GetParametre("nbre_inscrits_parametre_tri", 3)

@@ -272,7 +272,7 @@ class Depannage():
         self.CotisationsSansIndividus()
         self.CotisationsSansFamilles() 
         self.PrestationsSansFamilles() 
-        self.VentilationsSansPrestations() 
+        #self.VentilationsSansPrestations() # possible si lettrage entre règlements positifs et négatifs
         self.VentilationsSansReglements() 
         self.IndividusIncomplets()
         self.FamillesIncompletes()
@@ -285,7 +285,7 @@ class Depannage():
         self.LiensErrones() 
         self.VentilationExcessive()
         self.PrestationsFantomes()
-        self.MySQL8()
+        #self.MySQL8()
                 
         # Fermeture DB
         self.DB.Close()

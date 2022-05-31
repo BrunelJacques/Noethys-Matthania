@@ -209,6 +209,8 @@ class DB(GestionDB.DB):
 
     def CreationUneTable(self, dicTables={},nomTable=None):
         if nomTable == None : return "Absence de nom de table!!!"
+        if not dicTables or dicTables=={}:
+            dicTables =DATA_Tables.DB_DATA
         req = "CREATE TABLE IF NOT EXISTS %s (" % nomTable
         for nomChamp, typeChamp, comment in dicTables[nomTable]:
             typeChamp = self.TransposeChamp(typeChamp)
@@ -263,6 +265,9 @@ class DB(GestionDB.DB):
 
     def CreationTousIndex(self,parent,dicIndex,tables):
         """ Création de tous les index """
+        if not dicIndex or dicIndex=={}:
+            dicIndex =DATA_Tables.DB_INDEX
+
         for nomIndex, dict in dicIndex.items() :
             if not 'table' in dict:
                 raise Exception("Structure incorrecte: shema Index '%s' - absence cle 'table'"%nomIndex)
@@ -435,7 +440,7 @@ class DB(GestionDB.DB):
 
     def Importation_valeurs_defaut(self, listeDonnees=[]):
         # Récupération du dictionnaire des tables Optionnelles pour l'importation
-        lstTables = DATA_Tables.GetLstTablesOptionnelles(listeDonnees)
+        lstTables = DATA_Tables.GetLstTablesOptions(lstOptions=listeDonnees)
         # importation des tables et valeurs par défaut
         for nomTable in lstTables:
             self.Importation_table(nomTable)
@@ -741,6 +746,8 @@ def Init_tables(parent=None, mode='creation',tables=[],db_tables=None,db_ix=None
         db.cursor = db.connexion.cursor()
 
         db.CreationTousIndex(parent,db_ix, tables)
+        if not db_pk or db_pk=={}:
+            db_pk = DATA_Tables.DB_PK
         db.CreationTousIndex(parent,db_pk, tables)
 
     # Crée les tables et ajoute les champs manquants dans les présentes
@@ -760,7 +767,7 @@ def MAJ_TablesEtChamps(parent=None, mode='ctrl',lstTables=[]):
     if not lstTables: lstTables = []
     if len(lstTables) == 0 :
         allTables = True
-        tblOptionnelles = Data.DATA_Tables.GetLstTablesOptionnelles()
+        tblOptionnelles = Data.DATA_Tables.GetLstTablesOptions()
     tables = []
     db_tables = {}
     db_ix = {}
@@ -776,13 +783,16 @@ def MAJ_TablesEtChamps(parent=None, mode='ctrl',lstTables=[]):
             db_ix[nomIndex] = dicIndex
     if len(db_ix.keys()) == 0:
         db_ix = None
+    libModes = {'creation': "Création",
+                "test": "Vérification sans modif",
+                "ctrl": "Création ou correction"}
     if not lstTables or lstTables == []:
         if mode in ('creation', 'test'):
             txt = "de toutes les tables manquantes à l'appli mère"
         else: txt = "de toutes les tables et de leurs champs"
         md = wx.MessageDialog(
                 parent,
-                "%s %s:\n\n'%s...'\n\nConfirmez qu'il s'agit de la reprise d'une sauvegarde!"%(mode.capitalize(),
+                "%s %s:\n\n'%s...'\n\nConfirmez qu'il s'agit de la reprise d'une sauvegarde!"%(libModes[mode],
                                                   txt,
                                                   str(db_tables.keys())[10:500]),
                 "Confirmation nécessaire",

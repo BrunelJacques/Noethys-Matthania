@@ -302,9 +302,10 @@ class Panel(wx.Panel):
         dlg.Destroy() 
 
 
-class MyFrame(wx.Frame):
+class Dialog(wx.Dialog):
     def __init__(self, *args, **kwds):
-        wx.Frame.__init__(self, *args, **kwds)
+        wx.Dialog.__init__(self, *args, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX,
+                           size=(700, 800))
         panel = wx.Panel(self, -1)
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_1.Add(panel, 1, wx.ALL|wx.EXPAND)
@@ -320,7 +321,7 @@ class MyFrame(wx.Frame):
 if __name__ == '__main__':
     app = wx.App(0)
     #wx.InitAllImageHandlers()
-    frame_1 = MyFrame(None, -1, "TEST", size=(800, 400))
+    frame_1 = Dialog(None, -1, "TEST")
     app.SetTopWindow(frame_1)
     frame_1.Show()
     app.MainLoop()

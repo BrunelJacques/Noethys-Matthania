@@ -2218,19 +2218,21 @@ def GetDdRecords(DB,nomTable,where,lstChamps=None,mess=None):
             ddRetour[IDinscription].update(dic)
     return ddRetour
 
-def GetLstTablesOptionnelles(listeDonnees=[]):
+def GetLstTablesOptions(lstOptions=[]):
     # fonctionne soit en choix de sélection ou en exclusion selon arg
     lstTables = []
-    if len(listeDonnees) == 0:
-        listeTablesOptionnelles = TABLES_IMPORTATION_OPTIONNELLES
+    if len(lstOptions) == 0:
+        lstlstTablesOptionnelles = TABLES_IMPORTATION_OPTIONNELLES
     else:
-        listeTablesOptionnelles = listeDonnees
+        # des choix de catégories ont été faits
+        lstlstTablesOptionnelles = lstOptions
 
     # Importation des tables optionnelles
-    for nomCategorie, listeTables, selection in listeTablesOptionnelles:
+    for nomCategorie, listeTables, selection in lstlstTablesOptionnelles:
         if selection == True:
             for nomTable in listeTables:
-                lstTables(nomTable)
+                lstTables.append(nomTable)
+    return lstTables
 
 
 if __name__ == "__main__":

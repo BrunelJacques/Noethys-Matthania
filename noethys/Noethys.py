@@ -474,9 +474,7 @@ class MainFrame(wx.Frame):
         # Barre raccourcis --------------------------------------------------
         tb = aui.AuiToolBar(self, -1, wx.DefaultPosition, wx.DefaultSize, agwStyle=aui.AUI_TB_DEFAULT_STYLE | aui.AUI_TB_OVERFLOW | aui.AUI_TB_TEXT | aui.AUI_TB_HORZ_TEXT)
         tb.SetToolBitmapSize(wx.Size(16, 16))
-        tb.AddSimpleTool(ID_TB_GESTIONNAIRE, _("Gestionnaire des conso."), wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Calendrier.png"), wx.BITMAP_TYPE_PNG), _("Accéder au gestionnaire des consommations"))
         tb.AddSimpleTool(ID_TB_LISTE_CONSO, _("Liste des conso."), wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_PNG), _("Imprimer une liste de consommations"))
-        tb.AddSimpleTool(ID_TB_BADGEAGE, _("Badgeage"), wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Badgeage.png"), wx.BITMAP_TYPE_PNG), _("Lancer une procédure de badgeage"))
         tb.AddSeparator()
         tb.AddSimpleTool(ID_TB_REGLER_FACTURE, _("Régler une facture"), wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Reglement.png"), wx.BITMAP_TYPE_PNG), _("Régler une facture à partir de son numéro"))
         self.ctrl_numfacture = CTRL_Numfacture.CTRL(tb, size=(100, -1))

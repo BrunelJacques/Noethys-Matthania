@@ -1,3 +1,4 @@
+wxPython
 appdirs
 comtypes
 icalendar

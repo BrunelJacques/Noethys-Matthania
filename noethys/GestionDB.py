@@ -101,8 +101,8 @@ class DB():
         else :
             self.IDconnexion = IDconnexion
 
-        if self.IDconnexion >= 22: # 'debug connexions ouvertes' etape ON
-            print()
+        #if self.IDconnexion >= 22: # 'debug connexions ouvertes' etape ON
+        #    print()
         DICT_CONNEXIONS[self.IDconnexion] = []
 
         # On ajoute le préfixe de type de fichier et l'extension du fichier
@@ -277,8 +277,8 @@ class DB():
             # l'ID connection n'était pas créé
             del self
             return
-        if self.IDconnexion >= 22:# 'debug connexions ouvertes' etape off
-            print()
+        #if self.IDconnexion >= 22:# 'debug connexions ouvertes' etape off
+        #    print()
         try :
             if self.connexion.open != 0:
                 self.connexion.close()

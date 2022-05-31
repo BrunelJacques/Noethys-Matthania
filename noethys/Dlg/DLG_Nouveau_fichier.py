@@ -8,9 +8,6 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
-import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
@@ -19,8 +16,8 @@ import GestionDB
 from Data import DATA_Tables as Tables
 from Ctrl import CTRL_Bandeau
 import wx.lib.agw.hyperlink as hl
+import wx.lib.agw.customtreectrl as CT
 from Crypto.Hash import SHA256
-
 
 class PanelReseau(wx.Panel):
     def __init__(self, parent, ID=-1):
@@ -68,7 +65,6 @@ class PanelReseau(wx.Panel):
         self.ctrl_hote.SetToolTip(wx.ToolTip(_("Indiquez ici le nom du serveur hôte.")))
         self.ctrl_user.SetToolTip(wx.ToolTip(_("Indiquez ici le nom de l'utilisateur. Ce nom doit avoir été validé par le créateur du fichier.")))
         self.ctrl_mdp.SetToolTip(wx.ToolTip(_("Indiquez ici le mot de passe nécessaire à la connexion à MySQL")))
-
 
 class MyDialog(wx.Dialog):
     def __init__(self, parent):
@@ -267,11 +263,11 @@ class MyDialog(wx.Dialog):
         if dlg.ShowModal() == wx.ID_OK:
             listeSelections = dlg.GetSelections()
             index = 0
-            for categorie in self.listeTablesImportation :
+            for nomCategorie, tables, selection in self.listeTablesImportation :
                 if index in listeSelections :
-                    self.listeTablesImportation[index][2] = True
+                    selection = True
                 else:
-                    self.listeTablesImportation[index][2] = False
+                    selection = False
                 index += 1
             
             if len(listeSelections) == 0 :
@@ -461,12 +457,298 @@ class MyDialog(wx.Dialog):
         actif = 1
         dictTemp = { "sexe":sexe, "nom":nom, "prenom":prenom, "mdp":mdp, "mdpcrypt":mdpcrypt, "profil":profil, "actif":actif, "image":None }
         return dictTemp
-    
-    
-    
+
+
+class CTRL_ChoixTables(CT.CustomTreeCtrl):
+    def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
+                 size=wx.DefaultSize, style=wx.SIMPLE_BORDER):
+        CT.CustomTreeCtrl.__init__(self, parent, id, pos, size, style)
+        self.parent = parent
+        self.activation = True
+        self.root = self.AddRoot(_("Racine"))
+        self.SetBackgroundColour(wx.WHITE)
+        self.SetAGWWindowStyleFlag(
+            wx.TR_HIDE_ROOT | wx.TR_HAS_BUTTONS | wx.TR_HAS_VARIABLE_ROW_HEIGHT)  # CT.TR_AUTO_CHECK_CHILD
+        self.EnableSelectionVista(True)
+        self.mode_importation = False
+        self.dictItems = {}
+
+        # Binds
+        self.Bind(CT.EVT_TREE_ITEM_CHECKED, self.OnCheck)
+
+    def Importation(self):
+        lstTables = []
+        self.tablesOptionnelles = Tables.TABLES_IMPORTATION_OPTIONNELLES
+        for categorie, tables, selection in Tables.TABLES_IMPORTATION_OPTIONNELLES:
+            motTbl = "table"
+            if len(tables) >1: motTbl = "tables"
+            nomCategorie = "%s (%d %s)"%(categorie,len(tables),motTbl)
+            for table in tables:
+                lstTables.append((table,nomCategorie))
+        return lstTables
+
+    def MAJ(self):
+        anciensCoches = self.GetTables()
+
+        self.listeDonnees = self.Importation()
+        self.DeleteAllItems()
+        self.root = self.AddRoot(_("Données"))
+        self.dictItems = {}
+
+        # Préparation des données
+        dictDonnees = {}
+        for nomTable, nomCategorie in self.listeDonnees:
+            if (nomCategorie in dictDonnees) == False:
+                dictDonnees[nomCategorie] = {"nom": nomCategorie,
+                                           "tables": []}
+            dictDonnees[nomCategorie]["tables"].append(
+                nomTable)
+
+        # Tri des noms des activités par ordre alpha
+        listeCategories = []
+        for categorie, dictCategorie in dictDonnees.items():
+            listeCategories.append(categorie)
+        listeCategories.sort(reverse=True)
+
+        # Remplissage
+        for nomCategorie in listeCategories:
+            # Branche catégorie
+            dictCategorie = dictDonnees[nomCategorie]
+            brancheCategorie = self.AppendItem(self.root, nomCategorie,
+                                              ct_type=1)
+            dictData = {"type": "categorie", "nom": nomCategorie}
+            self.SetPyData(brancheCategorie, dictData)
+            self.dictItems[brancheCategorie] = dictData
+
+            # Branches tables
+            listeTables = dictCategorie["tables"]
+            listeTables.sort()
+
+            for nomTable in listeTables:
+                brancheTable = self.AppendItem(brancheCategorie, nomTable,
+                                                ct_type=1)
+                dictData = {"type": "table",
+                            "nom": nomTable}
+                self.SetPyData(brancheTable, dictData)
+                self.dictItems[brancheTable] = dictData
+
+            self.EnableChildren(brancheCategorie, False)
+
+        if self.activation == False:
+            self.EnableChildren(self.root, False)
+
+        self.SetTables(anciensCoches)
+
+    def OnCheck(self, event):
+        item = event.GetItem()
+        self.Coche(item=item)
+
+    def Coche(self, item=None, etat=None):
+        """ Coche ou décoche un item """
+        dictData = self.GetItemPyData(item)
+        itemParent = self.GetItemParent(item)
+
+        if etat != None:
+            self.CheckItem(item, etat)
+
+        if dictData["type"] == "categorie":
+            if self.IsItemChecked(item):
+                self.EnableChildren(item, True)
+                if self.mode_importation == False:
+                    self.CheckChilds(item, True)
+            else:
+                self.EnableChildren(item, False)
+                self.CheckChilds(item, False)
+
+        if dictData["type"] == "table":
+            if self.IsItemChecked(item):
+                self.CheckItem(itemParent, True)
+            else:
+                listeCoches = self.GetCochesItem(itemParent)
+                if len(listeCoches) == 0:
+                    self.CheckItem(itemParent, False)
+
+    def GetCochesItem(self, item=None):
+        """ Renvoie la liste des sous items cochés d'un item parent """
+        listeItems = []
+        itemTemp, cookie = self.GetFirstChild(item)
+        for index in range(0, self.GetChildrenCount(item, recursively=False)):
+            if self.IsItemChecked(itemTemp):
+                dictData = self.GetPyData(itemTemp)
+                listeItems.append(dictData)
+            itemTemp, cookie = self.GetNextChild(item, cookie)
+        return listeItems
+
+    def GetTables(self):
+        """ Renvoie la liste des tables cochés """
+        listeTables = []
+        for item, dictData in self.dictItems.items():
+            if self.IsItemEnabled(item) and self.IsItemChecked(item) and \
+                    dictData["type"] == "table":
+                listeTables.append(dictData["nom"])
+        listeTables.sort()
+        return listeTables
+
+    def SetTables(self, listeTables=[]):
+        """ Coche les tables donnés """
+        self.mode_importation = True
+        for item, dictData in self.dictItems.items():
+            if dictData["type"] == "table":
+                if dictData["nom"] in listeTables:
+                    self.Coche(item, etat=True)
+                else:
+                    self.Coche(item, etat=False)
+        self.mode_importation = False
+
+    def SetCategories(self, listeCategories=[]):
+        """ Coche les activités """
+        for item, dictData in self.dictItems.items():
+            if dictData["type"] == "categorie":
+                if dictData["categorie"] in listeCategories:
+                    self.Coche(item, etat=True)
+                else:
+                    self.Coche(item, etat=False)
+
+class DlgAjoutTables(wx.Dialog):
+    def __init__(self, parent):
+        title = "DLG_Nouveau_fichier"
+        wx.Dialog.__init__(self, parent, -1, title=title,
+                           size=(400,500),
+                           style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
+        self.parent = parent
+
+        self.listeTablesImportation = Tables.TABLES_IMPORTATION_OPTIONNELLES
+
+        # Bandeau
+        titre = _("Ajout de tables optionnelles")
+        intro = "Sélectionnez les tables optionnelles que vous souhaitez ajouter."
+        intro += "Cela vous permettra de tester de nouveaux outils Noethys."
+        self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre,
+                                                 texte=intro, hauteurHtml=60,
+                                                 nomImage="Images/32x32/Fichier_nouveau.png")
+
+        self.sizer_type_staticbox = wx.StaticBox(self, -1, _("Choix tables"))
+
+        # Sélection des tables à importer
+        self.ctrlChoixTables = CTRL_ChoixTables(self)
+        self.ctrlChoixTables.MAJ()
+
+        self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"),
+                                                cheminImage="Images/32x32/Valider.png")
+        self.bouton_annuler = CTRL_Bouton_image.CTRL(self, id=wx.ID_CANCEL,
+                                                     texte=_("Annuler"),
+                                                     cheminImage="Images/32x32/Annuler.png")
+
+        self.__set_properties()
+        self.__do_layout()
+
+        self.Bind(wx.EVT_BUTTON, self.OnBoutonOk, self.bouton_ok)
+
+    def __set_properties(self):
+        self.bouton_ok.SetToolTip(wx.ToolTip(_("Cliquez ici pour valider")))
+        self.bouton_annuler.SetToolTip(
+            wx.ToolTip(_("Cliquez ici pour annuler la saisie")))
+
+    def __do_layout(self):
+        sizer_base = wx.BoxSizer(wx.VERTICAL)
+        grid_sizer_base = wx.FlexGridSizer(rows=6, cols=1, vgap=0, hgap=0)
+        grid_sizer_boutons = wx.FlexGridSizer(rows=1, cols=4, vgap=10, hgap=10)
+        grid_sizer_base.Add(self.ctrl_bandeau, 1, wx.EXPAND, 0)
+
+        # Radios Local/réseau
+        sizer_contenu = wx.StaticBoxSizer(self.sizer_type_staticbox, wx.VERTICAL)
+
+        grid_sizer_contenu = wx.FlexGridSizer(rows=2, cols=2, vgap=10, hgap=10)
+
+        sizer_details = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_details.Add(self.ctrlChoixTables, 1,wx.ALL | wx.EXPAND, 0)
+        grid_sizer_contenu.Add(sizer_details, 1, wx.ALL | wx.EXPAND, 0)
+        grid_sizer_contenu.AddGrowableCol(0)
+        grid_sizer_contenu.AddGrowableRow(0)
+        sizer_contenu.Add(grid_sizer_contenu, 1, wx.ALL | wx.EXPAND, 10)
+        grid_sizer_base.Add(sizer_contenu, 1,
+                            wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND, 10)
+
+
+        # Boutons de commande
+        grid_sizer_boutons.Add((20, 20), 0, wx.EXPAND, 0)
+        grid_sizer_boutons.Add(self.bouton_ok, 0, 0, 0)
+        grid_sizer_boutons.Add(self.bouton_annuler, 0, 0, 0)
+        grid_sizer_boutons.AddGrowableCol(0)
+
+        grid_sizer_base.AddGrowableCol(0)
+        grid_sizer_base.AddGrowableRow(1)
+        grid_sizer_base.Add(grid_sizer_boutons, 1,
+                            wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND, 10)
+        self.SetSizer(grid_sizer_base)
+        sizer_base.Add(self, 1, wx.EXPAND, 0)
+        #grid_sizer_base.Fit(self)
+        self.Layout()
+        self.CentreOnScreen()
+        self.grid_sizer_base = grid_sizer_base
+
+    def Build_Hyperlink(self):
+        """ Construit un hyperlien """
+        self.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False))
+        hyper = hl.HyperLinkCtrl(self, -1, _("(Détails)"), URL="")
+        hyper.Bind(hl.EVT_HYPERLINK_LEFT, self.OnLeftLink)
+        hyper.AutoBrowse(False)
+        hyper.SetColours("BLUE", "BLUE", "BLUE")
+        hyper.EnableRollover(True)
+        hyper.SetUnderlines(False, False, True)
+        hyper.SetBold(False)
+        hyper.SetToolTip(wx.ToolTip(
+            _("Cliquez ici pour sélectionner les données à importer")))
+        hyper.UpdateLink()
+        hyper.DoPopup(False)
+        return hyper
+
+    def OnLeftLink(self, event):
+        """ Sélectionner les données à importer """
+        # Préparation de la liste des données
+        listeDonnees = []
+        listePreSelections = []
+        index = 0
+        for nomCategorie, tables, selection in self.listeTablesImportation:
+            listeDonnees.append(nomCategorie)
+            if selection == True:
+                listePreSelections.append(index)
+            index += 1
+
+        # Boîte de dialogue sélections multiples
+        titre = _("Importation des données")
+        message = _("Sélectionnez les données que vous souhaitez importer :")
+        dlg = wx.MultiChoiceDialog(self, message, titre, listeDonnees,
+                                   wx.CHOICEDLG_STYLE)
+        # Coche ceux qui doivent être déjà sélectionnés dans la liste
+        dlg.SetSelections(listePreSelections)
+
+        # Résultats
+        if dlg.ShowModal() == wx.ID_OK:
+            listeSelections = dlg.GetSelections()
+            index = 0
+            for categorie in self.listeTablesImportation:
+                if index in listeSelections:
+                    self.listeTablesImportation[index][2] = True
+                else:
+                    self.listeTablesImportation[index][2] = False
+                index += 1
+
+            dlg.Destroy()
+        else:
+            dlg.Destroy()
+
+    def OnBoutonOk(self, event):
+        import UpgradeDB
+        lstTables = self.ctrlChoixTables.GetTables()
+        ret = UpgradeDB.Init_tables(self.parent,mode='creation',tables=lstTables)
+        # Fermeture
+        self.EndModal(wx.ID_OK)
+
+
 if __name__ == "__main__":
     app = wx.App(0)
-    #wx.InitAllImageHandlers()
-    frame_1 = MyDialog(None)
+    #frame_1 = MyDialog(None)
+    frame_1 = DlgAjoutTables(None)
     frame_1.ShowModal()
     app.MainLoop()

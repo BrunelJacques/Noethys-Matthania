@@ -18,8 +18,6 @@ from Ctrl import CTRL_Grille_periode
 from Utils import UTILS_Parametres
 import datetime
 
-
-
 class CTRL_activites(wx.CheckListBox):
     def __init__(self, parent):
         wx.CheckListBox.__init__(self, parent, -1)

@@ -483,11 +483,6 @@ def GetListItemsMenu(self,menuTransports):
              "image": "Images/16x16/Historique.png",
              "action": self.On_outils_historique},
             "-",
-            {"code": "extensions", "label": _(u"Extensions"),
-             "infobulle": _(u"Extensions"),
-             "image": "Images/16x16/Terminal.png",
-             "action": self.On_outils_extensions},
-            "-",
             {"code": "menu_outils_utilitaires",
              "label": _("Utilitaires administrateur"), "items": [
                 {"code": "correcteur",
@@ -607,6 +602,10 @@ def GetListItemsMenu(self,menuTransports):
                  "action": self.On_outils_liste_perso},
             ],
              },
+            {"code": "ajoutTables", "label": _(u"Ajout de tables optionnelles"),
+             "infobulle": _(u"Ajoute des tables optionnelles"),
+             "image": "Images/16x16/Depannage.png",
+             "action": self.On_outils_ajoutTables},
             "-",
         ],
          },
@@ -813,6 +812,10 @@ def GetListItemsMenu(self,menuTransports):
               "infobulle": _("Badgeage"),
               "image": "Images/16x16/Badgeage.png",
               "action": self.On_conso_badgeage},
+             {"code": "remplissage", "label": _("Remplissage Jours"),
+              "infobulle": _("Suivi des consommations par jour"),
+              "image": "Images/16x16/Badgeage.png",
+              "action": self.On_conso_remplissage},
          ],
          },
 
@@ -2620,6 +2623,14 @@ class Menu(object):
         dlg.Destroy()
         self.parent.ChargeTraduction()
 
+    def On_outils_ajoutTables(self, event):
+        if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel(
+            "outils_utilitaires", "consulter") == False: return
+        from Dlg import DLG_Nouveau_fichier
+        dlg = DLG_Nouveau_fichier.DlgAjoutTables(self.parent)
+        dlg.ShowModal()
+        dlg.Destroy()
+
     def On_reglements_regler_facture(self, event):
         from Ctrl import CTRL_Numfacture
         dlg = CTRL_Numfacture.Dialog(self.parent)
@@ -3177,7 +3188,12 @@ class Menu(object):
         dlg = DLG_Badgeage.Dialog(self.parent)
         dlg.ShowModal()
         dlg.Destroy()
-        self.parent.ctrl_remplissage.MAJ()
+
+    def On_conso_remplissage(self, event):
+        from Dlg import DLG_Remplissage
+        dlg = DLG_Remplissage.Dialog(self.parent)
+        dlg.ShowModal()
+        dlg.Destroy()
 
     def On_conso_commandes(self, event):
         from Dlg import DLG_Commandes
