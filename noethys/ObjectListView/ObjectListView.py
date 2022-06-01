@@ -1186,11 +1186,12 @@ class ObjectListView(wx.ListCtrl):
     def GetChoicesObjects(self):
         nbchecks = len(self.GetCheckedObjects())
         objects = self.GetSelectedObjects()
-        if len(objects) == 0:
-            if nbchecks == 0:
+        if nbchecks == 0:
+            if len(objects) == 0:
                 wx.MessageBox("Vous n'avez coché ou sélectionné aucune ligne", "Traitement impossible!")
-            return []
-        return objects
+                return []
+            return objects
+        return self.GetCheckedObjects()
 
     def GetSelectedObject(self):
         """

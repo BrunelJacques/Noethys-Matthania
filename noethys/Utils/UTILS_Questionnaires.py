@@ -8,7 +8,6 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
 import Chemins
 from Utils.UTILS_Traduction import _
 import GestionDB
@@ -16,7 +15,6 @@ import datetime
 from Utils import UTILS_Dates
 from Ctrl.CTRL_Questionnaire import LISTE_CONTROLES
 from Ctrl.CTRL_ObjectListView import ColumnDefn
-
 
 def DateEngEnDateDD(date):
     if date in (None, "") : return None
@@ -68,9 +66,6 @@ def GetColonnesForOL(liste_questions=[]):
             typeDonnee = "texte"
         liste_colonnes.append(ColumnDefn(dictQuestion["label"], "left", 150, "question_%d" % dictQuestion["IDquestion"], stringConverter=Formatter, typeDonnee=typeDonnee))
     return liste_colonnes
-
-
-
 
 class Questionnaires():
     def __init__(self,lstIDfamilles=[]):
@@ -174,7 +169,6 @@ class Questionnaires():
         for IDquestion, label, type, controle, defaut in listeQuestions :
             if avec_filtre == False or self.GetFiltre(controle) != None :
                 listeResultats.append({"IDquestion":IDquestion, "label":label, "type":type, "controle":controle, "defaut":defaut, "filtre":self.GetFiltre(controle)})
-
         return listeResultats
 
 
@@ -182,7 +176,8 @@ class Questionnaires():
         """ Récupération des réponses des questionnaires """
         # Importation des questions
         DB = GestionDB.DB()
-        req = """SELECT IDreponse, questionnaire_reponses.IDquestion, IDindividu, IDfamille, reponse, controle
+        req = """SELECT IDreponse, questionnaire_reponses.IDquestion, IDindividu, IDfamille, reponse, 
+        questionnaire_reponses.type, questionnaire_reponses.IDdonnee, controle
         FROM questionnaire_reponses
         LEFT JOIN questionnaire_questions ON questionnaire_questions.IDquestion = questionnaire_reponses.IDquestion
         LEFT JOIN questionnaire_categories ON questionnaire_categories.IDcategorie = questionnaire_questions.IDcategorie
@@ -241,7 +236,6 @@ class Questionnaires():
             else :
                 texteReponse = self.FormatageReponse(reponse, controle)
         return texteReponse
-        
 
 class ChampsEtReponses():
     """ Retourne une donnée de type "{QUESTION_24}" = valeur """
@@ -263,10 +257,6 @@ class ChampsEtReponses():
                 }
             listeDonnees.append(dictReponse)
         return listeDonnees
-
-
-
-
 
 if __name__ == '__main__':
     pass

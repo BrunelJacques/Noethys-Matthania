@@ -1531,8 +1531,8 @@ class Menu(object):
                                        wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
-                self.Fermer(sauvegarde_auto=False)
-                self.OuvrirDernierFichier()
+                self.parent.Fermer(sauvegarde_auto=False)
+                self.parent.OuvrirDernierFichier()
 
     def On_fichier_Sauvegardes_auto(self, event):
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel(

@@ -628,19 +628,20 @@ class ListView(ObjectListView):
     def Supprimer(self, event):
         objects = self.GetChoicesObjects()
         nature = ""
+        label = ""
         for obj in objects:
             dictDonnees =  obj.__dict__
+            if (nature == ""):
+                nature = dictDonnees["nature"]
+                label = dictDonnees["label"]
             if dictDonnees["nature"] in ["AVO","FAC"]:
-                if (nature == "") :
-                    nature = dictDonnees["nature"]
-                else:
-                    if dictDonnees['nature'] != nature :
-                        GestionDB.MessageBox(self,"Les pièces facturées sont de natures différentes : %s et %s !\nFaire un choix homogènes par les natures de pièces" %(nature,dictDonnees["nature"]), titre="Traitement impossible")
-                        return
-        nbSel = len(self.GetCheckedObjects())
+                if dictDonnees['nature'] != nature :
+                    GestionDB.MessageBox(self,"Les pièces facturées sont de natures différentes : %s et %s !\nFaire un choix homogènes par les natures de pièces" %(nature,dictDonnees["nature"]), titre="Traitement impossible")
+                    return
+        nbSel = len(objects)
         if nbSel == 1:
-            txtNbPiece = "la pièce '%s' sélectionnée " %nature
-        else: txtNbPiece = "les %d pièces '%s' sélectionnées " % (nbSel,nature)
+            txtNbPiece = "la pièce '%s '%s'" %(nature,label)
+        else: txtNbPiece = "les %d pièces '%s' cochées " % (nbSel,nature)
 
         if nature == 'FAC':
             texte = "Oui je veux rétrograder " + txtNbPiece + " en Commande"
@@ -648,7 +649,7 @@ class ListView(ObjectListView):
             texte = "Oui je veux rétrograder " + txtNbPiece + " en Facture"
         else:
             texte = "Oui je veux supprimer " + txtNbPiece
-        retour = GestionDB.Messages().Choix(listeTuples=[(1,texte),(2,"J'abandonne"),], titre = ("La pièce sélectionnée va être supprimée "), intro = "Suppression demandée")
+        retour = GestionDB.Messages().Choix(listeTuples=[(1,texte),(2,"J'abandonne"),], titre = ("La pièce cochée va être supprimée "), intro = "Suppression demandée")
         if retour[0] != 1 :
             return
         #pour chaque ligne cochée

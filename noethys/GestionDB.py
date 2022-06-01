@@ -101,7 +101,7 @@ class DB():
         else :
             self.IDconnexion = IDconnexion
 
-        #if self.IDconnexion >= 22: # 'debug connexions ouvertes' etape ON
+        #if self.IDconnexion >= 12: # 'debug connexions ouvertes' etape ON
         #    print()
         DICT_CONNEXIONS[self.IDconnexion] = []
 
@@ -277,15 +277,20 @@ class DB():
             # l'ID connection n'était pas créé
             del self
             return
-        #if self.IDconnexion >= 22:# 'debug connexions ouvertes' etape off
+        #if self.IDconnexion == 8:# 'debug connexions ouvertes' etape off
         #    print()
         try :
             if self.isNetwork and self.connexion.open != 0:
+                #print("traceclose ID", self.IDconnexion,
+                #      self.IDconnexion in DICT_CONNEXIONS,
+                #      self.IDconnexion in IX_CONNEXION["pointeurs"])
                 self.connexion.close()
-            del DICT_CONNEXIONS[self.IDconnexion]
-            del IX_CONNEXION["pointeurs"][self.IDconnexion]
+                del DICT_CONNEXIONS[self.IDconnexion]
+                del IX_CONNEXION["pointeurs"][self.IDconnexion]
+            #else:
+            #    print("Déja Closed! ID",self.IDconnexion,self.IDconnexion in DICT_CONNEXIONS, self.IDconnexion in IX_CONNEXION["pointeurs"])
         except Exception as err:
-            print("GestionDB.Close ID %d: "%self.IDconnexion,err)
+            print("GestionDB.Close ID %d: "%self.IDconnexion,type(err),err)
         if all:
             AfficheConnexionsOuvertes("-")
             try:

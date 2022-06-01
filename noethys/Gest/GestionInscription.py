@@ -960,7 +960,7 @@ class Forfaits():
 
     def SupprimeTransport(self,IDtransport):
         #le transport ne sera supprimé que s'il n'y a qu'une seule pièce qui le référence
-        if IDtransport >0 :
+        if IDtransport and IDtransport >0 :
             req =  """SELECT COUNT(pieIDnumPiece)
                         FROM matPieces WHERE pieIDtranspAller = %d OR pieIDtranspRetour = %d
                         GROUP BY pieIDindividu""" % (IDtransport,IDtransport)
