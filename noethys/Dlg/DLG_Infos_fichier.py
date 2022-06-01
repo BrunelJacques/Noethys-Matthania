@@ -31,7 +31,6 @@ def DateEngEnDateDD(dateEng):
     if dateEng and not isinstance(dateEng,str): dateEng = str(dateEng)
     return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
-
 # ---------------------------------------------------------------------------------------------------------------------------
 
 class Informations():
@@ -133,6 +132,12 @@ class Informations():
 
         # Nbre familles
         GetQuantite(_("Nombre de familles"), "IDfamille", "familles")
+
+        # Nbre pieces
+        GetQuantite(_("Nombre de matPieces"), "pieIDnumPiece", "matPieces")
+
+        # Nbre lignes de pieces
+        GetQuantite(_("Nombre de matPiecesLignes"), "ligIDnumLigne", "matPiecesLignes")
 
         # Nbre de consommations
         GetQuantite(_("Nombre de consommations"), "IDconso", "consommations")
@@ -247,8 +252,7 @@ class CTRL_Infos(HTL.HyperTreeList):
             numCategorie+= 1
         
         self.ExpandAllChildren(self.root)
-            
-    
+
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
 class Dialog(wx.Dialog):
@@ -304,9 +308,6 @@ class Dialog(wx.Dialog):
     def OnBoutonAide(self, event): 
         from Utils import UTILS_Aide
         UTILS_Aide.Aide("Informationssurlefichier")
-
-
-
 
 if __name__ == "__main__":
     app = wx.App(0)
