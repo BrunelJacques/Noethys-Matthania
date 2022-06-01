@@ -571,6 +571,9 @@ class CadreIndividu():
 
 class CTRL_Graphique(wx.ScrolledWindow):
     def __init__(self, parent, IDfamille=None):
+        self.dataRattach = None
+        if hasattr(parent.parent,"dataRattach"):
+            self.dataRattach = parent.parent.dataRattach
         wx.ScrolledWindow.__init__(self, parent, -1, (0, 0), size=wx.DefaultSize, name="famille", style=wx.SUNKEN_BORDER)
         self.parent = parent
         if hasattr(self.Parent,"dlgFamille"):
@@ -1290,11 +1293,19 @@ class CTRL_Graphique(wx.ScrolledWindow):
     def Ajouter(self, event=None):
         """ Rattacher un nouvel individu """
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_fiche", "creer") == False : return
-        from Dlg import DLG_Rattachement
-        dlg = DLG_Rattachement.Dialog(None, IDfamille=self.IDfamille)
-        if dlg.ShowModal() == wx.ID_OK:
-            mode, IDcategorie, titulaire, IDindividu, nom, prenom = dlg.GetData()
+        ok = True
+        if not self.dataRattach:
+            # Cas du lancement par ajouter à partir de composition
+            from Dlg import DLG_Rattachement
+            dlg = DLG_Rattachement.Dialog(None, IDfamille=self.IDfamille)
+            if dlg.ShowModal() == wx.ID_OK:
+                ok = True
+                self.dataRattach = dlg.GetData()
+            else: ok = False
             dlg.Destroy()
+        if ok:
+            mode, IDcategorie, titulaire, IDindividu, nom, prenom = self.dataRattach
+            self.dataRattach = None
             nom = fp.NoPunctuation(nom)
             prenom = fp.NoPunctuation(prenom)
             if mode == "creation" :
@@ -1316,12 +1327,11 @@ class CTRL_Graphique(wx.ScrolledWindow):
                 # Rattachement d'un individu existant
                 succes = self.RattacherIndividu(IDindividu, IDcategorie, titulaire)
             # MAJ de l'affichage
-            self.MAJ() 
-            self.MAJnotebook() 
+            self.MAJ()
+            self.MAJnotebook()
             return IDindividu
         else:
-            dlg.Destroy()
-            self.SupprimerFamille() 
+            self.SupprimerFamille()
             return None
     
     def SupprimerFamille(self):
@@ -1420,8 +1430,6 @@ class CTRL_Graphique(wx.ScrolledWindow):
         self.parent.MAJpage("divers")
 
 # --------------------------------------------------------------------------------------------------------------------------
-
-
 
 class CTRL_Liste(HTL.HyperTreeList):
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,

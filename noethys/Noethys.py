@@ -1635,10 +1635,10 @@ class MainFrame(wx.Frame):
             style = wx.OK | wx.ICON_EXCLAMATION
             resultat = False
         if resultat != True :
-            wx.MessageBox(
-                message,
-                titre,
-                style )
+            dlg = wx.MessageDialog(self,message,titre,style=style)
+            dlg.CenterOnParent()
+            dlg.ShowModal()
+            dlg.Destroy()
         return True
     
     def ActiveBarreMenus(self, etat=True):

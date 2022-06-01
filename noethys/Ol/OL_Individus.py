@@ -462,8 +462,19 @@ class ListView(FastObjectListView):
 
     def Ajouter(self, event):
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_fiche", "creer") == False : return
+        # lance le rattachement par anticipation
+        from Dlg import DLG_Rattachement
+        dlgRattach = DLG_Rattachement.Dialog(None, IDfamille=None)
+        dataRattach = None
+        if dlgRattach.ShowModal() == wx.ID_OK:
+            dataRattach = dlgRattach.GetData()
+            IDfamille = dlgRattach.GetIDfamille()
+            # l'individu créé était déjà dans une famille
+            if IDfamille:
+                dataRattach = None
+        dlgRattach.Destroy()
         from Dlg import DLG_Famille
-        dlg = DLG_Famille.Dialog(self, IDfamille=None)
+        dlg = DLG_Famille.Dialog(self, IDfamille=IDfamille, dataRattach=dataRattach)
         if dlg.ShowModal() == wx.ID_OK:
             pass
         try :
@@ -543,7 +554,7 @@ class ListView(FastObjectListView):
                         nomCategorie += _(" titulaire")
                 if IDcategorie == 2 : nomCategorie = _("enfant")
                 if IDcategorie == 3 : nomCategorie = _("contact")
-                listeNoms.append(_("%s (en tant que %s)") % (nomTitulaires, nomCategorie))
+                listeNoms.append(_("%d: %s (en tant que %s)") % (IDfamille, nomTitulaires, nomCategorie))
             dlg = wx.SingleChoiceDialog(self, _("Cet individu est rattaché à %d familles.\nLa fiche de quelle famille souhaitez-vous ouvrir ?") % len(listeNoms), _("Rattachements multiples"), listeNoms, wx.CHOICEDLG_STYLE)
             IDfamilleSelection = None
             if dlg.ShowModal() == wx.ID_OK:

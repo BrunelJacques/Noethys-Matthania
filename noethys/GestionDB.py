@@ -280,7 +280,7 @@ class DB():
         #if self.IDconnexion >= 22:# 'debug connexions ouvertes' etape off
         #    print()
         try :
-            if self.connexion.open != 0:
+            if self.isNetwork and self.connexion.open != 0:
                 self.connexion.close()
             del DICT_CONNEXIONS[self.IDconnexion]
             del IX_CONNEXION["pointeurs"][self.IDconnexion]

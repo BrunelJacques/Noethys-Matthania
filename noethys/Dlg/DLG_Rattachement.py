@@ -89,7 +89,9 @@ class Dialog(wx.Dialog):
         from Utils import UTILS_Linux
         UTILS_Linux.AdaptePolice(self)
 
-        self.nbreTitulaires = self.GetNbreTitulairesFamille() 
+        if self.IDfamille:
+            self.nbreTitulaires = self.GetNbreTitulairesFamille()
+        else: self.nbreTitulaires = None
         
         # Bandeau
         titre = _("Rattachement d'un individu")
@@ -252,7 +254,14 @@ class Dialog(wx.Dialog):
             return selections[0].IDindividu
         else:
             return None
-    
+
+    def GetIDfamille(self):
+        selections = self.ctrl_propositions.Selection()
+        if len(selections) > 0 :
+            return selections[0].IDfamille
+        else:
+            return None
+
     def GetData(self):
         mode = self.mode
         IDcategorie = self.selection_categorie
@@ -290,19 +299,19 @@ class Dialog(wx.Dialog):
                     dlg.Destroy()
                     if reponse !=  wx.ID_YES :
                         return
-        
+
         self.mode = "creation"
         self.EndModal(wx.ID_OK) 
 
-
     def OnBoutonOk(self, event):
+
         IDindividu = self.GetSelectionIDindividu()
         if IDindividu == None :
             dlg = wx.MessageDialog(self, _("Vous n'avez saisi aucun élément dans la liste !\n\n(Si vous souhaitez créer un individu, cliquez sur 'Saisir un nouvel individu')"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
             dlg.ShowModal()
             dlg.Destroy()
             return False
-        
+
         # Vérifie que la personne n'est pas déjà rattachée à cette famille
         if self.IDfamille != None :
             DB = GestionDB.DB()
@@ -328,7 +337,7 @@ class Dialog(wx.Dialog):
 if __name__ == "__main__":
     app = wx.App(0)
     #wx.InitAllImageHandlers()
-    dialog_1 = Dialog(None, IDfamille=3)
+    dialog_1 = Dialog(None, IDfamille=None)
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()
     app.MainLoop()

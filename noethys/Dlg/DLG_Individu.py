@@ -188,6 +188,20 @@ class Notebook(wx.Notebook):
         dlg.ShowModal()
         dlg.Destroy()
 
+    def SauveOldPage(self,ixPage):
+        # Validation des données avant sauvegarde
+        if not (ixPage >0 and ixPage <3):
+            return
+        listePages = (None,"identite","coords")
+        codePage = listePages[ixPage]
+        page = self.GetPageAvecCode(codePage)
+        if page.majEffectuee == True and page.ValidationData() == False :
+            self.AffichePage(codePage)
+            return
+        # Sauvegarde des données
+        page.Sauvegarde()
+
+
 class Dialog(wx.Dialog):
     def __init__(self, parent, IDindividu=None,IDfamille=None ,dictInfosNouveau={}):
         wx.Dialog.__init__(self, parent, id=-1, name="fiche_individu",style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
