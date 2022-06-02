@@ -1,6 +1,11 @@
 version 1.3.1.1 (30/05/2022):
 
-- Problème programme Remplissage qui plante au démarrage
+- Problème programme Remplissage qui plante au démarrage: déplacé non réglé
+- Corection association possible de reglements négatifs avec positifs
+- Tri des règlements sur impression facture
+- On peut cliquer sur un individu existant en création => ouvre la famille
+- Vérifié la suppression d'un pièce complétant une inscription déjà facturée
+
 
 version 1.3.1.0 (28/05/2022):
 

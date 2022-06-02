@@ -2,7 +2,7 @@
 # -*- coding: iso-8859-15 -*-
 #------------------------------------------------------------------------
 # Application :    Noethys, Matthania
-# Site internet :  www.noethys.com
+# Module : Génération du pdf à partir du DictValeurs
 # Auteur:           Ivan LUCAS, JB
 # Copyright:       (c) 2010-11 Ivan LUCAS, JB
 # Licence:         Licence GNU GPL
@@ -26,19 +26,14 @@ SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "€")
 
 from reportlab.platypus.doctemplate import PageTemplate, BaseDocTemplate, NextPageTemplate
 from reportlab.platypus import Paragraph, Spacer, Table, TableStyle, PageBreak
-from reportlab.platypus.flowables import ParagraphAndImage, Image
-from reportlab.platypus.frames import Frame, ShowBoundaryValue
+from reportlab.platypus.flowables import Image
+from reportlab.platypus.frames import Frame
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.units import inch, cm, mm
-from reportlab.lib.utils import ImageReader
+from reportlab.lib.units import cm, mm
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.pdfgen.canvas import Canvas
 from reportlab.graphics.barcode import code39, qr
-from reportlab.graphics.shapes import Drawing
-from reportlab.graphics import renderPDF
 from reportlab.platypus.flowables import DocAssign, Flowable
-
 
 TAILLE_PAGE = A4
 LARGEUR_PAGE = TAILLE_PAGE[0]
@@ -649,7 +644,8 @@ class Impression():
                             texte = "%s/%s %s%s de %s (%s)" % (mois,an,dictTemp["mode"][:3],  emetteur,
                                                                   dictTemp["payeur"], texteMontant)
                             listeTextesReglements.append(texte)
-                        
+                        listeTextesReglements.sort()
+
                         if dictValeur["solde"] > FloatToDecimal(0.0) :
                             intro = "Partiellement réglé"
                         else :

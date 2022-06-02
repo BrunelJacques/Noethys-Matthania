@@ -2,7 +2,7 @@
 # -*- coding: iso-8859-15 -*-
 #------------------------------------------------------------------------
 # Application :    Noethys, Matthania gestion multi-activités
-# Site internet :  www.noethys.com
+# Module:          Génération du fichier pour UTILS_Impression_facture
 # Auteur:          Jacques BRUNEL refonte du module 02/2022
 # Licence:         Licence GNU GPL
 # gére l'édition proforma à partir des pièces regroupées sur numero de facture
