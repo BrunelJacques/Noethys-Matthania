@@ -101,8 +101,8 @@ class DB():
         else :
             self.IDconnexion = IDconnexion
 
-        #if self.IDconnexion >= 12: # 'debug connexions ouvertes' etape ON
-        #    print()
+        #if self.IDconnexion == 27: # 'debug connexions ouvertes' etape ON
+        #    print("debug open")
         DICT_CONNEXIONS[self.IDconnexion] = []
 
         # On ajoute le préfixe de type de fichier et l'extension du fichier
@@ -278,7 +278,7 @@ class DB():
             del self
             return
         #if self.IDconnexion == 8:# 'debug connexions ouvertes' etape off
-        #    print()
+        #    print("debug Close")
         try :
             if self.isNetwork and self.connexion.open != 0:
                 #print("traceclose ID", self.IDconnexion,

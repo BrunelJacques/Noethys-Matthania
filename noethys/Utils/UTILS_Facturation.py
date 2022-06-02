@@ -1626,6 +1626,7 @@ class Facturation():
                 self.DB.Close()
                 return False
 
+
         # imprimer les factures si pièce de type AVO
         self.impFacAvo = 1
         if "imprimer_factures" in dictOptions:
@@ -1647,6 +1648,7 @@ class Facturation():
 
         # Récupération des données
         dictToPdf = self.GetDonnees(dictOptions)
+        self.DB.Close()
         if len(dictToPdf) == 0 :
             return False
 
@@ -1725,6 +1727,7 @@ class Facturation():
                 dlg.Destroy()
                 return False
         # pointeurs d'impression
+        self.DB = GestionDB.DB()
         req = """SELECT pieIDnumPiece, pieNature, pieEtat, pieCommentaire
                 FROM matPieces
                 WHERE  pieIDnumPiece in ( %s ) ;""" % str(self.lstIDpieces)[1:-1]
@@ -1738,7 +1741,7 @@ class Facturation():
                     etat = etat[:ix]+"2"+etat[ix+1:]
                     self.DB.ReqMAJ('matPieces',[('pieEtat',etat),('pieCommentaire',commentaire)],
                                    'pieIDnumPiece',IDnumPiece,MsgBox = 'UTILS_Facturation.MAJpointeurs')
-        self.DB.Close
+        self.DB.Close()
         return self.dictChampsFusion, dictCheminsPdf
     #fin Impression
 

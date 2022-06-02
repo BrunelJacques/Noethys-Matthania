@@ -205,7 +205,6 @@ class Panel(wx.Panel):
         # Création des contrôles
         self.toolBar = ToolBar(self)
         self.ctrl_remplissage = CTRL_Remplissage.CTRL(self, self.dictDonnees)
-        
         self.ctrl_presents = CTRL_Ticker_presents.CTRL(self, delai=60, listeActivites=[15,])
         self.ctrl_presents.Show(False) 
 
