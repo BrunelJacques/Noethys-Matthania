@@ -120,7 +120,7 @@ class GridWithLabelRenderersMixin(object):
     def _onPaintColLabels(self, evt):
         window = evt.GetEventObject()
         dc = wx.PaintDC(window)
-
+        # patch pour éviter le bug "wx/generic/grid.h(2081) in wxGrid::GetColPos(): invalid column index"
         try:
             cols = self.CalcColLabelsExposed(window.GetUpdateRegion())
         except:
