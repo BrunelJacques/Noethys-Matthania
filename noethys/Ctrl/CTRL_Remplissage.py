@@ -14,7 +14,8 @@ from Utils.UTILS_Traduction import _
 import wx
 import wx.grid as gridlib
 import wx.lib.wordwrap as wordwrap
-import wx.lib.mixins.gridlabelrenderer as glr
+#import wx.lib.mixins.gridlabelrenderer as glr
+import Outils.gridlabelrenderer as glr
 import datetime
 from wx.grid import GridCellRenderer
 
@@ -668,13 +669,11 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
         self.SetDefaultCellBackgroundColour(self.GetBackgroundColour())
 
         # Dict de données de sélection
-        if dictDonnees:
-            self.dictDonnees = dictDonnees
-        else:
-            self.dictDonnees = self.GetDonneesDefaut()
-
+        self.dictDonnees = dictDonnees
         self.MAJ()
-
+        if self.GetNumberCols() == 0:
+            self.dictDonnees = self.GetDonneesDefaut()
+            self.MAJ()
 
     def SetDictDonnees(self, dictDonnees=None):
             self.dictDonnees = dictDonnees
@@ -778,6 +777,8 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
                             nbreColonnes += 1
                 if AFFICHE_TOTAUX == 1 and IDactivite in dictListeRemplissage and len(dictListeRemplissage[IDactivite]) > 0 and len(dictGroupeTemp[IDactivite]) > 0 :
                     nbreColonnes += len(dictListeRemplissage[IDactivite])
+        if nbreColonnes == 0:
+            return
         self.AppendCols(nbreColonnes)
 
         # Colonnes

@@ -121,7 +121,10 @@ class GridWithLabelRenderersMixin(object):
         window = evt.GetEventObject()
         dc = wx.PaintDC(window)
 
-        cols = self.CalcColLabelsExposed(window.GetUpdateRegion())
+        try:
+            cols = self.CalcColLabelsExposed(window.GetUpdateRegion())
+        except:
+            return
         
         if cols == [-1] : return # <<<<<<<<<<<<<< MODIF PERSO
         
