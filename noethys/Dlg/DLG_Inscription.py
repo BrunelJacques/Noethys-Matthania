@@ -101,7 +101,8 @@ class ListBox(wx.ListBox):
             IDactivite = self.GetID()
             self.parent.IDactivite=IDactivite
             self.parent.ctrl_groupes.MAJ(IDactivite)
-            self.parent.ctrl_categories.MAJ((IDactivite,self.parent.ctrl_groupes.campeur))
+            self.parent.ctrl_categories.MAJ((IDactivite,
+                                             self.parent.ctrl_groupes.campeur))
             #self.parent.ctrl_categories.SelectCategorieSelonVille()
         elif self.type == "groupes" :
             IDactivite = self.parent.IDactivite
