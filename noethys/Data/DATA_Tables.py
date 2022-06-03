@@ -17,7 +17,7 @@ TABLES_IMPORTATION_OPTIONNELLES = [
         ["Niveaux scolaires", ("niveaux_scolaires",), True],
         ["Types de quotients", ("types_quotients",), True],
         ["Eléments de pages du portail", ("portail_elements",), True],
-        ['Aides sociales', ('aides','aides_beneficiaires','aides_combi_unites','aides_combinaisons','aides_montants','deductions',), True],
+        ['Aides sociales', ('aides_beneficiaires','aides_combi_unites','aides_combinaisons','aides_montants','deductions',), True],
         ['Badges', ('badgeage_actions','badgeage_archives','badgeage_journal','badgeage_messages','badgeage_procedures',), True],
         ['Budgets', ('compta_budgets','compta_categories_budget','compta_operations_budgetaires',), True],
         ['Contrats Noethys', ('contrats','contrats_tarifs','corrections_phoniques',), True],
