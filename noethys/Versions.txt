@@ -1,4 +1,4 @@
-version 1.3.1.1 (30/05/2022):
+version 1.3.1.1 (03/06/2022):
 
 - Problème programme Remplissage qui plante au démarrage: déplacé non réglé
 - Corection pour ventilation possible de règlements négatifs avec positifs
