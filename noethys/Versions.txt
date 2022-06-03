@@ -7,6 +7,7 @@ version 1.3.1.1 (30/05/2022):
 - Vérifié la suppression d'un pièce complétant une inscription déjà facturée
 - Meilleures fermetures de bases
 - Correction Remplissages
+- L'affichage des prestations en modif affiche correctement son type
 
 
 version 1.3.1.0 (28/05/2022):

@@ -65,20 +65,22 @@ class Choix_categorie(wx.Choice):
             ("donsscerfa", _("Don sans Cerfa")),
             ("debour", _("Frais ou débour dû par client")),
             ("autre", _("Paye pour autre client (ou autre: compte à préciser)")),
+            ("consommation", _("Prestation liée à une inscription et gérée par elle ")),
+            ("consoavoir", _("Prestation annulée par un avoir)")),
+            ("autre","Origine non déterminée")
             ]
+        self.lstIDCategories = [x for (x,y) in self.listeCategories]
+        self.listeNoms = [y for (x,y) in self.listeCategories]
 
-        self.listeNoms = []
-        for code, label in self.listeCategories :
-            self.listeNoms.append(label)
         self.SetItems(self.listeNoms)
-        self.SetCategorie("don")
+        self.SetCategorie("autre")
     
     def SetCategorie(self, categorie=""):
-        index = 0
-        for code, label in self.listeCategories :
-            if categorie == code :
-                 self.SetSelection(index)
-            index += 1
+        if categorie in self.lstIDCategories:
+            index = self.lstIDCategories.index(categorie)
+        else:
+            index = self.lstIDCategories.index("autre")
+        self.SetSelection(index)
 
     def GetCategorie(self):
         index = self.GetSelection()
@@ -242,7 +244,6 @@ class Dialog(wx.Dialog):
 
         # MAJ des contrôles
         self.Bind(wx.EVT_TEXT, self.OnTextMontant, self.ctrl_montant_avant_deduc)
-
 
     def __set_properties(self):
         self.ctrl_date.SetToolTip(_("Saisissez ici la date de la prestation"))
@@ -604,7 +605,7 @@ class Dialog(wx.Dialog):
 if __name__ == "__main__":
     app = wx.App(0)
     #wx.InitAllImageHandlers()
-    dialog_1 = Dialog(None, IDprestation=12675, IDfamille=2632)
+    dialog_1 = Dialog(None, IDprestation=38664, IDfamille=9)
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()
     app.MainLoop()
