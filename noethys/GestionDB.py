@@ -513,9 +513,12 @@ class DB():
                 return
         return self.retourReq
 
-    def ReqSelect(self, nomTable, conditions, MsgBox = None):
+    def ReqSelect(self, nomTable, conditions, MsgBox = None, lstChamps=[]):
         """ Permet d'appeler des données d'une seule table selon conditions """
-        req = "SELECT *  FROM %s WHERE %s " % (nomTable, conditions)
+        if len(lstChamps) == 0:
+            select = "*"
+        else: select = ",".join(lstChamps)
+        req = "SELECT %s  FROM %s WHERE %s " % (select, nomTable, conditions)
         self.retourReq = "ok"
         # Enregistrement
         try:
@@ -872,25 +875,32 @@ class DB():
 
     def GetNomFamille(self,ID, first="prenom" ):
         if ID == None :
-            value = " "
-        else:
-            if first == "prenom":
-                select = "SELECT individus.prenom, individus.nom "
-            else: select = "SELECT individus.nom, individus.prenom "
-            form = "FROM individus INNER JOIN rattachements ON individus.IDindividu = rattachements.IDindividu "
-            if type(ID) != str:
-                where = """WHERE (rattachements.IDfamille = %s )""" % str(ID)
-            else:
-                where = """WHERE (rattachements.IDfamille = %s )""" % ID
-            req = select + form + where + "ORDER BY rattachements.titulaire DESC , individus.IDcivilite;"
-            retour = self.ExecuterReq(req,MsgBox="GestionDB.DB.GetNomFamille")
-            if retour != "ok" :
-                wx.MessageBox(str(retour))
+            return "-"
+        if type(ID) != str:
+            ID = str(ID)
+        if first == "prenom":
+            selectReq = "SELECT individus.prenom, individus.nom "
+        else: selectReq = "SELECT individus.nom, individus.prenom "
+
+        whereReq = """WHERE (IDfamille = %s )""" % ID
+        fromReq = "FROM familles INNER JOIN individus ON familles.adresse_individu = individus.IDindividu "
+
+        sqlReq = selectReq + fromReq + whereReq
+        
+        def execReq(req):
+            self.ExecuterReq(req, MsgBox="GestionDB.DB.GetNomFamille")
             recordset = self.ResultatReq()
-            value = " "
-            if len(recordset)>0 :
-                if len(recordset[0])>0 :
-                    value = recordset[0][0] + " " + recordset[0][1]
+            value = None
+            if len(recordset) > 0:
+                if len(recordset[0]) > 0:
+                    value = "%s %s"%(recordset[0][0],recordset[0][1])
+            return value
+        value = execReq(sqlReq)
+ 
+        if not value: # cas d'absence de correspondant on prend le premier individu entré
+            fromReq = "FROM individus INNER JOIN rattachements ON individus.IDindividu = rattachements.IDindividu "
+            sqlReq = selectReq + fromReq + whereReq + " ORDER BY individus.IDindividu;"
+            value = execReq(sqlReq)
         return value
 
     def GetNomActivite(self,ID):

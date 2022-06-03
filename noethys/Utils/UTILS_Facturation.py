@@ -18,6 +18,7 @@ import traceback
 import FonctionsPerso as fp
 import wx.lib.agw.pybusyinfo as PBI
 from Utils import UTILS_Conversion
+from Utils import UTILS_Fichiers
 from Utils import UTILS_Config
 from Data import DATA_Civilites as Civilites
 from Utils import UTILS_Titulaires
@@ -37,10 +38,12 @@ MONNAIE_DIVISION = UTILS_Config.GetParametre("monnaie_division", _("Centime"))
 DICT_CIVILITES = Civilites.GetDictCivilites()
 
 def Supprime_accent(self, texte):
-    liste = [("/", " "), ("\\", " "),(":", " "),(".", " "),(",", " "),("<", " "),(">", " "),("*", " "),("?", " ")]
+    liste = [("/", " "), ("\\", " "),(":", " "),(".", " "),(",", " "),("<", " "),
+             (">", " "),("*", " "),("?", " ")]
     for a, b in liste :
         texte = texte.replace(a, b)
-    liste = [ ("é", "e"), ("è", "e"), ("ê", "e"), ("ë", "e"), ("ä", "a"), ("à", "a"), ("û", "u"), ("ô", "o"), ("ç", "c"), ("î", "i"), ("ï", "i")]
+    liste = [ ("é", "e"), ("è", "e"), ("ê", "e"), ("ë", "e"), ("ä", "a"),
+              ("à", "a"), ("û", "u"), ("ô", "o"), ("ç", "c"), ("î", "i"), ("ï", "i")]
     for a, b in liste :
         texte = texte.replace(a, b)
         texte = texte.replace(a.upper(), b.upper())
@@ -1614,10 +1617,11 @@ class Facturation():
         """ Impression des factures à partie de trois listes possibles """
         self.DB = GestionDB.DB()
 
-        self.dictChampsFusion = {}
         # Récupération des paramètres d'affichage
         if dictOptions == None :
-            dlg = DLG_Apercu_facture.Dialog(None, titre=_("Sélection des paramètres de la facture"), intro=_("Sélectionnez ici les paramètres d'affichage de la facture à envoyer par Email."))
+            dlg = DLG_Apercu_facture.Dialog(None,
+                        titre=_("Sélection des paramètres de la facture"),
+                        intro=_("Sélectionnez ici les paramètres d'affichage de la facture à envoyer par Email."))
             dlg.bouton_ok.SetImageEtTexte("Images/32x32/Valider.png", _("Ok"))
             if dlg.ShowModal() == wx.ID_OK:
                 dictOptions = dlg.GetParametres()
@@ -1626,6 +1630,34 @@ class Facturation():
                 self.DB.Close()
                 return False
 
+        if not nomDoc:
+            # recherche de la première famille
+            mess = 'UTILS_Facturation.Impression'
+            if len(listePieces) > 0:
+                lstChamps = ["pieIDcompte_payeur", ]
+                table = "matPieces"
+                condition = "pieIDnumPiece = %d"%listePieces[0]
+            elif len(listeFactures) > 0:
+                lstChamps = ["IDcompte_payeur", ]
+                table = "factures"
+                condition = "IDfacture = %d"%listeFactures[0]
+            # appel du nom de la famille
+            try:
+                ret = self.DB.ReqSelect(table,condition,mess,lstChamps=lstChamps)
+                ret = self.DB.ResultatReq()
+                nomDoc = self.DB.GetNomFamille(ret[0][0], first="nom")
+                nomDoc = fp.NoPunctuation(nomDoc)
+            except: pass
+            now = str(datetime.datetime.strftime(datetime.datetime.now(),
+                                                 "%Y-%m-%d %Hh%M %S%f"))[:22]
+            # l'unicitié du nom de fichier est obtenue par les secondes et millisecondes
+            nomDoc = "%s %s"%(nomDoc ,now)
+
+        # ajout du chemin devant le nom
+        if not repertoire:
+            nomDoc = UTILS_Fichiers.GetRepTemp("%s.pdf" %(nomDoc))
+
+        self.dictChampsFusion = {}
 
         # imprimer les factures si pièce de type AVO
         self.impFacAvo = 1
@@ -1743,7 +1775,7 @@ class Facturation():
                                    'pieIDnumPiece',IDnumPiece,MsgBox = 'UTILS_Facturation.MAJpointeurs')
         self.DB.Close()
         return self.dictChampsFusion, dictCheminsPdf
-    #fin Impression
+        #fin Impression
 
 def SuppressionFacture(listeIDFactures=[]):
     """ Suppression d'une facture façon Noethys, suppose ensuite d'entrer en facturation pour retouver de la cohérence """
@@ -1764,7 +1796,7 @@ if __name__ == '__main__':
     listePieces = [19300]
     listeIDfactures = []
     dictOptions =  {'inversion_solde': True, 'largeur_colonne_date': 50, 'texte_conclusion': '',
-                    'image_signature': '', 'texte_titre': 'Facture', 'taille_texte_prestation': 7,
+                    'image_signature': '', 'taille_texte_prestation': 7,
                     'afficher_avis_prelevements': True, 'taille_texte_messages': 7, 'afficher_qf_dates': True,
                     'taille_texte_activite': 6, 'affichage_prestations': 0, 'affichage_solde': 0,
                     'afficher_coupon_reponse': True, 'taille_image_signature': 100, 'alignement_image_signature': 0,

@@ -2,7 +2,7 @@
 # -*- coding: iso-8859-15 -*-
 #------------------------------------------------------------------------
 # Application :    Noethys, Matthania
-# Module : Génération du pdf à partir du DictValeurs
+# Module : Génération du pdf à partir du DictValeurs venant d'UTILS_Facturation
 # Auteur:           Ivan LUCAS, JB
 # Copyright:       (c) 2010-11 Ivan LUCAS, JB
 # Licence:         Licence GNU GPL
@@ -810,7 +810,7 @@ if __name__ == "__main__":
                    'couleur_fond_1': wx.Colour(204, 204, 255, 255), 'afficher_impayes': True, 'afficher_messages': True,
                    'couleur_bord_conclusion': wx.Colour(255, 255, 255, 255), 'taille_texte_montants_totaux': 10,
                    'alignement_texte_conclusion': 0, 'largeur_colonne_montant_tva': 50, 'largeur_colonne_date': 50,
-                   'texte_titre': 'Facture', 'taille_texte_prestation': 7, 'afficher_avis_prelevements': True,
+                   'taille_texte_prestation': 7, 'afficher_avis_prelevements': True,
                    'taille_texte_conclusion': 9, 'affichage_solde': 0, 'afficher_coupon_reponse': True,
                    'taille_texte_introduction': 9, 'intitules': 0, 'taille_texte_noms_colonnes': 5,
                    'texte_introduction': '', 'taille_texte_individu': 9, 'taille_texte_labels_totaux': 9,

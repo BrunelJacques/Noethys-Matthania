@@ -18,13 +18,11 @@ from Gest import GestionInscription
 from Data import DATA_Tables
 from Utils import UTILS_Facturation
 import datetime
-import time
 import wx.lib.agw.pybusyinfo as PBI
 import copy
-import FonctionsPerso
 from Utils import UTILS_Config
 from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
-from Ctrl.CTRL_ObjectListView import ObjectListView, ColumnDefn, Filter, CTRL_Outils, PanelAvecFooter
+from Ctrl.CTRL_ObjectListView import ObjectListView, ColumnDefn, Filter, CTRL_Outils, PanelAvecFooter # CTRL_Outils appelé by parent
 
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 
@@ -91,7 +89,6 @@ class ListView(ObjectListView):
             self.DB = self.GrandParent.DB
         else:
             self.DB = GestionDB.DB()
-        self.nom = Decod(self.DB.GetNomFamille(self.IDpayeur,first = "nom"))
 
         self.pointe = None
         if self.IDpayeur == None:
@@ -347,6 +344,9 @@ class ListView(ObjectListView):
         # composition des tracks
         listeOLV=[]
         self.listeIDprestation=[]
+        payeur = Decod(self.DB.GetNomFamille(IDpayeur, first="nom"))
+        famille = Decod(self.DB.GetNomFamille(IDpayeur, first="prenom"))
+
         for record in listeDonnees:
             dictDonnees = GestionInscription.DictTrack(self.listeChamps,record)
             ligne = Track(dictDonnees)
@@ -377,8 +377,8 @@ class ListView(ObjectListView):
                     label = "Reprise: "
             else: label = ""
 
-            ligne.payeur= Decod(self.DB.GetNomFamille(ligne.IDcompte_payeur,first = "nom"))
-            ligne.famille= Decod(self.DB.GetNomFamille(ligne.IDfamille,first = "prenom"))
+            ligne.payeur= payeur
+            ligne.famille= famille
             individu = Decod(self.DB.GetNomIndividu(ligne.IDindividu))
             if len(individu)>16:
                 individu = ContractNom(individu,16)
@@ -554,18 +554,8 @@ class ListView(ObjectListView):
         #fin GetListeIDpieces
 
     def LanceImpression(self,lancement,liste):
-        # l'unicitié du nom de fichier est obtenue par les secondes et millisecondes
-        now = str(datetime.datetime.strftime(datetime.datetime.now(),"%Y-%m-%d %Hh%M %S%f"))[:22]
-        nomDoc = self.nom + " "+ now
         fFact = UTILS_Facturation.Facturation()
-        dictOptions =  {'largeur_colonne_date': 50, 'texte_conclusion': '', 'image_signature': '', 'texte_titre': 'Facture', 'taille_texte_prestation': 7, 'afficher_avis_prelevements': True, 'taille_texte_messages': 7, 'afficher_qf_dates': True, 'taille_texte_activite': 6, 'affichage_prestations': 0, 'affichage_solde': 0, 'afficher_coupon_reponse': True, 'taille_image_signature': 100, 'alignement_image_signature': 0, 'couleur_fond_conclusion': wx.Colour(255, 255, 255, 255), 'alignement_texte_introduction': 0, 'couleur_bord_conclusion': wx.Colour(255, 255, 255, 255), 'afficher_reglements': True, 'intitules': 0, 'integrer_impayes': False, 'taille_texte_introduction': 9, 'taille_texte_noms_colonnes': 5, 'texte_introduction': '', 'taille_texte_individu': 9, 'taille_texte_conclusion': 9, 'taille_texte_labels_totaux': 9, 'afficher_periode': False, 'couleur_bord_introduction': wx.Colour(255, 255, 255, 255), 'afficher_codes_barres': True, 'couleur_fond_introduction': wx.Colour(255, 255, 255, 255), 'taille_texte_titre': 19, 'taille_texte_periode': 8, 'IDmodele': 5, 'couleur_fond_2': wx.Colour(234, 234, 255, 255), 'afficher_titre': True, 'couleur_fond_1': wx.Colour(204, 204, 255, 255), 'largeur_colonne_montant_ht': 50, 'afficher_impayes': True, 'messages': [], 'memoriser_parametres': True, 'afficher_messages': True, 'largeur_colonne_montant_ttc': 70, 'taille_texte_montants_totaux': 10, 'alignement_texte_conclusion': 0, 'style_texte_introduction': 0, 'style_texte_conclusion': 0, 'repertoire_copie': '', 'largeur_colonne_montant_tva': 50}
-        #fFact.Impression(listePieces=liste,typeLancement= lancement, dictOptions = dictOptions, afficherDoc=True,repertoire = dictOptions["repertoire_copie"])
-        if nomDoc:
-            nomDoc = fp.NoPunctuation(nomDoc)
-        from Utils import UTILS_Fichiers
-        nomDoc = UTILS_Fichiers.GetRepTemp("%s.pdf" %(nomDoc))
-        fFact.Impression(listePieces=liste,nomDoc= nomDoc,
-                         afficherDoc=True,repertoire = dictOptions["repertoire_copie"])
+        fFact.Impression(listePieces=liste, afficherDoc=True)
         del fFact
         #fin LanceImpression
 
