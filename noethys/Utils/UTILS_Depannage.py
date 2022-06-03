@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-15 -*-
 #------------------------------------------------------------------------
-# Application :    Noethys, gestion multi-activités
-# Site internet :  www.noethys.com
+# Application :  Noethys, branche Matthania
+# Module: Vérification d'anomalies, JB avec reglements négatifs ventiles possibles
 # Auteur:           Ivan LUCAS
 # Copyright:       (c) 2010-13 Ivan LUCAS
 # Licence:         Licence GNU GPL
@@ -272,7 +272,7 @@ class Depannage():
         self.CotisationsSansIndividus()
         self.CotisationsSansFamilles() 
         self.PrestationsSansFamilles() 
-        #self.VentilationsSansPrestations() # possible si lettrage entre règlements positifs et négatifs
+        self.VentilationsSansPrestations() # IDprestation = 0 possible si lettrage entre règlements positifs et négatifs
         self.VentilationsSansReglements() 
         self.IndividusIncomplets()
         self.FamillesIncompletes()
@@ -365,7 +365,9 @@ class Depannage():
         FROM ventilation
         LEFT JOIN prestations ON prestations.IDprestation = ventilation.IDprestation 
         LEFT JOIN comptes_payeurs ON comptes_payeurs.IDcompte_payeur = ventilation.IDcompte_payeur
-        WHERE prestations.IDprestation IS NULL;"""
+        WHERE (prestations.IDprestation IS NULL)
+               AND ( ventilation.IDprestation > 0))
+        ;"""
         self.DB.ExecuterReq(req,MsgBox="ExecuterReq")
         listeDonnees = self.DB.ResultatReq()
         listeTemp = []

@@ -1207,10 +1207,22 @@ class ObjectListView(wx.ListCtrl):
         return model
 
     def GetSelectedObjects(self):
-        """
-        Return a list of the selected modelObjects
-        """
-        return list(self.YieldSelectedObjects())
+        # Vérifie la présence de case cochées qui ont priorité
+        if self.checkStateColumn:
+            choixChecked = self.GetCheckedObjects()
+            choixSelected = list(self.YieldSelectedObjects())
+            # Test la présence d'une sélection et de lignes cochées
+            if len(choixChecked) > 0:
+                return choixChecked
+            else:
+                # pas de ligne checkée, priorité à la sélection, on coche
+                for item in choixSelected:
+                    self.Check(item)
+                self.RefreshObjects(choixSelected)
+                return choixSelected
+        else:
+            # pas de colonne check priorité à la sélection
+            return list(self.YieldSelectedObjects())
 
     def GetSortColumn(self):
         """

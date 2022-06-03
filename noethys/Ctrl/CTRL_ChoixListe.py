@@ -588,7 +588,7 @@ class DLGventilations(wx.Dialog):
         self.MAJ()
 
     def OnClicLettrer(self, event):
-        choix = self.listview.GetSelectedObjects()
+        choix = self.listview.GetCheckedObjects()
         if len(choix) == 0:
             event.Skip()
             return

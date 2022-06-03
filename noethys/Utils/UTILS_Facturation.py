@@ -129,10 +129,11 @@ def Tronque(emetteur,payeur, lgMax=35):
         # nbre d'espaces à prévoir
         nbsp = len(lstMots) - 1
         # longeur max moyenne mais on garde un minimum de 3caractères par mot
-        nbmoy = max((nbmax - nbsp) / len(lstMots),3)
+        nbmoy = max(int((nbmax - nbsp) / len(lstMots)),3)
         newLst = []
         for mot in lstMots[:-1]:
-            if len(mot)> nbmoy: mot = mot[:nbmoy]
+            if len(mot)> nbmoy:
+                mot = mot[:nbmoy]
             newLst.append("%s"% mot)
         # le dernier mot prend le rab
         reste = nbmax - nbsp
