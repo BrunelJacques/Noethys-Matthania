@@ -113,8 +113,8 @@ class MainFrame(wx.Frame):
         self.listeUtilisateurs = [] 
         self.dictUtilisateur = None
 
-        self.langue = UTILS_Config.GetParametre("langue_interface", None)
-        self.ChargeTraduction() 
+        #self.langue = UTILS_Config.GetParametre("langue_interface", None)
+        #self.ChargeTraduction()
 
         # Récupération du nom du dernier fichier chargé
         self.nomDernierFichier = ""
@@ -130,6 +130,8 @@ class MainFrame(wx.Frame):
             self.afficherAssistant = True
 
         # Recherche si une mise à jour internet existe
+        self.MAJexiste = False
+        """
         self.versionMAJ = None
         if sys.executable.endswith("python.exe") == True :
             self.MAJexiste = False
@@ -138,6 +140,7 @@ class MainFrame(wx.Frame):
         
         if UTILS_Config.GetParametre("propose_maj", defaut=True) == False :
             self.MAJexiste = False
+        """
 
         # Récupération des perspectives de la page d'accueil
         if ("perspectives" in self.userConfig) == True :
@@ -292,13 +295,13 @@ class MainFrame(wx.Frame):
         if self.Quitter() == False :
             return
         event.Skip()
-        
+
     def Quitter(self, videRepertoiresTemp=True, sauvegardeAuto=True):
         """ Fin de l'application """
 
         # Vérifie si une synchronisation Connecthys n'est pas en route
-        if self.IsSynchroConnecthys() == True :
-            return False
+        #if self.IsSynchroConnecthys() == True :
+        #    return False
 
         # Mémorise l'action dans l'historique
         if self.userConfig["nomFichier"] != "" :
@@ -362,8 +365,8 @@ class MainFrame(wx.Frame):
         # Détruit le taskBarIcon
         self.taskBarIcon.Cacher()
         self.taskBarIcon.Detruire()
+        time.sleep(2)
         self.Destroy()
-        return True
 
     def SauvegardeAutomatique(self):
         save = UTILS_Sauvegarde_auto.Sauvegarde_auto(self)
@@ -673,7 +676,7 @@ class MainFrame(wx.Frame):
             if self.perspective_active == index : item.Check(True)
             position += 1
             index += 1
-        self.Bind(wx.EVT_MENU_RANGE, self.On_affichage_perspective_perso, id=ID_PREMIERE_PERSPECTIVE, id2=ID_PREMIERE_PERSPECTIVE+99 )
+        self.Bind(wx.EVT_MENU_RANGE, self.ctrlMenu.On_affichage_perspective_perso, id=ID_PREMIERE_PERSPECTIVE, id2=ID_PREMIERE_PERSPECTIVE+99 )
 
         # -------------------------- AJOUT DES ELEMENTS A AFFICHER OU CACHER dans le menu AFFICHAGE -----------------------------
         self.listePanneaux = [
@@ -693,7 +696,7 @@ class MainFrame(wx.Frame):
             menu_affichage.Insert(position, item)
             position += 1
             ID += 1
-        self.Bind(wx.EVT_MENU_RANGE, self.On_affichage_panneau_afficher, id=ID_AFFICHAGE_PANNEAUX, id2=ID_AFFICHAGE_PANNEAUX+len(self.listePanneaux) )
+        self.Bind(wx.EVT_MENU_RANGE, self.ctrlMenu.On_affichage_panneau_afficher, id=ID_AFFICHAGE_PANNEAUX, id2=ID_AFFICHAGE_PANNEAUX+len(self.listePanneaux) )
         
         # -------------------------- AJOUT MISE A JOUR INTERNET -----------------------------
         if self.MAJexiste == True :
@@ -1064,150 +1067,8 @@ class MainFrame(wx.Frame):
             menu_affichage.Insert(index + 1, item)
             if self.perspective_active == index: item.Check(True)
             index += 1
-        self.Bind(wx.EVT_MENU_RANGE, self.On_affichage_perspective_perso,
+        self.Bind(wx.EVT_MENU_RANGE, self.ctrlMenu.On_affichage_perspective_perso,
                   id=ID_PREMIERE_PERSPECTIVE, id2=ID_PREMIERE_PERSPECTIVE + 99)
-
-    def On_affichage_perspective_defaut(self, event):
-        self.MAJ()
-        self._mgr.LoadPerspective(self.perspective_defaut)
-        self.perspective_active = None
-        self.MAJmenuPerspectives()
-        self._mgr.Update()
-        self.Refresh()
-
-    def On_affichage_perspective_perso(self, event):
-        index = event.GetId() - ID_PREMIERE_PERSPECTIVE
-        self._mgr.LoadPerspective(self.perspectives[index]["perspective"])
-        self.perspective_active = index
-        self.ForcerAffichagePanneau("ephemeride")
-        self.MAJmenuPerspectives()
-        self._mgr.Update()
-        self.Refresh()
-
-    def On_affichage_perspective_save(self, event):
-        newIDperspective = len(self.perspectives)
-        dlg = wx.TextEntryDialog(self,
-                                 _("Veuillez saisir un intitulé pour cette disposition :"),
-                                 "Sauvegarde d'une disposition")
-        dlg.SetValue(_("Disposition %d") % (newIDperspective + 1))
-        reponse = dlg.ShowModal()
-        if reponse != wx.ID_OK:
-            dlg.Destroy()
-            return
-        label = dlg.GetValue()
-        dlg.Destroy()
-
-        # Vérifie que ce nom n'est pas déjà attribué
-        for dictPerspective in self.perspectives:
-            if label == dictPerspective["label"]:
-                dlg = wx.MessageDialog(self,
-                                       _("Ce nom est déjà attribué à une autre disposition !"),
-                                       _("Erreur de saisie"),
-                                       wx.OK | wx.ICON_EXCLAMATION)
-                dlg.ShowModal()
-                dlg.Destroy()
-                return
-
-        # Sauvegarde de la perspective
-        self.perspectives.append(
-            {"label": label, "perspective": self._mgr.SavePerspective()})
-        self.perspective_active = newIDperspective
-
-        # MAJ Menu Affichage
-        self.MAJmenuPerspectives()
-
-    def On_affichage_perspective_suppr(self, event):
-        listeLabels = []
-        for dictPerspective in self.perspectives:
-            listeLabels.append(dictPerspective["label"])
-        dlg = wx.MultiChoiceDialog(self,
-                                   _("Cochez les dispositions que vous souhaitez supprimer :"),
-                                   _("Supprimer des dispositions"),
-                                   listeLabels)
-        if dlg.ShowModal() == wx.ID_OK:
-            selections = dlg.GetSelections()
-            selections.sort(reverse=True)
-            for index in selections:
-                self.perspectives.pop(index)
-            if self.perspective_active in selections:
-                self._mgr.LoadPerspective(self.perspective_defaut)
-            self.perspective_active = None
-            self.MAJmenuPerspectives()
-        dlg.Destroy()
-
-    def On_affichage_panneau_afficher(self, event):
-        index = event.GetId() - ID_AFFICHAGE_PANNEAUX
-        panneau = self._mgr.GetPane(self.listePanneaux[index]["code"])
-        if panneau.IsShown():
-            panneau.Hide()
-        else:
-            panneau.Show()
-        self._mgr.Update()
-
-    def On_affichage_barres_outils(self, event):
-        # Récupère la liste des codes des barres actuelles
-        texteBarres = self.userConfig["barres_outils_perso"]
-        if len(texteBarres) > 0:
-            listeTextesBarresActuelles = texteBarres.split("@@@@")
-        else:
-            listeTextesBarresActuelles = []
-        listeCodesBarresActuelles = []
-        for texteBarre in listeTextesBarresActuelles:
-            code, label, observations, style, contenu = texteBarre.split("###")
-            listeCodesBarresActuelles.append(code)
-
-        # Charge la DLG de gestion des barres d'outils
-        from Dlg import DLG_Barres_outils
-        texte = self.userConfig["barres_outils_perso"]
-        dlg = DLG_Barres_outils.Dialog(self, texte=texte)
-        dlg.ShowModal()
-        texteBarres = dlg.GetTexte()
-        listeBarresAffichees = dlg.GetListeAffichees()
-        dlg.Destroy()
-        self.userConfig["barres_outils_perso"] = texteBarres
-
-        # Met à jour chaque barre d'outils
-        if len(texteBarres) > 0:
-            listeTextesBarres = texteBarres.split("@@@@")
-        else:
-            listeTextesBarres = []
-
-        listeCodesBarresNouvelles = []
-        for texte in listeTextesBarres:
-            code, label, observations, style, contenu = texte.split("###")
-            listeCodesBarresNouvelles.append(code)
-            panneau = self._mgr.GetPane(code)
-
-            if panneau.IsOk():
-                # Si la barre existe déjà
-                tb = self.dictBarresOutils[code]["ctrl"]
-
-                # Modification de la barre
-                if self.dictBarresOutils[code]["texte"] != texte:
-                    self.CreerBarreOutils(texte, ctrl=tb)
-                    panneau.BestSize(tb.DoGetBestSize())
-                    self.dictBarresOutils[code]["texte"] = texte
-
-                # Affichage ou masquage
-                if code in listeBarresAffichees:
-                    panneau.Show()
-                else:
-                    panneau.Hide()
-                self._mgr.Update()
-            else:
-                # Si la barre n'existe pas
-                self.CreerBarreOutils(texte)
-
-        # Suppression des barres supprimées
-        for code in listeCodesBarresActuelles:
-            if code not in listeCodesBarresNouvelles:
-                tb = self.dictBarresOutils[code]["ctrl"]
-                panneau = self._mgr.GetPane(code)
-                self._mgr.ClosePane(panneau)
-                self._mgr.Update()
-
-    def On_affichage_actualiser(self, event):
-        self.MAJ()
 
     def GetDictItemsMenu(self):
         """ Renvoie tous les items menu de type action sous forme de dictionnaire """
@@ -1951,10 +1812,6 @@ class MyApp(wx.App):
     #     self.ResetLocale()
 
     def OnInit(self):
-        # Adaptation pour rétrocompatibilité wx2.8
-        if wx.VERSION < (2, 9, 0, 0) :
-            wx.InitAllImageHandlers()
-
         heure_debut = time.time()
 
         # Réinitialisation du fichier des parametres en conservant la touche ALT ou CTRL enfoncée
@@ -1969,7 +1826,6 @@ class MyApp(wx.App):
 
         # AdvancedSplashScreen
         if CUSTOMIZE.GetValeur("utilisateur", "pass", "") == "" :
-            nom_fichier_splash = "Logo_splash.png"
             nom_fichier_splash = "Logo_splash_2019.png"
             bmp = wx.Bitmap(Chemins.GetStaticPath("Images/Interface/%s/%s" % (theme, nom_fichier_splash)), wx.BITMAP_TYPE_PNG)
             frame = AS.AdvancedSplash(None, bitmap=bmp, timeout=500, agwStyle=AS.AS_TIMEOUT | AS.AS_CENTER_ON_SCREEN)
@@ -1982,7 +1838,6 @@ class MyApp(wx.App):
             frame.Refresh()
             frame.Update()
 
-
         # Création de la frame principale
         frame = MainFrame(None)
         self.SetTopWindow(frame)
@@ -1990,7 +1845,7 @@ class MyApp(wx.App):
         frame.Show()
 
         # Affiche une annonce si c'est un premier démarrage ou après une mise à jour
-        etat_annonce = frame.Annonce()
+        #etat_annonce = frame.Annonce()
                 
         # Charge le fichier Exemple si l'utilisateur le souhaite
         etat_exemple = frame.ChargeFichierExemple()
@@ -1999,8 +1854,8 @@ class MyApp(wx.App):
         fichierOuvert = frame.OuvrirDernierFichier()
 
         # Active la page du tableau des effectifs après connexion et non avant comme dans MainFrame.OnInit
-        if ("page_ctrl_effectifs" in frame.userConfig) == True :
-            frame.ctrl_remplissage.SetPageActive(frame.userConfig["page_ctrl_effectifs"])
+        #if ("page_ctrl_effectifs" in frame.userConfig) == True :
+        #    frame.ctrl_remplissage.SetPageActive(frame.userConfig["page_ctrl_effectifs"])
 
         print("Temps de chargement ouverture de Noethys = ", time.time() - heure_debut)
         return True

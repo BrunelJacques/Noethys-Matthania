@@ -366,7 +366,7 @@ class Depannage():
         LEFT JOIN prestations ON prestations.IDprestation = ventilation.IDprestation 
         LEFT JOIN comptes_payeurs ON comptes_payeurs.IDcompte_payeur = ventilation.IDcompte_payeur
         WHERE (prestations.IDprestation IS NULL)
-               AND ( ventilation.IDprestation > 0))
+               AND ( ventilation.IDprestation > 0)
         ;"""
         self.DB.ExecuterReq(req,MsgBox="ExecuterReq")
         listeDonnees = self.DB.ResultatReq()

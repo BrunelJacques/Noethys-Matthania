@@ -374,32 +374,32 @@ def GetListItemsMenu(self,menuTransports):
             {"code": "perspective_defaut",
              "label": _("Disposition par défaut"),
              "infobulle": _("Afficher la disposition par défaut"),
-             "action": self.parent.On_affichage_perspective_defaut,
+             "action": self.On_affichage_perspective_defaut,
              "genre": wx.ITEM_CHECK},
             "-",
             {"code": "perspective_save",
              "label": _("Sauvegarder la disposition actuelle"),
              "infobulle": _("Sauvegarder la disposition actuelle"),
              "image": "Images/16x16/Perspective_ajouter.png",
-             "action": self.parent.On_affichage_perspective_save},
+             "action": self.On_affichage_perspective_save},
             {"code": "perspective_suppr",
              "label": _("Supprimer des dispositions"),
              "infobulle": _("Supprimer des dispositions enregistrées"),
              "image": "Images/16x16/Perspective_supprimer.png",
-             "action": self.parent.On_affichage_perspective_suppr},
+             "action": self.On_affichage_perspective_suppr},
             "-",
             "-",
             {"code": "affichage_barres_outils",
              "label": _("Barres d'outils personnelles"),
              "infobulle": _("Barres d'outils personnelles"),
              "image": "Images/16x16/Barre_outils.png",
-             "action": self.parent.On_affichage_barres_outils},
+             "action": self.On_affichage_barres_outils},
             "-",
             {"code": "actualiser_affichage",
              "label": _("Actualiser l'affichage\tF11"),
              "infobulle": _("Actualiser l'affichage de la page d'accueil"),
              "image": "Images/16x16/Actualiser2.png",
-             "action": self.parent.On_affichage_actualiser},
+             "action": self.On_affichage_actualiser},
         ],
          },
 
@@ -2297,6 +2297,162 @@ class Menu(object):
         dlg = DLG_Arrets.Dialog(self.parent, categorie="pedibus")
         dlg.ShowModal()
         dlg.Destroy()
+
+    def MAJmenuAffichage(self, event):
+        """ Met à jour la liste des panneaux ouverts du menu Affichage """
+        menuOuvert = event.GetMenu()
+        if menuOuvert == self.parent.dictInfosMenu["menu_affichage"]["ctrl"] :
+            for dictPanneau in self.parent.listePanneaux :
+                IDmenuItem = dictPanneau["IDmenu"]
+                item = menuOuvert.FindItemById(IDmenuItem)
+                panneau = self.parent._mgr.GetPane(dictPanneau["code"])
+                if panneau.IsShown() == True :
+                    item.Check(True)
+                else:
+                    item.Check(False)
+
+    def On_affichage_perspective_defaut(self, event):
+        self.parent.MAJ()
+        self.parent._mgr.LoadPerspective(self.parent.perspective_defaut)
+        self.parent.perspective_active = None
+        self.parent.MAJmenuPerspectives()
+        self.parent._mgr.Update()
+        self.parent.Refresh()
+
+    def On_affichage_perspective_perso(self, event):
+        index = event.GetId() - ID_PREMIERE_PERSPECTIVE
+        self.parent._mgr.LoadPerspective(self.parent.perspectives[index]["perspective"])
+        self.parent.perspective_active = index
+        self.parent.ForcerAffichagePanneau("ephemeride")
+        self.parent.MAJmenuPerspectives()
+        self.parent._mgr.Update()
+        self.parent.Refresh()
+        event.Skip()
+
+    def On_affichage_perspective_save(self, event):
+        newIDperspective = len(self.parent.perspectives)
+        dlg = wx.TextEntryDialog(self.parent,
+                                 _("Veuillez saisir un intitulé pour cette disposition :"),
+                                 "Sauvegarde d'une disposition")
+        dlg.SetValue(_("Disposition %d") % (newIDperspective + 1))
+        reponse = dlg.ShowModal()
+        if reponse != wx.ID_OK:
+            dlg.Destroy()
+            return
+        label = dlg.GetValue()
+        dlg.Destroy()
+
+        # Vérifie que ce nom n'est pas déjà attribué
+        for dictPerspective in self.parent.perspectives:
+            if label == dictPerspective["label"]:
+                dlg = wx.MessageDialog(self.parent,
+                                       _("Ce nom est déjà attribué à une autre disposition !"),
+                                       _("Erreur de saisie"),
+                                       wx.OK | wx.ICON_EXCLAMATION)
+                dlg.ShowModal()
+                dlg.Destroy()
+                return
+
+        # Sauvegarde de la perspective
+        self.parent.perspectives.append(
+            {"label": label, "perspective": self.parent._mgr.SavePerspective()})
+        self.parent.perspective_active = newIDperspective
+        event.Skip()
+        # MAJ Menu Affichage
+        self.parent.MAJmenuPerspectives()
+
+    def On_affichage_perspective_suppr(self, event):
+        listeLabels = []
+        for dictPerspective in self.parent.perspectives:
+            listeLabels.append(dictPerspective["label"])
+        dlg = wx.MultiChoiceDialog(self.parent,
+                                   _("Cochez les dispositions que vous souhaitez supprimer :"),
+                                   _("Supprimer des dispositions"),
+                                   listeLabels)
+        if dlg.ShowModal() == wx.ID_OK:
+            selections = dlg.GetSelections()
+            selections.sort(reverse=True)
+            for index in selections:
+                self.parent.perspectives.pop(index)
+            if self.parent.perspective_active in selections:
+                self.parent._mgr.LoadPerspective(self.parent.perspective_defaut)
+            self.parent.perspective_active = None
+            self.parent.MAJmenuPerspectives()
+        dlg.Destroy()
+
+    def On_affichage_panneau_afficher(self, event):
+        index = event.GetId() - ID_AFFICHAGE_PANNEAUX
+        panneau = self.parent._mgr.GetPane(self.parent.listePanneaux[index]["code"])
+        if panneau.IsShown():
+            panneau.Hide()
+        else:
+            panneau.Show()
+        self.parent._mgr.Update()
+
+    def On_affichage_barres_outils(self, event):
+        # Récupère la liste des codes des barres actuelles
+        texteBarres = self.parent.userConfig["barres_outils_perso"]
+        if len(texteBarres) > 0:
+            listeTextesBarresActuelles = texteBarres.split("@@@@")
+        else:
+            listeTextesBarresActuelles = []
+        listeCodesBarresActuelles = []
+        for texteBarre in listeTextesBarresActuelles:
+            code, label, observations, style, contenu = texteBarre.split("###")
+            listeCodesBarresActuelles.append(code)
+
+        # Charge la DLG de gestion des barres d'outils
+        from Dlg import DLG_Barres_outils
+        texte = self.parent.userConfig["barres_outils_perso"]
+        dlg = DLG_Barres_outils.Dialog(self.parent, texte=texte)
+        dlg.ShowModal()
+        texteBarres = dlg.GetTexte()
+        listeBarresAffichees = dlg.GetListeAffichees()
+        dlg.Destroy()
+        self.parent.userConfig["barres_outils_perso"] = texteBarres
+
+        # Met à jour chaque barre d'outils
+        if len(texteBarres) > 0:
+            listeTextesBarres = texteBarres.split("@@@@")
+        else:
+            listeTextesBarres = []
+
+        listeCodesBarresNouvelles = []
+        for texte in listeTextesBarres:
+            code, label, observations, style, contenu = texte.split("###")
+            listeCodesBarresNouvelles.append(code)
+            panneau = self.parent._mgr.GetPane(code)
+
+            if panneau.IsOk():
+                # Si la barre existe déjà
+                tb = self.parent.dictBarresOutils[code]["ctrl"]
+
+                # Modification de la barre
+                if self.parent.dictBarresOutils[code]["texte"] != texte:
+                    self.parent.CreerBarreOutils(texte, ctrl=tb)
+                    panneau.BestSize(tb.DoGetBestSize())
+                    self.parent.dictBarresOutils[code]["texte"] = texte
+
+                # Affichage ou masquage
+                if code in listeBarresAffichees:
+                    panneau.Show()
+                else:
+                    panneau.Hide()
+                self.parent._mgr.Update()
+            else:
+                # Si la barre n'existe pas
+                self.parent.CreerBarreOutils(texte)
+
+        # Suppression des barres supprimées
+        for code in listeCodesBarresActuelles:
+            if code not in listeCodesBarresNouvelles:
+                tb = self.parent.dictBarresOutils[code]["ctrl"]
+                panneau = self.parent._mgr.GetPane(code)
+                self.parent._mgr.ClosePane(panneau)
+                self.parent._mgr.Update()
+
+    def On_affichage_actualiser(self, event):
+        self.parent.MAJ()
 
     def On_outils_stats(self, event):
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel(
