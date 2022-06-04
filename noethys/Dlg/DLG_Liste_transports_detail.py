@@ -1,30 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-15 -*-
 #------------------------------------------------------------------------
-# Application :    Noethys, gestion multi-activités
+# Application :    Noethys, Matthania
 # Site internet :  www.noethys.com
-# Auteur:           Ivan LUCAS
-# Copyright:       (c) 2010-12 Ivan LUCAS
+# Auteur:           Ivan LUCAS, JB, Jacques BRUNEL
+# Copyright:       (c) 2010-12 Ivan LUCAS, JB
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
 
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
-import datetime
-
-import GestionDB
 from Ctrl import CTRL_Bandeau
 from Ol import OL_Transports
 from Utils import UTILS_Dates
 import operator
-
-
-
-
 
 class CTRL_Filtre(wx.Choice):
     def __init__(self, parent, listeDonnees=[], labelDefaut=_("Tous")):
@@ -56,9 +48,7 @@ class CTRL_Filtre(wx.Choice):
     
     def SetDonnees(self, listeDonnees=[]):
         self.listeDonnees = listeDonnees
-        self.MAJ() 
-
-
+        self.MAJ()
 
 class Panel(wx.Panel):
     def __init__(self, parent):
@@ -74,15 +64,14 @@ class Panel(wx.Panel):
         
         self.label_depart = wx.StaticText(self, -1, _("Départ :"))
         self.ctrl_depart_date = CTRL_Filtre(self, labelDefaut=_("Toutes les dates"))
-        self.ctrl_depart_heure = CTRL_Filtre(self, labelDefaut=_("Tous les horaires"))
+        self.ctrl_futur = wx.CheckBox(self, 1, "Futur ")
+        self.ctrl_futur.SetValue(True)
         self.ctrl_depart_lieu = CTRL_Filtre(self, labelDefaut=_("Tous les lieux"))
-
         self.label_transport = wx.StaticText(self, -1, _("Transport :"))
         self.ctrl_transport = CTRL_Filtre(self, labelDefaut=_("Tous les transports"))
 
         self.label_arrivee = wx.StaticText(self, -1, _("Arrivée :"))
         self.ctrl_arrivee_date = CTRL_Filtre(self, labelDefaut=_("Toutes les dates"))
-        self.ctrl_arrivee_heure = CTRL_Filtre(self, labelDefaut=_("Tous les horaires"))
         self.ctrl_arrivee_lieu = CTRL_Filtre(self, labelDefaut=_("Tous les lieux"))
         
         # Liste
@@ -107,24 +96,26 @@ class Panel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.OnBoutonImprimer, self.bouton_imprimer)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonExportExcel, self.bouton_export_excel)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonExportTexte, self.bouton_export_texte)
-        
+
+        self.Bind(wx.EVT_CHECKBOX, self.OnChoixFiltre, self.ctrl_futur)
+
+
         # Init contrôles
         self.MAJ() 
         
     def __set_properties(self):
-        self.ctrl_individu.SetToolTip(wx.ToolTip(_("Filtrer par individu")))
-        self.ctrl_depart_date.SetToolTip(wx.ToolTip(_("Filtrer par date de départ")))
-        self.ctrl_depart_heure.SetToolTip(wx.ToolTip(_("Filtrer par heure de départ")))
-        self.ctrl_depart_lieu.SetToolTip(wx.ToolTip(_("Filtrer par lieu de départ")))
-        self.ctrl_arrivee_date.SetToolTip(wx.ToolTip(_("Filtrer par date d'arrivée")))
-        self.ctrl_arrivee_heure.SetToolTip(wx.ToolTip(_("Filtrer par heure d'arrivée")))
-        self.ctrl_arrivee_lieu.SetToolTip(wx.ToolTip(_("Filtrer par lieu d'arrivée")))
-        self.bouton_modifier.SetToolTip(wx.ToolTip(_("Modifier le transport sélectionné dans la liste")))
-        self.bouton_supprimer.SetToolTip(wx.ToolTip(_("Supprimer le transport sélectionné dans la liste")))
-        self.bouton_apercu.SetToolTip(wx.ToolTip(_("Afficher un aperçu avant impression de la liste")))
-        self.bouton_imprimer.SetToolTip(wx.ToolTip(_("Imprimer la liste")))
-        self.bouton_export_excel.SetToolTip(wx.ToolTip(_("Exporter la liste au format Excel")))
-        self.bouton_export_texte.SetToolTip(wx.ToolTip(_("Exporter la liste au format Texte")))
+        self.ctrl_individu.SetToolTip(_("Filtrer par individu"))
+        self.ctrl_depart_date.SetToolTip(_("Filtrer par date de départ"))
+        self.ctrl_futur.SetToolTip(_("Décochez pour voir toutes les dates, cochez pour limiter aux dates futures. "))
+        self.ctrl_depart_lieu.SetToolTip(_("Filtrer par lieu de départ"))
+        self.ctrl_arrivee_date.SetToolTip(_("Filtrer par date d'arrivée"))
+        self.ctrl_arrivee_lieu.SetToolTip(_("Filtrer par lieu d'arrivée"))
+        self.bouton_modifier.SetToolTip(_("Modifier le transport sélectionné dans la liste"))
+        self.bouton_supprimer.SetToolTip(_("Supprimer le transport sélectionné dans la liste"))
+        self.bouton_apercu.SetToolTip(_("Afficher un aperçu avant impression de la liste"))
+        self.bouton_imprimer.SetToolTip(_("Imprimer la liste"))
+        self.bouton_export_excel.SetToolTip(_("Exporter la liste au format Excel"))
+        self.bouton_export_texte.SetToolTip(_("Exporter la liste au format Texte"))
 
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(2, 1, 10, 10)
@@ -138,7 +129,7 @@ class Panel(wx.Panel):
         grid_sizer_filtres.Add((20, 20), 0, wx.EXPAND, 0)
         grid_sizer_filtres.Add(self.label_depart, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_filtres.Add(self.ctrl_depart_date, 0, wx.EXPAND, 0)
-        grid_sizer_filtres.Add(self.ctrl_depart_heure, 0, wx.EXPAND, 0)
+        grid_sizer_filtres.Add(self.ctrl_futur, 0, wx.EXPAND, 0)
         grid_sizer_filtres.Add(self.ctrl_depart_lieu, 0, wx.EXPAND, 0)
         
         grid_sizer_filtres.Add(self.label_transport, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
@@ -146,7 +137,7 @@ class Panel(wx.Panel):
         grid_sizer_filtres.Add((20, 20), 0, wx.EXPAND, 0)
         grid_sizer_filtres.Add(self.label_arrivee, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_filtres.Add(self.ctrl_arrivee_date, 0, wx.EXPAND, 0)
-        grid_sizer_filtres.Add(self.ctrl_arrivee_heure, 0, wx.EXPAND, 0)
+        grid_sizer_filtres.Add((10,10), 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_filtres.Add(self.ctrl_arrivee_lieu, 0, wx.EXPAND, 0)
 
         box_filtres.Add(grid_sizer_filtres, 1, wx.ALL|wx.EXPAND, 10)
@@ -182,8 +173,7 @@ class Panel(wx.Panel):
         grid_sizer_base.AddGrowableCol(0)
     
     def MAJ(self):
-        self.ctrl_liste.MAJ() 
-        
+        self.ctrl_liste.MAJ(futur=self.ctrl_futur.GetValue())
         listeIndividu = []
         listeTransport = []
         listeDepartDate = []
@@ -192,7 +182,7 @@ class Panel(wx.Panel):
         listeArriveeDate = []
         listeArriveeHeure = []
         listeArriveeLieu = []
-        
+
         for track in self.ctrl_liste :
             
             if track.IDindividu != None :
@@ -239,35 +229,29 @@ class Panel(wx.Panel):
         # MAJ des contrôles
         self.ctrl_individu.SetDonnees(listeIndividu) 
         self.ctrl_transport.SetDonnees(listeTransport) 
-        self.ctrl_depart_date.SetDonnees(listeDepartDate) 
-        self.ctrl_depart_heure.SetDonnees(listeDepartHeure) 
-        self.ctrl_depart_lieu.SetDonnees(listeDepartLieu) 
+        self.ctrl_depart_date.SetDonnees(listeDepartDate)
+        self.ctrl_depart_lieu.SetDonnees(listeDepartLieu)
         self.ctrl_arrivee_date.SetDonnees(listeArriveeDate) 
-        self.ctrl_arrivee_heure.SetDonnees(listeArriveeHeure) 
-        self.ctrl_arrivee_lieu.SetDonnees(listeArriveeLieu) 
+        self.ctrl_arrivee_lieu.SetDonnees(listeArriveeLieu)
 
 
     def OnChoixFiltre(self, event): 
         individu = self.ctrl_individu.GetID()
         transport = self.ctrl_transport.GetID()
         depart_date = self.ctrl_depart_date.GetID()
-        depart_heure = self.ctrl_depart_heure.GetID()
         depart_lieu = self.ctrl_depart_lieu.GetID()
         arrivee_date = self.ctrl_arrivee_date.GetID()
-        arrivee_heure = self.ctrl_arrivee_heure.GetID()
         arrivee_lieu = self.ctrl_arrivee_lieu.GetID()
         
         dictFiltres = {}
         if individu != None : dictFiltres["individu"] = individu
         if transport != None : dictFiltres["transport"] = transport
         if depart_date != None : dictFiltres["depart_date"] = depart_date
-        if depart_heure != None : dictFiltres["depart_heure"] = depart_heure
         if depart_lieu != None : dictFiltres["depart_lieu"] = depart_lieu
         if arrivee_date != None : dictFiltres["arrivee_date"] = arrivee_date
-        if arrivee_heure != None : dictFiltres["arrivee_heure"] = arrivee_heure
         if arrivee_lieu != None : dictFiltres["arrivee_lieu"] = arrivee_lieu
-        self.ctrl_liste.SetFiltres(dictFiltres)
-        
+        self.ctrl_liste.SetFiltres(dictFiltres,futur=self.ctrl_futur.GetValue())
+
     def OnBoutonModifier(self, event): 
         self.ctrl_liste.Modifier(None) 
 
@@ -286,12 +270,6 @@ class Panel(wx.Panel):
     def OnBoutonExportExcel(self, event): 
         self.ctrl_liste.ExportExcel(None) 
 
-
-
-
-    
-
-
 # --------------------------------------------------------------------------------------------------------------------------------------------------
 
 class Dialog(wx.Dialog):
@@ -300,7 +278,7 @@ class Dialog(wx.Dialog):
         self.parent = parent
         
         intro = _("Utilisez les filtres pour afficher les transports souhaités et imprimer ou exportez la liste affichée.")
-        titre = _("Liste détaillée des transports")
+        titre = _("DLG_Liste_transports_detail: Liste détaillée des transports ")
         self.SetTitle(titre)
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Transport.png")
         

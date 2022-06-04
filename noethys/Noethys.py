@@ -365,7 +365,6 @@ class MainFrame(wx.Frame):
         # Détruit le taskBarIcon
         self.taskBarIcon.Cacher()
         self.taskBarIcon.Detruire()
-        time.sleep(2)
         self.Destroy()
 
     def SauvegardeAutomatique(self):

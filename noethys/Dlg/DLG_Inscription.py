@@ -276,7 +276,7 @@ class Dialog(wx.Dialog):
         self.Bind(wx.EVT_CHECKBOX, self.OnCocheGroupesValides, self.ctrl_groupes_valides)
 
         # Init contrôles
-        #self.ctrl_activites.MAJ()
+        self.ctrl_activites.MAJ()
 
     def __set_properties(self):
         self.ctrl_ageInconnu.SetToolTip("Les conditions d'âge sur les groupes ne pouvent être calculées")

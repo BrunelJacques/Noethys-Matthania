@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-15 -*-
 #------------------------------------------------------------------------
-# Application :    Noethys, gestion multi-activités
+# Application :    Noethys branche Matthania, Matthania pour gérer les None sur les dates
 # Site internet :  www.noethys.com
-# Auteur:           Ivan LUCAS
-# Copyright:       (c) 2010-11 Ivan LUCAS
+# Auteur:           Ivan LUCAS, JB, Jacques Brunel
+# Copyright:       (c) 2010-11 Ivan LUCAS, JB
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
@@ -16,18 +16,24 @@ import wx
 from Ctrl import CTRL_Bouton_image
 import datetime
 import GestionDB
-from Utils import UTILS_Historique
+from Utils import UTILS_Titulaires
 from Utils import UTILS_Transports
 from Utils import UTILS_Utilisateurs
-
 from Ctrl.CTRL_Saisie_transport import DICT_CATEGORIES
-
-
-from Utils import UTILS_Interface
 from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, CTRL_Outils
 
+def Nz(valeur, type = "int"):
+    try:
+        valeur = float(valeur)
+    except:
+        valeur = 0.0
+    if type == 'int':
+        valeur = int(valeur)
+    return valeur
 
 def DateEngFr(textDate):
+    if textDate == None: return ""
+    textDate = str(textDate)
     text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
     return text
 
@@ -39,39 +45,41 @@ def DateComplete(dateDD):
     return dateComplete
 
 def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
     if dateEng == None : return None
     return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
-
-        
 class Track(object):
-    def __init__(self, donnees, modLocalisation):
+    def __init__(self, donnees, modLocalisation,dictCorrespondants={}):
         self.IDtransport = donnees[0]
         self.IDindividu = donnees[1]
         self.categorie = donnees[2]
         self.labelTransport = DICT_CATEGORIES[self.categorie]["label"]
         
         self.depart_date = donnees[3]
+        #JB
+        if self.depart_date== None:
+            self.depart_date = "2000-01-01"
         self.depart_dateDD = DateEngEnDateDD(self.depart_date)
         self.depart_heure = donnees[4]
         if self.depart_heure != None :
             hr, mn = self.depart_heure.split(":")
         else :
             hr, mn = 0, 0
-        self.depart_dateHeure = datetime.datetime(self.depart_dateDD.year, self.depart_dateDD.month, self.depart_dateDD.day, int(hr), int(mn))
+        self.depart_date = datetime.date(self.depart_dateDD.year, self.depart_dateDD.month, self.depart_dateDD.day)
         self.depart_IDarret = donnees[5]
         self.depart_IDlieu = donnees[6]
         self.depart_localisation = donnees[7]
         
         self.arrivee_date = donnees[8]
+        if self.arrivee_date== None:
+            self.arrivee_date = "2000-01-01"
         self.arrivee_dateDD = DateEngEnDateDD(self.arrivee_date)
         self.arrivee_heure = donnees[9]
         if self.arrivee_heure != None :
             hr, mn = self.arrivee_heure.split(":")
         else :
             hr, mn = 0, 0
-        self.arrivee_dateHeure = datetime.datetime(self.arrivee_dateDD.year, self.arrivee_dateDD.month, self.arrivee_dateDD.day, int(hr), int(mn))
+        self.arrivee_date = datetime.date(self.arrivee_dateDD.year, self.arrivee_dateDD.month, self.arrivee_dateDD.day)
         self.arrivee_IDarret = donnees[10]
         self.arrivee_IDlieu = donnees[11]
         self.arrivee_localisation = donnees[12]
@@ -86,9 +94,52 @@ class Track(object):
         if self.individu_prenom == None :
             self.individu_prenom = ""
         self.individu_nom_complet = "%s %s" % (self.individu_nom, self.individu_prenom)
-        
-        
-    
+
+        # Date naissance - age
+        def Age(naissance, date):
+            age = 0
+            if date == None:
+                date = datetime.date.today()
+            if naissance != None:
+                if naissance.year > 1900 and date != None :
+                    age = (date.year - naissance.year) - int((date.month, date.day) < (naissance.month, naissance.day))
+            return age
+        self.individu_naiss = DateEngEnDateDD(donnees[15])
+        self.individu_age = (Age(self.individu_naiss, self.depart_dateDD))
+
+        #transport et affectation
+        self.prix_transport = Nz(donnees[16],type = "float") + Nz(donnees[19],type = "float")
+        activite = ""
+        if donnees[17]: activite += donnees[17]
+        if donnees[20]: activite += donnees[20]
+        self.activite = activite
+        self.analytique_convoi = Nz(donnees[18]) + Nz(donnees[21])
+
+        #ligne
+        self.ligne = donnees[22]
+
+        # Représentant
+        self.correspondant_nom = ""
+        self.telephones = ""
+        self.mails = ""
+        IDfamille = None
+        if donnees[-2]: IDfamille = donnees[-2]
+        if donnees[-1]: IDfamille = donnees[-1]
+
+        # la famille n'a pas été détectée, on cherche le correspondant à l'unité sur l'individu
+        if not IDfamille or ( not IDfamille in list(dictCorrespondants.keys())):
+            dictCorrespondant = UTILS_Titulaires.GetCorrespondant(IDindividu=self.IDindividu)
+        # la famille est dans le dictionnaire des correspondants
+        else:
+            dictCorrespondant = dictCorrespondants[IDfamille]
+
+        if dictCorrespondant:
+            if "nom_complet" in dictCorrespondant: self.correspondant_nom = dictCorrespondant["nom_complet"]
+            if "telephones" in dictCorrespondant: self.telephones = dictCorrespondant["telephones"]
+            if "mails" in dictCorrespondant: self.mails = dictCorrespondant["mails"]
+
+
+
 class ListView(FastObjectListView):
     def __init__(self, *args, **kwds):
         # Récupération des paramètres perso
@@ -100,7 +151,6 @@ class ListView(FastObjectListView):
         self.popupIndex = -1
         self.dictFiltres = {}
         # Initialisation du listCtrl
-        self.nom_fichier_liste = __file__
         FastObjectListView.__init__(self, *args, **kwds)
         # Binds perso
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
@@ -112,9 +162,9 @@ class ListView(FastObjectListView):
     def InitModel(self):
         self.donnees = self.GetTracks()
     
-    def SetFiltres(self, filtres={}):
+    def SetFiltres(self, filtres={}, futur = False):
         self.dictFiltres = filtres
-        self.MAJ() 
+        self.MAJ(futur = futur)
         
     def GetTracks(self):
         """ Récupération des données """
@@ -125,21 +175,48 @@ class ListView(FastObjectListView):
         else :
             conditionIndividu = ""
         
+        if self.futur :
+            conditionIndividu += " AND depart_date >= '%s'" % str(datetime.date.today())
         listeID = None
         DB = GestionDB.DB()
-        req = """SELECT IDtransport, transports.IDindividu, categorie, 
-        depart_date, depart_heure, depart_IDarret, depart_IDlieu, depart_localisation,
-        arrivee_date, arrivee_heure, arrivee_IDarret, arrivee_IDlieu, arrivee_localisation,
-        individus.nom, individus.prenom
-        FROM transports
-        LEFT JOIN individus ON individus.IDindividu = transports.IDindividu
-        WHERE mode='TRANSP' %s
-        ORDER BY depart_date;
+        req = """SELECT transports.IDtransport, transports.IDindividu, transports.categorie, transports.depart_date,
+                transports.depart_heure, transports.depart_IDarret, transports.depart_IDlieu, transports.depart_localisation,
+                transports.arrivee_date, transports.arrivee_heure, transports.arrivee_IDarret, transports.arrivee_IDlieu,
+                transports.arrivee_localisation, individus.nom, individus.prenom, individus.date_naiss,
+                SUM(matPieces.piePrixTranspAller), activites.nom, activites.code_transport,
+                SUM(matPieces_1.piePrixTranspRetour), activites_1.nom, activites_1.code_transport, transports_lignes.nom,
+                MAX(matPieces.pieIDfamille),MAX(matPieces_1.pieIDfamille)
+        FROM ((((((transports
+            LEFT JOIN individus ON transports.IDindividu = individus.IDindividu)
+            LEFT JOIN transports_lignes ON transports.IDligne = transports_lignes.IDligne)
+            LEFT JOIN matPieces ON transports.IDtransport = matPieces.pieIDtranspAller)
+            LEFT JOIN activites ON matPieces.pieIDactivite = activites.IDactivite)
+            LEFT JOIN matPieces AS matPieces_1 ON transports.IDtransport = matPieces_1.pieIDtranspRetour)
+            LEFT JOIN activites AS activites_1 ON matPieces_1.pieIDactivite = activites_1.IDactivite)
+        WHERE transports.mode ='TRANSP'  %s
+        GROUP BY transports.IDtransport, transports.IDindividu, transports.categorie, transports.depart_date,
+                transports.depart_heure, transports.depart_IDarret, transports.depart_IDlieu, transports.depart_localisation,
+                transports.arrivee_date, transports.arrivee_heure, transports.arrivee_IDarret, transports.arrivee_IDlieu,
+                transports.arrivee_localisation, individus.nom, individus.prenom, individus.date_naiss,
+                activites.nom, activites.code_transport, activites_1.nom, activites_1.code_transport, 
+                transports_lignes.nom
+        ORDER BY transports.depart_date;
         """ % conditionIndividu
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req,MsgBox="OL_Transport.GetTracks")
         listeDonnees = DB.ResultatReq()
         DB.Close()
-        
+
+        # constitution d'un dictionnaire des représentants des familles concernées
+        lstIDfamilles = []
+        for item in listeDonnees:
+            if item[-2]: 
+                if not item[-2] in lstIDfamilles:
+                    lstIDfamilles.append(item[-2])
+            if item[-1]: 
+                if not item[-1] in lstIDfamilles:
+                    lstIDfamilles.append(item[-1])
+        dictCorrespondants = UTILS_Titulaires.GetCorrespondants(lstIDfamilles)
+
         listeListeView = []
         for item in listeDonnees :
             valide = True
@@ -147,7 +224,7 @@ class ListView(FastObjectListView):
                 if item[0] not in listeID :
                     valide = False
             if valide == True :
-                track = Track(item, modLocalisation)
+                track = Track(item, modLocalisation,dictCorrespondants)
                 
                 # Filtres
                 valide = True
@@ -169,7 +246,7 @@ class ListView(FastObjectListView):
             
     def InitObjectListView(self):            
         # Couleur en alternance des lignes
-        self.oddRowsBackColor = UTILS_Interface.GetValeur("couleur_tres_claire", wx.Colour(240, 251, 237))
+        self.oddRowsBackColor = "#F0FBED" 
         self.evenRowsBackColor = wx.Colour(255, 255, 255)
         self.useExpansionColumn = True
         
@@ -186,26 +263,33 @@ class ListView(FastObjectListView):
             else:
                 return DateEngFr(str(dateDD))
 
-        def FormateDateHeure(dateDT):
+        def FormateDate(dateDT):
             date = FormateDateCourt(datetime.date(dateDT.year, dateDT.month, dateDT.day))
-            heure = U"%dh%02d" % (dateDT.hour, dateDT.minute)
-            if heure == "0h00" : heure = ""
-            return "%s %s" % (date, heure)
+            return "%s" % (date)
 
         def FormateCategorie(categorie):
             return DICT_CATEGORIES[categorie]["label"]
 
         liste_Colonnes = [
-            ColumnDefn(u"", "left", 0, "IDtransport", typeDonnee="entier"), 
-            ColumnDefn(_("Transport"), "left", 70, "categorie", typeDonnee="texte", stringConverter=FormateCategorie,  imageGetter=GetImageCategorie),
-            ColumnDefn(_("Départ"), 'left', 110, "depart_dateHeure", typeDonnee="texte", stringConverter=FormateDateHeure),
-            ColumnDefn(_("Origine"), 'left', 120, "depart_nom", typeDonnee="texte"),
-            ColumnDefn(_("Arrivée"), 'left', 110, "arrivee_dateHeure", typeDonnee="texte", stringConverter=FormateDateHeure),
-            ColumnDefn(_("Destination"), 'left', 120, "arrivee_nom", typeDonnee="texte"),
+            ColumnDefn("", "left", 0, "IDtransport", typeDonnee="entier"), 
+            ColumnDefn(_("Transport"), "left", 120, "categorie", typeDonnee="texte", stringConverter=FormateCategorie,  imageGetter=GetImageCategorie),
+            ColumnDefn(_("Départ"), 'left', 80, "depart_date", typeDonnee="date", stringConverter=FormateDate),
+            ColumnDefn(_("Origine"), 'left', 140, "depart_nom", typeDonnee="texte"),
+            ColumnDefn(_("Arrivée"), 'left', 80, "arrivee_date", typeDonnee="date", stringConverter=FormateDate),
+            ColumnDefn(_("Destination"), 'left', 140, "arrivee_nom", typeDonnee="texte"),
+            ColumnDefn(_("Prix"), 'right', 40, "prix_transport", typeDonnee="montant"),
+            ColumnDefn(_("Activité"), 'right', 160, "activite", typeDonnee="entier"),
+            ColumnDefn(_("Convoi"), 'right', 60, "analytique_convoi", typeDonnee="entier"),
+            ColumnDefn(_("Ligne"), 'left', 160, "ligne", typeDonnee="entier"),
+            ColumnDefn(_("Correspondant"), "left", 140, "correspondant_nom", typeDonnee="texte"),
+            ColumnDefn(_("Téléphones"), "left", 100, "telephones", typeDonnee="texte"),
+            ColumnDefn(_("Mails"), "left", 100, "mails", typeDonnee="texte")
             ]
         
         if self.IDindividu == None :
             liste_Colonnes.insert(1, ColumnDefn(_("Individu"), "left", 150, "individu_nom_complet", typeDonnee="texte") )
+            liste_Colonnes.insert(2, ColumnDefn(_("Âge"), "left", 40, "individu_age", typeDonnee="entier") )
+
         self.SetColumns(liste_Colonnes)
         self.CreateCheckStateColumn(1)
         self.SetEmptyListMsg(_("Aucun transport"))
@@ -216,13 +300,14 @@ class ListView(FastObjectListView):
             self.SetSortColumn(self.columns[3])
         self.SetObjects(self.donnees)
        
-    def MAJ(self, ID=None):
+    def MAJ(self, ID=None, futur=False):
         if ID != None :
             self.selectionID = ID
             self.selectionTrack = None
         else:
             self.selectionID = None
             self.selectionTrack = None
+        self.futur = futur
         self.InitModel()
         self.InitObjectListView()
         # Sélection d'un item
@@ -246,7 +331,7 @@ class ListView(FastObjectListView):
             ID = self.Selection()[0].IDtransport
                 
         # Création du menu contextuel
-        menuPop = UTILS_Adaptations.Menu()
+        menuPop = wx.Menu()
 
         if self.IDindividu != None :
 
@@ -254,7 +339,7 @@ class ListView(FastObjectListView):
             item = wx.MenuItem(menuPop, 10, _("Ajouter"))
             bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_PNG)
             item.SetBitmap(bmp)
-            menuPop.AppendItem(item)
+            menuPop.Append(item)
             self.Bind(wx.EVT_MENU, self.Ajouter, id=10)
                 
             menuPop.AppendSeparator()
@@ -263,7 +348,7 @@ class ListView(FastObjectListView):
         item = wx.MenuItem(menuPop, 20, _("Modifier"))
         bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"), wx.BITMAP_TYPE_PNG)
         item.SetBitmap(bmp)
-        menuPop.AppendItem(item)
+        menuPop.Append(item)
         self.Bind(wx.EVT_MENU, self.Modifier, id=20)
         if noSelection == True : item.Enable(False)
         
@@ -271,7 +356,7 @@ class ListView(FastObjectListView):
         item = wx.MenuItem(menuPop, 30, _("Supprimer"))
         bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_PNG)
         item.SetBitmap(bmp)
-        menuPop.AppendItem(item)
+        menuPop.Append(item)
         self.Bind(wx.EVT_MENU, self.Supprimer, id=30)
         if noSelection == True : item.Enable(False)
         
@@ -283,7 +368,7 @@ class ListView(FastObjectListView):
             item = wx.MenuItem(menuPop, 100, _("Planning des transports"))
             bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Calendrier.png"), wx.BITMAP_TYPE_PNG)
             item.SetBitmap(bmp)
-            menuPop.AppendItem(item)
+            menuPop.Append(item)
             self.Bind(wx.EVT_MENU, self.Calendrier, id=100)
                 
         menuPop.AppendSeparator()
@@ -292,14 +377,14 @@ class ListView(FastObjectListView):
         item = wx.MenuItem(menuPop, 70, _("Tout cocher"))
         bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Cocher.png"), wx.BITMAP_TYPE_PNG)
         item.SetBitmap(bmp)
-        menuPop.AppendItem(item)
+        menuPop.Append(item)
         self.Bind(wx.EVT_MENU, self.CocheTout, id=70)
 
         # Item Tout décocher
         item = wx.MenuItem(menuPop, 80, _("Tout décocher"))
         bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Decocher.png"), wx.BITMAP_TYPE_PNG)
         item.SetBitmap(bmp)
-        menuPop.AppendItem(item)
+        menuPop.Append(item)
         self.Bind(wx.EVT_MENU, self.CocheRien, id=80)
 
         menuPop.AppendSeparator()
@@ -308,14 +393,14 @@ class ListView(FastObjectListView):
         item = wx.MenuItem(menuPop, 40, _("Aperçu avant impression"))
         bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Apercu.png"), wx.BITMAP_TYPE_PNG)
         item.SetBitmap(bmp)
-        menuPop.AppendItem(item)
+        menuPop.Append(item)
         self.Bind(wx.EVT_MENU, self.Apercu, id=40)
         
         # Item Imprimer
         item = wx.MenuItem(menuPop, 50, _("Imprimer"))
         bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_PNG)
         item.SetBitmap(bmp)
-        menuPop.AppendItem(item)
+        menuPop.Append(item)
         self.Bind(wx.EVT_MENU, self.Imprimer, id=50)
         
         menuPop.AppendSeparator()
@@ -324,14 +409,14 @@ class ListView(FastObjectListView):
         item = wx.MenuItem(menuPop, 600, _("Exporter au format Texte"))
         bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Texte2.png"), wx.BITMAP_TYPE_PNG)
         item.SetBitmap(bmp)
-        menuPop.AppendItem(item)
+        menuPop.Append(item)
         self.Bind(wx.EVT_MENU, self.ExportTexte, id=600)
         
         # Item Export Excel
         item = wx.MenuItem(menuPop, 700, _("Exporter au format Excel"))
         bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Excel.png"), wx.BITMAP_TYPE_PNG)
         item.SetBitmap(bmp)
-        menuPop.AppendItem(item)
+        menuPop.Append(item)
         self.Bind(wx.EVT_MENU, self.ExportExcel, id=700)
 
         self.PopupMenu(menuPop)

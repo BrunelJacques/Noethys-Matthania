@@ -2,7 +2,7 @@
 # -*- coding: iso-8859-15 -*-
 #------------------------------------------------------------------------
 # Application :    Noethys branche Matthania
-# Site internet :  www.noethys.com
+# Module : Propositions de mots clés modifiées selon UTILS_Facturation
 # Auteur:           Ivan LUCAS, JB
 # Copyright:       (c) 2010-12 Ivan LUCAS, JB
 # Licence:         Licence GNU GPL
@@ -446,16 +446,18 @@ class CTRL_Expediteur(wx.Choice):
         self.dictAdresses = {}
         # Récupération des données
         DB = GestionDB.DB()        
-        req = """SELECT IDadresse, adresse, motdepasse, smtp, port, defaut, connexionssl
+        req = """SELECT IDadresse, adresse, nom_adresse, motdepasse, smtp, port, defaut, connexionAuthentifiee, startTLS, utilisateur, moteur, parametres
         FROM adresses_mail ORDER BY adresse; """
         DB.ExecuterReq(req,MsgBox="CTRL_Editeur_email")
         listeDonnees = DB.ResultatReq()
         DB.Close()
         sel = None
         index = 0
-        for IDadresse, adresse, motdepasse, smtp, port, defaut, connexionssl in listeDonnees :
+        for IDadresse, adresse, nom_adresse, motdepasse, smtp, port, defaut, connexionAuthentifiee, startTLS, utilisateur, moteur, parametres in listeDonnees :
             self.listeAdresses.append(adresse)
-            self.dictAdresses[index] = {"IDadresse" : IDadresse, "adresse": adresse, "smtp" : smtp, "port" : port, "defaut" : defaut, "ssl" : connexionssl, "motdepasse" : motdepasse}
+            self.dictAdresses[index] = {"IDadresse" : IDadresse, "moteur": moteur, "adresse": adresse, "nom_adresse": nom_adresse,
+                                        "smtp" : smtp, "port" : port, "defaut" : defaut, "auth" : connexionAuthentifiee, "startTLS":startTLS,
+                                        "motdepasse" : motdepasse, "utilisateur" : utilisateur, "parametres": parametres}
             if defaut == 1 : 
                 sel = index
             index += 1
@@ -1098,7 +1100,7 @@ class CTRL(wx.Panel):
         source = stream.getvalue()
         if six.PY2:
             source = source.decode("utf-8")
-        for balise in (u"<html>", "</html>", "<head>", "</head>", "<body>", "</body>"):
+        for balise in ("<html>", "</html>", "<head>", "</head>", "<body>", "</body>"):
             if six.PY3 and isinstance(balise, str):
                 balise = balise.encode("utf-8")
                 source = source.replace(balise, b"")

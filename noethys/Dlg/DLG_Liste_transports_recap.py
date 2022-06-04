@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-15 -*-
 #------------------------------------------------------------------------
-# Application :    Noethys, gestion multi-activités
+# Application :    Noethys branche Matthania
 # Site internet :  www.noethys.com
-# Auteur:           Ivan LUCAS
-# Copyright:       (c) 2010-12 Ivan LUCAS
+# Auteur:           Ivan LUCAS, JB
+# Copyright:       (c) 2010-12 Ivan LUCAS, JB
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
 
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
@@ -93,7 +92,7 @@ class Dialog(wx.Dialog):
         self.parent = parent
         
         intro = _("Commencez par sélectionner une ou plusieurs dates dans le calendrier (Sélections multiples : conservez la touche CTRL pour des dates non continues, SHIFT pour des dates continues et ALT pour des dates continues sans les week-ends). Vous pouvez ensuite imprimer la liste au format PDF.")
-        titre = _("Liste récapitulative des transports")
+        titre = _("Liste récapitulative transports")
         self.SetTitle(titre)
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Transport.png")
         

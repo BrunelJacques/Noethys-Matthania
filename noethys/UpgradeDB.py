@@ -799,7 +799,9 @@ def MAJ_TablesEtChamps(parent=None, mode='ctrl',lstTables=[]):
                 style=wx.YES_NO)
         if md.ShowModal() != wx.ID_YES:
             return False
-    attente = fp.GetAttente(parent,"Traitement Ctrl des tables de données ")
+    mess = "Traitement Ctrl des tables de données "
+    mess += "\n\n Suivi en bas de l'écran et fenêtre DOS"
+    attente = fp.GetAttente(parent,mess)
     ret = Init_tables(parent,mode=mode,tables=tables,db_tables=db_tables,db_ix=db_ix)
     del attente
 
