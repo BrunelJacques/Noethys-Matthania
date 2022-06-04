@@ -1,24 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-15 -*-
 #------------------------------------------------------------------------
-# Application :    Noethys, gestion multi-activités
-# Site internet :  www.noethys.com
+# Application :    Noethys, branche Matthania
+# Modules : gère les accès restauration, cf UTILS_Fichiers(JB)
+
 # Auteur:           Ivan LUCAS
 # Copyright:       (c) 2010-11 Ivan LUCAS
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
 
-import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
-import datetime
-import os
 import sys
 import wx.lib.agw.customtreectrl as CT
-import six
 from Ctrl import CTRL_Bandeau
 import GestionDB
 from Utils import UTILS_Sauvegarde
@@ -60,7 +56,7 @@ def SelectionFichier():
         UTILS_Cryptage_fichier.DecrypterFichier(fichier, nom_fichier_decrypte, motdepasse)
 
         # Vérifie que le ZIP est ok
-        valide = UTILS_Sauvegarde.VerificationZip(nom_fichier_decrypte)
+        valide = UTILS_Fichiers.VerificationZip(nom_fichier_decrypte)
 
         if valide == False :
             dlg = wx.MessageDialog(None, _("Le mot de passe que vous avez saisi semble erroné !"), _("Erreur"), wx.OK | wx.ICON_ERROR)
@@ -72,7 +68,7 @@ def SelectionFichier():
 
     else:
         # Fichier NOD : Vérifie que le ZIP est ok
-        valide = UTILS_Sauvegarde.VerificationZip(fichier)
+        valide = UTILS_Fichiers.VerificationZip(fichier)
         if valide == False:
             dlg = wx.MessageDialog(None, _("Le fichier de sauvegarde semble corrompu !"), _("Erreur"), wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
@@ -80,10 +76,6 @@ def SelectionFichier():
             return None
 
         return fichier
-
-
-    
-
 
 class CTRL_Donnees(CT.CustomTreeCtrl):
     def __init__(self, parent, listeFichiers=[], id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.SUNKEN_BORDER) :
@@ -187,7 +179,6 @@ class CTRL_Donnees(CT.CustomTreeCtrl):
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------
 
-
 class Dialog(wx.Dialog):
     def __init__(self, parent, fichier=""):
         wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
@@ -196,7 +187,7 @@ class Dialog(wx.Dialog):
         self.listeFichiersRestaures = []
         
         # Récupération du contenu du ZIP
-        self.listeFichiers = UTILS_Sauvegarde.GetListeFichiersZIP(fichier)
+        self.listeFichiers = UTILS_Fichiers.GetListeFichiersZip(fichier)
         
         intro = _("Vous pouvez ici restaurer une sauvegarde. Vous devez sélectionner dans la liste des données présentes dans la sauvegarde celles que vous souhaitez restaurer.")
         titre = _("Restauration")

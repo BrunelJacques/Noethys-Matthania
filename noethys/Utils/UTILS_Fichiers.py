@@ -9,6 +9,7 @@
 #------------------------------------------------------------------------
 
 import Chemins
+import wx
 import os
 import sys
 import shutil
@@ -17,6 +18,7 @@ import subprocess
 from Utils import UTILS_Customize
 import appdirs
 import six
+import zipfile
 
 def GetRepData(fichier=""):
     # Vérifie si un répertoire 'Portable' existe
@@ -154,6 +156,62 @@ def OuvrirRepertoire(rep):
         subprocess.Popen(["open", rep])
     else:
         subprocess.Popen(["xdg-open", rep])
+
+#- Gestion des fichiers Zip -------------------------------------------------
+
+def VerificationZip(fichier=""):
+    """ Vérifie que le fichier est une archive zip valide """
+    return zipfile.is_zipfile(fichier)
+
+def SelectionFichier(intro="Choix",wildcard="*.zip",defaultDir=None,
+                     style=wx.FD_OPEN,
+                     retourCourt=False,
+                     verifZip=False):
+    # Demande l'emplacement d'un fichier lambda (si non zip modifier wildcard)
+    if not defaultDir:
+        standardPath = wx.StandardPaths.Get()
+        defaultDir = standardPath.GetDocumentsDir()
+    dlg = wx.FileDialog(None, message=intro,
+                        defaultDir=defaultDir,
+                        defaultFile="",
+                        wildcard=wildcard,
+                        style=style)
+    if dlg.ShowModal() == wx.ID_OK:
+        if retourCourt:
+            fichier = dlg.GetFilename()
+        else:
+            fichier = dlg.GetPath()
+    else:
+        fichier =None
+    dlg.Destroy()
+    if fichier and verifZip:
+        # Vérifie que c'est un fichier ZIP ok
+        valide = VerificationZip(fichier)
+        if valide == False:
+            dlg = wx.MessageDialog(None,
+                       "Le fichier ZIP semble corrompu !",
+                       "Erreur"), wx.OK | wx.ICON_ERROR
+            dlg.ShowModal()
+            dlg.Destroy()
+            fichier = None
+    return fichier
+
+def GetZipFile(nameFile,modeRW):
+    # connecte au fichier en mode écriture ou lecture
+    return zipfile.ZipFile(nameFile, modeRW, compression=zipfile.ZIP_DEFLATED)
+
+def GetListeFichiersZip(nameFile):
+    """ Récupère la liste des fichiers du ZIP """
+    listeFichiers = []
+    fichierZip = GetZipFile(nameFile, "r")
+    for fichier in fichierZip.namelist():
+        listeFichiers.append(fichier)
+    return listeFichiers
+
+def GetOneFileInZip(myZipFile,oneFile):
+    with myZipFile.open(oneFile) as myfile:
+        myfile.read()
+
 
 
 if __name__ == "__main__":

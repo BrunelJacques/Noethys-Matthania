@@ -1,25 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-15 -*-
 #------------------------------------------------------------------------
-# Application :    Noethys, gestion multi-activités
-# Site internet :  www.noethys.com
+# Application :    Noethys, branche Matthania
+# Modules : gère les accès sauvegarde-restauration, cf UTILS_Fichiers(JB)
 # Auteur:          Ivan LUCAS
 # Copyright:       (c) 2010-19 Ivan LUCAS
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-import Chemins
 from Utils.UTILS_Traduction import _
 import wx
 import six
 import os
 import sys
 import base64
-import zipfile
-import GestionDB
 import subprocess
 import shutil
-import time
 
 import GestionDB
 from Utils import UTILS_Fichiers
@@ -39,9 +35,6 @@ EXTENSIONS = {
     "decrypte" : "nod",
     "crypte" : "noc",
     }
-
-
-
 
 def Sauvegarde(listeFichiersLocaux=[], listeFichiersReseau=[], nom="", repertoire=None, motdepasse=None, listeEmails=None, dictConnexion=None):
     """ Processus de de création du ZIP """
@@ -87,7 +80,8 @@ def Sauvegarde(listeFichiersLocaux=[], listeFichiersReseau=[], nom="", repertoir
     
     # Création du fichier ZIP temporaire
     nomFichierTemp = "%s.%s" % (nom, EXTENSIONS["decrypte"])
-    fichierZip = zipfile.ZipFile(UTILS_Fichiers.GetRepTemp(fichier=nomFichierTemp), "w", compression=zipfile.ZIP_DEFLATED)
+
+    fichierZip = UTILS_Fichiers.GetZipFile(UTILS_Fichiers.GetRepTemp(fichier=nomFichierTemp),"w")
     numEtape = 1
     dlgprogress.Update(numEtape, _("Création du fichier de compression..."));numEtape += 1
     
@@ -235,24 +229,13 @@ def Sauvegarde(listeFichiersLocaux=[], listeFichiersReseau=[], nom="", repertoir
     
     return True
 
-def VerificationZip(fichier=""):
-    """ Vérifie que le fichier est une archive zip valide """
-    return zipfile.is_zipfile(fichier)
-    
-def GetListeFichiersZIP(fichier):
-    """ Récupère la liste des fichiers du ZIP """
-    listeFichiers = []
-    fichierZip = zipfile.ZipFile(fichier, "r")
-    for fichier in fichierZip.namelist() :
-        listeFichiers.append(fichier)
-    return listeFichiers
-    
+
 def Restauration(parent=None, fichier="", listeFichiersLocaux=[], listeFichiersReseau=[], dictConnexion=None):
     """ Restauration à partir des listes de fichiers locaux et réseau """
     listeFichiersRestaures = [] 
     
     # Initialisation de la barre de progression
-    fichierZip = zipfile.ZipFile(fichier, "r")
+    fichierZip = UTILS_Fichiers.GetZipFile(fichier,"r")
     #fichierZip = MyZipFile(fichier, "r")
 
     # Restauration des fichiers locaux Sqlite ------------------------------------------------------------------------------
@@ -391,7 +374,6 @@ def Restauration(parent=None, fichier="", listeFichiersLocaux=[], listeFichiersR
     dlgprogress.Destroy()
     fichierZip.close()
     return listeFichiersRestaures
-    
 
 def GetListeFichiersReseau(dictValeurs={}):
     """ Récupère la liste des fichiers MySQL existants 

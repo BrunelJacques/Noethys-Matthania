@@ -21,153 +21,43 @@ import GestionDB
 from Utils import UTILS_Sauvegarde
 from Utils import UTILS_Fichiers
 from Utils import UTILS_Cryptage_fichier
+
 sys.modules['UTILS_Cryptage_fichier'] = UTILS_Cryptage_fichier
 
 from Dlg import DLG_Saisie_param_reseau
 
-LISTE_CATEGORIES = UTILS_Sauvegarde.LISTE_CATEGORIES
-
-
-def SelectionFichier():
-    """ Sélectionner le fichier à restaurer """
+def GetNameReleaseZip():
     # Demande l'emplacement du fichier
-    wildcard = _("Release Noethys (*.zip; *.7z)|*.*")
-    standardPath = wx.StandardPaths.Get()
-    rep = standardPath.GetDocumentsDir()
-    dlg = wx.FileDialog(None, message=_("Veuillez sélectionner le fichier contenant la MISE A JOUR DE NOETHYS"), defaultDir=rep, defaultFile="", wildcard=wildcard, style=wx.FD_OPEN)
-    if dlg.ShowModal() == wx.ID_OK:
-        fichier = dlg.GetPath()
-    else:
-        return None
-    dlg.Destroy()
-    
-    # Vérifie que le ZIP est ok
-    valide = UTILS_Sauvegarde.VerificationZip(fichier)
-    if valide == False:
-        dlg = wx.MessageDialog(None, _("Le fichier de sauvegarde semble corrompu !"), _("Erreur"), wx.OK | wx.ICON_ERROR)
-        dlg.ShowModal()
-        dlg.Destroy()
-        return None
+    wildcard = "Release Noethys (*.zip; *.7z)|*.*"
+    intro = "Veuillez sélectionner le fichier contenant la MISE A JOUR DE NOETHYS"
+    return UTILS_Fichiers.SelectionFichier(intro,wildcard,verifZip=True)
 
-    return fichier
+def GetVersionsFile(releaseZip):
+    if not releaseZip: return
+    return UTILS_Fichiers.GetOneFileInZip(releaseZip,"versions.txt")
 
+class CTRL_Donnees(wx.StaticBox):
+    def __init__(self, parent):
+        label = "Info dernières versions"
+        id = wx.ID_ANY
+        pos = wx.DefaultPosition
+        size = wx.DefaultSize
+        style = wx.SUNKEN_BORDER
+        wx.StaticBox.__init__(self, parent, id, label, pos, size, style)
 
-    
-
-
-class CTRL_Donnees(CT.CustomTreeCtrl):
-    def __init__(self, parent, listeFichiers=[], id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.SUNKEN_BORDER) :
-        CT.CustomTreeCtrl.__init__(self, parent, id, pos, size, style)
-        self.listeFichiers = listeFichiers
-        
-        self.root = self.AddRoot(_("Données"))
-        self.SetBackgroundColour(wx.WHITE)
-        self.SetAGWWindowStyleFlag(wx.TR_HIDE_ROOT | wx.TR_HAS_BUTTONS | wx.TR_HAS_VARIABLE_ROW_HEIGHT | CT.TR_AUTO_CHECK_CHILD)
-        self.EnableSelectionVista(True)
-
-        # Fichiers locaux
-        listeFichiersLocaux = self.GetListeFichiersLocaux()
-        if len(listeFichiersLocaux) > 0 :
-            brancheType = self.AppendItem(self.root, _("Fichiers locaux"), ct_type=1)
-            self.SetPyData(brancheType, _("locaux"))
-            self.SetItemBold(brancheType)
-            self.CheckItem(brancheType, True)
-            
-            for nomFichier in listeFichiersLocaux :
-                brancheNom = self.AppendItem(brancheType, nomFichier, ct_type=1)
-                self.SetPyData(brancheNom, nomFichier)
-                self.CheckItem(brancheNom, True)
-                
-                for nomCategorie, codeCategorie in LISTE_CATEGORIES :
-                    fichier = "%s_%s.dat" % (nomFichier, codeCategorie)
-                    if fichier in self.listeFichiers :
-                        brancheFichier = self.AppendItem(brancheNom, nomCategorie, ct_type=1)
-                        self.SetPyData(brancheFichier, fichier)
-                        self.CheckItem(brancheFichier, True)
-
-        # Fichiers réseaux
-        listeFichiersReseau = self.GetListeFichiersReseau()
-        if len(listeFichiersReseau) > 0 :
-            brancheType = self.AppendItem(self.root, _("Fichiers réseau"), ct_type=1)
-            self.SetPyData(brancheType, _("reseau"))
-            self.SetItemBold(brancheType)
-            self.CheckItem(brancheType, True)
-            
-            for nomFichier in listeFichiersReseau :
-                brancheNom = self.AppendItem(brancheType, nomFichier, ct_type=1)
-                self.SetPyData(brancheNom, nomFichier)
-                self.CheckItem(brancheNom, True)
-                
-                for nomCategorie, codeCategorie in LISTE_CATEGORIES :
-                    fichier = "%s_%s.sql" % (nomFichier, codeCategorie.lower())
-                    if fichier in self.listeFichiers :
-                        brancheFichier = self.AppendItem(brancheNom, nomCategorie, ct_type=1)
-                        self.SetPyData(brancheFichier, fichier)
-                        self.CheckItem(brancheFichier, True)
-
-        self.ExpandAll() 
-
-    def GetListeFichiersLocaux(self):
-        """ Trouver les fichiers locaux présents dans le ZIP """
-        listeLocaux = []
-        for fichier in self.listeFichiers :
-            if fichier[-9:] == "_DATA.dat" : 
-                nomFichier = fichier[:-9]
-                listeLocaux.append(nomFichier)
-        listeLocaux.sort()
-        return listeLocaux
-
-    def GetListeFichiersReseau(self):
-        """ Trouver les fichiers MySQL présents dans le ZIP """
-        listeReseau = []
-        for fichier in self.listeFichiers :
-            if fichier[-9:] == "_data.sql" : 
-                nomFichier = fichier[:-9]
-                listeReseau.append(nomFichier)
-        listeReseau.sort()
-        return listeReseau
-
-    def GetCoches(self):
-        """ Obtient la liste des éléments cochés """
-        dictDonnees = {}
-        
-        brancheType = self.GetFirstChild(self.root)[0]
-        for index1 in range(self.GetChildrenCount(self.root, recursively=False)) :
-            nomType = self.GetItemPyData(brancheType)
-            dictDonnees[nomType] = []
-            
-            # Branche nom du fichier
-            brancheNom = self.GetFirstChild(brancheType)[0]
-            for index2 in range(self.GetChildrenCount(brancheType, recursively=False)) :
-                nomFichier = self.GetItemPyData(brancheNom)
-                
-                # Branche code fichier
-                brancheCode = self.GetFirstChild(brancheNom)[0]
-                for index3 in range(self.GetChildrenCount(brancheNom, recursively=False)) :
-                    nomFichierComplet = self.GetItemPyData(brancheCode)
-                    
-                    if self.IsItemChecked(brancheCode) :
-                        dictDonnees[nomType].append(nomFichierComplet)
-                    
-                    brancheCode = self.GetNextChild(brancheNom, index3+1)[0]
-                brancheNom = self.GetNextChild(brancheType, index2+1)[0]
-            brancheType = self.GetNextChild(self.root, index1+1)[0]
-                        
-        return dictDonnees
+        self.nameRelase = GetNameReleaseZip()
+        self.versionsFile = GetVersionsFile(self.nameRelase)
+        if self.versionsFile:
+            self.SetValue(self.versionsFile)
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 class Dialog(wx.Dialog):
-    def __init__(self, parent, fichier=""):
+    def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
         self.parent = parent
-        self.fichier = fichier
-        self.listeFichiersRestaures = []
-        
-        # Récupération du contenu du ZIP
-        self.listeFichiers = UTILS_Sauvegarde.GetListeFichiersZIP(fichier)
-        
+
         intro = _("Vous pouvez ici mettre à jour votre version Noethys. Le numéro de version actif est en haut de l'écran")
         titre = _("Release")
         self.SetTitle(titre)
@@ -175,7 +65,7 @@ class Dialog(wx.Dialog):
                 
         # Données
         self.box_donnees_staticbox = wx.StaticBox(self, -1, _("Version choisie:"))
-        self.ctrl_donnees = CTRL_Donnees(self, listeFichiers=self.listeFichiers)
+        self.ctrl_donnees = CTRL_Donnees(self)
         self.ctrl_donnees.SetMinSize((250, -1))
         
         # Boutons
@@ -228,26 +118,8 @@ class Dialog(wx.Dialog):
 
     def OnBoutonOk(self, event):         
         # Données à sauver
-        dictDonnees = self.ctrl_donnees.GetCoches() 
-        if "locaux" in dictDonnees :
-            listeFichiersLocaux = dictDonnees["locaux"]
-        else:
-            listeFichiersLocaux = []
-        if "reseau" in dictDonnees :
-            listeFichiersReseau = dictDonnees["reseau"]
-        else:
-            listeFichiersReseau = []
-        
-        if len(listeFichiersLocaux) == 0 and len(listeFichiersReseau) == 0 :
-            dlg = wx.MessageDialog(self, _("Vous devez sélectionner au moins un fichier à restaurer !"), _("Erreur"), wx.OK | wx.ICON_EXCLAMATION)
-            dlg.ShowModal()
-            dlg.Destroy()
-            return
-        
-        # Récupération des paramètres de connexion réseau
-        dictConnexion = None
-        
-        if len(listeFichiersReseau) > 0 :
+
+        if True:
             # Récupère les paramètres chargés
             DB = GestionDB.DB() 
             if DB.echec != 1 :
@@ -276,14 +148,9 @@ class Dialog(wx.Dialog):
                     dlg.Destroy()
                     return
          
-        # Sauvegarde
-        resultat = UTILS_Sauvegarde.Restauration(self.parent, self.fichier, listeFichiersLocaux, listeFichiersReseau, dictConnexion)
-        if resultat == False :
-            return
-        self.listeFichiersRestaures = resultat
-        
+
         # Fin du processus
-        dlg = wx.MessageDialog(self, _("Le processus de restauration est terminé."), _("Restauration"), wx.OK | wx.ICON_INFORMATION)
+        dlg = wx.MessageDialog(self, _("Le processus de mise à jour est terminé."), "Release", wx.OK | wx.ICON_INFORMATION)
         dlg.ShowModal()
         dlg.Destroy()
 
@@ -292,9 +159,7 @@ class Dialog(wx.Dialog):
 
 if __name__ == "__main__":
     app = wx.App(0)
-    fichier = SelectionFichier()
-    if fichier != None :
-        dialog_1 = Dialog(None, fichier=fichier)
-        app.SetTopWindow(dialog_1)
-        dialog_1.ShowModal()
+    dialog_1 = Dialog(None)
+    app.SetTopWindow(dialog_1)
+    dialog_1.ShowModal()
     app.MainLoop()
