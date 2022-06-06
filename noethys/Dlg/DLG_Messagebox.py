@@ -8,15 +8,12 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
 import Chemins
 from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
 import GestionDB
-
-
 
 class Dialog(wx.Dialog):
     def __init__(self, parent, titre=None, introduction=None, detail=None, conclusion=None, icone=None, boutons=[], defaut=None):
@@ -113,16 +110,20 @@ class Dialog(wx.Dialog):
         
 
 
-
-
-
-
 if __name__ == "__main__":
     app = wx.App(0)
     
 ##    icone = wx.Bitmap(Chemins.GetStaticPath(u"Images/32x32/Absenti.png"), wx.BITMAP_TYPE_ANY)
     icone = wx.ICON_INFORMATION
-    dlg = Dialog(None, titre=_("Avertissement"), introduction=_("Introduction ici !"), detail="detail", conclusion=_("Conclusion ici"), icone=icone, boutons=[_("Oui"), _("Oui pour tout"), _("Non"), _("Annuler")])
+    dlg = Dialog(None, titre=_("Avertissement"),
+                 introduction=_("Introduction ici !"),
+                 detail="detail",
+                 conclusion=_("Conclusion ici"),
+                 icone=icone,
+                 boutons=[_("Oui"),
+                       _("Oui pour tout"),
+                       _("Non"),
+                       _("Annuler")])
     reponse = dlg.ShowModal() 
     dlg.Destroy() 
     print(reponse)

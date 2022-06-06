@@ -36,6 +36,15 @@ def GetVersionsFile(releaseZip):
     if not releaseZip: return
     return UTILS_Fichiers.GetOneFileInZip(releaseZip,"versions.txt")
 
+def GetTexteVersions():
+    import FonctionsPerso
+    import codecs
+    # Lecture du fichier
+    fichier = codecs.open(
+        FonctionsPerso.GetRepertoireProjet("Versions.txt"),
+        encoding='utf-8', mode='r')
+    msg = fichier.read()
+
 class CTRL_Donnees(wx.StaticBox):
     def __init__(self, parent):
         label = "Info dernières versions"
@@ -156,6 +165,7 @@ class Dialog(wx.Dialog):
 
         # Fermeture
         self.EndModal(wx.ID_OK)
+
 
 if __name__ == "__main__":
     app = wx.App(0)
