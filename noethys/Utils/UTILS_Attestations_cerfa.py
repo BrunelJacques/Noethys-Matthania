@@ -50,7 +50,7 @@ class Attestations_fiscales():
         req = """SELECT nom, rue, cp, ville, tel, fax, mail, site, num_agrement, num_siret, code_ape
         FROM organisateur
         WHERE IDorganisateur=1;""" 
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req,MsgBox="UTILS_Attestations_cerfa")
         listeDonnees = DB.ResultatReq()      
         self.dictOrganisme = {}
         for nom, rue, cp, ville, tel, fax, mail, site, num_agrement, num_siret, code_ape in listeDonnees :
@@ -217,10 +217,10 @@ class Attestations_fiscales():
                 return False
 
         # Création des PDF à l'unité
-        def CreationPDFeclates(repertoireCible="Temp"):
-            if repertoireCible :
-                repertoireCible = "Temp"
+        def CreationPDFeclates(repertoireCible=""):
             dictPieces = {}
+            if not repertoireCible:
+                repertoireCible = ""
             dlgAttente = PBI.PyBusyInfo(_("Génération des attestations fiscales à l'unité au format PDF..."), parent=None, title=_("Veuillez patienter..."), icon=wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Logo.png"), wx.BITMAP_TYPE_ANY))
             wx.Yield()
             if self.afficherDoc and len(dictDonnees)>3:
@@ -231,7 +231,7 @@ class Attestations_fiscales():
                     if index >= 3: self.afficherDoc = False
                     nomTitulaires = fp.NoPunctuation(dictAttestation["{FAMILLE_NOM}"])
                     nomFichier = "%s-%d" %(nomTitulaires,IDcerfa)
-                    if repertoireCible == "Temp":
+                    if repertoireCible == "":
                         from Utils import UTILS_Fichiers
                         cheminFichier = UTILS_Fichiers.GetRepTemp(nomFichier)
                     else:

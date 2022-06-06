@@ -11,6 +11,7 @@
 
 import Chemins
 from Utils.UTILS_Traduction import _
+from Utils import UTILS_Dates
 import wx
 from Ctrl import CTRL_Bouton_image
 import GestionDB
@@ -238,7 +239,7 @@ class ListView(ObjectListView):
         nbInscriptions = retour[0][0]
         if nbInscriptions > 0:
             info = "Déjà utilisé\n\nIl existe %d inscriptions faites avec cette catégorie,\n"%nbInscriptions
-            info += "la première a été faite le %s, \nvous pouvez toutefois modifier le nom de cette catégorie tarif"% GestionDB.DateEngEnDateFr(retour[0][1])
+            info += "la première a été faite le %s, \nvous pouvez toutefois modifier le nom de cette catégorie tarif"% UTILS_Dates.DateEngFr(retour[0][1])
             wx.MessageBox(info,"Suppression impossible",wx.ICON_STOP)
             DB.Close()
             return

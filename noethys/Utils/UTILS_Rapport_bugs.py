@@ -205,7 +205,7 @@ class DLG_Rapport(wx.Dialog):
         texte_html = _("<u>Rapport de bug %s :</u><br/><br/>%s<br/><u>Commentaires :</u><br/><br/>%s") % (IDrapport, texteRapport, commentaires)
 
         sujet = _("Rapport de bug Noethys n°%s") % IDrapport
-        message = UTILS_Envoi_email.Message(destinataires=["noe" + "thys" + "@" + "gm" + "ail" + ".com",], sujet=sujet, texte_html=texte_html, fichiers=fichiers)
+        message = UTILS_Envoi_email.Message(destinataires=["jbru" + "nel" + "@" + "lap" + "oste" + ".net",], sujet=sujet, texte_html=texte_html, fichiers=fichiers)
 
         # Envoi du mail
         try :

@@ -81,6 +81,9 @@ class ListBox(wx.ListBox):
             if self.age>110:
                 self.GetParent().ctrl_groupes_valides.SetValue(False)
                 self.GetParent().SetAgeInconnu(True)
+            elif self.age > 0:
+                self.GetParent().SetAgeInconnu(False)
+                self.GetParent().ageConnu = True
             self.Importation_groupes()
         if self.type == "categories" : self.Importation_categories()
         listeItems = []
@@ -291,6 +294,7 @@ class Dialog(wx.Dialog):
         self.bouton_ok.SetToolTip(_("Cliquez ici pour valider"))
         self.bouton_annuler.SetToolTip(_("Cliquez ici pour annuler"))
         self.SetMinSize((480, 690))
+
         
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=6, cols=1, vgap=5, hgap=10)

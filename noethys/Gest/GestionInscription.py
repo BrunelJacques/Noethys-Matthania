@@ -622,9 +622,9 @@ class Forfaits():
             ("IDcontrat", dictDonnees["IDnumPiece"]),
             ]
         IDprestation = dictDonnees["IDprestation"]
-        if modif and Nz(IDprestation >0):
+        if modif and Nz(IDprestation) >0:
             self.DB.ReqMAJ("prestations", listeDonnees,"IDprestation",IDprestation,MsgBox="AjoutPrestMAJ")
-        elif recree and Nz(IDprestation >0):
+        elif recree and Nz(IDprestation) >0:
             listeDonnees.append(("IDprestation",IDprestation))
             self.DB.ReqInsert("prestations", listeDonnees,retourID = True,MsgBox="AjoutPrestInsert")
             IDprestation = self.DB.newID

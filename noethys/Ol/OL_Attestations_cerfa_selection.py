@@ -246,7 +246,7 @@ class ListView(FastObjectListView):
             ColumnDefn(_("Description"), "left", 180, "labelDon", typeDonnee="texte", isEditable=False),
             ColumnDefn(_("Montant"), "right", 70, "montant_dons", typeDonnee="montant", isEditable=False, stringConverter=FormateMontant),
             ColumnDefn(_("Forcer"), "right", 70, "montant_regul", typeDonnee="montant", isEditable=True, stringConverter=Fmt2d,
-                       cellEditorCreator = CellEditor.DecimalEditor),
+                       cellEditorCreator = CellEditor.FloatEditor),
             ColumnDefn(_("Retenu"), "right", 70, "montant_retenu", typeDonnee="montant", isEditable=False, stringConverter=Fmt2d),
             ColumnDefn(_("du"), "centre", 80, "debut", typeDonnee="date", isEditable=True, stringConverter=FormateDateDD),
             ColumnDefn(_("au"), "centre", 80, "fin", typeDonnee="date", isEditable=True, stringConverter=FormateDateDD),

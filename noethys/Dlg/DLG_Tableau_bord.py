@@ -8,7 +8,7 @@
 #------------------------------------------------------------------------
 
 import wx, datetime
-
+import Chemins
 import GestionDB
 import wx.lib.agw.pybusyinfo as PBI
 from Ctrl import CTRL_Bouton_image
@@ -16,6 +16,7 @@ from Ctrl import CTRL_Bandeau
 from Ctrl import CTRL_SelectionActivites
 from Ctrl import CTRL_Saisie_date
 from Utils import UTILS_Config
+from Utils import UTILS_Dates
 from FonctionsPerso import Supprime_accent
 from Utils.UTILS_Export   import ExportExcel
 
@@ -565,7 +566,7 @@ class Remplissage(object):
 
     def TbrActivites(self,DB,lstIDactivites=None,dteEquiv=None):
         dlgAttente = PBI.PyBusyInfo('Recherche des données...', parent=None, title='Veuillez patienter...',
-                                    icon=wx.Bitmap('Static/Images/16x16/Logo.png', wx.BITMAP_TYPE_ANY))
+                                    icon=wx.Bitmap(Chemins.GetStaticPath('Images/16x16/Logo.png'), wx.BITMAP_TYPE_ANY))
         wx.Yield()        # export (code noms) des activites
         self.MajParams(DB,lstIDactivites=lstIDactivites)
         effectifs, activites = self.GetEffectifs(DB)
@@ -582,8 +583,10 @@ class Remplissage(object):
 
     def TbrDonnees(self,DB,lstIDactivites=None,dteEquiv=None):
         # Export des données de remplisage détaillées
-        dlgAttente = PBI.PyBusyInfo('Recherche des données...', parent=None, title='Veuillez patienter...',
-                                    icon=wx.Bitmap('Static/Images/16x16/Logo.png', wx.BITMAP_TYPE_ANY))
+        dlgAttente = PBI.PyBusyInfo('Recherche des données...',
+                            parent=None, title='Veuillez patienter...',
+                            icon=wx.Bitmap(Chemins.GetStaticPath('Images/16x16/Logo.png'),
+                                           wx.BITMAP_TYPE_ANY))
         wx.Yield()        # export (code noms) des activites
 
         self.MajParams(DB,lstIDactivites=lstIDactivites)
@@ -605,7 +608,7 @@ class Remplissage(object):
                 if champ in donnees[cleGrp]:
                     if champ[:3] == 'dte':
                         # transforme les dates Ansi en date française
-                        donnees[cleGrp][champ] = GestionDB.DateEngEnDateFr(donnees[cleGrp][champ])
+                        donnees[cleGrp][champ] = UTILS_Dates.DateEngFr(donnees[cleGrp][champ])
                     lLigne.append(donnees[cleGrp][champ])
                 else: lLigne.append(None)
             llDonnees.append(lLigne)
@@ -629,7 +632,7 @@ class Dialog(wx.Dialog):
         intro = ("Ici une sélection d'exports standards vers la bureautique.")
         titre = ('Exports pour tableaux de bord')
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro,  hauteurHtml=15,
-                                                 nomImage='Static/Images/22x22/Smiley_nul.png')
+                                                 nomImage=Chemins.GetStaticPath('Images/22x22/Smiley_nul.png'))
 
         # Sélection des Activités
         self.staticBoxSelection = wx.StaticBox(self, wx.ID_ANY, 'Paramètres')
@@ -640,16 +643,16 @@ class Dialog(wx.Dialog):
         self.staticBoxRemplissage = wx.StaticBox(self, -1, 'Suivi du remplissage de camps')
         messTbrDonnees = 'Données : détail des inscriptions'
         self.btn_tbrDonnees = CTRL_Bouton_image.CTRL(self, id=-1, texte= messTbrDonnees,
-                                                     cheminImage='Static/Images/32x32/Calendrier.png')
+                                                     cheminImage=Chemins.GetStaticPath("Images/32x32/Calendrier.png"))
         #messTbrEffectifs = u'EffectifsMax : effectifs par groupes'
         #self.btn_tbrEffectifs = CTRL_Bouton_image.CTRL(self, id=-1, texte= messTbrEffectifs,
-        #                                             cheminImage='Static/Images/32x32/Activite.png')
+        #                                             cheminImage=Chemins.GetStaticPath("Images/32x32/Activite.png"))
         messTbrActivites = 'Activites : activites présentes'
         self.btn_tbrActivites = CTRL_Bouton_image.CTRL(self, id=-1, texte= messTbrActivites,
-                                                       cheminImage='Static/Images/32x32/Activite.png')
+                                                       cheminImage=Chemins.GetStaticPath("Images/32x32/Activite.png"))
 
         self.bouton_fermer = CTRL_Bouton_image.CTRL(self, id=wx.ID_CANCEL, texte= ('Fermer'),
-                                                    cheminImage='Static/Images/32x32/Fermer.png')
+                                                    cheminImage=Chemins.GetStaticPath("Images/32x32/Fermer.png"))
 
         self.__set_properties()
         self.__do_layout()
@@ -718,9 +721,6 @@ class Dialog(wx.Dialog):
 
     def GetParams(self):
         return self.ctrl_activites.GetActivites()
-
-    def OnDateEquiv(self):
-        debExN,finExN = DB.GetExercice(dteEquiv,alertes=False,approche=True)
 
     def Validation(self):
         if self.ctrl_activites.Validation() == False :

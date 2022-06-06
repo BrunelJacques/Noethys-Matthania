@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-15 -*-
 #------------------------------------------------------------------------
-# Application :    Noethys, gestion multi-activités
+# Application :    Noethys branche Matthania
 # Site internet :  www.noethys.com
-# Auteur:           Ivan LUCAS
-# Copyright:       (c) 2010-11 Ivan LUCAS
+# Auteur:           Ivan LUCAS, JB
+# Copyright:       (c) 2010-11 Ivan LUCAS, JB
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
@@ -15,7 +15,8 @@ import wx
 from Ctrl import CTRL_Bouton_image
 import os
 import datetime
-import six
+import re
+import sys
 import decimal
 from Dlg import DLG_Selection_liste
 import FonctionsPerso
@@ -23,13 +24,13 @@ from Ctrl import CTRL_Bandeau
 from Utils import UTILS_Fichiers
 from Utils import UTILS_Dates
 from Utils import UTILS_Config
+
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 
-from Utils import UTILS_Interface
 from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, CTRL_Outils
 
 
-def GetValeursListview(listview=None, format="texte"):
+def GetValeursListview(listview=None, format="texte", onlyCheck = False):
     """ Récupère les valeurs affichées sous forme de liste """
     """ format = "texte" ou "original" """
     # Récupère les labels de colonnes
@@ -39,7 +40,11 @@ def GetValeursListview(listview=None, format="texte"):
     
     # Récupère les valeurs
     listeValeurs = []
-    listeObjects = listview.innerList # listview.GetFilteredObjects()
+    if onlyCheck:
+        listeObjects = listview.GetCheckedObjects() # listview.GetFilteredObjects()
+    else:
+        listeObjects = listview.innerList # listview.GetFilteredObjects()
+
     for object in listeObjects :
         valeursLigne = []
         for indexCol in range(0, listview.GetColumnCount() ) :
@@ -49,7 +54,6 @@ def GetValeursListview(listview=None, format="texte"):
                 valeur = listview.GetValueAt(object, indexCol)
             valeursLigne.append(valeur)
         listeValeurs.append(valeursLigne)
-        
     return listeColonnes, listeValeurs
 
 
@@ -68,14 +72,14 @@ def GetValeursGrid(grid=None):
         for numCol in range(0, grid.GetNumberCols()) :
             valeur = grid.GetCellValue(numLigne, numCol)
             if type(valeur) not in ("str", "unicode") :
-                valeur = six.text_type(valeur)
+                valeur = str(valeur)
             valeursLigne.append(valeur)
         listeValeurs.append(valeursLigne)
         
     return listeColonnes, listeValeurs
 
 
-def ExportTexte(listview=None, grid=None, titre=u"", listeColonnes=None, listeValeurs=None, autoriseSelections=True):
+def ExportTexte(listview=None, grid=None, titre="", listeColonnes=None, listeValeurs=None, autoriseSelections=True):
     """ Export de la liste au format texte """
     if (listview != None and len(listview.donnees) == 0) or (grid != None and (grid.GetNumberRows() == 0 or grid.GetNumberCols() == 0)):
         dlg = wx.MessageDialog(None, _("Il n'y a aucune donnée dans la liste !"), "Erreur", wx.OK | wx.ICON_ERROR)
@@ -135,15 +139,16 @@ def ExportTexte(listview=None, grid=None, titre=u"", listeColonnes=None, listeVa
     separateur = ";"
     for labelCol, alignement, largeur, code in listeColonnes :
         try :
-            if "CheckState" in six.text_type(code) :
+            if "CheckState" in str(code) :
                 code = "Coche"
         except :
             pass
-        texte += labelCol + separateur
+        texte += code + separateur
     texte = texte[:-1] + "\n"
 
     for valeurs in listeValeurs :
-        if autoriseSelections == False or valeurs[0] == "" or int(valeurs[0]) in listeSelections :
+        if valeurs[0] in (None,'') : valeurs[0] = 0
+        if autoriseSelections == False or int(valeurs[0]) in listeSelections :
             for valeur in valeurs :
                 if valeur == None :
                     valeur = ""
@@ -155,9 +160,7 @@ def ExportTexte(listview=None, grid=None, titre=u"", listeColonnes=None, listeVa
 
     # Création du fichier texte
     f = open(cheminFichier, "w")
-    if six.PY2:
-        texte = texte.encode("utf8")
-    f.write(texte)
+    f.write(texte.encode("utf-8"))
     f.close()
     
     # Confirmation de création du fichier et demande d'ouverture directe dans Excel
@@ -174,13 +177,20 @@ def ExportTexte(listview=None, grid=None, titre=u"", listeColonnes=None, listeVa
 # -------------------------------------------------------------------------------------------------------------------------------
 
 
-def ExportExcel(listview=None, grid=None, titre=_("Liste"), listeColonnes=None, listeValeurs=None, autoriseSelections=True):
+def ExportExcel(listview=None, grid=None, titre=_("Liste"), listeColonnes=None, listeValeurs=None, autoriseSelections=True, onlyCheck = False):
     """ Export de la liste au format Excel """
     # Plus de sélection pour éviter les bugs !!!!
     autoriseSelections = False 
-    
+    if listview:
+        nbLignes = len(listview.donnees)
+    else: nbLignes = 0
+
+    if onlyCheck :
+        if len(listview.GetCheckedObjects()) == 0:
+            onlyCheck = False
+
     # Vérifie si données bien présentes
-    if (listview != None and len(listview.donnees) == 0) or (grid != None and (grid.GetNumberRows() == 0 or grid.GetNumberCols() == 0)):
+    if (listview != None and nbLignes == 0) or (grid != None and (grid.GetNumberRows() == 0 or grid.GetNumberCols() == 0)):
         dlg = wx.MessageDialog(None, _("Il n'y a aucune donnée dans la liste !"), "Erreur", wx.OK | wx.ICON_ERROR)
         dlg.ShowModal()
         dlg.Destroy()
@@ -188,7 +198,7 @@ def ExportExcel(listview=None, grid=None, titre=_("Liste"), listeColonnes=None, 
         
     # Récupération des valeurs
     if listview != None and listeColonnes == None and listeValeurs == None :
-        listeColonnes, listeValeurs = GetValeursListview(listview, format="original")
+        listeColonnes, listeValeurs = GetValeursListview(listview, format="original", onlyCheck= onlyCheck)
         
     if grid != None and listeColonnes == None and listeValeurs == None :
         autoriseSelections = False
@@ -269,7 +279,7 @@ def ExportExcel(listview=None, grid=None, titre=_("Liste"), listeColonnes=None, 
     y = 0
     for labelCol, alignement, largeur, nomChamp in listeColonnes :
         try :
-            if "CheckState" in six.text_type(nomChamp) :
+            if "CheckState" in str(nomChamp) :
                 nomChamp = "Coche"
         except :
             pass
@@ -282,19 +292,16 @@ def ExportExcel(listview=None, grid=None, titre=_("Liste"), listeColonnes=None, 
     # Création des lignes
     def RechercheFormatFromChaine(valeur):
         """ Recherche le type de la chaîne """
-        if valeur.endswith(SYMBOLE) :
-            # Si c'est un montant en euros
-            try :
-                if valeur.startswith("- ") :
-                    valeur = valeur.replace("- ", "-")
-                if valeur.startswith("+ ") :
-                    valeur = valeur.replace("+ ", "")
-                nbre = float(valeur[:-1]) 
-                return (nbre, format_money)
-            except :
-                pass
-                
-        # Si c'est un nombre
+        # Si c'est un nombre traitement à minima
+        if isinstance(valeur,(int,float,bool)):
+            if isinstance(valeur,float):
+                return (round(valeur,2),None)
+            return (valeur,None)
+        if isinstance(valeur,datetime.date):
+            valeur = str(valeur)
+        if valeur == None:
+            valeur = ""
+        # pour les chaînes
         try :
             if valeur.startswith("- ") :
                 valeur = valeur.replace("- ", "-")
@@ -330,7 +337,7 @@ def ExportExcel(listview=None, grid=None, titre=_("Liste"), listeColonnes=None, 
         except :
             pass
 
-        return six.text_type(valeur), None
+        return str(valeur), None
 
     # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -372,12 +379,12 @@ def ExportExcel(listview=None, grid=None, titre=_("Liste"), listeColonnes=None, 
         except :
             pass
 
-        if type(valeur) in (str, six.text_type) :
+        if type(valeur) in (str) :
             if len(valeur) == 10 :
                 if valeur[2] == "/" and valeur[5] == "/" : return (valeur, format_date)
                 if valeur[4] == "-" and valeur[7] == "-" : return (UTILS_Dates.DateEngFr(valeur), format_date)
                 
-        return six.text_type(valeur), None
+        return str(valeur), None
 
     # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
