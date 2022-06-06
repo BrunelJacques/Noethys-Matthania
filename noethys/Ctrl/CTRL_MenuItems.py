@@ -81,11 +81,17 @@ def GetListItemsMenu(self,menuTransports):
              "infobulle": _("Convertir le fichier en mode local"),
              "image": "Images/16x16/Conversion_local.png",
              "action": self.On_fichier_Convertir_local, "actif": False},
+            "-",
             {"code": "upgrade_base",
              "label": _("Upgrade de la Base de donnée"),
              "infobulle": _("Cet outil ajoute les tables et champs manquants"),
              "image": "Images/16x16/Outils.png",
-             "action": self.On_upgrade_base, "actif": True},
+             "action": self.On_upgrade_base, "actif": False},
+            {"code": "upgrade_modules",
+             "label": _("Release des programmes"),
+             "infobulle": _("Cet outil permet d'importer un nouvelle version des programmes "),
+             "image": "Images/16x16/Outils.png",
+             "action": self.On_upgrade_modules, "actif": True},
             "-",
             {"code": "quitter", "label": _("Quitter"),
              "infobulle": _("Quitter Noethys"),
@@ -501,6 +507,18 @@ def GetListItemsMenu(self,menuTransports):
                  "infobulle": _("Informations sur le fichier"),
                  "image": "Images/16x16/Information.png",
                  "action": self.On_fichier_Informations, "actif": True},
+                {"code": "outils_upgrade_base",
+                 "label": _("Upgrade de la Base de donnée"),
+                 "infobulle": _(
+                     "Cet outil ajoute les tables et champs manquants"),
+                 "image": "Images/16x16/Outils.png",
+                 "action": self.On_upgrade_base, "actif": True},
+                {"code": "outils_upgrade_modules",
+                 "label": _("Release des programmes"),
+                 "infobulle": _(
+                     "Cet outil permet d'importer un nouvelle version des programmes "),
+                 "image": "Images/16x16/Outils.png",
+                 "action": self.On_upgrade_modules, "actif": True},
                 {"code": "purger_historique",
                  "label": _("Purger l'historique"),
                  "infobulle": _("Purger l'historique"),
@@ -1564,7 +1582,13 @@ class Menu(object):
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel(
             "fichier_restauration", "creer") == False: return
         import UpgradeDB
-        resultat = UpgradeDB.MAJ_TablesEtChamps(self.parent,mode='ctrl')
+        UpgradeDB.MAJ_TablesEtChamps(self.parent,mode='ctrl')
+
+    def On_upgrade_modules(self, event):
+        from Dlg import DLG_Release
+        dlg = DLG_Release.Dialog(self.parent)
+        dlg.ShowModal()
+        dlg.Destroy()
 
     def On_fichier_Quitter(self,event):
         self.parent.Quitter()

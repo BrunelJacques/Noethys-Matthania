@@ -157,6 +157,14 @@ def OuvrirRepertoire(rep):
     else:
         subprocess.Popen(["xdg-open", rep])
 
+def GetMessageFromFile(fileName):
+    # lecture du contenu unicode d'un fichier
+    import codecs
+    fichier = codecs.open(
+        fileName,
+        encoding='utf-8', mode='r')
+    return fichier.read()
+
 #- Gestion des fichiers Zip -------------------------------------------------
 
 def VerificationZip(fichier=""):
@@ -190,7 +198,7 @@ def SelectionFichier(intro="Choix",wildcard="*.zip",defaultDir=None,
         if valide == False:
             dlg = wx.MessageDialog(None,
                        "Le fichier ZIP semble corrompu !",
-                       "Erreur"), wx.OK | wx.ICON_ERROR
+                       "Erreur", wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
             dlg.Destroy()
             fichier = None
@@ -198,20 +206,18 @@ def SelectionFichier(intro="Choix",wildcard="*.zip",defaultDir=None,
 
 def GetZipFile(nameFile,modeRW):
     # connecte au fichier en mode écriture ou lecture
-    return zipfile.ZipFile(nameFile, modeRW, compression=zipfile.ZIP_DEFLATED)
+    return zipfile.ZipFile(nameFile, modeRW.lower(), compression=zipfile.ZIP_DEFLATED)
 
-def GetListeFichiersZip(nameFile):
+def GetListeFichiersZip(fichierZip):
     """ Récupère la liste des fichiers du ZIP """
     listeFichiers = []
-    fichierZip = GetZipFile(nameFile, "r")
     for fichier in fichierZip.namelist():
         listeFichiers.append(fichier)
     return listeFichiers
 
 def GetOneFileInZip(myZipFile,oneFile):
     with myZipFile.open(oneFile) as myfile:
-        myfile.read()
-
+        return myfile.read()
 
 
 if __name__ == "__main__":

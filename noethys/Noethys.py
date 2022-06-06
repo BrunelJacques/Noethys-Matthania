@@ -1414,6 +1414,7 @@ class MainFrame(wx.Frame):
 
     def ValidationVersionFichier(self, nomFichier):
         """ Vérifie que la version du fichier est à jour avec le logiciel """
+        self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(False)
         # Récupère les numéros de version
         versionLogiciel = self.ConvertVersionTuple(VERSION_APPLICATION)
         VERSION_FICHIER =  UTILS_Parametres.Parametres(mode="get", categorie="fichier", nom="version", valeur=VERSION_APPLICATION, nomFichier=nomFichier)
@@ -1444,6 +1445,8 @@ class MainFrame(wx.Frame):
         # Comparaison des versions par les tuples
         if versionFichier[:2] != versionLogiciel[:2]:
             # Changement majeur, MAJ base complète nécessaire
+            self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
+            self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(True)
             info = "Lancement de la conversion %s -> %s..."%(VERSION_FICHIER, VERSION_APPLICATION)
             self.SetStatusText(info)
             print(info)
@@ -1482,6 +1485,7 @@ class MainFrame(wx.Frame):
                 style = wx.OK | wx.ICON_ERROR
                 resultat = False
         elif versionFichier[:3] > versionLogiciel[:3]:
+            self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
             message = "Votre station n'est pas à jour!\n\n"
             message += "Si vous n'avez pas fait la dernière MAJ '%s',\n"%VersionTexte(versionLogiciel,3)
             message += "Réinstallez le logiciel ou installez cette dernière version puis la nouvelle '%s'"%VersionTexte(versionFichier,3)
@@ -1489,6 +1493,7 @@ class MainFrame(wx.Frame):
             style = wx.OK | wx.ICON_EXCLAMATION
             resultat = False
         elif versionFichier > versionLogiciel:
+            self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
             message = "Votre station n'est pas à jour!\n\n"
             message += "installez la version '%s' ou travaillez en mode dégradé."%VERSION_APPLICATION
             titre = "Erreur"
@@ -1596,7 +1601,7 @@ class MainFrame(wx.Frame):
         tb.SetPopupText(texte)
         tb.Play()
 
-    def RechercheMAJinternet(self):
+    def zzRechercheMAJinternet(self):
         """ Recherche une mise à jour sur internet """
         # Récupère la version de l'application
         versionApplication = VERSION_APPLICATION
@@ -1664,7 +1669,7 @@ class MainFrame(wx.Frame):
                 return True
         return False
 
-    def ProposeMAJ(self):
+    def zzProposeMAJ(self):
         """ Propose la MAJ immédiate """
         if self.MAJexiste == True :
             if self.versionMAJ != None :
@@ -1898,7 +1903,10 @@ def main():
 
     # Redirection vers un fichier
     nomFichier = sys.executable
-    if nomFichier.endswith("python.exe") == False and CUSTOMIZE.GetValeur("journal", "actif", "1") != "0" and os.path.isfile("nolog.txt") == False :
+    print(nomFichier)
+    journal = CUSTOMIZE.GetValeur("journal", "actif", "1")
+    nolog = os.path.isfile("nolog.txt")
+    if nomFichier.endswith("python.exe") == False and journal != "0" and nolog == False :
         sys.stdout = Redirect(nomJournal)
 
     # Lancement de l'application

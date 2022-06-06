@@ -1,23 +1,37 @@
-wxPython
-appdirs
-comtypes
-icalendar
-numpy
-Pillow
-pycryptodome
-XlsxWriter
-pyttsx
-pytz
-reportlab
-Twisted
-xlrd
-python-dateutil
-psutil
-paramiko
-lxml
-setuptools
-matplotlib
-opencv-python
-sqlalchemy
-pystrich
-mysqlclient
+# Fichier à renommer en .bat pour installer les dépendances
+@echo off
+if not exist "c:\Program Files\Python39" (
+	pause "Erreur: Python39 non trouvé sur c:\Program Files" 
+) else (
+	"c:\Program Files\Python39\"python -m pip install --upgrade pip --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install wxPython --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install PyMySQL --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install appdirs --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install XlsxWriter --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install pyttsx3 --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install pytz --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install reportlab --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install paramiko --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install mysqlclient --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install sqlparse --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install python_dateutil --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install PyCryptodome --no-warn-script-location	
+	"c:\Program Files\Python39\"python -m pip install xlrd --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install xlwt --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install openpyxl --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install mysql --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install mysql.connector --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install pywin32 --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install lxml --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install matplotlib --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install icalendar --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install pyttsx --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install Twisted --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install psutil --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install opencv-python --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install sqlalchemy --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install pystrich --no-warn-script-location	
+	echo ""
+	md "c:\Program Files\Noethys-Matthania"
+	echo "Fin des install Ok"
+	pause)

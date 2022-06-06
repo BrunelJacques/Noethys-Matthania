@@ -187,7 +187,8 @@ class Dialog(wx.Dialog):
         self.listeFichiersRestaures = []
         
         # Récupération du contenu du ZIP
-        self.listeFichiers = UTILS_Fichiers.GetListeFichiersZip(fichier)
+        zipFile = UTILS_Fichiers.GetZipFile(fichier,'r')
+        self.listeFichiers = UTILS_Fichiers.GetListeFichiersZip(zipFile)
         
         intro = _("Vous pouvez ici restaurer une sauvegarde. Vous devez sélectionner dans la liste des données présentes dans la sauvegarde celles que vous souhaitez restaurer.")
         titre = _("Restauration")
