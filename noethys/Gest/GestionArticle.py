@@ -7,6 +7,7 @@
 # Fonctions calculs prix articles et application des conditions
 # Contient aussi les listes descriptives des calculs et conditions
 #-----------------------------------------------------------
+
 import GestionDB
 from Gest import GestionInscription
 from Ctrl import CTRL_SaisieSimple
@@ -15,9 +16,6 @@ import wx
 import copy
 import datetime
 from Data import DATA_Tables
-
-def Decod(valeur):
-    return GestionDB.Decod(valeur)
 
 def Nz(valeur):
     if valeur == None:
