@@ -19,6 +19,8 @@ else :
 if REP_COURANT not in sys.path :
     sys.path.insert(1, REP_COURANT)
 
+REP_PARENT = os.path.dirname(REP_COURANT)
+
 for rep in os.listdir(REP_COURANT) :
     chemin = os.path.join(REP_COURANT, rep)
     if os.path.isdir(chemin) and chemin not in sys.path :

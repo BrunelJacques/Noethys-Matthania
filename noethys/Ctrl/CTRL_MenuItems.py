@@ -88,7 +88,7 @@ def GetListItemsMenu(self,menuTransports):
              "image": "Images/16x16/Outils.png",
              "action": self.On_upgrade_base, "actif": False},
             {"code": "upgrade_modules",
-             "label": _("Release des programmes"),
+             "label": _("Mise à jour Noethys"),
              "infobulle": _("Cet outil permet d'importer un nouvelle version des programmes "),
              "image": "Images/16x16/Outils.png",
              "action": self.On_upgrade_modules, "actif": True},
@@ -514,7 +514,7 @@ def GetListItemsMenu(self,menuTransports):
                  "image": "Images/16x16/Outils.png",
                  "action": self.On_upgrade_base, "actif": True},
                 {"code": "outils_upgrade_modules",
-                 "label": _("Release des programmes"),
+                 "label": _("Mise à jour Noethys"),
                  "infobulle": _(
                      "Cet outil permet d'importer un nouvelle version des programmes "),
                  "image": "Images/16x16/Outils.png",
@@ -1587,8 +1587,10 @@ class Menu(object):
     def On_upgrade_modules(self, event):
         from Dlg import DLG_Release
         dlg = DLG_Release.Dialog(self.parent)
-        dlg.ShowModal()
+        ret = dlg.ShowModal()
         dlg.Destroy()
+        if ret == wx.ID_OK:
+            self.parent.Quitter()
 
     def On_fichier_Quitter(self,event):
         self.parent.Quitter()

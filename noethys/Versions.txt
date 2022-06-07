@@ -1,9 +1,10 @@
-version 1.3.1.2 (07/06/2022):
+version 1.3.1.3 (07/06/2022):
 
 - Génération cerfa impression correction bug
 - Envoi mail, correction du support temp utilisé
 - Date de naissance mieux prise en compte pour les inscription avec condition âge
 - Export Tableau de bord correction bug
+- Redémarrage après import d'une release
 
 version 1.3.1.2 (06/06/2022):
 

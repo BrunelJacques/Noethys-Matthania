@@ -154,8 +154,19 @@ class Dialog(wx.Dialog):
         self.EndModal(wx.ID_CANCEL)
 
     def OnBoutonOk(self, event):
+        # release doit contenir l'arborescence à partir de noethys inclus
         noethysPath = "%s"%Chemins.REP_PARENT
-        self.ctrl_donnees.zipFile.extractall("%s/.."%noethysPath)
+        # test si on est bien à l'emplacement
+        try:
+            fichierVersion = open("%s/noethys/Versions.txt"%noethysPath)
+            fichierVersion.close()
+        except Exception as err:
+            print(err)
+            mess = "Vérification du positionnement\n\n%s"%err
+            wx.MessageBox(mess, "Erreur inattendue", style=wx.ICON_ERROR)
+            return
+        # action de dézippage
+        self.ctrl_donnees.zipFile.extractall("%s"%noethysPath)
 
         # Fin du processus
         dlg = wx.MessageDialog(self, _("Le processus de mise à jour est terminé."), "Release", wx.OK | wx.ICON_INFORMATION)
