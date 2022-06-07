@@ -609,18 +609,20 @@ def CondCumul(dictDonnees,codeArticle):
 
     # recherche le nombre d'inscriptions de la famille y compris celles en cours
     req = """
-        SELECT matPieces.pieIDnumPiece,matPieces.pieIDactivite, matPieces.pieIDgroupe, ouvertures.IDunite,
-                individus.date_naiss,matPieces.pieIDindividu,matPieces.pieNature,
-                Count(ouvertures.Date),Min(ouvertures.Date), Max(ouvertures.Date) 
-        FROM   ((matPieces 
+        SELECT matPieces.pieIDnumPiece,matPieces.pieIDactivite, matPieces.pieIDgroupe, 
+                ouvertures.IDunite,individus.date_naiss,matPieces.pieIDindividu,
+                matPieces.pieNature,categories_tarifs.campeur,
+                Count(ouvertures.Date),Min(ouvertures.Date),Max(ouvertures.Date) 
+        FROM   (((matPieces 
                 INNER JOIN activites ON matPieces.pieIDactivite = activites.IDactivite) 
                 LEFT JOIN ouvertures ON (   matPieces.pieIDgroupe = ouvertures.IDgroupe) 
                                             AND (matPieces.pieIDactivite = ouvertures.IDactivite))
-                LEFT JOIN individus ON matPieces.pieIDindividu = individus.IDindividu
+                LEFT JOIN individus ON matPieces.pieIDindividu = individus.IDindividu)
+                LEFT JOIN categories_tarifs ON matPieces.pieIDcategorie_tarif = categories_tarifs.IDcategorie_tarif
         WHERE ((matPieces.pieIDfamille=%d)
                 %s)
         GROUP BY matPieces.pieIDnumPiece, matPieces.pieIDactivite, matPieces.pieIDgroupe, ouvertures.IDunite, 
-                individus.date_naiss, matPieces.pieIDindividu, matPieces.pieNature
+                individus.date_naiss, matPieces.pieIDindividu, matPieces.pieNature,categories_tarifs.campeur
         ;"""%(dictDonnees['IDfamille'],condAnnee)
     DB.ExecuterReq(req, MsgBox="CondCumul1")
     retour = DB.ResultatReq()
@@ -630,7 +632,10 @@ def CondCumul(dictDonnees,codeArticle):
     lstIDactivite = []
     if len(retour) > 0:
         # analyse des inscriptions ouvrant droit au cumul
-        for IDpiece, IDactivite, IDgroupe, IDunite, naiss, IDindividu, nature, nbOuv, minOuv, maxOuv in retour:
+        for IDpiece, IDactivite, IDgroupe, IDunite, naiss, IDindividu, nature,\
+            campeur, nbOuv, minOuv, maxOuv in retour:
+            if campeur != 1:
+                continue
             if (IDactivite, IDindividu) in lstIDactivite:
                 # cas de plusieurs factures pour une même activité
                 continue
