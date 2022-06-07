@@ -3703,7 +3703,7 @@ class Menu(object):
             encoding='utf-8', mode='r')
         msg = fichier.read()
         fichier.close()
-        dlg = wx.lib.dialogs.ScrolledMessageDialog(self, msg, _("Licence"),
+        dlg = wx.lib.dialogs.ScrolledMessageDialog(self.parent, msg, _("Licence"),
                                                    size=(500, 500))
         dlg.ShowModal()
 
