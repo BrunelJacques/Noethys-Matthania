@@ -67,13 +67,14 @@ class Choix_categorie(wx.Choice):
             ("autre", _("Paye pour autre client (ou autre: compte à préciser)")),
             ("consommation", _("Prestation liée à une inscription et gérée par elle ")),
             ("consoavoir", _("Prestation annulée par un avoir)")),
-            ("autre","Origine non déterminée")
+            ("autre","Origine non déterminée"),
+            ("","")
             ]
         self.lstIDCategories = [x for (x,y) in self.listeCategories]
         self.listeNoms = [y for (x,y) in self.listeCategories]
 
         self.SetItems(self.listeNoms)
-        self.SetCategorie("autre")
+        self.SetCategorie("")
     
     def SetCategorie(self, categorie=""):
         if categorie in self.lstIDCategories:
@@ -515,7 +516,18 @@ class Dialog(wx.Dialog):
             dlg.Destroy()
             self.ctrl_label.SetFocus()
             return
-        
+
+        categorie = self.ctrl_categorie.GetCategorie()
+        if categorie == "":
+            dlg = wx.MessageDialog(self,
+                                   _("Vous devez obligatoirement choisir une catégorie !"),
+                                   _("Erreur de saisie"),
+                                   wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            self.ctrl_categorie.SetFocus()
+            return
+
         IDactivite = self.ctrl_activite.GetID()
 
         montant_initial = self.ctrl_montant_avant_deduc.GetMontant()
