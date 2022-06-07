@@ -24,24 +24,20 @@ anneeActuelle = str(datetime.date.today().year)
 
 TEXTE_ACCUEIL = """
 <BR>
-<B><FONT SIZE=6>NOETHYS</B></FONT><BR>
-<B><FONT SIZE=4>Logiciel de gestion multi-activités</B></FONT><BR>
+<B><FONT SIZE=6>NOETHYS - MATTHANIA</B></FONT><BR><BR>
+<B><FONT SIZE=4>Branche Matthania de Noethys</B></FONT><BR><BR>
 <FONT SIZE=2>
 <B>Version %s</B><BR><BR>
-<B>Copyright © 2010-%s Ivan LUCAS</B><BR>
+<B>Copyright © 2010-%s Ivan LUCAS - Matthania</B><BR>
 <BR><BR>
 <U>Remerciements :</U>
 <BR><BR>
-- Aurélie, pour son soutien et son aide technique<BR>
-- Jacques Delage pour les beta-tests et les suggestions<BR>
-- Robin Dunn, pour ses travaux et son aide sur wxPython<BR>
-- Les communautés Python et wxPython<BR>
-- Tous les beta-testeurs pour leur suggestions et leurs remarques<BR>
-<BR>
-Et en vrac : 
-Guido van Rossum (Python), Gerhard Häring (pysqlite), <BR>
-reportLab team (reportlab), Mark Hammond (pywin32), <BR>
-Phillip Piper (ObjectListView), Armin Rigo (Psycho)...<BR>
+- à Yvan LUCAS concepteur du logiciel original<BR>
+- pour le partage du code et de son expérience de programmation<BR>
+- pour son investissement personnel dans les activités 'jeunesse' via Noethys<BR>
+- pour la richesse fonctionnelle du produit<BR>
+- pour la reprise de tant de bibliothèques externes différentes<BR>
+- la patience et l'indulgence des utilisateurs de la branche Matthania<BR>
 </FONT>
 """ % (VERSION_LOGICIEL,  anneeActuelle[2:])
 

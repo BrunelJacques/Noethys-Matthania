@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-15 -*-
 #------------------------------------------------------------------------
-# Application :    Noethys, gestion multi-activités
-# Site internet :  www.noethys.com
+# Application :    Noethys, branche Matthania
+# Module :  Préférences de base, avec choix adresse auteur
 # Auteur:           Ivan LUCAS
 # Copyright:       (c) 2010-11 Ivan LUCAS
 # Licence:         Licence GNU GPL
@@ -24,8 +24,6 @@ from Utils import UTILS_Interface
 from Utils import UTILS_Fichiers
 from Utils import UTILS_Parametres
 from Utils import UTILS_Json
-
-
 
 # ---------------------------------------------------------------------------------------------------------------------------
 
@@ -105,8 +103,6 @@ class Interface(wx.Panel):
         # Langue
         code = self.liste_codes_langue[self.ctrl_langue.GetSelection()]
         UTILS_Config.SetParametre("langue_interface", code)
-
-
 
 # ------------------------------------------------------------------------------------------------------------------------
 
@@ -274,7 +270,6 @@ class Monnaie(wx.Panel):
         UTILS_Config.SetParametre("monnaie_division", division)
         UTILS_Config.SetParametre("monnaie_symbole", symbole)
 
-
 # ------------------------------------------------------------------------------------------------------------------------
 
 class Dates(wx.Panel):
@@ -320,9 +315,7 @@ class Dates(wx.Panel):
             mask = ""
         UTILS_Config.SetParametre("mask_date", mask)
 
-
 # ---------------------------------------------------------------------------------------------------------------------------
-
 class Telephones(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
@@ -453,7 +446,9 @@ class Rapport_bugs(wx.Panel):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
 
         self.staticbox_staticbox = wx.StaticBox(self, -1, _("Rapports de bugs"))
-        self.check = wx.CheckBox(self, -1, _("Affichage du rapport de bugs lorsqu'une erreur est rencontrée"))
+        self.check = wx.CheckBox(self, -1, "Activation")
+        self.label_mailAuteur = wx.StaticText(self, -1, "Mail du destinataire :")
+        self.ctrl_mailAuteur = wx.TextCtrl(self, -1, "")
 
         self.__set_properties()
         self.__do_layout()
@@ -462,24 +457,40 @@ class Rapport_bugs(wx.Panel):
 
     def __set_properties(self):
         self.check.SetToolTip(wx.ToolTip(_("Affichage du rapport de bugs lorsqu'une erreur est rencontrée")))
+        self.label_mailAuteur.SetToolTip(wx.ToolTip(_("Adresse du correspondant informatique qui traitera le problème")))
+        self.ctrl_mailAuteur.SetToolTip(wx.ToolTip(_("Adresse du correspondant informatique qui traitera le problème")))
+        self.Bind(wx.EVT_CHECKBOX,self.MAJ,self.check)
 
     def __do_layout(self):
         staticbox = wx.StaticBoxSizer(self.staticbox_staticbox, wx.VERTICAL)
-        grid_sizer_base = wx.FlexGridSizer(rows=2, cols=5, vgap=10, hgap=10)
-        grid_sizer_base.Add(self.check, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        staticbox.Add(grid_sizer_base, 1, wx.ALL|wx.EXPAND, 5)
+        grid_sizer_base = wx.FlexGridSizer(rows=1, cols=5, vgap=10, hgap=5)
+        grid_sizer_base.Add(self.check, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
+        grid_sizer_base.Add(self.label_mailAuteur, 0, wx.TOP|wx.ALIGN_CENTER_VERTICAL,2)
+        grid_sizer_base.Add(self.ctrl_mailAuteur, 1, wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 0)
+        grid_sizer_base.AddGrowableCol(2)
+        staticbox.Add(grid_sizer_base, 1, wx.ALL|wx.EXPAND, 0)
         self.SetSizer(staticbox)
         staticbox.Fit(self)
-    
+
     def Importation(self):
-        valeur = UTILS_Config.GetParametre("rapports_bugs", True)
-        self.check.SetValue(valeur)
-    
+        self.check.SetValue(UTILS_Config.GetParametre("rapports_bugs", True))
+        self.ctrl_mailAuteur.SetValue(UTILS_Config.GetParametre("rapports_mailAuteur", "xxxx@yyyy.com"))
+        self.MAJ(None)
+
+    def MAJ(self,evt):
+        if self.check.GetValue():
+            self.ctrl_mailAuteur.Enable(True)
+        else:
+            self.ctrl_mailAuteur.Enable(False)
+
+
+
     def Validation(self):
         return True
     
     def Sauvegarde(self):
         UTILS_Config.SetParametre("rapports_bugs", self.check.GetValue())
+        UTILS_Config.SetParametre("rapports_mailAuteur", self.ctrl_mailAuteur.GetValue())
 
 # ---------------------------------------------------------------------------------------------------------------------------
 

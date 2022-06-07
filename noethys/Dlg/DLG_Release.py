@@ -12,6 +12,7 @@
 import Chemins
 from Utils.UTILS_Traduction import _
 import wx
+import GestionDB
 from Ctrl import CTRL_Bouton_image
 import sys
 from Ctrl import CTRL_Bandeau
@@ -60,7 +61,7 @@ class CTRL_Donnees(wx.TextCtrl):
             return
         try:
             self.zipFile = UTILS_Fichiers.GetZipFile(self.nameRelease,"r")
-            texte = GetVersionsFile(self.zipFile).decode()
+            texte = GestionDB.Decod(GetVersionsFile(self.zipFile))
             # afichage du contenu
             if texte:
                 nouvelle = "Versions dans le fichier :\n\n%s"%texte
@@ -77,7 +78,6 @@ class CTRL_Donnees(wx.TextCtrl):
 
     def GetVersionNow(self):
         import codecs
-        # ----
         import FonctionsPerso
         fichier = codecs.open(
             FonctionsPerso.GetRepertoireProjet("Versions.txt"),

@@ -186,7 +186,7 @@ class ListView(GroupListView):
             WHERE ventilation.IDprestation in %s
             GROUP BY ventilation.IDprestation
             ;""" % (serieIDprestations)
-            DB.ExecuterReq(req,MsgBox="ExecuterReq")
+            DB.ExecuterReq(req,MsgBox="OL_Liste_prestations")
             listeVentilation = DB.ResultatReq()
             for IDprestation, montantVentilation in listeVentilation :
                 dictVentilation[IDprestation] = montantVentilation
@@ -662,7 +662,7 @@ class ListView(GroupListView):
                             self.MAJ()
              # Recherche si des consommations y sont attachées
             req = """
-            SELECT IDconso, date, etat, consommations.IDunite, unites.nom, 
+            SELECT IDconso, date, consommations.etat, consommations.IDunite, unites.nom, 
             consommations.IDindividu, individus.nom, individus.prenom
             FROM consommations
             LEFT JOIN unites ON unites.IDunite = consommations.IDunite
@@ -670,7 +670,7 @@ class ListView(GroupListView):
             WHERE IDprestation=%d
             ORDER BY date
             ;""" % track.IDprestation
-            DB.ExecuterReq(req,MsgBox="ExecuterReq")
+            DB.ExecuterReq(req,MsgBox="OL_Liste_prestations")
             listeConsommations = DB.ResultatReq() 
             listeIDconso = []
             nbreVerrouillees = 0

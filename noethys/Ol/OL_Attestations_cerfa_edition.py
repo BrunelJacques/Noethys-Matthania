@@ -12,7 +12,6 @@
 from Utils.UTILS_Traduction import _
 import Chemins
 import wx
-import datetime
 import GestionDB
 from Ctrl.CTRL_ObjectListView import ObjectListView, FastObjectListView, ColumnDefn, Filter, CTRL_Outils, PanelAvecFooter
 from Utils import UTILS_Config
@@ -129,7 +128,7 @@ class ListView(FastObjectListView):
                             "dateCerfa" : track.dateJour,
                             "IDcerfa" : IDcerfa,
                             "nomsTitulaires" : dictInfosTitulaires["designation"],
-                            "mail": dictInfoFamilles["mail_famille"],
+                            "mail": dictInfosTitulaires["mail_famille"],
                             "montant" : track.montant_retenu,
                             "debut": track.debut,
                             "fin": track.fin,

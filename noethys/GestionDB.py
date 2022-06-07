@@ -1446,16 +1446,10 @@ def Decod(valeur):
         try :
             valeurDecod = valeur.decode('utf8')
         except:
-            try :
-                valeurDecod = str(str(valeur).decode('utf8'))
+            try:
+                valeurDecod = valeur.decode('iso-8859-15')
             except:
-                try:
-                    valeurDecod = str(str(valeur).decode('iso-8859-15'))
-                except: valeurDecod = valeur
-    try :
-        "éàçù€$µ"+ valeurDecod
-    except :
-        MessageBox(None,"Probleme Codec valeur : %s" % valeur)
+                valeurDecod = valeur
     return valeurDecod
 
 # ------------- Affichages à remplacer par wx.MessageBox -------------------

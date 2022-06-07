@@ -69,7 +69,7 @@ class DLG_Rapport(wx.Dialog):
         self.label_ligne_2 = wx.StaticText(self, wx.ID_ANY, _("Le rapport d'erreur ci-dessous peut servir à la résolution de ce bug.\nMerci de bien vouloir le communiquer à l'auteur par Email ou depuis le forum."))
         self.ctrl_rapport = wx.TextCtrl(self, wx.ID_ANY, texte, style=wx.TE_MULTILINE | wx.TE_READONLY)
         
-        self.bouton_envoyer = CTRL_Bouton_image.CTRL(self, texte=_("Envoyer à l'auteur"), cheminImage="Images/32x32/Emails_exp.png")
+        self.bouton_envoyer = CTRL_Bouton_image.CTRL(self, texte=_("Envoyer au support"), cheminImage="Images/32x32/Emails_exp.png")
         self.bouton_forum = CTRL_Bouton_image.CTRL(self, texte=_("Accéder au forum"), cheminImage="Images/32x32/Forum.png")
         self.bouton_fermer = CTRL_Bouton_image.CTRL(self, texte=_("Fermer"), cheminImage="Images/32x32/Fermer.png")
 
@@ -143,10 +143,10 @@ class DLG_Rapport(wx.Dialog):
             self.Envoyer_mail(commentaires, joindre_journal)
 
     def OnBoutonForum(self, event):
-        dlg = wx.MessageDialog(self, _("Noethys va ouvrir votre navigateur internet à la page du forum de Noethys. Vous n'aurez plus qu'à vous connecter avec vos identifiants Noethys et poster un nouveau message dans la rubrique dédiée aux bugs."), _("Forum Noethys"), wx.OK | wx.ICON_INFORMATION)
+        dlg = wx.MessageDialog(self, _("Il n'y a pas de forum spécifique dédié à la brance Noethys-Matthania. Le forum Noethys ne peut recueillir que les bugs sur les installations de Noethys téléchargé sur Noethys"), _("Forum Noethys"), wx.OK | wx.ICON_INFORMATION)
         dlg.ShowModal()
         dlg.Destroy()
-        webbrowser.open("https://www.noethys.com/index.php/forum-34/6-signaler-un-bug")
+        webbrowser.open("https://www.noethys.com/index.php/forum-34")
 
     def GetAdresseExpDefaut(self):
         """ Retourne les paramètres de l'adresse d'expéditeur par défaut """
@@ -184,6 +184,13 @@ class DLG_Rapport(wx.Dialog):
         utilisateur = dictExp["utilisateur"]
         parametres = dictExp["parametres"]
 
+        # Destinataire
+        mailAuteur = UTILS_Config.GetParametre("rapports_mailAuteur", "xxxx@yyyy.com")
+        if len(mailAuteur) == 0 or "xxx" in mailAuteur:
+            mess = "L'adresse du correspondant n'est pas renseignée dans les préférences. Veuillez la vérifier."
+            wx.MessageBox(mess,"Envoi impossible", wx.OK | wx.ICON_EXCLAMATION)
+            return False
+
         if adresseExpediteur == None :
             dlg = wx.MessageDialog(self, _("L'adresse d'expédition ne semble pas valide. Veuillez la vérifier."), _("Envoi impossible"), wx.OK | wx.ICON_EXCLAMATION)
             dlg.ShowModal()
@@ -205,7 +212,7 @@ class DLG_Rapport(wx.Dialog):
         texte_html = _("<u>Rapport de bug %s :</u><br/><br/>%s<br/><u>Commentaires :</u><br/><br/>%s") % (IDrapport, texteRapport, commentaires)
 
         sujet = _("Rapport de bug Noethys n°%s") % IDrapport
-        message = UTILS_Envoi_email.Message(destinataires=["jbru" + "nel" + "@" + "lap" + "oste" + ".net",], sujet=sujet, texte_html=texte_html, fichiers=fichiers)
+        message = UTILS_Envoi_email.Message(destinataires=[mailAuteur,], sujet=sujet, texte_html=texte_html, fichiers=fichiers)
 
         # Envoi du mail
         try :
@@ -214,7 +221,7 @@ class DLG_Rapport(wx.Dialog):
             messagerie.Envoyer(message)
             messagerie.Fermer()
         except Exception as err :
-            dlg = wx.MessageDialog(self, _("Le message n'a pas pu être envoyé. Merci de poster votre rapport de bug sur le forum de Noethys.\n\nErreur : %s !") % err, _("Envoi impossible"), wx.OK | wx.ICON_EXCLAMATION)
+            dlg = wx.MessageDialog(self, _("Le message n'a pas pu être envoyé automatiquement. Merci de 'coller' la copie d'écran dans un mail ordinaire\n\nErreur : %s !") % err, _("Envoi impossible"), wx.OK | wx.ICON_EXCLAMATION)
             dlg.ShowModal()
             dlg.Destroy()
             return False

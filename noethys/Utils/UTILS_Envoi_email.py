@@ -69,7 +69,7 @@ def EnvoiEmailFamille(parent=None, IDfamille=None, nomDoc="", categorie="", list
     for adresse in listeAdresses :
         listeDonnees.append({
             "adresse" : adresse, 
-            # "pieces" : liste_pieces,
+            "pieces" : liste_pieces,
             "champs" : dictChamps,
             })
     from Dlg import DLG_Mailer

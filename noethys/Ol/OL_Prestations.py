@@ -167,7 +167,7 @@ class ListView(ObjectListView):
         GROUP BY prestations.IDprestation
         ORDER BY prestations.date
         ;""" % (conditionFamille, conditionComptes, conditionDates, filtreSQL)
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req,MsgBox="OL_Prestations")
         listeDonnees = DB.ResultatReq()
 
         req = """
@@ -183,7 +183,7 @@ class ListView(ObjectListView):
         WHERE %s %s %s %s
         GROUP BY ventilation.IDprestation
         ;""" % (conditionFamille, conditionComptes, conditionDates, filtreSQL)
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req,MsgBox="OL_Prestations")
         listeVentilation = DB.ResultatReq() 
         dictVentilation = {}
         for IDprestation, montantVentilation in listeVentilation :
@@ -674,7 +674,7 @@ class ListView(ObjectListView):
                             self.MAJ()
              # Recherche si des consommations y sont attachées
             req = """
-            SELECT IDconso, date, etat, consommations.IDunite, unites.nom, 
+            SELECT IDconso, date, consommations.etat, consommations.IDunite, unites.nom, 
             consommations.IDindividu, individus.nom, individus.prenom
             FROM consommations
             LEFT JOIN unites ON unites.IDunite = consommations.IDunite
@@ -682,7 +682,7 @@ class ListView(ObjectListView):
             WHERE IDprestation=%d
             ORDER BY date
             ;""" % track.IDprestation
-            DB.ExecuterReq(req,MsgBox="ExecuterReq")
+            DB.ExecuterReq(req,MsgBox="OL_Prestations")
             listeConsommations = DB.ResultatReq() 
             listeIDconso = []
             nbreVerrouillees = 0
