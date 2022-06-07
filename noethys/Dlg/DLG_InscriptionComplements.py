@@ -182,7 +182,6 @@ class DlgTransports(wx.Dialog):
         if self.prixTranspRetour == None: self.prixTranspRetour= 0.0
         DB.Close()
 
-
     def __set_properties(self):
         self.bouton_aide.SetToolTip(_("Cliquez ici pour obtenir de l'aide"))
         self.bouton_swap.SetToolTip(_("Cliquez ici pour répliquer l'aller sur le retour"))

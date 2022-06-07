@@ -8,7 +8,6 @@
 # Licence:         Licence GNU GPL
 #-----------------------------------------------------------
 
-
 import Chemins
 from Utils.UTILS_Traduction import _
 import wx
@@ -1516,7 +1515,7 @@ class CTRL(wx.Panel):
         self.dictDonnees = dictDonnees
         self.categorie = "noTransport"
         self.listeDonneesSauvegardees = []
-        
+
         self.grid_sizer_base = wx.FlexGridSizer(rows=5, cols=1, vgap=5, hgap=10)
         
         self.listeSizers = []
@@ -1561,7 +1560,7 @@ class CTRL(wx.Panel):
         box = wx.StaticBox(self, -1, label)
         boxSizer = wx.StaticBoxSizer(box, wx.VERTICAL)
         grid_sizer = wx.FlexGridSizer(rows=18, cols=2, vgap=10, hgap=10)
-        
+
         for dictControle in GetDic_rub_ctrl_Utiles()[rubrique] :
             code = dictControle["code"]
             # Label
@@ -1571,7 +1570,7 @@ class CTRL(wx.Panel):
             ctrl = None
             # contrôle
             command = dictControle["ctrl"]
-            ctrlTest = CTRL_Compagnies(self, categorie='avion')
+            #ctrlTest = CTRL_Compagnies(self, categorie='avion')
             ctrl = eval(command)
             ctrl.SetName(code)
             ctrl.rubrique = rubrique
@@ -1608,8 +1607,8 @@ class CTRL(wx.Panel):
         for sizer in self.listeSizers :
             sizer.Layout()
         self.Layout()
+        self.Thaw()
         self.Refresh()
-        self.Thaw() 
 
     def RechercheControle(self, codeControle="", categorie="bus"):
         """ Recherche si un contrôle donné est utilisé par la catégorie donnée """
