@@ -136,7 +136,6 @@ class Parametres(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.OnBtnPlusMoins, self.btn_plus)
         self.Bind(wx.EVT_BUTTON, self.OnBtnPlusMoins, self.btn_moins)
 
-
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
         

@@ -329,15 +329,11 @@ class Panel(wx.Panel):
 
     def MAJ(self):
         dlgAttente = PBI.PyBusyInfo(_("Recherche des données..."), parent=None, title=_("Veuillez patienter..."), icon=wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Logo.png"), wx.BITMAP_TYPE_ANY))
-        wx.Yield() 
-        try :
-            listeCerfasGeneres = self.parent.page2.ctrl_attestations.listeCerfasGeneres
-            periode = self.GetParent().page1.GetPeriode()
-            self.ctrl_attestations.MAJ(listeCerfasGeneres,periode)
-            del dlgAttente
-        except Exception as err :
-            print(err)
-            del dlgAttente
+        wx.Yield()
+        listeCerfasGeneres = self.parent.page2.ctrl_attestations.listeCerfasGeneres
+        periode = self.GetParent().page1.GetPeriode()
+        self.ctrl_attestations.MAJ(listeCerfasGeneres,periode)
+        del dlgAttente
 
     def EcritStatusbar(self, texte=""):
         try :

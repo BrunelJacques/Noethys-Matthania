@@ -280,6 +280,7 @@ class Panel(wx.Panel):
         return dictOptions
 
     def Generation(self, event=None):
+
         # Génération des enregistrement Cerfas qui valent attribution d'un numéro
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_factures", "creer") == False :
             GestionDB.MessageBox(self,"Vous n'avez pas les droits pour créer des factures auxquelles sont assimilées les attestations")
