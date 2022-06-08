@@ -379,7 +379,7 @@ def ExportExcel(listview=None, grid=None, titre=_("Liste"), listeColonnes=None, 
         except :
             pass
 
-        if type(valeur) in (str) :
+        if type(valeur) in (str,) :
             if len(valeur) == 10 :
                 if valeur[2] == "/" and valeur[5] == "/" : return (valeur, format_date)
                 if valeur[4] == "-" and valeur[7] == "-" : return (UTILS_Dates.DateEngFr(valeur), format_date)
