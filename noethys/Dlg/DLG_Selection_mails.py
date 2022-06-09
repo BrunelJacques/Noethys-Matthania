@@ -231,7 +231,8 @@ class Page_Familles_individus(wx.Panel):
         self.maj_done = False
         
         # Contrôles
-        self.listview = OL_Etiquettes.ListView(self, id=-1, categorie=categorie, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
+        self.listview = OL_Etiquettes.ListView(self, id=-1, categorie=categorie,
+                style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         self.listview.SetMinSize((10, 10))
         self.barre_recherche = OL_Etiquettes.CTRL_Outils(self, listview=self.listview, afficherCocher=True)
         self.barre_recherche.SetBackgroundColour((255, 255, 255))

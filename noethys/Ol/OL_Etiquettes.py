@@ -582,9 +582,9 @@ class ListView(FastObjectListView):
                 self.dictDiffusions = ddf.dictDiffusions
 
         # Récupération des tracks
-        if self.categorie in ("individu","benevole_actif" ):
+        if self.categorie in ("individu","indivdus","benevole_actif" ):
             self.donnees = GetListeIndividus(self, self.IDindividu, refusPub=self.refusPub, actif=self.actif)
-        elif self.categorie in ("famille", "famille_actif"):
+        elif self.categorie in ("famille","familles", "famille_actif"):
             self.donnees = GetListeFamilles(self, self.IDfamille, refusPub=self.refusPub,  actif = self.actif)
         elif self.categorie == "isole":
             if (not hasattr(self,"donnees")):
@@ -756,10 +756,10 @@ class ListView(FastObjectListView):
                 self.RefreshObject(track)
     
     def OnCheck(self, track=None):
-        nbcoches = len(self.GetCheckedObjects())
-        nblignes = len(self.GetObjects())
-        dlg = self.GrandParent.parent
-        dlg.box_donnees_staticbox.SetLabel("Lignes %ss : (%d), cochées %d" % (self.categorie, nblignes, nbcoches))
+        try :
+            self.GetParent().OnCheck(track)
+        except :
+            pass
 
     def OnContextMenu(self, event):
         """Ouverture du menu contextuel """            

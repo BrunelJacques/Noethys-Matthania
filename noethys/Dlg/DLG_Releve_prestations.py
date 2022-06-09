@@ -566,6 +566,8 @@ class Composition():
             typeDonnees = periode["type"]
             dictPeriode = periode["periode"]
             dictOptions = periode["options"]
+            if not "ventil" in dictOptions:
+                dictOptions["ventil"] = False
             ventil = dictOptions["ventil"]
             date_debut = dictPeriode["date_debut"]
             date_fin = dictPeriode["date_fin"]

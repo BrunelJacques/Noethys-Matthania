@@ -2903,7 +2903,7 @@ class Menu(object):
             dlg.Destroy()
             if reponse == wx.ID_YES:
                 dlg = DLG_Verification_ventilation.Dialog(
-                    self)  # , tracks=tracks)
+                    self.parent)  # , tracks=tracks)
                 dlg.ShowModal()
                 dlg.Destroy()
             if reponse == wx.ID_CANCEL:
