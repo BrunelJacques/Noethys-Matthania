@@ -9,8 +9,10 @@
 #------------------------------------------------------------------------
 
 
+import Chemins
 from Utils.UTILS_Traduction import _
 import wx
+import socket
 import os
 import sys
 import time

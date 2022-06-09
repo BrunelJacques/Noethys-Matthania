@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-15 -*-
 #------------------------------------------------------------------------
-# Application :    Noethys, gestion multi-activités
+# Application :    Noethys branche Matthania
 # Site internet :  www.noethys.com
-# Auteur:           Ivan LUCAS
-# Copyright:       (c) 2010-11 Ivan LUCAS
+# Auteur:           Ivan LUCAS, JB
+# Copyright:       (c) 2010-11 Ivan LUCAS, JB
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
@@ -24,6 +24,8 @@ from Ctrl import CTRL_Saisie_date
 from Utils import UTILS_Titulaires
 
 def DateEngFr(textDate):
+    if textDate == None: return ""
+    textDate = str(textDate)
     text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
     return text
 
@@ -121,11 +123,16 @@ class Dialog(wx.Dialog):
         
         self.ctrl_afficher_accueil = wx.CheckBox(self, -1, _("Afficher sur la page d'accueil"))
         self.ctrl_afficher_liste = wx.CheckBox(self, -1, _("Afficher sur la liste des consommations"))
-        self.ctrl_afficher_commande = wx.CheckBox(self, -1, _("Afficher sur la commande des repas"))
         self.ctrl_afficher_factures = wx.CheckBox(self, -1, _("Afficher sur les factures"))
+        if self.mode != "famille" :
+            self.ctrl_afficher_factures.Enable(False)
+        if self.mode == "accueil" :
+            self.ctrl_afficher_accueil.SetValue(True)
+            self.ctrl_afficher_accueil.Enable(False)
+            self.ctrl_afficher_liste.Enable(False)
 
-        self.ctrl_rappel_famille = wx.CheckBox(self, -1, _("Rappel à l'ouverture de la fiche famille"))
-        self.ctrl_rappel_accueil = wx.CheckBox(self, -1, _("Rappel à l'ouverture du fichier"))
+        self.ctrl_rappel_famille = wx.CheckBox(self, -1, _(u"Rappel à l'ouverture de la fiche famille"))
+        self.ctrl_rappel = wx.CheckBox(self, -1, _("Rappel à l'ouverture du fichier"))
 
         self.label_parution = wx.StaticText(self, -1, _("Date de parution :"))
         self.ctrl_parution = CTRL_Saisie_date.Date(self)
@@ -151,10 +158,8 @@ class Dialog(wx.Dialog):
             self.SetTitle(_("Saisie d'un message"))
         else:
             self.Importation()
-            self.SetTitle(_("Modification d'un message"))
+            self.SetTitle(_(u"Modification d'un message"))
 
-        if self.mode != "individu" :
-            self.ctrl_afficher_commande.Show(False)
         if self.mode != "famille" :
             self.ctrl_afficher_factures.Show(False)
             self.ctrl_rappel_famille.Show(False)
@@ -172,10 +177,9 @@ class Dialog(wx.Dialog):
         self.ctrl_afficher_factures.SetToolTip(wx.ToolTip(_("Cochez cette case pour afficher ce message sur les futures factures de la famille")))
         self.ctrl_parution.SetToolTip(wx.ToolTip(_("Saisissez ici la date de parution du message")))
         self.ctrl_afficher_liste.SetToolTip(wx.ToolTip(_("Cochez cette case pour afficher ce message sur la liste des consommations")))
-        self.ctrl_afficher_commande.SetToolTip(wx.ToolTip(_("Cochez cette case pour afficher ce message sur la commande des repas")))
         self.ctrl_priorite.SetToolTip(wx.ToolTip(_("Sélectionnez ici la priorité du message")))
-        self.ctrl_rappel_accueil.SetToolTip(wx.ToolTip(_("Cochez cette case pour afficher un rappel du message à l'ouverture du logiciel")))
-        self.ctrl_rappel_famille.SetToolTip(wx.ToolTip(_("Cochez cette case pour afficher un rappel du message à l'ouverture de la fiche famille")))
+        self.ctrl_rappel.SetToolTip(wx.ToolTip(_("Cochez cette case pour afficher un rappel du message à l'ouverture du logiciel")))
+        self.ctrl_rappel_famille.SetToolTip(wx.ToolTip(_(u"Cochez cette case pour afficher un rappel du message à l'ouverture de la fiche famille")))
         self.bouton_aide.SetToolTip(wx.ToolTip(_("Cliquez ici pour obtenir de l'aide")))
         self.bouton_ok.SetToolTip(wx.ToolTip(_("Cliquez ici pour valider")))
         self.bouton_annuler.SetToolTip(wx.ToolTip(_("Cliquez ici pour annuler")))
@@ -202,13 +206,12 @@ class Dialog(wx.Dialog):
         staticbox_options = wx.StaticBoxSizer(self.staticbox_options_staticbox, wx.VERTICAL)
         grid_sizer_options = wx.FlexGridSizer(rows=1, cols=2, vgap=10, hgap=10)
         
-        grid_sizer_options_gauche = wx.FlexGridSizer(rows=6, cols=1, vgap=5, hgap=5)
+        grid_sizer_options_gauche = wx.FlexGridSizer(rows=5, cols=1, vgap=5, hgap=5)
         grid_sizer_options_gauche.Add(self.ctrl_afficher_accueil, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_options_gauche.Add(self.ctrl_afficher_liste, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer_options_gauche.Add(self.ctrl_afficher_commande, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_options_gauche.Add(self.ctrl_afficher_factures, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_options_gauche.Add(self.ctrl_rappel_famille, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer_options_gauche.Add(self.ctrl_rappel_accueil, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer_options_gauche.Add(self.ctrl_rappel, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_options.Add(grid_sizer_options_gauche, 0, wx.EXPAND, 0)
         
         grid_sizer_options_droit = wx.FlexGridSizer(rows=3, cols=2, vgap=5, hgap=5)
@@ -289,7 +292,7 @@ class Dialog(wx.Dialog):
         listeDonnees = DB.ResultatReq()
         DB.Close()
         if len(listeDonnees) == 0 : return
-        type, IDcategorie, date_saisie, IDutilisateur, date_parution, priorite, afficher_accueil, afficher_liste, afficher_commande, IDfamille, IDindividu, texte, nom, rappel_accueil, afficher_facture, rappel_famille = listeDonnees[0]
+        type, IDcategorie, date_saisie, IDutilisateur, date_parution, priorite, afficher_accueil, afficher_liste, afficher_commande, IDfamille, IDindividu, texte, nom, rappel, afficher_facture, rappel_famille = listeDonnees[0]
         
         self.type = type
         self.date_saisie = DateEngEnDateDD(date_saisie)
@@ -303,11 +306,9 @@ class Dialog(wx.Dialog):
         if priorite == "HAUTE" : self.ctrl_priorite.Select(1)
         self.ctrl_afficher_accueil.SetValue(afficher_accueil)
         self.ctrl_afficher_liste.SetValue(afficher_liste)
-        if afficher_commande != None :
-            self.ctrl_afficher_commande.SetValue(afficher_commande)
         if afficher_facture != None :
             self.ctrl_afficher_factures.SetValue(afficher_facture)
-        self.ctrl_rappel_accueil.SetValue(rappel_accueil)
+        self.ctrl_rappel.SetValue(rappel)
         if rappel_famille != None :
             self.ctrl_rappel_famille.SetValue(rappel_famille)
         self.ctrl_texte.SetValue(texte)
@@ -323,9 +324,8 @@ class Dialog(wx.Dialog):
             priorite = "NORMALE"
         afficher_accueil = int(self.ctrl_afficher_accueil.GetValue())
         afficher_liste = int(self.ctrl_afficher_liste.GetValue())
-        afficher_commande = int(self.ctrl_afficher_commande.GetValue())
         afficher_factures = int(self.ctrl_afficher_factures.GetValue())
-        rappel_accueil = int(self.ctrl_rappel_accueil.GetValue())
+        rappel = int(self.ctrl_rappel.GetValue())
         rappel_famille = int(self.ctrl_rappel_famille.GetValue())
         date_parution = self.ctrl_parution.GetDate() 
         
@@ -345,8 +345,7 @@ class Dialog(wx.Dialog):
                 ("priorite", priorite),
                 ("afficher_accueil", afficher_accueil),
                 ("afficher_liste", afficher_liste),
-                ("afficher_commande", afficher_commande),
-                ("rappel", rappel_accueil),
+                ("rappel", rappel),
                 ("rappel_famille", rappel_famille),
                 ("IDfamille", self.IDfamille),
                 ("IDindividu", self.IDindividu),
@@ -377,7 +376,36 @@ class Dialog(wx.Dialog):
             "action" : _("%s du message ID%d : '%s'") % (type, self.IDmessage, texte)
             },])
 
-    
+    def MessageDirect(self, mess = None,IDcategorie = 2, priorite = "NORMALE",mode = "famille"):
+        """ Sauvegarde """
+        date_parution = datetime.date.today()
+        if mode == "famille" and self.nom == None : self.nom = self.GetNomFamille()
+        if mode == "individu" and self.nom == None : self.nom = self.GetNomIndividu()
+
+        IDutilisateur = UTILS_Identification.GetIDutilisateur()
+
+        # Sauvegarde
+        DB = GestionDB.DB()
+        listeDonnees = [
+                ("type", "INSTANTANE"),
+                ("IDcategorie", IDcategorie),
+                ("date_saisie", self.date_saisie),
+                ("IDutilisateur", IDutilisateur),
+                ("date_parution", date_parution),
+                ("priorite", priorite),
+                ("afficher_accueil", False),
+                ("afficher_liste", False),
+                ("rappel", False),
+                ("IDfamille", self.IDfamille),
+                ("IDindividu", self.IDindividu),
+                ("nom", self.nom),
+                ("texte", mess),
+                ("afficher_facture", False),
+            ]
+        nouveauMessage = True
+        self.IDmessage = DB.ReqInsert("messages", listeDonnees, MsgBox="DLG_Saisie_message Message direct ")
+        DB.Close()
+
     def GetNomIndividu(self):
         if self.GetGrandParent().GetName() == "notebook_individu" :
             ongletIdentite = self.GetGrandParent().GetPageAvecCode("identite")

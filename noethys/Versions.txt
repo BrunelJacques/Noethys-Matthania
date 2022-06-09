@@ -1,3 +1,10 @@
+version 1.3.1.5 (08/06/2022):
+
+- Impression facture: meilleure troncature d'adresses longues
+- Correction de bug messageDirect en détachement de fiche
+- Vérification des tarifs nocumuls en cas d'anim: à préciser
+
+
 version 1.3.1.4 (08/06/2022):
 
 - Génération cerfa: affichage des seuls cerfas venant d'être générés

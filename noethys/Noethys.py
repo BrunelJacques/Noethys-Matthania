@@ -1575,7 +1575,7 @@ class MainFrame(wx.Frame):
         """ Affiche les messages à l'ouverture du fichier """
         listeMessages = self.ctrl_messages.GetMessages()
         for track in listeMessages :
-            if track.rappel_accueil == 1 :
+            if track.rappel == 1 :
                 texteToaster = track.texte
                 if track.priorite == "HAUTE" : 
                     couleurFond="#FFA5A5"

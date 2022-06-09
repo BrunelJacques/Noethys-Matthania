@@ -136,7 +136,7 @@ def Tronque(emetteur,payeur, lgMax=35):
                 mot = mot[:nbmoy]
             newLst.append("%s"% mot)
         # le dernier mot prend le rab
-        reste = nbmax - nbsp
+        reste = int(nbmax - nbsp)
         newmot = ""
         for item in newLst:
             newmot += item + " "
@@ -150,7 +150,7 @@ def Tronque(emetteur,payeur, lgMax=35):
     emetteur = emetteur.strip()
     if len(emetteur + payeur) > lgMax:
         if len(emetteur) > ((lgMax - 3) / 2):
-            emetteur = TronqueMots(emetteur,lgMax / 2)
+            emetteur = TronqueMots(emetteur,int(lgMax / 2))
     payeur = payeur.strip()
     if len(payeur) > (lgMax - len(emetteur)):
         payeur = TronqueMots(payeur,lgMax - len(emetteur))

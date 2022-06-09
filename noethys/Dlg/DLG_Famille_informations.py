@@ -166,12 +166,12 @@ class Panel(wx.Panel):
     def OnBoutonModifier(self, event):
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_messages", "modifier") == False : return
         item = self.ctrl_infos.GetSelection()
-        if not item or self.ctrl_infos.GetPyData(item)  == None or self.ctrl_infos.GetPyData(item)["type"] != "message":
+        if not item or self.ctrl_infos.GetItemData(item)  == None or self.ctrl_infos.GetItemData(item)["type"] != "message":
             dlg = wx.MessageDialog(self, _("Vous n'avez sélectionné aucun message à modifier dans la liste !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
             dlg.ShowModal()
             dlg.Destroy()
             return
-        IDmessage = self.ctrl_infos.GetPyData(item)["IDmessage"]
+        IDmessage = self.ctrl_infos.GetItemData(item)["IDmessage"]
         from Dlg import DLG_Saisie_message
         dlg = DLG_Saisie_message.Dialog(self, IDmessage=IDmessage, mode="famille")
         if dlg.ShowModal() == wx.ID_OK:
@@ -181,14 +181,14 @@ class Panel(wx.Panel):
     def OnBoutonSupprimer(self, event):
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_messages", "supprimer") == False : return
         item = self.ctrl_infos.GetSelection()
-        if not item or self.ctrl_infos.GetPyData(item)  == None or self.ctrl_infos.GetPyData(item)["type"] != "message":
+        if not item or self.ctrl_infos.GetItemData(item)  == None or self.ctrl_infos.GetItemData(item)["type"] != "message":
             dlg = wx.MessageDialog(self, _("Vous n'avez sélectionné aucun message à supprimer dans la liste !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
             dlg.ShowModal()
             dlg.Destroy()
             return
         dlg = wx.MessageDialog(self, _("Souhaitez-vous vraiment supprimer ce message ?"), _("Suppression"), wx.YES_NO|wx.NO_DEFAULT|wx.CANCEL|wx.ICON_INFORMATION)
         if dlg.ShowModal() == wx.ID_YES :
-            IDmessage = self.ctrl_infos.GetPyData(item)["IDmessage"]
+            IDmessage = self.ctrl_infos.GetItemData(item)["IDmessage"]
             DB = GestionDB.DB()
             DB.ReqDEL("messages", "IDmessage", IDmessage)
             DB.Close() 
