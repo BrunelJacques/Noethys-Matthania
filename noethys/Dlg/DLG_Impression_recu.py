@@ -711,7 +711,7 @@ class Dialog(wx.Dialog):
             }
 
         # Récupération des infos de base individus et familles
-        self.infosIndividus = UTILS_Infos_individus.Informations() 
+        self.infosIndividus = UTILS_Infos_individus.Informations(lstIDfamilles=[self.IDfamille,])
         dictValeurs.update(self.infosIndividus.GetDictValeurs(mode="famille", ID=IDfamille, formatChamp=True))
 
         # Récupération des questionnaires

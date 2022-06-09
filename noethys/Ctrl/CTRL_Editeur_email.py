@@ -482,9 +482,11 @@ class CTRL_Expediteur(wx.Choice):
         return self.dictAdresses[index]["IDadresse"]
     
     def GetDonnees(self):
+        IDadresse = self.GetID()
         if self.GetID() == None :
             return None
         else :
+            test = self.GetSelection()
             return self.dictAdresses[self.GetSelection()]
 
 

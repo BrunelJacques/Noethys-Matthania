@@ -371,12 +371,10 @@ class Dialog(wx.Dialog):
             return
         # Envoi du mail test
         self.Envoyer(listeDestinataires=[listeDestinataires[0],], adresseTest=adresse)    
-        
 
     def OnBoutonEnvoyer(self, event):       
         self.Envoyer(listeDestinataires = self.ctrl_destinataires.GetDonnees())    
-    
-    
+
     def Envoyer(self, listeDestinataires=[], adresseTest=None):
         # Expéditeur
         dictExp = self.ctrl_exp.GetDonnees()
@@ -498,10 +496,10 @@ class Dialog(wx.Dialog):
             messagerie.Connecter()
         except Exception as err:
             dlg_progress.Destroy()
-            err = GestionDB.Decode(err)
+            txtErr = err.args[0]
             intro = _("La connexion au serveur de messagerie est impossible :")
             conclusion = _("Vérifiez votre connexion internet ou les paramètres de votre adresse d'expédition.")
-            dlgErreur = DLG_Messagebox.Dialog(self, titre=_("Erreur"), introduction=intro, detail=err, conclusion=conclusion, icone=wx.ICON_ERROR, boutons=[_("Ok"),])
+            dlgErreur = DLG_Messagebox.Dialog(self, titre=_("Erreur"), introduction=intro, detail=txtErr, conclusion=conclusion, icone=wx.ICON_ERROR, boutons=[_("Ok"),])
             dlgErreur.ShowModal()
             dlgErreur.Destroy()
             return False

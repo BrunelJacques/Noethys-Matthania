@@ -351,7 +351,7 @@ class ListView(FastObjectListView):
         sousMenuVentilation.Append(item)
         self.Bind(wx.EVT_MENU, self.VentilationAuto, id=202)
 
-        menuPop.AppendMenu(wx.Window.NewControlId(), _("Ventilation automatique"), sousMenuVentilation)
+        menuPop.Append(wx.Window.NewControlId(), _("Ventilation automatique"), sousMenuVentilation)
         
         menuPop.AppendSeparator()
         

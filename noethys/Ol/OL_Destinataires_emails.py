@@ -82,10 +82,7 @@ class Track(object):
             self.texte_pieces = ""
             self.listeLabelsPieces = []
             self.extension_pieces = None
-        
-        
-        
-    
+
 class ListView(FastObjectListView):
     def __init__(self, *args, **kwds):
         # Récupération des paramètres perso
