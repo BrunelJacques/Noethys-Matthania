@@ -181,11 +181,11 @@ class CTRL_Image(wx.StaticBitmap):
         
         # Insertion de l'image sur un fond noir
         img = wx.EmptyImage(taille[0], taille[1], True)
-        img.SetRGBRect((0, 0, taille[0], taille[1]), 0, 0, 0)
+        img.SetRGB((0, 0, taille[0], taille[1]), 0, 0, 0)
         bmp = img.ConvertToBitmap()
         dc = wx.MemoryDC()
         dc.SelectObject(bmp)
-        dc.DrawBitmap(bitmap, taille[0]/2.0-bitmap.GetSize()[0]/2.0, taille[1]/2.0-bitmap.GetSize()[1]/2.0)
+        dc.DrawBitmap(bitmap, int(taille[0]/2.0-bitmap.GetSize()[0]/2.0), int(taille[1]/2.0-bitmap.GetSize()[1]/2.0))
         dc.SelectObject(wx.NullBitmap)
         return bmp
 
@@ -572,7 +572,7 @@ class Dialog(wx.Dialog):
         req = """SELECT sexe, nom, prenom, mdp, mdpcrypt, profil, actif, image, internet_actif, internet_identifiant, internet_mdp
         FROM utilisateurs 
         WHERE IDutilisateur=%d;""" % self.IDutilisateur
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req)
         listeDonnees = DB.ResultatReq()
         DB.Close()
         if len(listeDonnees) == 0 : return
@@ -763,7 +763,7 @@ class DLG_Saisie_mdp(wx.Dialog):
 if __name__ == "__main__":
     app = wx.App(0)
     #wx.InitAllImageHandlers()
-    dialog_1 = Dialog(None, IDutilisateur=1)
+    dialog_1 = Dialog(None, IDutilisateur=10)
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()
     app.MainLoop()
