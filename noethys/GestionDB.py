@@ -535,7 +535,13 @@ class DB():
 
     def ExecuterReq(self, req, commit=True, MsgBox = None):
         if self.echec >= 1:
-            return False # lié au lancement de départ des effectifs
+            print("go",self.erreur)
+            if not MsgBox: MsgBox = "GestionDB.ExecuterReq"
+            if self.erreur != "ErreurPubliee":
+                mess = "Echec d'accès à la base de donnée\n\n%s"%MsgBox
+                wx.MessageBox(mess,"Ouverture DB",style = wx.ICON_ERROR)
+            self.erreur = "ErreurPubliee"
+            return False # lié au lancement sans connexion précédente
         if self.isNetwork == True :
             req = req.replace("()", "(10000000, 10000001)")
         self.retourReq = "ok"

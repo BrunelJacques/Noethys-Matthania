@@ -3,18 +3,16 @@
 #------------------------------------------------------------------------
 # Application :    Noethys, gestion multi-activités
 # Site internet :  www.noethys.com
-# Auteur:           Ivan LUCAS
+# Auteur:           Ivan LUCAS, JB
 # Copyright:       (c) 2010-15 Ivan LUCAS
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
 
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
-import datetime
 import GestionDB
 from Ol import OL_Etiquettes, OL_Contacts
 import re
@@ -235,6 +233,7 @@ class Page_Familles_individus(wx.Panel):
                 style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         self.listview.SetMinSize((10, 10))
         self.barre_recherche = OL_Etiquettes.CTRL_Outils(self, listview=self.listview, afficherCocher=True)
+        #self.barre_recherche = OL_Individus.BarreRecherche(self, listview=self.listview)
         self.barre_recherche.SetBackgroundColour((255, 255, 255))
 
         # Layout
@@ -281,14 +280,14 @@ class Page_Familles_individus(wx.Panel):
     def GetDonnees(self):
         listeID = []
         listeAdresses = []
-        for track in self.listview.GetCheckedObjects() :
+        for track in self.listview.GetSelectedObjects():
             if track.mail not in (None, "") :
                 if self.categorie == "familles" :
                     ID = track.IDfamille
                 else :
                     ID = track.IDindividu
                 listeID.append(ID)
-                listeAdresses.append(track.mail)
+                listeAdresses += track.mails.split(";")
         listeFiltres = self.listview.listeFiltresColonnes
         dictDonnees = {
             "liste_adresses" : listeAdresses,
@@ -407,7 +406,7 @@ def AjouteTexteImage(image=None, texte="", alignement="droite-bas", padding=0, t
     
     # Rond rouge
     hauteurRond = hauteurTexte + padding * 2
-    largeurRond = largeurTexte + padding * 2 + hauteurRond/2.0
+    largeurRond = largeurTexte + padding * 2 + int(hauteurRond/2.0)
     if largeurRond < hauteurRond :
         largeurRond = hauteurRond
         
@@ -416,14 +415,11 @@ def AjouteTexteImage(image=None, texte="", alignement="droite-bas", padding=0, t
     if "haut" in alignement : yRond = 1
     if "bas" in alignement : yRond = hauteurImage - hauteurRond - 1
 
-    if 'phoenix' in wx.PlatformInfo:
-        dc.DrawRoundedRectangle(wx.Rect(xRond, yRond, largeurRond, hauteurRond), hauteurRond/2.0)
-    else:
-        dc.DrawRoundedRectangleRect(wx.Rect(xRond, yRond, largeurRond, hauteurRond), hauteurRond/2.0)
+    dc.DrawRoundedRectangle(wx.Rect(xRond, yRond, largeurRond, hauteurRond), int(hauteurRond/2.0))
     
     # Texte
-    xTexte = xRond + largeurRond / 2.0 - largeurTexte / 2.0
-    yTexte = yRond + hauteurRond / 2.0 - hauteurTexte / 2.0 - 1
+    xTexte = int(xRond + largeurRond / 2.0 - largeurTexte / 2.0)
+    yTexte = int(yRond + hauteurRond / 2.0 - hauteurTexte / 2.0 - 1)
     dc.DrawText(texte, xTexte, yTexte)
 
     mdc.SelectObject(wx.NullBitmap)
@@ -586,8 +582,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Fit(self)
         grid_sizer_base.AddGrowableRow(1)
         grid_sizer_base.AddGrowableCol(0)
-        grid_sizer_base
-        self.CenterOnScreen() 
+        self.CenterOnScreen()
 
     def OnBoutonDetail(self, event):
         """ Affiche la liste détaillée des adresses valides """
@@ -605,6 +600,7 @@ class Dialog(wx.Dialog):
         UTILS_Aide.Aide("EditeurdEmails")
 
     def OnBoutonOk(self, event): 
+        self.ctrl_pages.CurrentPage.OnCheck(None)
         # Validation des pages
         if self.ctrl_pages.Validation() == False :
             return False
@@ -633,4 +629,5 @@ if __name__ == "__main__":
     dialog_1 = Dialog(None)
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()
+    print(dialog_1.GetDonnees())
     app.MainLoop()

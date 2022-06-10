@@ -103,6 +103,7 @@ class Track(object):
 
 class ListView(FastObjectListView):
     def __init__(self, *args, **kwds):
+        self.categorie = kwds.pop("categorie", None)
         # Récupération des paramètres perso
         self.texteRecherche = ""
         self.itemSelected = False
@@ -163,7 +164,6 @@ class ListView(FastObjectListView):
             self.dictParametres["effaces"] = True
         else :
             self.dictParametres["effaces"] = False
-
 
     def OnItemActivated(self,event):
         self.Modifier(None)
@@ -846,7 +846,6 @@ class BarreRecherche(wx.SearchCtrl):
         if self.historique == True :
             self.SetMenu(self.MakeMenu())
         self.Recherche(self.GetValue())
-
 
     def Cancel(self):
         self.OnCancel(None)

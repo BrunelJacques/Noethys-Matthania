@@ -358,7 +358,7 @@ def GetListeIndividus(listview, IDindividu=None, isoles = None, refusPub=False, 
 
 class TrackFamille(object):
     def __init__(self, listview, donnees, refusPub):
-        self.cp = donnees["cp"]
+        self.cp = donnees["adresse"]["cp"]
         if not self.cp: self.cp = ""
         self.refus_pub = donnees["refus_pub"]
         self.refus_mel = donnees["refus_mel"]
@@ -374,11 +374,19 @@ class TrackFamille(object):
         self.IDfamille = donnees["IDfamille"]
         self.IDcivilite = donnees["IDcivilite"]
         self.nomTitulaires = donnees["titulaires"]
-        self.designation = donnees["designation"]
+        self.designation = donnees["designation_famille"]
         self.nom = donnees["nom"]
         # gestion des sauts de lignes dans la rue
-        if donnees["rue_resid"] == None: donnees["rue_resid"]=""
-        lstRue = donnees["rue_resid"].split("\n")
+        lstville = donnees["adresse"]["ville"].split("\n")
+        if len(lstville) > 0:
+            ville = lstville[0]
+        else:
+            ville = ""
+        if len(lstville) > 1:
+            pays = lstville[1]
+        else: pays = ""
+        if donnees["adresse"]["rue"] == None: donnees["adresse"]["rue"]=""
+        lstRue = donnees["adresse"]["rue"].split("\n")
         if len(lstRue)<4:
             for i in range(len(lstRue),4):
                 lstRue.append("")
@@ -387,30 +395,25 @@ class TrackFamille(object):
         self.rue3 = lstRue[2]
         self.rue4 = lstRue[3]
         self.prenom = donnees["prenom"]
-        self.rue_resid = donnees["rue_resid"]
-        self.ville_resid = donnees["ville_resid"]
-        self.ville = donnees["ville"]
-        self.pays = donnees["pays"]
+        self.rue_resid = donnees["adresse"]["rue"]
+        self.ville_resid = ville
+        self.ville = ville
+        self.pays = pays
         self.dpt = ''
         if self.cp != None :
             if len(self.cp) > 1 and ((not self.pays) or len(self.pays)==0):
                 self.dpt = str(self.cp)[:2]
 
         # Ajout des adresses Emails des titulaires
-        self.mail = ""
+        self.mail = donnees["mail_famille"]
         self.mails = donnees["mails"]
-        if len(self.mails) > 0 :
-            for mail in self.mails:
-                self.mail += mail+'; '
-        else :
-            self.mail = None
         # Ajout des téléphones des titulaires
         self.telephones = donnees["telephones"]
+        self.telephone = donnees["telephone_famille"]
 
         # Récupération des réponses des questionnaires
         for dictQuestion in self.listview.LISTE_QUESTIONS :
             exec("self.question_%d = self.listview.GetReponse(%d, %s)" % (dictQuestion["IDquestion"], dictQuestion["IDquestion"], self.IDfamille))
-
 
         # Récupération des appartenances aux listes de diffusion
         # un individu titulaire emporte la famille
@@ -456,8 +459,8 @@ def GetListeFamilles(listview=None, IDfamille=None, refusPub=False, actif=None):
     req = """
             SELECT rattachements.IDfamille
             FROM rattachements 
-            LEFT JOIN (inscriptions 
-                                LEFT JOIN activites ON inscriptions.IDactivite = activites.IDactivite)  
+            LEFT JOIN ( inscriptions 
+                        LEFT JOIN activites ON inscriptions.IDactivite = activites.IDactivite)  
                     ON (rattachements.IDindividu = inscriptions.IDindividu) 
                         AND (rattachements.IDfamille = inscriptions.IDfamille)
             %s
@@ -476,71 +479,11 @@ def GetListeFamilles(listview=None, IDfamille=None, refusPub=False, actif=None):
     # Formatage des données
     listeListeView = []
     titulaires = UTILS_Titulaires.GetFamillesEtiq(listeFamilles)
-    for IDfamille, dictTitulaire in titulaires.items() :
-        if IDfamille in listeFamilles:
-            # pour détecter ensuiteles familles sans titulaires
-            listeFamilles.remove(IDfamille)
-        ID = IDfamille
-        IDcivilite = ""
-        nom = ""
-        prenom = ""
-        designation = ""
-        rue_resid = ""
-        cp = ""
-        ville = ""
-        pays = ""
-        mails = ""
-        telephones = ""
-        listeMembres = []
-        refus_pub = 0
-        refus_mel = 0
-        if "titulaires" in dictTitulaire and "nom" not in dictTitulaire:
-            nomTitulaires = _("Un titulaire de la famille %d est aussi titulaire par ailleurs"%(IDfamille))
-
-        elif IDfamille != None  and "nom" in dictTitulaire :
-            IDcivilite = str(dictTitulaire["IDcivilite"])
-            nomTitulaires = dictTitulaire["titulairesSansCivilite"]
-            nom = dictTitulaire["nom"]
-            prenom = dictTitulaire["prenom"]
-            designation = dictTitulaire["designation_famille"]
-            rue_resid = dictTitulaire["adresse"]["rue"]
-            cp = dictTitulaire["adresse"]["cp"]
-            ville_resid = dictTitulaire["adresse"]["ville"]
-            lstville = dictTitulaire["adresse"]["ville"].split("\n")
-            if len(lstville)>0 : ville = lstville[0]
-            else: ville = ""
-            if len(lstville)>1:
-                pays = lstville[1]
-            else: pays = ""
-            if not "mails" in list(dictTitulaire.keys()):
-                if "mail" in list(dictTitulaire.keys()):
-                    dictTitulaire["mails"] = dictTitulaire["mail"]
-                else: dictTitulaire["mails"] = ""
-            if not "telephones" in list(dictTitulaire.keys()):
-                if "telephone" in list(dictTitulaire.keys()):
-                    dictTitulaire["telephones"] = dictTitulaire["telephone"]
-                else: dictTitulaire["telephones"] = ""
-            telephones = dictTitulaire["telephones"]
-            listeMembres = dictTitulaire["IDtitulaires"]
-            ID = dictTitulaire["IDfamille"]
-            refus_pub = dictTitulaire["refus_pub"]
-            refus_mel = dictTitulaire["refus_mel"]
-        else: wx.MessageBox("A voir la famille %d"%IDfamille)
-        dictTemp = {
-            "IDcivilite":IDcivilite,"IDfamille":ID, "titulaires":nomTitulaires,"nom":nom, "prenom":prenom,"designation":designation,
-            "rue_resid":rue_resid, "cp" : cp, "ville_resid":ville_resid, "ville":ville, "pays":pays, "mails" : mails,"telephones" : telephones,
-            "listeMembres" : listeMembres,"refus_pub":refus_pub,"refus_mel": refus_mel
-            }
-    
+    for IDfamille, dictFamille in titulaires.items() :
         # Formatage sous forme de TRACK
-        track = TrackFamille(listview, dictTemp, refusPub)
+        track = TrackFamille(listview, dictFamille, refusPub)
         if track.valide:
             listeListeView.append(track)
-
-    #vérif des familles perdues
-    for IDfamille in listeFamilles:
-        if IDfamille not in titulaires:
-            nomTitulaires = _("Pas de titulaire dans la famille %d"%IDfamille)
 
     return listeListeView
 
@@ -582,7 +525,7 @@ class ListView(FastObjectListView):
                 self.dictDiffusions = ddf.dictDiffusions
 
         # Récupération des tracks
-        if self.categorie in ("individu","indivdus","benevole_actif" ):
+        if self.categorie in ("individu","individus","benevole_actif" ):
             self.donnees = GetListeIndividus(self, self.IDindividu, refusPub=self.refusPub, actif=self.actif)
         elif self.categorie in ("famille","familles", "famille_actif"):
             self.donnees = GetListeFamilles(self, self.IDfamille, refusPub=self.refusPub,  actif = self.actif)

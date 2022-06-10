@@ -10,8 +10,10 @@
 
 from Utils.UTILS_Traduction import _
 import GestionDB
+import copy
 
 from Data import DATA_Civilites as Civilites
+
 DICT_CIVILITES = Civilites.GetDictCivilites()
 
 def Ajout(part1, part2, sep="; "):
@@ -45,15 +47,16 @@ def AjoutContacts(dFamille, dIndividu):
             break
     dFamille["telephones"] = dFamille["telephones"].replace('.', ' ')
 
-    if not "mails" in dFamille:
+
+    if not "mails" in dFamille or len(dFamille["mails"]) == 0:
         dFamille["mails"] = ""
         dFamille["mail_famille"] = ""
-        dFamille["telephone_famille"] = ""
     for key in ("mail","travail_mail"):
             dFamille["mails"] = Ajout(dFamille["mails"],dIndividu[key])
     # cas du correspondant mail et téléphone seront ceux de la famille
     if not "correspondant" in list(dFamille.keys()):
         dFamille["correspondant"] = None
+
     if "IDindividu" in dIndividu and  dFamille["correspondant"] == dIndividu["IDindividu"]:
         dFamille["mail_famille"] = dIndividu["mail"]
         if not dIndividu["mail"] : dFamille["mail_famille"] = dIndividu["travail_mail"]
@@ -61,6 +64,26 @@ def AjoutContacts(dFamille, dIndividu):
         if not dIndividu["tel_domicile"]: dFamille["telephone_famille"] = dIndividu["tel_mobile"]
 
     # pas de return car w dans le pointeur dict
+
+def AjoutNomAdresse(dFamille, dIndividu):
+    strIDcivilite = dIndividu["IDcivilite"]
+    if strIDcivilite != None:
+        nomCivilite = ("%s " % DICT_CIVILITES[int(strIDcivilite)][
+            "civiliteAbrege"]).strip()
+    else:
+        nomCivilite = ""
+    # Recherche de l'adresse du correspondant
+    dictAdresse = {}
+    dictAdresse["rue"] = dIndividu["rue"]
+    dictAdresse["cp"] = dIndividu["cp"]
+    dictAdresse["ville"] = dIndividu["ville"]
+
+    dFamille["IDcivilite"] = strIDcivilite
+    dFamille["civilite"] = nomCivilite
+    dFamille["nom"] = dIndividu["nom"]
+    dFamille["prenom"] = dIndividu["prenom"]
+    dFamille["adresse"] = dictAdresse
+
 
 def GetFamillesEtiq(listeIDfamille=[]):
     # Composition du where sur les rattachements
@@ -96,6 +119,7 @@ def GetFamillesEtiq(listeIDfamille=[]):
     ltplIndividus = DB.ResultatReq()
     dictIndividus = {}
     dictFamilles = {}
+    DB.Close()
 
     def compacte(adresse):
         compactee = ""
@@ -130,37 +154,43 @@ def GetFamillesEtiq(listeIDfamille=[]):
         rue_resid = compacte(rue_resid)
         ville_resid = compacte(ville_resid)
         dictIndividus[IDindividu] = {
-            "IDcivilite": IDcivilite, "nom": nom, "prenom": prenom, "date_naiss": date_naiss,
+            "IDindividu":IDindividu,
+            "IDcivilite": str(IDcivilite), "nom": nom, "prenom": prenom, "date_naiss": date_naiss,
             "rue": rue_resid, "cp": cp_resid, "ville": ville_resid, "adresse_normee": adresse_normee,
-            "mail": mail, "travail_mail": travail_mail,
+            "mail": mail,
+            "travail_mail": travail_mail,
             "tel_domicile": tel_domicile,
             "tel_mobile": tel_mobile,
             "tel_mobile2": tel_mobile2,
             "travail_tel": travail_tel,
             "designation_famille": designation_famille, "refus_pub": refus_pub_ind, "refus_mel": refus_mel_ind,
         }
-        if IDcategorie == 3:
-            lstTitulaires = []
-            lstIDtitulaires = []
-        else:
-            lstTitulaires = [IDindividu, ]
-            lstIDtitulaires = [(IDindividu, IDfamille, IDcategorie,), ]
-        if (IDfamille in dictFamilles) == False:
-            dictFamilles[IDfamille] = {"IDcompte_payeur": IDfamille,
-                                       "IDfamille": IDfamille,
-                                       "titulaires": lstIDtitulaires,
-                                       "IDtitulaires": lstTitulaires,
-                                       "designation_famille": designation_famille,
-                                       "correspondant": correspondant,
-                                       "refus_pub": refus_pub_fam, "refus_mel": refus_mel_fam, }
-        else:
-            dictFamilles[IDfamille]["titulaires"] += lstIDtitulaires
-            dictFamilles[IDfamille]["IDtitulaires"] += lstTitulaires
 
-    # Reprise pour détermination des adresses pricipales et secondaires
+        lstTitulaires = [(IDindividu, IDfamille, IDcategorie,), ]
+        lstIDtitulaires = [ IDindividu,]
+
+        if (IDfamille in dictFamilles) == False:
+            dictFamilles[IDfamille] = {
+                "IDcompte_payeur": IDfamille,
+                "IDfamille": IDfamille,
+                "titulaires": lstTitulaires,
+                "IDtitulaires": lstIDtitulaires,
+                "designation_famille": designation_famille,
+                "correspondant": correspondant,
+                "refus_pub": refus_pub_fam, "refus_mel": refus_mel_fam,
+                "mail_famille":"","mails":"",
+                "telephone_famille":"","telephones":""}
+        else:
+            dictFamilles[IDfamille]["titulaires"] += lstTitulaires
+            dictFamilles[IDfamille]["IDtitulaires"] += lstIDtitulaires
+
+    # Reprise pour détermination des adresses principales et secondaires
     lstCorrespondants = []
     dictBis = {}
     for IDfamille in list(dictFamilles.keys()):
+        if IDfamille == 709:
+            print()
+        # recherche des coordonnées du correspondant de la famille
         dictFamille = dictFamilles[IDfamille]
         designation_famille = dictFamille["designation_famille"]
         correspondant = dictFamille["correspondant"]
@@ -169,64 +199,42 @@ def GetFamillesEtiq(listeIDfamille=[]):
             if len(dictFamille["IDtitulaires"]) == 0:
                 continue
             correspondant = dictFamille["IDtitulaires"][0]
+            dictFamille["correspondant"] = correspondant
 
-        # recherche des coordonnées du correspondant de la famille
+        AjoutNomAdresse(dictFamille,dictIndividus[correspondant])
+        AjoutContacts(dictFamille, dictIndividus[correspondant]) # ajoute les telephones et mail de l'individu
+
+        dictFamille["typeRattachement"] = "C"
+        dictFamille["titulairesSansCivilite"] = "%s %s" % (dictFamille["nom"], dictFamille["prenom"])
+        dictFamille["titulairesAvecCivilite"] = "%s%s %s" % (
+                    dictFamille["civilite"],
+                    dictFamille["nom"],
+                    dictFamille["prenom"])
+
+        lstCorrespondants.append(IDindividu)
+        dictFamille["titulaires"] = [(x,y,z) for (x,y,z) in dictFamille["titulaires"] if x != correspondant]
+        dictFamille["IDtitulaires"].remove(correspondant)
+
+        if IDindividu in list(dictBis.keys()):
+            # ce titulaire a fait l'objet d'une fiche en tant que non correspondant, on la supprime
+            del dictBis["I" + str(IDindividu)]
+
+        # traitement des titulaires non correspondants.
         for IDindividu, IDfamilleTmp, IDcategorie, in dictFamille["titulaires"]:
-            # on ne traite que le correspondant dans un premier passage
-            if IDindividu != correspondant:
-                continue
-            if IDindividu in list(dictBis.keys()):
-                # ce titulaire a fait l'objet d'une fiche en tant que non correspondant, on la supprime et on refait
-                del dictBis["I" + str(IDindividu)]
-            # Préparation des éléments du correspondant assimilé titulaire
-            IDcivilite = dictIndividus[IDindividu]["IDcivilite"]
-            if IDcivilite != None :
-                nomCivilite = ("%s " % DICT_CIVILITES[IDcivilite]["civiliteAbrege"]).strip()
-            else:
-                nomCivilite = ""
-            # Recherche de l'adresse du correspondant
-            dictAdresse = {}
-            dictAdresse["rue"] = dictIndividus[correspondant]["rue"]
-            dictAdresse["cp"] = dictIndividus[correspondant]["cp"]
-            dictAdresse["ville"] = dictIndividus[correspondant]["ville"]
-            dictAdresse["designation_famille"] = designation_famille
-            dictFamille["IDtitulaires"] = [IDindividu, ]
-            strIDcivilite = str(IDcivilite)
-
-            dictFamille["IDcivilite"] = strIDcivilite
-            dictFamille["civilite"] = nomCivilite
-            dictFamille["nom"] = dictIndividus[IDindividu]["nom"]
-            dictFamille["prenom"] = dictIndividus[IDindividu]["prenom"]
-            dictFamille["adresse"] = dictAdresse
-            dictFamille["typeRattachement"] = str(IDcategorie) + ' '
-            dictFamille["titulairesSansCivilite"] = "%s %s" % (dictFamille["nom"], dictFamille["prenom"])
-            dictFamille["titulairesAvecCivilite"] = "%s%s %s" % (
-            dictFamille["civilite"], dictFamille["nom"], dictFamille["prenom"])
-            
-            lstCorrespondants.append(IDindividu)
-            dictFamille["titulaires"].remove((IDindividu, IDfamilleTmp, IDcategorie))
-
-            AjoutContacts(dictFamille, dictIndividus[IDindividu]) # ajoute les telephones et mail de l'individu
-    # deuxième passage pour les titulaires non correspondants.
-        for IDindividu, IDfamilleTmp, IDcategorie, in dictFamilles[IDfamille]["titulaires"]:
             if IDindividu in list(dictBis.keys()):
                 # reçoit déjà un courrier à son adresse perso
                 continue
-            if IDindividu in lstCorrespondants:
-                # reçoit déja un courrier en tant que correspondant
-                continue
             dictIndividu = dictIndividus[IDindividu]
-            # cas d'une adresse commune on enrichi les données de la famille par cumuls des noms,civilité,mel,téléphone
+            dictAdresse = dictFamilles[IDfamille]["adresse"]
+            # cas d'une adresse commune on enrichit les données de la famille par cumuls des noms,civilité,mel,téléphone
             if dictAdresse["rue"] + dictAdresse["cp"] == dictIndividu["rue"] + dictIndividu["cp"]:
                 IDcivilite2 = dictIndividu["IDcivilite"]
-                strIDcivilite += " " + str(IDcivilite2)
-                dictFamille["IDcivilite"] = strIDcivilite
+                dictFamille["IDcivilite"] += " " + str(IDcivilite2)
                 if IDcivilite2 != None:
-                    nomCivilite2 = ("%s " % DICT_CIVILITES[IDcivilite2]["civiliteAbrege"]).strip()
+                    nomCivilite2 = (" %s" % DICT_CIVILITES[int(IDcivilite2)]["civiliteAbrege"]).strip()
                 else:
                     nomCivilite2 = ""
-                nomCivilite += " " + nomCivilite2
-                dictFamille["civilite"] = nomCivilite
+                dictFamille["civilite"] += nomCivilite2
                 nom, prenom = dictIndividu["nom"], dictIndividu["prenom"]
                 if dictFamille["nom"] == nom:
                     # même nom pour le nouveau titulaire
@@ -237,42 +245,29 @@ def GetFamillesEtiq(listeIDfamille=[]):
                     nomprenom2 = nom + ' ' + prenom
                     dictFamille["prenom"] = ""
                     dictFamille["nom"] = nomprenom1 + " et " + nomprenom2
-                dictFamille["typeRattachement"] += str(IDcategorie) + ' '
+                dictFamille["typeRattachement"] += 'T'
                 dictFamille["titulairesSansCivilite"] = "%s %s" % (dictFamille["nom"], dictFamille["prenom"])
-                dictFamille["titulairesAvecCivilite"] = "%s%s %s" % (dictFamille["civilite"], dictFamille["nom"],
+                dictFamille["titulairesAvecCivilite"] = "%s %s %s" % (dictFamille["civilite"], dictFamille["nom"],
                                                                       dictFamille["prenom"])
                 dictFamille["IDtitulaires"].append(IDindividu)
-                AjoutContacts(dictFamille, dictIndividus[IDindividu]) # ajoute les telephones et mail de l'individu
+                AjoutContacts(dictFamille, dictIndividu) # ajoute les telephones et mail de l'individu
 
             # le nouveau titulaire à une adresse différente on crée une occurence de type I
             else:
+                # son étiquette sera sous le numéro de l'individu (crée un famille virtuelle Ixxxx)
                 titulaire = "I" + str(IDindividu)
-                dictBis[titulaire] = dictIndividus[IDindividu]
+                # reprend les éléments de la famille
+                dictBis[titulaire] = copy.deepcopy(dictFamilles[IDfamille])
                 dest = dictBis[titulaire]
-                IDcivilite = dest["IDcivilite"]
-                if IDcivilite != None:
-                    nomCivilite = ("%s " % DICT_CIVILITES[IDcivilite]["civiliteAbrege"]).strip()
-                else:
-                    nomCivilite = ""
-                dest["IDfamille"] = IDfamille
-                dest["IDcompte_payeur"] = IDfamille
-                dest["civilite"] = nomCivilite
-                dictAdresse = {}
-                dictAdresse["rue"] = dest["rue"]
-                dictAdresse["cp"] = dest["cp"]
-                dictAdresse["ville"] = dest["ville"]
-                dictAdresse["designation_famille"] = designation_famille
-                dest["adresse"] = dictAdresse
-                dest["IDtitulaires"] = [IDindividu, ]
-                dest["typeRattachement"] = ''
+
+                # personnalise les éléments de base
+                AjoutNomAdresse(dest, dictIndividu)
+                AjoutContacts(dest, dictIndividu)
+                # adapte comme une pseudo famille
+                dest["typeRattachement"] = 'T'
                 dest["titulairesSansCivilite"] = "%s %s" % (dest["nom"], dest["prenom"])
                 dest["titulairesAvecCivilite"] = "%s%s %s" % (dest["civilite"], dest["nom"], dest["prenom"])
-                dest["IDtitulaires"] = [IDindividu, ]
-                AjoutContacts(dictFamille, dictIndividus[IDindividu]) # ajoute les telephones et mail de l'individu
 
-                if IDcategorie:
-                    if not str(IDcategorie) in dest["typeRattachement"]:
-                        dest["typeRattachement"] += str(IDcategorie) + ' '
                 dest["correspondant"] = IDindividu
                 dest["designation_famille"] = dest["nom"] + " " + dest["prenom"]
 
@@ -359,7 +354,8 @@ def GetTitulaires(listeIDfamille=[]):
                 "IDcivilite": IDcivilite, "nom": nom, "prenom": prenom,
                 "date_naiss": date_naiss, "adresse_auto": adresse_auto,
                 "rue_resid": rue_resid, "cp_resid": cp_resid, "ville_resid": ville_resid,
-                "mail": mail, "travail_mail": travail_mail,
+                "mail": mail,
+                "travail_mail": travail_mail,
                 "IDsecteur": IDsecteur, "nomSecteur": nomSecteur,
                 "tel_domicile": tel_domicile,
                 "tel_mobile": tel_mobile,
