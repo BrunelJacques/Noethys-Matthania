@@ -493,8 +493,8 @@ class CaseOuvertureRenderer(GridCellRenderer):
             dc.DrawRoundedRectangleRect(wx.Rect(xRond, yRond, largeurRond, hauteurRond), hauteurRond / 2.0)
 
         # Texte
-        xTexte = xRond + largeurRond / 2.0 - largeurTexte / 2.0
-        yTexte = yRond + hauteurRond / 2.0 - hauteurTexte / 2.0 - 1
+        xTexte = int(xRond + largeurRond / 2.0 - largeurTexte / 2.0)
+        yTexte = int(yRond + hauteurRond / 2.0 - hauteurTexte / 2.0 - 1)
         dc.DrawText(texte, xTexte, yTexte)
 
         mdc.SelectObject(wx.NullBitmap)
