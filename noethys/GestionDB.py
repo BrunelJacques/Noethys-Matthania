@@ -44,16 +44,26 @@ except Exception as err :
 # Interface pour Mysql = "mysql.connector" ou "mysqldb"
 # Est modifié automatiquement lors du lancement de Noethys selon les préférences (Menu Paramétrage > Préférences)
 # Peut être également modifié manuellement ici dans le cadre de tests sur des fichiers indépendamment de l'interface principale 
-INTERFACE_MYSQL = "mysqldb"
-POOL_MYSQL = 5
+#INTERFACE_MYSQL = "mysql.connector"
+#POOL_MYSQL = 5
 
 def SetInterfaceMySQL(nom="mysqldb", pool_mysql=5):
     """ Permet de sélectionner une interface MySQL """
     global INTERFACE_MYSQL, POOL_MYSQL
     if nom == "mysqldb" and IMPORT_MYSQLDB_OK == True :
         INTERFACE_MYSQL = "mysqldb"
-    if nom == "mysql.connector" and IMPORT_MYSQLCONNECTOR_OK == True :
+    elif nom == "mysql.connector" and IMPORT_MYSQLCONNECTOR_OK == True :
         INTERFACE_MYSQL = "mysql.connector"
+    elif IMPORT_MYSQLDB_OK == True:
+        INTERFACE_MYSQL = "mysqldb"
+    elif IMPORT_MYSQLCONNECTOR_OK == True :
+        INTERFACE_MYSQL = "mysql.connector"
+    else:
+        mess = "Ni 'mysqldb' ni 'mysql.connector' ne sont opérationnels!!\n\n"
+        mess += "refaire pip install xxxx"
+        ret = wx.MessageBox(mess,"CONNEXION RESEAU IMPOSSIBLE",style= wx.ICON_ERROR)
+        INTERFACE_MYSQL = None
+
     POOL_MYSQL = pool_mysql
 
 # Vérifie si les certificats SSL sont présents dans le répertoire utilisateur
