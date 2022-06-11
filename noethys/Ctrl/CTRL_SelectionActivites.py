@@ -320,8 +320,10 @@ class CTRL(wx.Panel):
         self.ctrl_date_fin = CTRL_Saisie_date.Date(self)
         self.bouton_date_fin = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Calendrier.png"), wx.BITMAP_TYPE_ANY))
         self.dateDebut, self.dateFin = self.GetExercice()
-        self.ctrl_date_debut.SetValue(self.dateDebut)
-        self.ctrl_date_fin.SetValue(self.dateFin)
+        if self.dateDebut:
+            self.ctrl_date_debut.SetValue(self.dateDebut)
+        if self.dateFin:
+            self.ctrl_date_fin.SetValue(self.dateFin)
 
         # Groupes d'activités
         self.box_groupes_activites_staticbox = wx.StaticBox(self, -1, _("Groupes d'activités"))
@@ -415,8 +417,8 @@ class CTRL(wx.Panel):
     def GetExercice(self):
         DB = GestionDB.DB()
         deb,fin =  DB.GetExercice(datetime.date.today(),approche=True)
-        debfr = DateEngFr(str(deb))
-        finfr = DateEngFr(str(fin))
+        debfr = DateEngFr(deb)
+        finfr = DateEngFr(fin)
         DB.Close()
         return debfr,finfr
 

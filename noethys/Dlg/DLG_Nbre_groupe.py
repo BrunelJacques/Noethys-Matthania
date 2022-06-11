@@ -270,7 +270,7 @@ class CTRL(ULC.UltimateListCtrl):
 
         # ------------------ Dictionnaire de données -----------------------------
         for IDgroupe,nomAct,comptaAct,nomGrp,abregeGrp,nbreMaxi,ageMini,ageMaxi,nature,campeur,nbreInscrits in listeDonnees :
-            if nature in ("AVO"):
+            if nature in ("AVO",):
                 continue
             lstKeys.append(IDgroupe)
             nbreCampeurs = 0

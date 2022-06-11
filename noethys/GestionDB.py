@@ -41,11 +41,6 @@ try :
     IMPORT_MYSQLCONNECTOR_OK = True
 except Exception as err :
     IMPORT_MYSQLCONNECTOR_OK = False
-# Interface pour Mysql = "mysql.connector" ou "mysqldb"
-# Est modifié automatiquement lors du lancement de Noethys selon les préférences (Menu Paramétrage > Préférences)
-# Peut être également modifié manuellement ici dans le cadre de tests sur des fichiers indépendamment de l'interface principale 
-#INTERFACE_MYSQL = "mysql.connector"
-#POOL_MYSQL = 5
 
 def SetInterfaceMySQL(nom="mysqldb", pool_mysql=5):
     """ Permet de sélectionner une interface MySQL """
@@ -291,12 +286,13 @@ class DB():
         #    print("debug Close")
         try :
             if self.isNetwork and self.connexion.open != 0:
-                #print("traceclose ID", self.IDconnexion,
-                #      self.IDconnexion in DICT_CONNEXIONS,
-                #      self.IDconnexion in IX_CONNEXION["pointeurs"])
                 self.connexion.close()
                 del DICT_CONNEXIONS[self.IDconnexion]
                 del IX_CONNEXION["pointeurs"][self.IDconnexion]
+            elif not self.isNetwork:
+                del DICT_CONNEXIONS[self.IDconnexion]
+                del IX_CONNEXION["pointeurs"][self.IDconnexion]
+
             #else:
             #    print("Déja Closed! ID",self.IDconnexion,self.IDconnexion in DICT_CONNEXIONS, self.IDconnexion in IX_CONNEXION["pointeurs"])
         except Exception as err:
@@ -1049,6 +1045,7 @@ class DB():
                 if dateInput.month >= lastDeb.month : 
                     anneeDeb = dateInput.year
                 else: anneeDeb = dateInput.year - 1
+
                 if dateInput.month > lastFin.month :
                     anneeFin = dateInput.year + 1
                 else: anneeFin = dateInput.year
