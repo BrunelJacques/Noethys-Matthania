@@ -1,3 +1,7 @@
+version 1.3.1.8 (13/06/2022):
+
+- Export compta récap: Tri possible sur la colonne date
+
 version 1.3.1.7 (12/06/2022):
 
 - Bug: Inscription sur un groupe sans effectif maximum

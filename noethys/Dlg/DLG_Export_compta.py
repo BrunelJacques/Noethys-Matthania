@@ -22,7 +22,7 @@ from Ctrl import CTRL_Saisie_date
 from Gest import GestionInscription
 from Gest import GestionCoherence
 from Utils import UTILS_Titulaires
-from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
+from Utils.UTILS_Decimal import FloatToDecimal
 import FonctionsPerso
 from Utils import UTILS_Config
 from Utils import UTILS_Parametres

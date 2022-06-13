@@ -32,17 +32,21 @@ def DateEngDateFr(date):
     text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
     return text
 
-def DateDblDateFr(dateDbl):
+def zzDateDblDateFr(dateDbl):
     textDate = str(dateDbl)
     text = str(textDate[6:8]) + "/" + str(textDate[4:6]) + "/" + str(textDate[:4])
     return text
+
+def DateDblDateEng(dateDbl):
+    textDate = str(dateDbl)
+    return "%s-%s-%s"%(textDate[:4],textDate[4:6],textDate[6:8])
 
 class Track(object):
     def __init__(self, donnees):
         if not isinstance(donnees["transfert"],int):
             self.transfert = donnees["transfert"]
         else:
-            self.transfert = str(DateDblDateFr(donnees["transfert"]))
+            self.transfert = str(DateDblDateEng(donnees["transfert"]))
         self.IDtransfert = donnees["IDtransfert"]
         self.prestations = donnees["prestations"]
         self.reglements = donnees["reglements"]
@@ -289,7 +293,9 @@ class ListView(FastObjectListView):
         self.useExpansionColumn = True
 
         def FormateDate(date):
-            return UTILS_Dates.DateDDEnFr(date)
+            if len(date) != 10:
+                return date
+            return DateEngDateFr(date)
 
         def FormateMontant(montant):
             if montant == None : return ""
@@ -298,7 +304,7 @@ class ListView(FastObjectListView):
 
         liste_Colonnes = [
             ColumnDefn("ID", "right", 0, "IDtransfert", typeDonnee="entier"),
-            ColumnDefn("Transferts", "left", 200, "transfert", typeDonnee="texte"),
+            ColumnDefn("Transferts", "left", 200, "transfert", typeDonnee="texte", stringConverter=FormateDate),
             ColumnDefn(_("Prestations"), 'right', 90, "prestations", typeDonnee="montant", stringConverter=FormateMontant),
             ColumnDefn(_("Règlements"), 'right', 90, "reglements", typeDonnee="montant", stringConverter=FormateMontant),
             ColumnDefn(_("Mvt Clients"), "right", 90, "mvt", typeDonnee="montant", stringConverter=FormateMontant),
