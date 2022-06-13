@@ -428,9 +428,10 @@ class Dialog(wx.Dialog):
         db.ExecuterReq(req,MsgBox="Recherche Nombre maxi du groupe")
         recordset = db.ResultatReq()
         db.Close()
-        if len(recordset) > 0 and recordset[0][0] > 0:
+        if len(recordset) > 0:
             nbre_inscrits_max, nbre_inscrits = recordset[0]
-            if nbre_inscrits > 0:
+            if not nbre_inscrits_max: nbre_inscrits_max = 0
+            if nbre_inscrits > 0 and nbre_inscrits_max >0:
                 nbrePlacesRestantes = nbre_inscrits_max - nbre_inscrits
                 if nbrePlacesRestantes <= 0 :
                     mess = "Nbre d'inscrit maximal atteint\n\n"
