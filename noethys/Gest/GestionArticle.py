@@ -635,7 +635,7 @@ def CondCumul(dictDonnees,codeArticle):
         for IDpiece, IDactivite, IDgroupe, IDunite, naiss, IDindividu, nature,\
             campeur, nbOuv, minOuv, maxOuv in retour:
             if campeur != 1:
-                pass # double emploi avec le paramétrage trfCumul qui élude ce cas
+                continue # a priorité sur le paramétrage trfCumul qui élude les tarifs campeur qui n'entrent pas dans les cumuls
             if (IDactivite, IDindividu) in lstIDactivite:
                 # cas de plusieurs factures pour une même activité
                 continue
