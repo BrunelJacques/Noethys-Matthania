@@ -386,7 +386,7 @@ class ListView(FastObjectListView):
         pays = self.Selection()[0].pays
         mode = self.Selection()[0].mode
         
-        dlg = wx.MessageDialog(self, _("Souhaitez-vous vraiment supprimer la ville '%s (%s)' ?") % (nom, cp, pays), _("Suppression"), wx.YES_NO|wx.NO_DEFAULT|wx.CANCEL|wx.ICON_INFORMATION)
+        dlg = wx.MessageDialog(self, _("Souhaitez-vous vraiment supprimer la ville '%s (%s)' ?") % (nom, cp), _("Suppression"), wx.YES_NO|wx.NO_DEFAULT|wx.CANCEL|wx.ICON_INFORMATION)
         if dlg.ShowModal() == wx.ID_YES :
             DB = GestionDB.DB()
             # Si c'est une ville par défaut

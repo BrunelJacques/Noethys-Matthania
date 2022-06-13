@@ -30,6 +30,7 @@ try :
     from MySQLdb.constants import FIELD_TYPE
     from MySQLdb.converters import conversions
     IMPORT_MYSQLDB_OK = True
+    INTERFACE_MYSQL = "mysqldb"
 except Exception as err :
     IMPORT_MYSQLDB_OK = False
 
@@ -39,6 +40,8 @@ try :
     from mysql.connector.constants import FieldType
     from mysql.connector import conversion
     IMPORT_MYSQLCONNECTOR_OK = True
+    if IMPORT_MYSQLDB_OK == False:
+        INTERFACE_MYSQL = "mysql.connector"
 except Exception as err :
     IMPORT_MYSQLCONNECTOR_OK = False
 
