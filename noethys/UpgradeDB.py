@@ -652,7 +652,7 @@ def ConversionReseauLocal(nomFichier="", nouveauFichier="", fenetreParente=None)
         nouveauNom = UTILS_Fichiers.GetRepData(u"%s_%s.dat" % (nouveauFichier, suffixe))
 
         # Création de la base de données
-        if fenetreParente != None : fenetreParente.SetStatusText("Conversion du fichier en cours... Création du fichier local...")
+        if fenetreParente != None : fenetreParente.SetStatusText("Création du fichier local...")
         db = DB(suffixe=suffixe, nomFichier=nouveauFichier, modeCreation=True)
         if db.echec == 1 :
             erreur = db.erreur

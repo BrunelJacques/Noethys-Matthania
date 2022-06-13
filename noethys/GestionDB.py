@@ -96,44 +96,43 @@ class DB():
         # Si aucun nom de fichier n'est spécifié, on recherche celui par défaut dans le Config.dat
         if self.nomFichier == "":
             self.nomFichier = self.GetNomFichierDefaut()
-        if self.nomFichier == "":
-            return None # cas des DB lancés par topWindows.name "general"
+
         self.echec = 1
+        if self.nomFichier != "":
+            # Mémorisation de l'ouverture de la connexion et des requêtes
+            if IDconnexion == None :
+                IX_CONNEXION["ix"] += 1
+                id = IX_CONNEXION["ix"]
+                self.IDconnexion = id
+                IX_CONNEXION["pointeurs"][id] = self
+            else :
+                self.IDconnexion = IDconnexion
 
-        # Mémorisation de l'ouverture de la connexion et des requêtes
-        if IDconnexion == None :
-            IX_CONNEXION["ix"] += 1
-            id = IX_CONNEXION["ix"]
-            self.IDconnexion = id
-            IX_CONNEXION["pointeurs"][id] = self
-        else :
-            self.IDconnexion = IDconnexion
+            #if self.IDconnexion == 27: # 'debug connexions ouvertes' etape ON
+            #    print("debug open")
+            DICT_CONNEXIONS[self.IDconnexion] = []
 
-        #if self.IDconnexion == 27: # 'debug connexions ouvertes' etape ON
-        #    print("debug open")
-        DICT_CONNEXIONS[self.IDconnexion] = []
+            # On ajoute le préfixe de type de fichier et l'extension du fichier
+            if MODE_TEAMWORKS == True and suffixe not in ("", None):
+                if suffixe[0] != "T":
+                    suffixe = _("T%s") % suffixe
 
-        # On ajoute le préfixe de type de fichier et l'extension du fichier
-        if MODE_TEAMWORKS == True and suffixe not in ("", None):
-            if suffixe[0] != "T":
-                suffixe = _("T%s") % suffixe
-
-        if suffixe != None :
-            self.nomFichier += "_%s" % suffixe
-
-        # Est-ce une connexion réseau ?
-        if "[RESEAU]" in self.nomFichier :
-            self.isNetwork = True
-        else:
-            self.isNetwork = False
             if suffixe != None :
-                self.nomFichier = UTILS_Fichiers.GetRepData(u"%s.dat" % self.nomFichier)
-        
-        # Ouverture de la base de données
-        if self.isNetwork == True :
-            self.OuvertureFichierReseau(self.nomFichier, suffixe)
-        else:
-            self.OuvertureFichierLocal(self.nomFichier)
+                self.nomFichier += "_%s" % suffixe
+
+            # Est-ce une connexion réseau ?
+            if "[RESEAU]" in self.nomFichier :
+                self.isNetwork = True
+            else:
+                self.isNetwork = False
+                if suffixe != None :
+                    self.nomFichier = UTILS_Fichiers.GetRepData(u"%s.dat" % self.nomFichier)
+
+            # Ouverture de la base de données
+            if self.isNetwork == True :
+                self.OuvertureFichierReseau(self.nomFichier, suffixe)
+            else:
+                self.OuvertureFichierLocal(self.nomFichier)
 
     def GetNomPosteReseau(self):
         if self.isNetwork == False :
@@ -146,22 +145,20 @@ class DB():
         self.typeDB = 'sqlite'
         if self.modeCreation == False :
             if os.path.isfile(nomFichier)  == False :
-                #print "Le fichier SQLITE demande n'est pas present sur le disque dur."
+                #print "Le fichier SQLITE demandé n'est pas present sur le disque dur."
                 self.echec = 1
                 return
-            # Initialisation de la connexion
-            try :
-                self.connexion = sqlite3.connect(nomFichier.encode('utf-8'))
-                self.cursor = self.connexion.cursor()
-                self.isNetwork = False
-                self.echec = 0
-            except Exception as err:
-                print("La connexion avec la base de donnees SQLITE a echouee : \nErreur detectee :%s" % err)
-                self.erreur = err
-                self.echec = 1
-        else:
+        # Initialisation de la connexion
+        try :
+            self.connexion = sqlite3.connect(nomFichier.encode('utf-8'))
+            self.cursor = self.connexion.cursor()
+            self.isNetwork = False
             self.echec = 0
-    
+        except Exception as err:
+            print("La connexion avec la base de donnees SQLITE a echouee : \nErreur detectee :%s" % err)
+            self.erreur = err
+            self.echec = 1
+
     def GetParamConnexionReseau(self):
         """ Récupération des paramètres de connexion si fichier MySQL """
         pos = self.nomFichier.index("[RESEAU]")
