@@ -1,19 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-15 -*-
 #-----------------------------------------------------------
-# Application :    Noethys, gestion multi-activités
+# Application :    ouvre CTRL_Saisie_transport, gestion des anomalies
 # Site internet :  www.noethys.com
-# Auteur:           Ivan LUCAS
-# Copyright:       (c) 2010-12 Ivan LUCAS
+# Auteur:           Ivan LUCAS, JB
+# Copyright:       (c) 2010-12 Ivan LUCAS, JB
 # Licence:         Licence GNU GPL
 #-----------------------------------------------------------
 
 
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
-from Ctrl import CTRL_Bouton_image
 import wx.lib.agw.customtreectrl as CT
 import datetime
 import GestionDB
@@ -71,7 +69,7 @@ class CTRL(CT.CustomTreeCtrl):
         # Récupération des lignes
         req = """SELECT IDligne, categorie, nom
         FROM transports_lignes;""" 
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req)
         listeValeurs = DB.ResultatReq()
         dictLignes = {}
         for IDligne, categorie, nom in listeValeurs :
@@ -81,7 +79,7 @@ class CTRL(CT.CustomTreeCtrl):
         req = """SELECT IDarret, IDligne, nom
         FROM transports_arrets
         ORDER BY ordre;""" 
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req)
         listeValeurs = DB.ResultatReq()
         dictArrets = {}
         for IDarret, IDligne, nom in listeValeurs :
@@ -90,47 +88,53 @@ class CTRL(CT.CustomTreeCtrl):
         # Récupération des lieux
         req = """SELECT IDlieu, categorie, nom
         FROM transports_lieux;""" 
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req)
         listeValeurs = DB.ResultatReq()
         dictLieux = {}
         for IDlieu, categorie, nom in listeValeurs :
             dictLieux[IDlieu] = nom
             
         # Récupération des transports
-        req = """SELECT IDtransport, categorie, IDligne, depart_IDarret, depart_IDlieu, arrivee_IDarret, arrivee_IDlieu
+        req = """SELECT IDtransport, categorie, IDligne, depart_IDarret, depart_IDlieu, arrivee_IDarret, arrivee_IDlieu, IDindividu
         FROM transports 
         WHERE %s;""" % conditionDates
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req)
         listeValeurs = DB.ResultatReq()
-        DB.Close()
-        
+
         dictResultats = {}
-        for IDtransport, categorie, IDligne, depart_IDarret, depart_IDlieu, arrivee_IDarret, arrivee_IDlieu in listeValeurs :
+        for IDtransport, categorie, IDligne, depart_IDarret, depart_IDlieu, arrivee_IDarret, arrivee_IDlieu, IDindividu in listeValeurs :
+            if categorie == None:
+                if IDindividu == None:
+                    DB.ReqDEL("transports","IDtransport",IDtransport,MsgBox = "Echec sur DEL transport")
+                else :
+                    texte = "Problème sur la catégorie du transport %d individu : %d \n" %(IDtransport, IDindividu)
+                    GestionDB.Messages().Box(("Incohérence à diagnostiquer "),texte)
+            else:
+                if ("type" in DICT_CATEGORIES[categorie]) == False:
+                    DICT_CATEGORIES[categorie]["type"] = None
+                typeTransports = DICT_CATEGORIES[categorie]["type"]
+                # Ajout catégorie
+                if (categorie in dictResultats) == False :
+                    dictResultats[categorie] = {"lignes":[], "arrets":[], "lieux":[]}
 
-            typeTransports = DICT_CATEGORIES[categorie]["type"]
-            
-            # Ajout catégorie
-            if (categorie in dictResultats) == False :
-                dictResultats[categorie] = {"lignes":[], "arrets":[], "lieux":[]}
-            
-            # Ajout Ligne
-            if typeTransports == "lignes" :
-                if IDligne not in dictResultats[categorie]["lignes"] :
-                    dictResultats[categorie]["lignes"].append(IDligne)
-            
-                # Ajout Arret
-                if depart_IDarret not in dictResultats[categorie]["arrets"] :
-                        dictResultats[categorie]["arrets"].append(depart_IDarret)
-                if arrivee_IDarret not in dictResultats[categorie]["arrets"] :
-                        dictResultats[categorie]["arrets"].append(arrivee_IDarret)
+                # Ajout Ligne
+                if typeTransports == "lignes" :
+                    if IDligne not in dictResultats[categorie]["lignes"] :
+                        dictResultats[categorie]["lignes"].append(IDligne)
 
-            # Ajout Lieu
-            if typeTransports == "lieux" :
-                if depart_IDlieu not in dictResultats[categorie]["lieux"] :
-                        dictResultats[categorie]["lieux"].append(depart_IDlieu)
-                if arrivee_IDlieu not in dictResultats[categorie]["lieux"] :
-                        dictResultats[categorie]["lieux"].append(arrivee_IDlieu)
-        
+                    # Ajout Arret
+                    if depart_IDarret not in dictResultats[categorie]["arrets"] :
+                            dictResultats[categorie]["arrets"].append(depart_IDarret)
+                    if arrivee_IDarret not in dictResultats[categorie]["arrets"] :
+                            dictResultats[categorie]["arrets"].append(arrivee_IDarret)
+
+                # Ajout Lieu
+                if typeTransports == "lieux" :
+                    if depart_IDlieu not in dictResultats[categorie]["lieux"] :
+                            dictResultats[categorie]["lieux"].append(depart_IDlieu)
+                    if arrivee_IDlieu not in dictResultats[categorie]["lieux"] :
+                            dictResultats[categorie]["lieux"].append(arrivee_IDlieu)
+        DB.Close()
         # Remplissage
         listeCategories = []
         if len(dictResultats) > 0 :
@@ -169,7 +173,7 @@ class CTRL(CT.CustomTreeCtrl):
                         label = dictArrets[IDarret]["nom"]
                     else :
                         label = _("Arrêt inconnu")
-                    if IDarret == None or (IDarret in dictArrets and dictArrets[IDarret]["IDligne"] == IDligne):
+                    if IDarret == None or dictArrets[IDarret]["IDligne"] == IDligne :
                         brancheArret = self.AppendItem(brancheLigne, label, ct_type=1)
                         self.SetPyData(brancheArret, {"categorie":"arrets", "code":IDarret})
                         brancheArret.Check() 

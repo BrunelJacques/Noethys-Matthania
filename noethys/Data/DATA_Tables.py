@@ -24,7 +24,7 @@ TABLES_IMPORTATION_OPTIONNELLES = [
         ['Cotisations Noethys', ('cotisations_activites','depots_cotisations',), True],
         ['Etats nominatifs', ('etat_nomin_champs','etat_nomin_profils','etat_nomin_selections',), True],
         ['Portail', ('portail_actions','portail_blocs','portail_messages',
-                     'portail_pages','portail_periodes','portail_renseignements',
+                     'portail_pages','portail_renseignements',
                      'portail_reservations','portail_reservations_locations','portail_unites',), True],
         ['Tarifs Noethys', ('combi_tarifs','combi_tarifs_unites',), True],
         ] # [Nom Categorie, (liste des tables...,), Selectionné]
