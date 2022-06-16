@@ -138,8 +138,6 @@ class Track(object):
             if "telephones" in dictCorrespondant: self.telephones = dictCorrespondant["telephones"]
             if "mails" in dictCorrespondant: self.mails = dictCorrespondant["mails"]
 
-
-
 class ListView(FastObjectListView):
     def __init__(self, *args, **kwds):
         # Récupération des paramètres perso
@@ -271,7 +269,7 @@ class ListView(FastObjectListView):
             return DICT_CATEGORIES[categorie]["label"]
 
         liste_Colonnes = [
-            ColumnDefn("", "left", 0, "IDtransport", typeDonnee="entier"), 
+            ColumnDefn("ID", "left", 40, "IDtransport", typeDonnee="entier"),
             ColumnDefn(_("Transport"), "left", 120, "categorie", typeDonnee="texte", stringConverter=FormateCategorie,  imageGetter=GetImageCategorie),
             ColumnDefn(_("Départ"), 'left', 80, "depart_date", typeDonnee="date", stringConverter=FormateDate),
             ColumnDefn(_("Origine"), 'left', 140, "depart_nom", typeDonnee="texte"),
@@ -534,8 +532,6 @@ class ListView(FastObjectListView):
 
     def GetTracksCoches(self):
         return self.GetCheckedObjects()
-
-
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
