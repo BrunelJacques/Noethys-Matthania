@@ -282,7 +282,7 @@ class DB():
             # l'ID connection n'était pas créé
             del self
             return
-        #if self.IDconnexion == 8:# 'debug connexions ouvertes' etape off
+        #if self.IDconnexion == 30:# 'debug connexions ouvertes' etape off
         #    print("debug Close")
         try :
             if self.isNetwork and self.connexion.open != 0:
@@ -541,7 +541,6 @@ class DB():
 
     def ExecuterReq(self, req, commit=True, MsgBox = None):
         if self.echec >= 1:
-            print("go",self.erreur)
             if not MsgBox: MsgBox = "GestionDB.ExecuterReq"
             if self.erreur != "ErreurPubliee":
                 mess = "Echec d'accès à la base de donnée\n\n%s"%MsgBox

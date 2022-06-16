@@ -8,16 +8,12 @@
 # Licence:         Licence GNU GPL
 #-----------------------------------------------------------
 
-
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
-from Ctrl import CTRL_Bouton_image
 
 from Ol import OL_Groupes
 import GestionDB
-
 
 class Panel(wx.Panel):
     def __init__(self, parent, IDactivite=None, nouvelleActivite=False):
@@ -50,8 +46,7 @@ class Panel(wx.Panel):
 
         # Importation
         if self.IDactivite != None :
-            self.Importation() 
-        
+            self.Importation()
         
     def __set_properties(self):
         self.bouton_ajouter.SetToolTip(wx.ToolTip(_("Cliquez ici pour ajouter un groupe")))
@@ -120,7 +115,7 @@ class Panel(wx.Panel):
         db = GestionDB.DB()
         req = """SELECT IDgroupe, nom 
         FROM groupes WHERE IDactivite=%d;""" % self.IDactivite
-        db.ExecuterReq(req,MsgBox="ExecuterReq")
+        db.ExecuterReq(req)
         listeDonnees = db.ResultatReq()
         db.Close()
 
@@ -136,8 +131,6 @@ class Panel(wx.Panel):
 
     def Sauvegarde(self):
         pass
-        
-
 
 
 class MyFrame(wx.Frame):

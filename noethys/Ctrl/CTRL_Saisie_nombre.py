@@ -37,6 +37,8 @@ class CTRL(wx.TextCtrl):
     def Validation(self):
         # Vérifie si montant vide
         montantStr = self.GetValue()
+        if montantStr == "":
+            montantStr = "0"
         try :
             test = int(montantStr)
         except :

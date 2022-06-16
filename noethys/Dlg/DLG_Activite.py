@@ -601,7 +601,7 @@ class Dialog(wx.Dialog):
 if __name__ == "__main__":
     app = wx.App(0)
     #wx.InitAllImageHandlers()
-    IDactivite = None # <<<<<<<<<<<<<<<< pour les tests
+    IDactivite = 727 # <<<<<<<<<<<<<<<< pour les tests
     if IDactivite == None :
         frame_1 = Assistant(None, IDactivite=None)
     else:

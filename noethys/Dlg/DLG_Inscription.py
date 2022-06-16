@@ -353,7 +353,6 @@ class Dialog(wx.Dialog):
     
     def SetAgeInconnu(self,activation):
         if activation:
-            print("Rouge")
             self.ctrl_ageInconnu.SetForegroundColour((250,0,0)) # set text color
             self.ctrl_ageInconnu.SetBackgroundColour((230,230,230)) # set text back color
             self.ageConnu = False

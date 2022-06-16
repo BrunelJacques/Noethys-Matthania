@@ -119,6 +119,7 @@ class OLVtarification(FastObjectListView):
     def __init__(self,parent,dictDonnees,*args, **kwds):
         self.parent = parent
         self.dictDonnees = dictDonnees
+        self.objectSelected = None
         FastObjectListView.__init__(self, parent, *args, **kwds)
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_factures", "creer") == False :
             GestionDB.MessageBox(self,"Vous n'avez pas les droits pour créer des factures")
@@ -159,10 +160,6 @@ class OLVtarification(FastObjectListView):
         #self.SetSortColumn(self.columns[1])
         self.SetObjects(self.listeOLV)
         #fin InitObjectListView
-
-    def OnItemActivated(self,event):
-        self.parent.choix = self.GetSelectedObject()
-        self.parent.EndModal(wx.ID_OK)
 
     def AppelDonneesTarifs(self):
         """ Récupération des données en mode ajout """
@@ -299,9 +296,6 @@ class OLVtarification(FastObjectListView):
         return listeOLV
         #fin EnrichirDonnees
 
-    def Selection(self):
-        return self.GetSelectedObject()
-
     def AjoutParrain(self,sens):
         if sens:
             DB = self.dictDonnees['db']
@@ -342,9 +336,10 @@ class DlgTarification(wx.Dialog):
         self.listeLignesPiece=[]
         self.dictDonnees = dictDonnees
         # DB sera utilisé dans tous les enfants via dictDonnees
-        self.dictDonnees['db'] = GestionDB.DB()
-        DB = self.dictDonnees['db']
-        self.DB = DB
+        self.DB = GestionDB.DB()
+        self.dictDonnees['db'] = self.DB
+        DB = self.DB
+
         self.GetTrfPrix() # alimente la clé trfPrix dans dictDonnees
         self.SetTitle(_("DLG_PrixActivite"))
         self.IDfamille = dictDonnees["IDfamille"]
@@ -370,7 +365,7 @@ class DlgTarification(wx.Dialog):
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_inscriptions", "creer", IDactivite=dictDonnees["IDactivite"]) == False :
             self.rw = False
         # conteneur des données
-        self.resultsOlv = OLVtarification(self, dictDonnees, id=-1, name="DLG_PrixActivite", style=wx.LC_REPORT | wx.SUNKEN_BORDER | wx.LC_SINGLE_SEL | wx.LC_HRULES | wx.LC_VRULES)
+        self.resultsOlv = OLVtarification(self, dictDonnees, id=-1, name="DLG_PrixActivite", style=wx.LC_REPORT )
         self.resultsOlv.InitObjectListView()
         if 'coches' in self.dictDonnees:
             if self.dictDonnees['coches']:
@@ -434,13 +429,12 @@ class DlgTarification(wx.Dialog):
 
         self.__set_properties()
         self.__do_layout()
-        self.resultsOlv.Bind(wx.EVT_COMMAND_LEFT_CLICK, self.Activated)
         self.resultsOlv.Bind(wx.EVT_LIST_ITEM_SELECTED, self.Selected)
-        self.resultsOlv.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.Activated)
         self.resultsOlv.Bind(wx.EVT_TEXT, self.Texte)
         self.Bind(wx.EVT_BUTTON, self.OnParrain, self.bouton_parrain)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonOk, self.bouton_ok)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonOj, self.bouton_oj)
+        self.Bind(wx.EVT_BUTTON, self.FinSaisie, self.bouton_annuler)
         self.Bind(wx.EVT_CHECKBOX, self.OnAbandonFilleul, self.ctrl_abandon)
         self.ctrl_nom_parrain.Bind(wx.EVT_SET_FOCUS, self.OnNomParrain)
 
@@ -566,6 +560,8 @@ class DlgTarification(wx.Dialog):
 
     def FinSaisie(self,event):
         self.listeLignesPiece = self.ListeDict(self.resultsOlv)
+        if event and event.Id == wx.ID_CANCEL:
+            self.Final(wx.ID_CANCEL)
         # Validation du montant
         endModal = wx.ID_CANCEL
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_factures", "creer")  :
@@ -657,6 +653,13 @@ class DlgTarification(wx.Dialog):
             self.obj = self.resultsOlv.GetSelectedObject()
             self.lastBind = "select"
             self.lastLigne = 0
+
+        #  reprise d'un éléments si nouvelle coche
+        if self.resultsOlv.IsChecked(self.obj) == True:
+            for objOrigine in self.dataorigine:
+                if objOrigine.codeArticle == self.obj.codeArticle:
+                    self.obj.prixUnit = objOrigine.prixUnit
+
         # une saisie texte a eu lieu des contrôles et actions sont nécessaires
         if self.lastBind == "texte" :
             objects = self.resultsOlv.GetObjects()
@@ -677,17 +680,6 @@ class DlgTarification(wx.Dialog):
         self.lastBind = "select"
         self.CalculSolde()
         self.obj = self.resultsOlv.GetSelectedObject()
-
-    def Activated(self, event):
-        obj = self.resultsOlv.GetSelectedObject()
-        #if len(selection)>0:
-        #    obj = selection[0]
-        # reprend un montant antérieur si retour d'une coche après décoche
-        if self.resultsOlv.IsChecked(obj) == True:
-            for objOrigine in self.dataorigine:
-                if objOrigine.codeArticle == obj.codeArticle:
-                    obj.prixUnit = objOrigine.prixUnit
-        self.CalculSolde()
 
     def CalculSolde(self):
         if self.modifJours:
@@ -873,17 +865,17 @@ if __name__ == "__main__":
     app = wx.App(0)
     listeDonnees = [
         ("origine", "ajout"),
-        ("IDindividu", 49),
-        ("IDfamille", 49),
-        ("IDactivite", 412),
-        ("IDgroupe", 866),
-        ("IDcategorie_tarif", 1002),
-        ("IDcompte_payeur", 49),
+        ("IDindividu", 9),
+        ("IDfamille", 9),
+        ("IDactivite", 716),
+        ("IDgroupe", 2019),
+        ("IDcategorie_tarif", 1597),
+        ("IDcompte_payeur", 9),
         ("date_inscription", str(datetime.date.today())),
         ("parti", False),
         ("IDparrain", None),
         ("parrainAbandon", None),
-        ("nom_activite", "Sejour 41"),
+        ("nom_activite", "Sejou"),
         ("nom_famille", "ma famille"),
         ("nom_groupe", "Groupe Pasto Plus"),
         ("nom_categorie_tarif", "Tarif Normal"),

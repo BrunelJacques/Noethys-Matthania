@@ -246,7 +246,6 @@ class ObjectListView(wx.ListCtrl):
         parameter only has effect at creation time -- it has no impact after creation.
 
         """
-
         # We have two collections of objects: our model objects and our working list
         # ("innerList"). The model objects are those given to use by the user; the working
         # list is what is actually used to populate the control. This separation let us
@@ -270,6 +269,7 @@ class ObjectListView(wx.ListCtrl):
         self.whenLastTypingEvent = 0
         self.filter = None
         self.objectToIndexMap = None
+        self.objectSelected = None
 
         self.rowFormatter = kwargs.pop("rowFormatter", None)
         self.useAlternateBackColors = kwargs.pop(
@@ -1194,9 +1194,6 @@ class ObjectListView(wx.ListCtrl):
         return self.GetCheckedObjects()
 
     def GetSelectedObject(self):
-        """
-        Return the selected modelObject or None if nothing is selected or if more than one is selected.
-        """
         model = None
         for (i, x) in enumerate(self.YieldSelectedObjects()):
             if i == 0:
@@ -1205,6 +1202,7 @@ class ObjectListView(wx.ListCtrl):
                 model = None
                 break
         return model
+
 
     def GetSelectedObjects(self):
         # Vérifie la présence de case cochées qui ont priorité
@@ -3685,7 +3683,8 @@ class ColumnDefn(object):
             groupKeyConverter=None,
             useInitialLetterForGroupKey=False,
             groupTitleSingleItem=None,
-            groupTitlePluralItems=None):
+            groupTitlePluralItems=None,
+            **kwd):
         """
         Create a new ColumnDefn using the given attributes.
 

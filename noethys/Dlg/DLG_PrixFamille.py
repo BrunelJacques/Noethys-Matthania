@@ -570,6 +570,7 @@ class DlgTarification(wx.Dialog):
         titre = "NIVEAU FAMILLE "
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=self.payeur, hauteurHtml=10,
                                                  nomImage="Images/22x22/Smiley_nul.png")
+
         self.SetBandeau()
 
         # conteneur des données
@@ -686,10 +687,8 @@ class DlgTarification(wx.Dialog):
         texte = "Payeur : " + self.payeur + " - Période du " \
                 + self.exerciceDeb.strftime("%d/%m/%Y") + " au " + self.exerciceFin.strftime("%d/%m/%Y")
         titre = "NIVEAU FAMILLE - année %s" % str(self.annee)
-        self.ctrl_bandeau.ctrl_titre = wx.StaticText(self, -1, titre)
-        self.ctrl_bandeau.ctrl_intro = CTRL_Bandeau.MyHtml(self, texte, 10,)
-        self.ctrl_bandeau.Set_properties()
-        #self.ctrl_bandeau.Sizer()
+        self.ctrl_bandeau.ctrl_titre.SetLabel(titre)
+        self.ctrl_bandeau.ctrl_intro.SetPage(texte)
 
     def __set_properties(self):
         if not self.rw :
@@ -907,6 +906,7 @@ class DlgTarification(wx.Dialog):
 
     def OnTexte(self, event):
         # l'évènement OnTexte ne valide pas la saisie, test impossible sur les valeurs de track
+        if not self.obj: return
         self.obj.saisie = True
 
     def OnSelected(self, event):
