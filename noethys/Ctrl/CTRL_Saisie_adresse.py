@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-15 -*-
 #-----------------------------------------------------------
-# Application :    Noethys, gestion multi-activités
+# Application :    Noethys branche Matthania
 # Site internet :  www.noethys.com
 # Auteur:           Ivan LUCAS
 # Copyright:       (c) 2010-11 Ivan LUCAS
@@ -10,10 +10,8 @@
 
 
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
-from Ctrl import CTRL_Bouton_image
 import wx.lib.masked as masked
 import sqlite3
 import sys
@@ -37,7 +35,7 @@ def Importation_donnees():
     DB = GestionDB.DB()
     req = """SELECT IDcorrection, mode, IDville, nom, cp
     FROM corrections_villes; """ 
-    DB.ExecuterReq(req,MsgBox="ExecuterReq")
+    DB.ExecuterReq(req)
     listeCorrections = DB.ResultatReq()
     DB.Close()
     
@@ -67,9 +65,9 @@ def Importation_donnees():
             try :
                 cp = int(cp)
                 listeVilles.append((nom, "%05d" % cp))
-                listeNomsVilles.append(nom)
-            except :
-                pass
+            except:
+                listeVilles.append((nom,  str(cp)))
+            listeNomsVilles.append(nom)
 
     dictRegions = {}
     for num_region, region in listeRegions :
@@ -156,7 +154,7 @@ class TextCtrlCp(masked.TextCtrl):
         """ Créé une info-bulle pour les cp et villes pour indiquer les régions et départements """
         cp = self.GetValue()
         if cp == "" or cp == "     " :
-            controle.SetToolTip(wx.ToolTip(_("Saisissez un code postal")))
+            self.SetToolTip(wx.ToolTip(_("Saisissez un code postal")))
         else:
             try :
                 num_dep = cp[:2]
@@ -268,10 +266,10 @@ class Adresse(wx.Panel):
         wx.Panel.__init__(self, parent, id=-1, size=size, style=wx.TAB_TRAVERSAL)
         self.listeNomsVilles, self.listeVilles, self.dictRegions, self.dictDepartements = Importation_donnees()
 
-        activeAutoComplete = UTILS_Config.GetParametre("adresse_autocomplete", True)
-        mask_cp = UTILS_Config.GetParametre("mask_cp", "#####")
-        
-        self.ctrl_cp = TextCtrlCp(self, value="", listeVilles=self.listeVilles, activeAutoComplete=activeAutoComplete, size=(55, -1), style=wx.TE_CENTRE, mask=mask_cp) 
+        activeAutoComplete = UTILS_Config.GetParametre("adresse_autocomplete", False)
+        mask_cp = ""
+
+        self.ctrl_cp = TextCtrlCp(self, value="", listeVilles=self.listeVilles, activeAutoComplete=activeAutoComplete, size=(55, -1), style=wx.TE_CENTRE, mask=mask_cp)
         self.label_ville = wx.StaticText(self, -1, _("Ville :"))
         self.ctrl_ville = TextCtrlVille(self, value="", ctrlCp=self.ctrl_cp, listeVilles=self.listeVilles, listeNomsVilles=self.listeNomsVilles, activeAutoComplete=activeAutoComplete)
         self.ctrl_cp.ctrlVille = self.ctrl_ville
@@ -300,6 +298,7 @@ class Adresse(wx.Panel):
         grid_sizer_base.Add(self.bouton_options, 1, wx.EXPAND|wx.ALL, 0)
         grid_sizer_base.AddGrowableCol(2)
         self.SetSizer(grid_sizer_base)
+        grid_sizer_base.Fit(self)
         self.Layout()
         
     def GetValueCP(self):
@@ -318,9 +317,8 @@ class Adresse(wx.Panel):
         if cp != None :
             try :
                 self.ctrl_cp.SetValue(cp)
-                return True
             except : 
-                return False
+                pass
     
     def SetValueVille(self, ville=""):
         if ville != None :
@@ -332,7 +330,8 @@ class Adresse(wx.Panel):
         from Dlg import DLG_Villes
         dlg = DLG_Villes.Dialog(None, modeImportation=True)
         if dlg.ShowModal() == wx.ID_OK:
-            cp, ville = dlg.GetVille()
+            ret = dlg.GetVille()
+            cp, ville = ret[0], ret[1]
             self.SetValueCP(cp)
             self.SetValueVille(ville)
         dlg.Destroy()
@@ -342,8 +341,6 @@ class Adresse(wx.Panel):
         self.ctrl_cp.listeVilles=self.listeVilles
         self.ctrl_ville.listeVilles=self.listeVilles
         self.ctrl_ville.listeNomsVilles=self.listeNomsVilles
-
-
 
 
 class MyFrame(wx.Frame):

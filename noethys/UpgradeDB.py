@@ -487,9 +487,7 @@ class DB(GestionDB.DB):
                 if parent and mess:
                     parent.mess += "%s %s, "%(nomTable,ret)
                     parent.SetStatusText(parent.mess[-200:])
-            if ret == None:
-                print("-")
-            else:
+            if ret != None:
                 print(nomTable + " fin: ",ret)
         if nomTable != tables[-1]:
             # traitement inachevé

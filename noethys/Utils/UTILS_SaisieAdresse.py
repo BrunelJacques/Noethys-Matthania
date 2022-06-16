@@ -207,9 +207,9 @@ def GetRegions():
 
     return dictRegions
 
-def GetOnePays(self,filtre=""):
+def GetOnePays(filtre=""):
     filtre = filtre.upper().replace("'","?")
-    if filtre in "FRANCE":
+    if len(filtre) >0 and filtre in "FRANCE":
         wx.MessageBox("La France n'est pas un pays étranger, il faut laisser le champ à blanc!")
         return ""
     if filtre in ("ANGLETERRE","ECOSSE","PAYS DE GALLE"):

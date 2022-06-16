@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-15 -*-
 #-----------------------------------------------------------
-# Application :    Noethys, gestion multi-activités
+# Application :    Noethys branche Matthania
 # Site internet :  www.noethys.com
-# Auteur:           Ivan LUCAS
-# Copyright:       (c) 2010-11 Ivan LUCAS
+# Auteur:           Ivan LUCAS, JB
+# Copyright:       (c) 2010-11 Ivan LUCAS, JB
 # Licence:         Licence GNU GPL
 #-----------------------------------------------------------
 
@@ -18,11 +18,11 @@ import wx.lib.masked as masked
 from Utils import UTILS_Config
 
     
-class Tel(masked.TextCtrl):
-    def __init__(self, parent, intitule="", mask = "##.##.##.##.##.", size=(-1, -1)):
+class Tel(wx.TextCtrl):
+    def __init__(self, parent, intitule=""):
         """ intitule = domicile | mobile | fax | travail """
-        self.mask = UTILS_Config.GetParametre("mask_telephone", "##.##.##.##.##.")
-        masked.TextCtrl.__init__(self, parent, -1, "", size=size, style=wx.TE_CENTRE, mask=self.mask)
+        self.mask = ""
+        wx.TextCtrl.__init__(self, parent, -1, "", style=wx.TE_CENTRE)
         self.parent = parent
         self.SetMinSize((125, -1))
         self.SetToolTip(wx.ToolTip(_("Saisissez un numéro de %s") % intitule))
@@ -31,22 +31,42 @@ class Tel(masked.TextCtrl):
     def OnKillFocus(self, event):
         valide, messageErreur = self.Validation()
         if valide == False :
-            wx.MessageBox(messageErreur, "Erreur de saisie")
+            wx.MessageBox(messageErreur, "Erreur de format")
         if event != None : event.Skip() 
     
     def Validation(self):
-        if self.mask == "" : 
-            return True, None
         text = self.GetValue()
         # Vérifie si Tél vide
-        if text == "" or text == "  .  .  .  .  .":
+        if text.strip() == "" :
             return True, None
-        # Vérifie si Téléphone valide
-        posChiffres = [0, 1, 3, 4, 6, 7, 9, 10, 12, 13]
-        for position in posChiffres:
-            if text[position].isdigit() == False:
-                message = _("Le numéro que vous avez saisi ne semble pas valide.")
-                return False, message
+        # filatrage des séparateurs obsolètes
+        text = text.replace("."," ").strip()
+        # insertion d'espaces s'il n'y en a pas
+        if not " " in text and len(text) == 10:
+            text = text[:2]+" "+text[2:4]+" "+text[4:6]+" "+text[6:8]+" "+text[8:10]
+        if not " " in text and len(text) > 10:
+            text = text[:3]+" "+text[3:6]+" "+text[6:9]+" "+text[9:12]+" "+text[12:]
+
+        # reécrit le nombre reformaté
+        self.SetNumero(text)
+
+        message = None
+        if not text[0] in "+0": message = "Un numéro de téléphone commence par '0' ou '+'"
+        # présence de 10 chiffres pour la france 7 pour l'étranger
+        if text[0] == "0": lgon = 10
+        elif text[:3]== "+33": lgon = 11
+        else: lgon = 7
+        for a in "() +-":
+            text = text.replace(a,'')
+        try:
+            no = int(text[:lgon])
+        except:
+            message = "'%s' n'est pas un nombre, au moins %s chiffres attendus!"%(text[:lgon],lgon)
+
+        if len(text)<lgon:
+            message = "Pas assez long, au moins %s chiffres attendus!"%(lgon)
+
+        if message : return False,message
         return True, None
     
     def SetNumero(self, numero=""):
@@ -58,7 +78,7 @@ class Tel(masked.TextCtrl):
     
     def GetNumero(self):
         tel = self.GetValue() 
-        if tel == "  .  .  .  .  ." :
+        if tel.strip() == "" :
             return None
         else:
             return tel

@@ -806,13 +806,11 @@ class Dialog(wx.Dialog):
         intro = _("Vous pouvez modifier ici les paramètres de base du logiciel. Les fonctionnalités marquées d'un astérisque (*) nécessitent un redémarrage du logiciel.")
         titre = _("Préférences")
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Configuration2.png")
-        
+        self.userConfig = {}
         # Contenu
         self.ctrl_interface = Interface(self)
         self.ctrl_monnaie = Monnaie(self)
         self.ctrl_dates = Dates(self)
-        self.ctrl_telephones = Telephones(self)
-        self.ctrl_codesPostaux = Codes_postaux(self)
         self.ctrl_adresses = Adresses(self)
         self.ctrl_rapport_bugs = Rapport_bugs(self)
         self.ctrl_propose_maj = Propose_maj(self)
@@ -854,8 +852,6 @@ class Dialog(wx.Dialog):
         grid_sizer_gauche.Add(self.ctrl_interface, 1, wx.EXPAND, 0)
         grid_sizer_gauche.Add(self.ctrl_interface_mysql, 1, wx.EXPAND, 0)
         grid_sizer_gauche.Add(self.ctrl_dates, 1, wx.EXPAND, 0)
-        grid_sizer_gauche.Add(self.ctrl_telephones, 1, wx.EXPAND, 0)
-        grid_sizer_gauche.Add(self.ctrl_codesPostaux, 1, wx.EXPAND, 0)
         grid_sizer_gauche.Add(self.ctrl_adresses, 1, wx.EXPAND, 0)
         grid_sizer_gauche.Add(self.label_redemarrage, 1, wx.EXPAND, 0)
 
@@ -903,8 +899,6 @@ class Dialog(wx.Dialog):
         if self.ctrl_interface.Validation() == False : return
         if self.ctrl_monnaie.Validation() == False : return
         if self.ctrl_dates.Validation() == False : return
-        if self.ctrl_telephones.Validation() == False : return
-        if self.ctrl_codesPostaux.Validation() == False : return
         if self.ctrl_adresses.Validation() == False : return
         if self.ctrl_rapport_bugs.Validation() == False : return
         if self.ctrl_propose_maj.Validation() == False : return
@@ -918,8 +912,6 @@ class Dialog(wx.Dialog):
         self.ctrl_interface.Sauvegarde()
         self.ctrl_monnaie.Sauvegarde()
         self.ctrl_dates.Sauvegarde()
-        self.ctrl_telephones.Sauvegarde()
-        self.ctrl_codesPostaux.Sauvegarde()
         self.ctrl_adresses.Sauvegarde()
         self.ctrl_rapport_bugs.Sauvegarde()
         self.ctrl_propose_maj.Sauvegarde()
