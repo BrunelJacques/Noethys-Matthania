@@ -29,9 +29,6 @@ def InfosFichier(fichier=""):
     data = UTILS_Json.Lire(fichier)
     return data
 
-
-
-
 class Exporter():
     def __init__(self, categorie="activite"):
         self.categorie = categorie
@@ -53,6 +50,8 @@ class Exporter():
     def GetListeChamps(self, nomTable=''):
         """ Récupération des champs de la table """
         listeColonnes = self.DB.GetListeChamps2(nomTable)
+        if not listeColonnes:
+            return
         listeChamps = []
         for nomChamp, typeChamp in listeColonnes :
             listeChamps.append(nomChamp) 
@@ -102,7 +101,10 @@ class Exporter():
 
     def ExporterTable(self, nomTable="", condition="", chainesListes=[], remplacement=None):
         """ Exporter une table donnée """
-        listeChamps, listeColonnes = self.GetListeChamps(nomTable) 
+        getLst = self.GetListeChamps(nomTable)
+        if not getLst:
+            return
+        listeChamps, listeColonnes =  getLst
         champCle = listeChamps[0]
         
         req = """SELECT %s
@@ -336,7 +338,8 @@ class Importer():
                 self.dictID[champCle] = {}
             self.dictID[champCle][ancienID] = newID
 
-            prochainID += 1
+            if prochainID:
+                prochainID += 1
             index_ligne += 1
 
         # Executermany sur toute la table à importer

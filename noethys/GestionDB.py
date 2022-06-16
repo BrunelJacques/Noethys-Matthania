@@ -728,6 +728,11 @@ class DB():
     def GetListeChamps2(self, nomTable=""):
         """ Affiche la liste des champs de la table donnée """
         listeChamps = []
+        if not self.IsTableExists(nomTable):
+            mess = "La table '%s' n'est pas présente"%nomTable
+            wx.MessageBox(mess,"Anomalie détectée")
+            return
+
         if self.isNetwork == False :
             # Version Sqlite
             req = "PRAGMA table_info('%s');" % nomTable
