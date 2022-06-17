@@ -13,11 +13,7 @@ import wx
 import six
 import GestionDB
 
-if 'phoenix' in wx.PlatformInfo:
-    TYPE_COULEUR = wx._core.Colour
-else:
-    TYPE_COULEUR = wx._gdi.Colour
-
+TYPE_COULEUR = wx._core.Colour
 
 def ParametresCategorie(mode="get", categorie="", dictParametres={}, nomFichier=""):
     """ Pour mémoriser ou récupérer des paramètres dans la base de données """
@@ -47,7 +43,6 @@ def ParametresCategorie(mode="get", categorie="", dictParametres={}, nomFichier=
         # Préparation de la valeur par défaut
         type_parametre = type(valeur)
         if type_parametre == int : valeurTmp = str(valeur)
-        elif six.PY2 and type_parametre == long : valeurTmp = str(valeur)
         elif type_parametre == float : valeurTmp = str(valeur)
         elif type_parametre == str : valeurTmp = valeur
         elif type_parametre == six.text_type : valeurTmp = valeur
@@ -66,7 +61,6 @@ def ParametresCategorie(mode="get", categorie="", dictParametres={}, nomFichier=
                 # On le formate pour le récupérer sous son vrai format
                 try :
                     if type_parametre == int : valeur = int(valeur)
-                    if six.PY2 and type_parametre == long : valeur = long(valeur)
                     if type_parametre == float : valeur = float(valeur)
                     if type_parametre == str : valeur = valeur
                     if type_parametre == six.text_type : valeur = valeur
@@ -104,9 +98,6 @@ def ParametresCategorie(mode="get", categorie="", dictParametres={}, nomFichier=
     DB.Close()
     return dictFinal
 
-
-
-
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
 def Parametres(mode="get", categorie="", nom="", valeur=None, nomFichier=""):
@@ -117,7 +108,6 @@ def Parametres(mode="get", categorie="", nom="", valeur=None, nomFichier=""):
     # Préparation de la valeur par défaut
     type_parametre = type(valeur)
     if type_parametre == int : valeurTmp = str(valeur)
-    elif six.PY2 and type_parametre == long : valeurTmp = str(valeur)
     elif type_parametre == float : valeurTmp = str(valeur)
     elif type_parametre == str : valeurTmp = valeur
     elif type_parametre == six.text_type : valeurTmp = valeur
@@ -143,7 +133,6 @@ def Parametres(mode="get", categorie="", nom="", valeur=None, nomFichier=""):
             valeurTmp = listeDonnees[0][1]
             # On le formate pour le récupérer sous son vrai format
             if type_parametre == int : valeurTmp = int(valeurTmp)
-            if six.PY2 and type_parametre == long : valeurTmp = long(valeurTmp)
             if type_parametre == float : valeurTmp = float(valeurTmp)
             if type_parametre == str : valeurTmp = valeurTmp
             if type_parametre == six.text_type : valeurTmp = valeurTmp
@@ -165,7 +154,6 @@ def Parametres(mode="get", categorie="", nom="", valeur=None, nomFichier=""):
     DB.Close()
     return valeurTmp
 
-
 def TestParametre(categorie="", nom="", valeur=None, nomFichier=""):
     """ Vérifie si un paramètre existe dans le fichier """
     DB = GestionDB.DB(nomFichier=nomFichier)
@@ -177,7 +165,6 @@ def TestParametre(categorie="", nom="", valeur=None, nomFichier=""):
         return False
     else:
         return True
-
 
 # ----------------------- TESTS --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":

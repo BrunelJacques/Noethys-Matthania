@@ -33,6 +33,7 @@ if not exist "c:\Program Files\Python39" (
 	"c:\Program Files\Python39\"python -m pip install mysql --no-warn-script-location
 	"c:\Program Files\Python39\"python -m pip install mysql.connector --no-warn-script-location
 	"c:\Program Files\Python39\"python -m pip install Unidecode --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install bpython --no-warn-script-location
 	echo ""
 	md "c:\Program Files\Noethys-Matthania"
 	echo "Fin des install Ok"

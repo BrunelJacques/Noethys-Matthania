@@ -66,7 +66,7 @@ class DLG_Rapport(wx.Dialog):
 
         self.ctrl_image = wx.StaticBitmap(self, wx.ID_ANY, wx.Bitmap(Chemins.GetStaticPath(u"Images/48x48/Erreur.png"), wx.BITMAP_TYPE_ANY))
         self.label_ligne_1 = wx.StaticText(self, wx.ID_ANY, _("Noethys a rencontré un problème !"))
-        self.label_ligne_2 = wx.StaticText(self, wx.ID_ANY, _("Le rapport d'erreur ci-dessous peut servir à la résolution de ce bug.\nMerci de bien vouloir le communiquer à l'auteur par Email ou depuis le forum."))
+        self.label_ligne_2 = wx.StaticText(self, wx.ID_ANY, _("Le rapport d'erreur ci-dessous peut servir à la résolution de ce bug.\nMerci de bien vouloir le communiquer à l'auteur par Email."))
         self.ctrl_rapport = wx.TextCtrl(self, wx.ID_ANY, texte, style=wx.TE_MULTILINE | wx.TE_READONLY)
         
         self.bouton_envoyer = CTRL_Bouton_image.CTRL(self, texte=_("Envoyer au support"), cheminImage="Images/32x32/Emails_exp.png")
@@ -243,12 +243,12 @@ class DLG_Envoi(wx.Dialog):
         self.texteRapport = texteRapport
 
         self.label_ligne_1 = wx.StaticText(self, wx.ID_ANY, _("Le rapport est prêt à être envoyé..."))
-        self.label_ligne_2 = wx.StaticText(self, wx.ID_ANY, _("Vous pouvez ajouter ci-dessous des commentaires, remarques ou compléments d'informations\navant de l'envoyer à l'auteur. Il est également possible de joindre le rapport complet."))
+        self.label_ligne_2 = wx.StaticText(self, wx.ID_ANY, _("Veuillez ajouter ci-dessous les circonstances de l'évènement: Que faisiez-vous, sur quel client?\nCeci permettra de reproduire le cas pour un diagnostic."))
 
         self.ctrl_commentaires = wx.TextCtrl(self, wx.ID_ANY, "", style=wx.TE_MULTILINE)
 
         self.check_journal = wx.CheckBox(self, -1, _("Joindre le journal des erreurs (Recommandé)"))
-
+        self.check_journal.SetValue(True)
         self.bouton_apercu = CTRL_Bouton_image.CTRL(self, texte=_("Aperçu"), cheminImage="Images/32x32/Apercu.png")
         self.bouton_envoyer = CTRL_Bouton_image.CTRL(self, texte=_("Envoyer l'Email"), cheminImage="Images/32x32/Emails_exp.png")
         self.bouton_annuler = CTRL_Bouton_image.CTRL(self, texte=_("Annuler"), cheminImage="Images/32x32/Annuler.png")
@@ -264,7 +264,7 @@ class DLG_Envoi(wx.Dialog):
         self.SetTitle(_("Envoyer le rapport à l'auteur"))
         self.label_ligne_1.SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, ""))
         self.ctrl_commentaires.SetToolTip(wx.ToolTip(_("Vous pouvez saisir des commentaires ici")))
-        self.check_journal.SetToolTip(wx.ToolTip(_("Pour faciliter la résolution du bug, vous pouvez joindre votre rapport d'erreurs")))
+        self.check_journal.SetToolTip(wx.ToolTip(_("Le rapport d'erreurs, facilite la résolution du bug, ")))
         self.bouton_apercu.SetToolTip(wx.ToolTip(_("Cliquez ici pour visualiser le contenu du message qui sera envoyé à l'auteur")))
         self.bouton_envoyer.SetToolTip(wx.ToolTip(_("Cliquez ici pour envoyer le rapport et les commentaires à l'auteur")))
         self.bouton_annuler.SetToolTip(wx.ToolTip(_("Cliquez ici pour annuler")))

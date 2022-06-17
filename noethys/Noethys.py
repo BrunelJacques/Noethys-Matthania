@@ -1895,10 +1895,10 @@ def main():
     # Log
     nomJournal = UTILS_Fichiers.GetRepUtilisateur(CUSTOMIZE.GetValeur("journal", "nom", "journal.log"))
 
-    # Supprime le journal.log si supérieur à 10 Mo
+    # Supprime le journal.log si supérieur à 1 Mo
     if os.path.isfile(nomJournal) :
         taille = os.path.getsize(nomJournal)
-        if taille > 5000000 :
+        if taille > 1000000 :
             os.remove(nomJournal)
 
     # Redirection vers un fichier
@@ -1906,7 +1906,8 @@ def main():
     print(nomFichier)
     journal = CUSTOMIZE.GetValeur("journal", "actif", "1")
     nolog = os.path.isfile("nolog.txt")
-    if nomFichier.endswith("python.exe") == False and journal != "0" and nolog == False :
+    #if nomFichier.endswith("python.exe") == False and journal != "0" and nolog == False :
+    if journal != "0" and nolog == False :
         sys.stdout = Redirect(nomJournal)
 
     # Lancement de l'application

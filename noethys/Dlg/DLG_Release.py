@@ -18,6 +18,8 @@ import sys
 from Ctrl import CTRL_Bandeau
 from Utils import UTILS_Fichiers
 from Utils import UTILS_Cryptage_fichier
+import codecs
+import FonctionsPerso
 
 sys.modules['UTILS_Cryptage_fichier'] = UTILS_Cryptage_fichier
 
@@ -31,7 +33,7 @@ class CTRL_Donnees(wx.TextCtrl):
         wx.TextCtrl.__init__(self, parent, id, label, pos, size, style=style)
         self.parent = parent
         self.actuelle = self.GetVersionNow()
-        invite = "%s Choisissez un fichier"%self.actuelle
+        invite = "\nActuellement : %s\n\nChoisissez un fichier"%self.actuelle
         self.SetValue(invite)
 
     def MAJ(self):
@@ -49,7 +51,7 @@ class CTRL_Donnees(wx.TextCtrl):
             lstFichiers = UTILS_Fichiers.GetListeFichiersZip(releaseZip)
             lstVersions = [x for x in lstFichiers if "versions" in x.lower()]
             if len(lstVersions) == 0:
-                mess = "Le Zip %s ne contient pas de fichier 'Version.txt'"%self.nameRelease
+                mess = "Le Zip %s ne contient pas de fichier 'Versions.txt'"%self.nameRelease
                 wx.MessageBox(mess, "Echec",style=wx.ICON_ERROR)
                 return
             nameVersionsFile = lstVersions[0]
@@ -64,11 +66,25 @@ class CTRL_Donnees(wx.TextCtrl):
             texte = GestionDB.Decod(GetVersionsFile(self.zipFile))
             # afichage du contenu
             if texte:
-                nouvelle = "Versions dans le fichier :\n\n%s"%texte
-                self.SetValue("%s%s"%(self.actuelle,nouvelle))
+                self.SetValue("\nActuellement : %s\n\nVersions à installer :\n\n%s"%(self.actuelle,texte))
                 dc = wx.ClientDC(self)
                 dc.SetFont(self.GetFont())
+                pos = texte.find(")",0,50) + 1
+                versionChoisie = texte[:pos]
+                if versionChoisie.split('.')[:3] != self.actuelle.split('.')[:3]:
+                    mess = "Trop de différence entre les versions\n\n"
+                    mess += "Refaites une installation complète depuis Github NoethysMatthania"
+                    wx.MessageBox(mess, "Impossible",style=wx.ICON_ERROR)
+                    return
+                if versionChoisie < self.actuelle:
+                    mess = "Rétropédalage à confirmer\n\n"
+                    mess += "La %s remontée sera antérieure\nà l'actuelle %s\n\n"%(versionChoisie,self.actuelle)
+                    mess += "Certaines nouvelles modifications peuvent rester en place"
+                    ret = wx.MessageBox(mess,style=wx.YES_NO|wx.ICON_INFORMATION)
+                    if ret  != wx.YES:
+                        return
                 self.parent.bouton_ok.Enable(True)
+                self.parent.bouton_fichier.Enable(False)
             
         except Exception as err:
             if isinstance(err,UnicodeDecodeError):
@@ -77,20 +93,13 @@ class CTRL_Donnees(wx.TextCtrl):
             print(type(err),err)
 
     def GetVersionNow(self):
-        import codecs
-        import FonctionsPerso
         fichier = codecs.open(
             FonctionsPerso.GetRepertoireProjet("Versions.txt"),
             encoding='utf-8', mode='r')
-        versionNow = self.GetVersionInfile(fichier)
-        return "Actuellement : %s\n\n"%versionNow
-
-    def GetVersionInfile(self,fichier):
         version = fichier.readlines()[0]
         fichier.close()
         pos = version.find(")") + 1
         return version[:pos]
-
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -180,7 +189,6 @@ class Dialog(wx.Dialog):
 
         # Fermeture
         self.EndModal(wx.ID_OK)
-
 
 if __name__ == "__main__":
     app = wx.App(0)
