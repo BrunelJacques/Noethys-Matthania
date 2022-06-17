@@ -1,3 +1,7 @@
+version 1.3.1.12 (17/06/2022):
+
+- Correction de l'erreur à l'ouverture et fermeture si NbreInscrits par camp à l'accueil
+
 version 1.3.1.11 (16/06/2022):
 
 - Saisie prix, la valeur article remonte

@@ -85,7 +85,7 @@ class DB():
         self.lstIndex = None
         self.grpConfigs = None
         self.cfgParams = None
-        self.erreur = None
+        self.erreur = "__init__"
 
         """ Utiliser GestionDB.DB(nomFichier=Chemins.GetStaticPath("Databases/Geographie.dat"), suffixe=None) pour ouvrir un autre type de fichier """
         self.nomFichier = nomFichier
@@ -98,6 +98,7 @@ class DB():
             self.nomFichier = self.GetNomFichierDefaut()
 
         self.echec = 1
+        self.erreur = "NomFichier DB: %s"%self.nomFichier
         if self.nomFichier != "":
             # Mémorisation de l'ouverture de la connexion et des requêtes
             if IDconnexion == None :
@@ -541,9 +542,10 @@ class DB():
 
     def ExecuterReq(self, req, commit=True, MsgBox = None):
         if self.echec >= 1:
-            if not MsgBox: MsgBox = "GestionDB.ExecuterReq"
+            if not MsgBox: origine = "GestionDB.ExecuterReq"
+            else: origine = MsgBox
             if self.erreur != "ErreurPubliee":
-                mess = "Echec d'accès à la base de donnée\n\n%s"%MsgBox
+                mess = "Echec d'accès à la base de donnée\n\n%s"%origine
                 wx.MessageBox(mess,"Ouverture DB",style = wx.ICON_ERROR)
             self.erreur = "ErreurPubliee"
             return False # lié au lancement sans connexion précédente

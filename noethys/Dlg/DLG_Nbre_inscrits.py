@@ -184,6 +184,8 @@ class CTRL(ULC.UltimateListCtrl):
 
         # Recherche des données
         DB = GestionDB.DB()
+        if DB.echec > 0:
+            return
         req = """SELECT activites.IDactivite, activites.nom, activites.abrege, activites.nbre_inscrits_max, COUNT(inscriptions.IDinscription) as nbreInscrits
         FROM activites
         LEFT JOIN inscriptions ON inscriptions.IDactivite = activites.IDactivite
@@ -192,9 +194,11 @@ class CTRL(ULC.UltimateListCtrl):
         GROUP BY activites.IDactivite
         %s
         ;""" % (condition, order)
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
-        listeDonnees = DB.ResultatReq() 
-        DB.Close()
+        ret = DB.ExecuterReq(req,MsgBox="DLG_Nbre_inscrits.MAJ")
+        listeDonnees = []
+        if ret == "ok":
+            listeDonnees = DB.ResultatReq()
+            DB.Close()
         listeActivitesTemp = []
 
         def tauxRemplis(inscrits,places):

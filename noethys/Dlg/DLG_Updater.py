@@ -35,9 +35,6 @@ DEBUG = False
 #------------------------------------------------------------------------------------------
 
 
-
-
-
 def AffichetailleFichier(fichierURL):
     tailleFichier = 0
     try :

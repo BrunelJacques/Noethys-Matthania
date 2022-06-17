@@ -82,10 +82,15 @@ class CTRL_Donnees(wx.TextCtrl):
         fichier = codecs.open(
             FonctionsPerso.GetRepertoireProjet("Versions.txt"),
             encoding='utf-8', mode='r')
-        versionNow = fichier.readlines()[0]
+        versionNow = self.GetVersionInfile(fichier)
+        return "Actuellement : %s\n\n"%versionNow
+
+    def GetVersionInfile(self,fichier):
+        version = fichier.readlines()[0]
         fichier.close()
-        pos = versionNow.find(")") + 1
-        return "Actuellement : %s\n\n"%versionNow[:pos]
+        pos = version.find(")") + 1
+        return version[:pos]
+
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------
 
