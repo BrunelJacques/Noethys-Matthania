@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-15 -*-
 #------------------------------------------------------------------------
-# Application :    Noethys, gestion multi-activités
+# Application :    Noethys, Branche Matthania
 # Site internet :  www.noethys.com
-# Auteur:          Ivan LUCAS
+# Auteur:          Ivan LUCAS, JB
 # Copyright:       (c) 2010-19 Ivan LUCAS
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
 import Chemins
+import FonctionsPerso
 from Utils.UTILS_Traduction import _
 import wx
-import six
+import os
 from Ctrl import CTRL_Bouton_image
 import sys
 import platform
@@ -24,8 +24,8 @@ import wx.lib.dialogs
 from Utils import UTILS_Config
 from Utils import UTILS_Customize
 from Utils import UTILS_Fichiers
-
-
+from Utils import UTILS_Identification
+from Dlg import DLG_Preferences
 
 def Activer_rapport_erreurs(version=""):
     def my_excepthook(exctype, value, tb):
@@ -44,8 +44,6 @@ def Activer_rapport_erreurs(version=""):
         except :
             pass
         try :
-            if six.PY2:
-                bug = bug.decode("iso-8859-15")
             texte = "%s\n%s" % (infos, bug)
             dlg = DLG_Rapport(None, texte)
             dlg.ShowModal()
@@ -55,7 +53,16 @@ def Activer_rapport_erreurs(version=""):
 
     sys.excepthook = my_excepthook
 
+def ScreenShot(pathFile):
+    s = wx.ScreenDC()
+    w, h = s.Size.Get()
+    b = wx.Bitmap(w, h)
 
+    m = wx.MemoryDC(s)
+    m.SelectObject(b)
+    m.Blit(0, 0, w, h, s, 0, 0)
+    m.SelectObject(wx.NullBitmap)
+    b.SaveFile(pathFile, wx.BITMAP_TYPE_PNG)
 
 # ------------------------------------------- BOITE DE DIALOGUE ----------------------------------------------------------------------------------------
 
@@ -63,6 +70,10 @@ class DLG_Rapport(wx.Dialog):
     def __init__(self, parent, texte=""):
         wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
         self.parent = parent
+
+        # copy écran dans un fichier temp
+        self.pathFile = UTILS_Fichiers.GetRepTemp("tmpScreenShot.png")
+        ScreenShot(self.pathFile)
 
         self.ctrl_image = wx.StaticBitmap(self, wx.ID_ANY, wx.Bitmap(Chemins.GetStaticPath(u"Images/48x48/Erreur.png"), wx.BITMAP_TYPE_ANY))
         self.label_ligne_1 = wx.StaticText(self, wx.ID_ANY, _("Noethys a rencontré un problème !"))
@@ -89,7 +100,6 @@ class DLG_Rapport(wx.Dialog):
 
         self.bouton_fermer.SetFocus()
 
-
     def __set_properties(self):
         self.SetTitle(_("Rapport d'erreurs"))
         self.label_ligne_1.SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, ""))
@@ -97,7 +107,7 @@ class DLG_Rapport(wx.Dialog):
         self.bouton_envoyer.SetToolTip(wx.ToolTip(_("Cliquez ici pour envoyer ce rapport d'erreur à l'auteur par Email")))
         self.bouton_forum.SetToolTip(wx.ToolTip(_("Cliquez ici pour ouvrir votre navigateur internet et accéder au forum de Noethys. Vous pourrez ainsi signaler ce bug dans la rubrique dédiée.")))
         self.bouton_fermer.SetToolTip(wx.ToolTip(_("Cliquez ici pour fermer")))
-        self.SetMinSize((650, 450))
+        self.SetMinSize((650, 850))
 
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(2, 1, 10, 10)
@@ -127,7 +137,9 @@ class DLG_Rapport(wx.Dialog):
         self.Layout()
         self.CenterOnScreen() 
 
-    def OnBoutonFermer(self, event):  
+    def OnBoutonFermer(self, event):
+        if os.path.isfile(self.pathFile):
+            os.remove(self.pathFile)
         self.EndModal(wx.ID_CANCEL)
 
     def OnBoutonEnvoyer(self, event):
@@ -138,7 +150,6 @@ class DLG_Rapport(wx.Dialog):
         commentaires = dlg.GetCommentaires()
         joindre_journal = dlg.GetJoindreJournal()
         dlg.Destroy()
-
         if reponse == wx.ID_OK :
             self.Envoyer_mail(commentaires, joindre_journal)
 
@@ -185,7 +196,7 @@ class DLG_Rapport(wx.Dialog):
         parametres = dictExp["parametres"]
 
         # Destinataire
-        mailAuteur = UTILS_Config.GetParametre("rapports_mailAuteur", "xxxx@yyyy.com")
+        mailAuteur = DLG_Preferences.Parametres("get","rapports_mailAuteur", "xxxx@yyyy.com")
         if len(mailAuteur) == 0 or "xxx" in mailAuteur:
             mess = "L'adresse du correspondant n'est pas renseignée dans les préférences. Veuillez la vérifier."
             wx.MessageBox(mess,"Envoi impossible", wx.OK | wx.ICON_EXCLAMATION)
@@ -197,12 +208,13 @@ class DLG_Rapport(wx.Dialog):
             dlg.Destroy()
             return False
 
-        # Attacher le journal d'erreurs
+        # Attacher le journal d'erreurs et le screenShot
         fichiers = []
         if joindre_journal == True :
             customize = UTILS_Customize.Customize()
             nom_journal = UTILS_Fichiers.GetRepUtilisateur(customize.GetValeur("journal", "nom", "journal.log"))
             fichiers.append(nom_journal)
+            fichiers.append(self.pathFile)
 
         # Préparation du message
         IDrapport = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
@@ -233,7 +245,6 @@ class DLG_Rapport(wx.Dialog):
 
         return True
 
-
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class DLG_Envoi(wx.Dialog):
@@ -245,9 +256,15 @@ class DLG_Envoi(wx.Dialog):
         self.label_ligne_1 = wx.StaticText(self, wx.ID_ANY, _("Le rapport est prêt à être envoyé..."))
         self.label_ligne_2 = wx.StaticText(self, wx.ID_ANY, _("Veuillez ajouter ci-dessous les circonstances de l'évènement: Que faisiez-vous, sur quel client?\nCeci permettra de reproduire le cas pour un diagnostic."))
 
-        self.ctrl_commentaires = wx.TextCtrl(self, wx.ID_ANY, "", style=wx.TE_MULTILINE)
+        dicUser = UTILS_Identification.GetDictUtilisateur()
+        if not dicUser:
+            dicUser = {"prenom":"Lancement direct","nom":""}
+        version = FonctionsPerso.GetVersionLogiciel(datee=True)
+        userName = "%s %s Version %s"%(dicUser["prenom"],dicUser["nom"],version)
+        intro = "Bug envoyé par : %s\n\nQuelle action :\n\nReproductible :\n\n'"%userName
+        self.ctrl_commentaires = wx.TextCtrl(self, wx.ID_ANY, intro , style=wx.TE_MULTILINE)
 
-        self.check_journal = wx.CheckBox(self, -1, _("Joindre le journal des erreurs (Recommandé)"))
+        self.check_journal = wx.CheckBox(self, -1, _("Joindre la copie d'écran et le journal des erreurs (Facilite le diagnostic)"))
         self.check_journal.SetValue(True)
         self.bouton_apercu = CTRL_Bouton_image.CTRL(self, texte=_("Aperçu"), cheminImage="Images/32x32/Apercu.png")
         self.bouton_envoyer = CTRL_Bouton_image.CTRL(self, texte=_("Envoyer l'Email"), cheminImage="Images/32x32/Emails_exp.png")
@@ -301,6 +318,12 @@ class DLG_Envoi(wx.Dialog):
         dlg.Destroy()
 
     def OnBoutonEnvoyer(self, event):
+        if self.GetJoindreJournal():
+            mess = "La copie de votre écran sera jointe\n\n"
+            mess += "Si des infos confidentielles y apparaissent, 'Annulez' puis décochez la case en bas de l'écran précédent."
+            ret = wx.MessageBox(mess,"Confirmation d'envoi", style=wx.ICON_INFORMATION|wx.YES_DEFAULT|wx.CANCEL)
+            if ret != wx.OK:
+                return
         self.EndModal(wx.ID_OK)
 
     def OnBoutonAnnuler(self, event):
@@ -312,11 +335,10 @@ class DLG_Envoi(wx.Dialog):
     def GetJoindreJournal(self):
         return self.check_journal.GetValue()
 
-
 if __name__ == "__main__":
     app = wx.App(0)
-    #wx.InitAllImageHandlers()
     dialog_1 = DLG_Rapport(None)
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()
+
     app.MainLoop()

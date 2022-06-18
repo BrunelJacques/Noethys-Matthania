@@ -9,29 +9,29 @@
 #------------------------------------------------------------------------
 
 
-import Chemins
-from Utils import UTILS_Adaptations
+
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
-import os
 from Ctrl import CTRL_Bandeau
 
 import GestionDB
 from Utils import UTILS_Config
 from Utils import UTILS_Utilisateurs
 from Utils import UTILS_Interface
-from Utils import UTILS_Fichiers
 from Utils import UTILS_Parametres
-from Utils import UTILS_Json
 
-# ---------------------------------------------------------------------------------------------------------------------------
+def Parametres(mode="get",nom="",valeur=""):
+    return UTILS_Parametres.Parametres(mode=mode,categorie="preferences",
+                                  nom=nom,valeur=valeur)
+
+# -----------------------------------------------------------------------------
 
 class Interface(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
 
-        self.staticbox_staticbox = wx.StaticBox(self, -1, _("Interface*"))
+        self.staticbox_staticbox = wx.StaticBox(self, -1, _("Interface(1)"))
 
         # Thème
         self.liste_labels_theme = []
@@ -104,8 +104,6 @@ class Interface(wx.Panel):
         code = self.liste_codes_langue[self.ctrl_langue.GetSelection()]
         UTILS_Config.SetParametre("langue_interface", code)
 
-# ------------------------------------------------------------------------------------------------------------------------
-
 class Interface_mysql(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
@@ -168,110 +166,6 @@ class Interface_mysql(wx.Panel):
         except Exception as err :
             print("Erreur dans changement de l'interface mySQL depuis les preferences :", err)
 
-# ------------------------------------------------------------------------------------------------------------------------
-
-class Monnaie(wx.Panel):
-    def __init__(self, parent):
-        wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
-        
-        self.staticbox_staticbox = wx.StaticBox(self, -1, _("Monnaie*"))
-        self.label_singulier = wx.StaticText(self, -1, _("Nom (singulier) :"))
-        self.ctrl_singulier = wx.TextCtrl(self, -1, "")
-        self.label_division = wx.StaticText(self, -1, _("Unité divisionnaire :"))
-        self.ctrl_division = wx.TextCtrl(self, -1, "")
-        self.label_pluriel = wx.StaticText(self, -1, _("Nom (pluriel) :"))
-        self.ctrl_pluriel = wx.TextCtrl(self, -1, "")
-        self.label_symbole = wx.StaticText(self, -1, _("Symbole :"))
-        self.ctrl_symbole = wx.TextCtrl(self, -1, "")
-        
-        self.ctrl_singulier.SetMinSize((70, -1))
-        self.ctrl_division.SetMinSize((100, -1))
-        self.ctrl_pluriel.SetMinSize((70, -1))
-        
-        self.__set_properties()
-        self.__do_layout()
-        
-        self.Importation() 
-
-    def __set_properties(self):
-        self.ctrl_singulier.SetToolTip(wx.ToolTip(_("'Euro' par défaut (au singulier)")))
-        self.ctrl_division.SetToolTip(wx.ToolTip(_("'Centime' par défaut (au singulier)")))
-        self.ctrl_pluriel.SetToolTip(wx.ToolTip(_("'Euros' par défaut (au pluriel)")))
-        self.ctrl_symbole.SetMinSize((60, -1))
-        self.ctrl_symbole.SetToolTip(wx.ToolTip(_("'¤' par défaut")))
-
-    def __do_layout(self):
-        staticbox = wx.StaticBoxSizer(self.staticbox_staticbox, wx.VERTICAL)
-        grid_sizer_base = wx.FlexGridSizer(rows=2, cols=5, vgap=5, hgap=5)
-        grid_sizer_base.Add(self.label_singulier, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer_base.Add(self.ctrl_singulier, 0, wx.EXPAND, 0)
-        grid_sizer_base.Add((0, 20), 0, 0, 0)
-        grid_sizer_base.Add(self.label_division, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer_base.Add(self.ctrl_division, 0, 0, 0)
-        grid_sizer_base.Add(self.label_pluriel, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer_base.Add(self.ctrl_pluriel, 0, wx.EXPAND, 0)
-        grid_sizer_base.Add((0, 20), 0, 0, 0)
-        grid_sizer_base.Add(self.label_symbole, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer_base.Add(self.ctrl_symbole, 0, 0, 0)
-        grid_sizer_base.AddGrowableCol(1)
-        staticbox.Add(grid_sizer_base, 1, wx.ALL|wx.EXPAND, 5)
-        self.SetSizer(staticbox)
-        staticbox.Fit(self)
-    
-    def Importation(self):
-        self.ctrl_singulier.SetValue(UTILS_Config.GetParametre("monnaie_singulier", _("Euro")))
-        self.ctrl_pluriel.SetValue(UTILS_Config.GetParametre("monnaie_pluriel", _("Euros")))
-        self.ctrl_division.SetValue(UTILS_Config.GetParametre("monnaie_division", _("Centime")))
-        self.ctrl_symbole.SetValue(UTILS_Config.GetParametre("monnaie_symbole", "¤"))
-    
-    def Validation(self):
-        singulier = self.ctrl_singulier.GetValue() 
-        if len(singulier) == 0 :
-            dlg = wx.MessageDialog(self, _("Vous devez obligatoirement saisir une monnaie (singulier) !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
-            dlg.ShowModal()
-            dlg.Destroy()
-            self.ctrl_singulier.SetFocus()
-            return False
-        
-        pluriel = self.ctrl_pluriel.GetValue() 
-        if len(pluriel) == 0 :
-            dlg = wx.MessageDialog(self, _("Vous devez obligatoirement saisir une monnaie (pluriel) !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
-            dlg.ShowModal()
-            dlg.Destroy()
-            self.ctrl_pluriel.SetFocus()
-            return False
-
-        division = self.ctrl_division.GetValue() 
-        if len(division) == 0 :
-            dlg = wx.MessageDialog(self, _("Vous devez obligatoirement saisir une monnaie (division) !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
-            dlg.ShowModal()
-            dlg.Destroy()
-            self.ctrl_division.SetFocus()
-            return False
-
-        symbole = self.ctrl_symbole.GetValue() 
-        if len(symbole) == 0 :
-            dlg = wx.MessageDialog(self, _("Vous devez obligatoirement saisir un symbole pour la monnaie !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
-            dlg.ShowModal()
-            dlg.Destroy()
-            self.ctrl_symbole.SetFocus()
-            return False
-        
-        return True
-    
-    def Sauvegarde(self):
-        singulier = self.ctrl_singulier.GetValue() 
-        pluriel = self.ctrl_pluriel.GetValue() 
-        division = self.ctrl_division.GetValue() 
-        symbole = self.ctrl_symbole.GetValue() 
-        
-        UTILS_Config.SetParametre("monnaie_singulier", singulier)
-        UTILS_Config.SetParametre("monnaie_pluriel", pluriel)
-        UTILS_Config.SetParametre("monnaie_division", division)
-        UTILS_Config.SetParametre("monnaie_symbole", symbole)
-
-# ------------------------------------------------------------------------------------------------------------------------
-
 class Dates(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
@@ -315,7 +209,6 @@ class Dates(wx.Panel):
             mask = ""
         UTILS_Config.SetParametre("mask_date", mask)
 
-# ---------------------------------------------------------------------------------------------------------------------------
 class Telephones(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
@@ -358,8 +251,6 @@ class Telephones(wx.Panel):
         else:
             mask = ""
         UTILS_Config.SetParametre("mask_telephone", mask)
-
-# ------------------------------------------------------------------------------------------------------------------------
 
 class Codes_postaux(wx.Panel):
     def __init__(self, parent):
@@ -404,8 +295,6 @@ class Codes_postaux(wx.Panel):
             mask = ""
         UTILS_Config.SetParametre("mask_cp", mask)
 
-# ---------------------------------------------------------------------------------------------------------------------------
-
 class Adresses(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
@@ -439,158 +328,14 @@ class Adresses(wx.Panel):
     def Sauvegarde(self):
         UTILS_Config.SetParametre("adresse_autocomplete", self.check_autoComplete.GetValue())
 
-# ---------------------------------------------------------------------------------------------------------------------------
-
-class Rapport_bugs(wx.Panel):
-    def __init__(self, parent):
-        wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
-
-        self.staticbox_staticbox = wx.StaticBox(self, -1, _("Rapports de bugs"))
-        self.check = wx.CheckBox(self, -1, "Activation")
-        self.label_mailAuteur = wx.StaticText(self, -1, "Mail du destinataire :")
-        self.ctrl_mailAuteur = wx.TextCtrl(self, -1, "")
-
-        self.__set_properties()
-        self.__do_layout()
-        
-        self.Importation() 
-
-    def __set_properties(self):
-        self.check.SetToolTip(wx.ToolTip(_("Affichage du rapport de bugs lorsqu'une erreur est rencontrée")))
-        self.label_mailAuteur.SetToolTip(wx.ToolTip(_("Adresse du correspondant informatique qui traitera le problème")))
-        self.ctrl_mailAuteur.SetToolTip(wx.ToolTip(_("Adresse du correspondant informatique qui traitera le problème")))
-        self.Bind(wx.EVT_CHECKBOX,self.MAJ,self.check)
-
-    def __do_layout(self):
-        staticbox = wx.StaticBoxSizer(self.staticbox_staticbox, wx.VERTICAL)
-        grid_sizer_base = wx.FlexGridSizer(rows=1, cols=5, vgap=10, hgap=5)
-        grid_sizer_base.Add(self.check, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
-        grid_sizer_base.Add(self.label_mailAuteur, 0, wx.TOP|wx.ALIGN_CENTER_VERTICAL,2)
-        grid_sizer_base.Add(self.ctrl_mailAuteur, 1, wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 0)
-        grid_sizer_base.AddGrowableCol(2)
-        staticbox.Add(grid_sizer_base, 1, wx.ALL|wx.EXPAND, 0)
-        self.SetSizer(staticbox)
-        staticbox.Fit(self)
-
-    def Importation(self):
-        self.check.SetValue(UTILS_Config.GetParametre("rapports_bugs", True))
-        self.ctrl_mailAuteur.SetValue(UTILS_Config.GetParametre("rapports_mailAuteur", "xxxx@yyyy.com"))
-        self.MAJ(None)
-
-    def MAJ(self,evt):
-        if self.check.GetValue():
-            self.ctrl_mailAuteur.Enable(True)
-        else:
-            self.ctrl_mailAuteur.Enable(False)
-
-
-
-    def Validation(self):
-        return True
-    
-    def Sauvegarde(self):
-        UTILS_Config.SetParametre("rapports_bugs", self.check.GetValue())
-        UTILS_Config.SetParametre("rapports_mailAuteur", self.ctrl_mailAuteur.GetValue())
-
-# ---------------------------------------------------------------------------------------------------------------------------
-
-class Propose_maj(wx.Panel):
-    def __init__(self, parent):
-        wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
-
-        self.staticbox_staticbox = wx.StaticBox(self, -1, _("Mises à jour internet"))
-        self.check = wx.CheckBox(self, -1, _("Propose le téléchargement des mises à jour à l'ouverture du logiciel"))
-
-        self.__set_properties()
-        self.__do_layout()
-        
-        self.Importation() 
-
-    def __set_properties(self):
-        self.check.SetToolTip(wx.ToolTip(_("Propose le téléchargement des mises à jour à l'ouverture du logiciel")))
-        self.check.Enable(False)
-
-
-    def __do_layout(self):
-        staticbox = wx.StaticBoxSizer(self.staticbox_staticbox, wx.VERTICAL)
-        grid_sizer_base = wx.FlexGridSizer(rows=2, cols=5, vgap=10, hgap=10)
-        grid_sizer_base.Add(self.check, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        staticbox.Add(grid_sizer_base, 1, wx.ALL|wx.EXPAND, 5)
-        self.SetSizer(staticbox)
-        staticbox.Fit(self)
-    
-    def Importation(self):
-        valeur = UTILS_Config.GetParametre("propose_maj", True)
-        self.check.SetValue(valeur)
-    
-    def Validation(self):
-        return True
-    
-    def Sauvegarde(self):
-        UTILS_Config.SetParametre("propose_maj", self.check.GetValue())
-
-# ---------------------------------------------------------------------------------------------------------------------------
-
-class DerniersFichiers(wx.Panel):
-    def __init__(self, parent):
-        wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
-
-        self.staticbox_staticbox = wx.StaticBox(self, -1, _("Liste des derniers fichiers ouverts"))
-        self.label_nbre = wx.StaticText(self, -1, _("Nombre de fichiers affichés :"))
-        self.ctrl_nbre = wx.SpinCtrl(self, -1)
-        self.ctrl_nbre.SetRange(1, 20)
-        self.bouton_purge = wx.Button(self, -1, _("Purger la liste"))
-
-        self.__set_properties()
-        self.__do_layout()
-        
-        self.Bind(wx.EVT_BUTTON, self.OnBoutonPurge, self.bouton_purge)
-        
-        self.Importation() 
-
-    def __set_properties(self):
-        self.ctrl_nbre.SetToolTip(wx.ToolTip(_("Saisissez ici le nombre de fichiers à afficher dans la liste des fichiers ouverts")))
-        self.bouton_purge.SetToolTip(wx.ToolTip(_("Cliquez ici pour purger la liste des derniers fichiers ouverts")))
-
-    def __do_layout(self):
-        staticbox = wx.StaticBoxSizer(self.staticbox_staticbox, wx.VERTICAL)
-        grid_sizer_base = wx.FlexGridSizer(rows=2, cols=5, vgap=10, hgap=10)
-        grid_sizer_base.Add(self.label_nbre, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer_base.Add(self.ctrl_nbre, 0, wx.EXPAND, 0)
-        grid_sizer_base.Add(self.bouton_purge, 0, wx.EXPAND, 0)
-        staticbox.Add(grid_sizer_base, 1, wx.ALL|wx.EXPAND, 5)
-        self.SetSizer(staticbox)
-        staticbox.Fit(self)
-    
-    def Importation(self):
-        nbre = UTILS_Config.GetParametre("nbre_derniers_fichiers", 10)
-        self.ctrl_nbre.SetValue(nbre)
-        
-    def Validation(self):
-        return True
-    
-    def Sauvegarde(self):
-        nbre = self.ctrl_nbre.GetValue()
-        UTILS_Config.SetParametre("nbre_derniers_fichiers", nbre)
-        topWindow = wx.GetApp().GetTopWindow()
-        try :
-            topWindow.PurgeListeDerniersFichiers(nbre)
-        except :
-            pass
-
-    def OnBoutonPurge(self, event):
-        topWindow = wx.GetApp().GetTopWindow()
-        topWindow.PurgeListeDerniersFichiers(1) 
-
-
-# ---------------------------------------------------------------------------------------------------------------------------
-
 class Autodeconnect(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
 
-        self.staticbox_staticbox = wx.StaticBox(self, -1, _("Déconnexion automatique de l'utilisateur"))
-        self.check_autodeconnect = wx.CheckBox(self, -1, _("Déconnexion de l'utilisateur si inactivité durant"))
+        self.staticbox_staticbox = wx.StaticBox(self, -1,
+                                                _("Déconnexion automatique de l'utilisateur"))
+        self.check_autodeconnect = wx.CheckBox(self, -1,
+                                               _("Déconnexion de l'utilisateur si inactivité durant"))
         self.listeValeurs = [
             (15, "15 secondes"),
             (30, "30 secondes"),
@@ -607,115 +352,134 @@ class Autodeconnect(wx.Panel):
             (1800, "30 minutes"),
             (3600, "1 heure"),
             (7200, "2 heures"),
-            ]
+        ]
         listeLabels = []
-        for temps, label in self.listeValeurs :
+        for temps, label in self.listeValeurs:
             listeLabels.append(label)
         self.ctrl_temps = wx.Choice(self, -1, choices=listeLabels)
-        self.ctrl_temps.SetSelection(0) 
-        
+        self.ctrl_temps.SetSelection(0)
+
         self.__set_properties()
         self.__do_layout()
-        
+
         self.Bind(wx.EVT_CHECKBOX, self.OnCheck, self.check_autodeconnect)
-
-        self.Importation() 
-
-    def __set_properties(self):
-        self.check_autodeconnect.SetToolTip(wx.ToolTip(_("Cochez cette case pour activer la déconnexion automatique de l'utilisateur au bout du temps d'inactivité sélectionné dans la liste")))
-        self.ctrl_temps.SetToolTip(wx.ToolTip(_("Sélectionnez un temps d'inactivité")))
-
-    def __do_layout(self):
-        staticbox = wx.StaticBoxSizer(self.staticbox_staticbox, wx.VERTICAL)
-        grid_sizer_base = wx.FlexGridSizer(rows=2, cols=5, vgap=0, hgap=0)
-        grid_sizer_base.Add(self.check_autodeconnect, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer_base.Add(self.ctrl_temps, 0, wx.EXPAND, 0)
-        grid_sizer_base.AddGrowableCol(1)
-        staticbox.Add(grid_sizer_base, 1, wx.ALL|wx.EXPAND, 5)
-        self.SetSizer(staticbox)
-        staticbox.Fit(self)
-    
-    def OnCheck(self, event=None):
-        self.ctrl_temps.Enable(self.check_autodeconnect.GetValue())
-        
-    def GetValeur(self):
-        if self.check_autodeconnect.GetValue() == True :
-            index = self.ctrl_temps.GetSelection()
-            temps = self.listeValeurs[index][0]
-            return temps
-        else :
-            return None
-    
-    def SetValeur(self, valeur=None):
-        if valeur == None :
-            self.check_autodeconnect.SetValue(False)
-        else :
-            self.check_autodeconnect.SetValue(True)
-            index = 0
-            for temps, label in self.listeValeurs :
-                if temps == valeur :
-                    self.ctrl_temps.SetSelection(index)
-                index += 1
-        self.OnCheck(None) 
-        
-    def Importation(self):
-        valeur = UTILS_Config.GetParametre("autodeconnect", None)
-        self.SetValeur(valeur)
-        
-    def Validation(self):
-        return True
-    
-    def Sauvegarde(self):
-        valeur = self.GetValeur()
-        UTILS_Config.SetParametre("autodeconnect", valeur)
-        try :
-            topWindow = wx.GetApp().GetTopWindow()
-            topWindow.userConfig["autodeconnect"] = valeur
-            topWindow.Start_autodeconnect_timer()
-        except :
-            pass
-
-# ---------------------------------------------------------------------------------------------------------------------------
-
-class Comptes_internet(wx.Panel):
-    def __init__(self, parent):
-        wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
-
-        self.staticbox_staticbox = wx.StaticBox(self, -1, _("Comptes internet"))
-        self.label_taille = wx.StaticText(self, -1, _("Nombre de caractères des mots de passe :"))
-        self.ctrl_taille = wx.SpinCtrl(self, -1)
-        self.ctrl_taille.SetRange(5, 20)
-
-        self.__set_properties()
-        self.__do_layout()
 
         self.Importation()
 
     def __set_properties(self):
-        self.ctrl_taille.SetToolTip(wx.ToolTip(_("Saisissez ici la taille des mots de passe des comptes internet. Ce paramètre ne sera valable que pour les prochains comptes créés.")))
+        self.check_autodeconnect.SetToolTip(wx.ToolTip(
+            _("Cochez cette case pour activer la déconnexion automatique de l'utilisateur au bout du temps d'inactivité sélectionné dans la liste")))
+        self.ctrl_temps.SetToolTip(
+            wx.ToolTip(_("Sélectionnez un temps d'inactivité")))
 
     def __do_layout(self):
         staticbox = wx.StaticBoxSizer(self.staticbox_staticbox, wx.VERTICAL)
-        grid_sizer_base = wx.FlexGridSizer(rows=2, cols=5, vgap=10, hgap=10)
-        grid_sizer_base.Add(self.label_taille, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer_base.Add(self.ctrl_taille, 0, wx.EXPAND, 0)
-        staticbox.Add(grid_sizer_base, 1, wx.ALL|wx.EXPAND, 5)
+        grid_sizer_base = wx.FlexGridSizer(rows=2, cols=5, vgap=0, hgap=0)
+        grid_sizer_base.Add(self.check_autodeconnect, 0,
+                            wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer_base.Add(self.ctrl_temps, 0, wx.EXPAND, 0)
+        grid_sizer_base.AddGrowableCol(1)
+        staticbox.Add(grid_sizer_base, 1, wx.ALL | wx.EXPAND, 5)
         self.SetSizer(staticbox)
         staticbox.Fit(self)
 
+    def OnCheck(self, event=None):
+        self.ctrl_temps.Enable(self.check_autodeconnect.GetValue())
+
+    def GetValeur(self):
+        if self.check_autodeconnect.GetValue() == True:
+            index = self.ctrl_temps.GetSelection()
+            temps = self.listeValeurs[index][0]
+            return temps
+        else:
+            return None
+
+    def SetValeur(self, valeur=None):
+        if valeur == None:
+            self.check_autodeconnect.SetValue(False)
+        else:
+            self.check_autodeconnect.SetValue(True)
+            index = 0
+            for temps, label in self.listeValeurs:
+                if temps == valeur:
+                    self.ctrl_temps.SetSelection(index)
+                index += 1
+        self.OnCheck(None)
+
     def Importation(self):
-        taille = UTILS_Parametres.Parametres(mode="get", categorie="comptes_internet", nom="taille_passwords", valeur=7)
-        self.ctrl_taille.SetValue(taille)
+        valeur = UTILS_Config.GetParametre("autodeconnect", None)
+        self.SetValeur(valeur)
 
     def Validation(self):
         return True
 
     def Sauvegarde(self):
-        taille = self.ctrl_taille.GetValue()
-        UTILS_Parametres.Parametres(mode="set", categorie="comptes_internet", nom="taille_passwords", valeur=taille)
+        valeur = self.GetValeur()
+        UTILS_Config.SetParametre("autodeconnect", valeur)
+        try:
+            topWindow = wx.GetApp().GetTopWindow()
+            topWindow.userConfig["autodeconnect"] = valeur
+            topWindow.Start_autodeconnect_timer()
+        except:
+            pass
 
+class DerniersFichiers(wx.Panel):
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
 
-# ---------------------------------------------------------------------------------------------------------------------------
+        self.staticbox_staticbox = wx.StaticBox(self, -1,
+                                                _("Liste des derniers fichiers ouverts"))
+        self.label_nbre = wx.StaticText(self, -1,
+                                        _("Nombre de fichiers affichés :"))
+        self.ctrl_nbre = wx.SpinCtrl(self, -1)
+        self.ctrl_nbre.SetRange(1, 20)
+        self.bouton_purge = wx.Button(self, -1, _("Purger la liste"))
+
+        self.__set_properties()
+        self.__do_layout()
+
+        self.Bind(wx.EVT_BUTTON, self.OnBoutonPurge, self.bouton_purge)
+
+        self.Importation()
+
+    def __set_properties(self):
+        self.ctrl_nbre.SetToolTip(wx.ToolTip(
+            _("Saisissez ici le nombre de fichiers à afficher dans la liste des fichiers ouverts")))
+        self.bouton_purge.SetToolTip(wx.ToolTip(
+            _("Cliquez ici pour purger la liste des derniers fichiers ouverts")))
+
+    def __do_layout(self):
+        staticbox = wx.StaticBoxSizer(self.staticbox_staticbox, wx.VERTICAL)
+        grid_sizer_base = wx.FlexGridSizer(rows=2, cols=5, vgap=10, hgap=10)
+        grid_sizer_base.Add(self.label_nbre, 0,
+                            wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer_base.Add(self.ctrl_nbre, 0, wx.EXPAND, 0)
+        grid_sizer_base.Add(self.bouton_purge, 0, wx.EXPAND, 0)
+        staticbox.Add(grid_sizer_base, 1, wx.ALL | wx.EXPAND, 5)
+        self.SetSizer(staticbox)
+        staticbox.Fit(self)
+
+    def Importation(self):
+        nbre = UTILS_Config.GetParametre("nbre_derniers_fichiers", 10)
+        self.ctrl_nbre.SetValue(nbre)
+
+    def Validation(self):
+        return True
+
+    def Sauvegarde(self):
+        nbre = self.ctrl_nbre.GetValue()
+        UTILS_Config.SetParametre("nbre_derniers_fichiers", nbre)
+        topWindow = wx.GetApp().GetTopWindow()
+        try:
+            topWindow.PurgeListeDerniersFichiers(nbre)
+        except:
+            pass
+
+    def OnBoutonPurge(self, event):
+        topWindow = wx.GetApp().GetTopWindow()
+        topWindow.PurgeListeDerniersFichiers(1)
+
+    # ---------------------------------------------------------------------------------------------------------------------------
 
 class Email(wx.Panel):
     def __init__(self, parent):
@@ -789,12 +553,270 @@ class Email(wx.Panel):
         valeur = self.GetValeur()
         UTILS_Parametres.Parametres(mode="set", categorie="email", nom="timeout", valeur=valeur)
 
+# -----------------------------------------------------------------------------
 
+class Propose_maj(wx.Panel):
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
+        self.enable = parent.isAdmin
+        self.enable = False
+        self.staticbox_staticbox = wx.StaticBox(self, -1,
+                                                _("Mises à jour internet(2)"))
+        self.check = wx.CheckBox(self, -1,
+                                 _("Propose le téléchargement des mises à jour à l'ouverture du logiciel"))
 
+        self.__set_properties()
+        self.__do_layout()
 
+        self.Importation()
 
+    def __set_properties(self):
+        self.check.SetToolTip(wx.ToolTip(
+            _("Propose le téléchargement des mises à jour à l'ouverture du logiciel")))
+        self.check.Enable(self.enable)
 
+    def __do_layout(self):
+        staticbox = wx.StaticBoxSizer(self.staticbox_staticbox, wx.VERTICAL)
+        grid_sizer_base = wx.FlexGridSizer(rows=2, cols=5, vgap=10, hgap=10)
+        grid_sizer_base.Add(self.check, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        staticbox.Add(grid_sizer_base, 1, wx.ALL | wx.EXPAND, 5)
+        self.SetSizer(staticbox)
+        staticbox.Fit(self)
 
+    def Importation(self):
+        valeur = Parametres("get","propose_maj", True)
+        self.check.SetValue(valeur)
+
+    def Validation(self):
+        return True
+
+    def Sauvegarde(self):
+        Parametres("set","propose_maj", self.check.GetValue())
+
+class Rapport_bugs(wx.Panel):
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
+        self.enable = parent.isAdmin
+
+        self.staticbox_staticbox = wx.StaticBox(self, -1, _("Rapports de bugs(2)"))
+        self.check = wx.CheckBox(self, -1, "Activation")
+        self.label_mailAuteur = wx.StaticText(self, -1, "Mail du destinataire :")
+        self.ctrl_mailAuteur = wx.TextCtrl(self, -1, "")
+
+        self.__set_properties()
+        self.__do_layout()
+        
+        self.Importation() 
+
+    def __set_properties(self):
+        self.check.SetToolTip(wx.ToolTip(_("Affichage du rapport de bugs lorsqu'une erreur est rencontrée")))
+        self.label_mailAuteur.SetToolTip(wx.ToolTip(_("Adresse du correspondant informatique qui traitera le problème")))
+        self.ctrl_mailAuteur.SetToolTip(wx.ToolTip(_("Adresse du correspondant informatique qui traitera le problème")))
+        self.Bind(wx.EVT_CHECKBOX,self.MAJ,self.check)
+        self.check.Enable(self.enable)
+        self.label_mailAuteur.Enable(self.enable)
+        self.ctrl_mailAuteur.Enable(self.enable)
+
+    def __do_layout(self):
+        staticbox = wx.StaticBoxSizer(self.staticbox_staticbox, wx.VERTICAL)
+        grid_sizer_base = wx.FlexGridSizer(rows=1, cols=5, vgap=10, hgap=5)
+        grid_sizer_base.Add(self.check, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
+        grid_sizer_base.Add(self.label_mailAuteur, 0, wx.TOP|wx.ALIGN_CENTER_VERTICAL,2)
+        grid_sizer_base.Add(self.ctrl_mailAuteur, 1, wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 0)
+        grid_sizer_base.AddGrowableCol(2)
+        staticbox.Add(grid_sizer_base, 1, wx.ALL|wx.EXPAND, 0)
+        self.SetSizer(staticbox)
+        staticbox.Fit(self)
+
+    def Importation(self):
+        self.check.SetValue(Parametres("get","rapports_bugs", True))
+        self.ctrl_mailAuteur.SetValue(Parametres("get","rapports_mailAuteur", "xxxx@yyyy.com"))
+        self.MAJ(None)
+
+    def MAJ(self,evt):
+        if self.check.GetValue():
+            self.ctrl_mailAuteur.Enable(self.enable)
+        else:
+            self.ctrl_mailAuteur.Enable(False)
+
+    def Validation(self):
+        return True
+    
+    def Sauvegarde(self):
+        Parametres("set","rapports_bugs", self.check.GetValue())
+        Parametres("set","rapports_mailAuteur", self.ctrl_mailAuteur.GetValue())
+
+class Monnaie(wx.Panel):
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
+        self.enable = parent.isAdmin
+        self.staticbox_staticbox = wx.StaticBox(self, -1, _("Monnaie(1)(2)"))
+        self.label_singulier = wx.StaticText(self, -1, _("Nom (singulier) :"))
+        self.ctrl_singulier = wx.TextCtrl(self, -1, "")
+        self.label_division = wx.StaticText(self, -1,
+                                            _("Unité divisionnaire :"))
+        self.ctrl_division = wx.TextCtrl(self, -1, "")
+        self.label_pluriel = wx.StaticText(self, -1, _("Nom (pluriel) :"))
+        self.ctrl_pluriel = wx.TextCtrl(self, -1, "")
+        self.label_symbole = wx.StaticText(self, -1, _("Symbole :"))
+        self.ctrl_symbole = wx.TextCtrl(self, -1, "")
+
+        self.ctrl_singulier.SetMinSize((70, -1))
+        self.ctrl_division.SetMinSize((100, -1))
+        self.ctrl_pluriel.SetMinSize((70, -1))
+
+        self.__set_properties()
+        self.__do_layout()
+
+        self.Importation()
+
+    def __set_properties(self):
+        self.ctrl_singulier.SetToolTip(
+            wx.ToolTip(_("'Euro' par défaut (au singulier)")))
+        self.ctrl_division.SetToolTip(
+            wx.ToolTip(_("'Centime' par défaut (au singulier)")))
+        self.ctrl_pluriel.SetToolTip(
+            wx.ToolTip(_("'Euros' par défaut (au pluriel)")))
+        self.ctrl_symbole.SetMinSize((60, -1))
+        self.ctrl_symbole.SetToolTip(wx.ToolTip(_("'¤' par défaut")))
+
+        self.ctrl_singulier.Enable(self.enable)
+        self.ctrl_pluriel.Enable(self.enable)
+        self.ctrl_division.Enable(self.enable)
+        self.ctrl_symbole.Enable(self.enable)
+
+        self.label_singulier.Enable(self.enable)
+        self.label_pluriel.Enable(self.enable)
+        self.label_division.Enable(self.enable)
+        self.label_symbole.Enable(self.enable)
+
+    def __do_layout(self):
+        staticbox = wx.StaticBoxSizer(self.staticbox_staticbox, wx.VERTICAL)
+        grid_sizer_base = wx.FlexGridSizer(rows=2, cols=5, vgap=5, hgap=5)
+        grid_sizer_base.Add(self.label_singulier, 0,
+                            wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer_base.Add(self.ctrl_singulier, 0, wx.EXPAND, 0)
+        grid_sizer_base.Add((0, 20), 0, 0, 0)
+        grid_sizer_base.Add(self.label_division, 0,
+                            wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer_base.Add(self.ctrl_division, 0, 0, 0)
+        grid_sizer_base.Add(self.label_pluriel, 0,
+                            wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer_base.Add(self.ctrl_pluriel, 0, wx.EXPAND, 0)
+        grid_sizer_base.Add((0, 20), 0, 0, 0)
+        grid_sizer_base.Add(self.label_symbole, 0,
+                            wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer_base.Add(self.ctrl_symbole, 0, 0, 0)
+        grid_sizer_base.AddGrowableCol(1)
+        staticbox.Add(grid_sizer_base, 1, wx.ALL | wx.EXPAND, 5)
+        self.SetSizer(staticbox)
+        staticbox.Fit(self)
+
+    def Importation(self):
+        self.ctrl_singulier.SetValue(Parametres("get","monnaie_singulier", _("Euro")))
+        self.ctrl_pluriel.SetValue(Parametres("get","monnaie_pluriel", _("Euros")))
+        self.ctrl_division.SetValue(
+            Parametres("get","monnaie_division", _("Centime")))
+        self.ctrl_symbole.SetValue(
+            Parametres("get","monnaie_symbole", "¤"))
+
+    def Validation(self):
+        singulier = self.ctrl_singulier.GetValue()
+        if len(singulier) == 0:
+            dlg = wx.MessageDialog(self,
+                                   _("Vous devez obligatoirement saisir une monnaie (singulier) !"),
+                                   _("Erreur de saisie"),
+                                   wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            self.ctrl_singulier.SetFocus()
+            return False
+
+        pluriel = self.ctrl_pluriel.GetValue()
+        if len(pluriel) == 0:
+            dlg = wx.MessageDialog(self,
+                                   _("Vous devez obligatoirement saisir une monnaie (pluriel) !"),
+                                   _("Erreur de saisie"),
+                                   wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            self.ctrl_pluriel.SetFocus()
+            return False
+
+        division = self.ctrl_division.GetValue()
+        if len(division) == 0:
+            dlg = wx.MessageDialog(self,
+                                   _("Vous devez obligatoirement saisir une monnaie (division) !"),
+                                   _("Erreur de saisie"),
+                                   wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            self.ctrl_division.SetFocus()
+            return False
+
+        symbole = self.ctrl_symbole.GetValue()
+        if len(symbole) == 0:
+            dlg = wx.MessageDialog(self,
+                                   _("Vous devez obligatoirement saisir un symbole pour la monnaie !"),
+                                   _("Erreur de saisie"),
+                                   wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            self.ctrl_symbole.SetFocus()
+            return False
+
+        return True
+
+    def Sauvegarde(self):
+        singulier = self.ctrl_singulier.GetValue()
+        pluriel = self.ctrl_pluriel.GetValue()
+        division = self.ctrl_division.GetValue()
+        symbole = self.ctrl_symbole.GetValue()
+
+        Parametres("set","monnaie_singulier", singulier)
+        Parametres("set","monnaie_pluriel", pluriel)
+        Parametres("set","monnaie_division", division)
+        Parametres("set","monnaie_symbole", symbole)
+
+class Comptes_internet(wx.Panel):
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
+
+        self.enable = parent.isAdmin
+        self.staticbox_staticbox = wx.StaticBox(self, -1, _("Comptes internet(2)"))
+        self.label_taille = wx.StaticText(self, -1, _("Nombre de caractères des mots de passe :"))
+        self.ctrl_taille = wx.SpinCtrl(self, -1)
+        self.ctrl_taille.SetRange(5, 20)
+
+        self.__set_properties()
+        self.__do_layout()
+
+        self.Importation()
+
+    def __set_properties(self):
+        self.ctrl_taille.SetToolTip(wx.ToolTip(_("Saisissez ici la taille des mots de passe des comptes internet. Ce paramètre ne sera valable que pour les prochains comptes créés.")))
+        self.ctrl_taille.Enable(self.enable)
+        self.label_taille.Enable(self.enable)
+        
+    def __do_layout(self):
+        staticbox = wx.StaticBoxSizer(self.staticbox_staticbox, wx.VERTICAL)
+        grid_sizer_base = wx.FlexGridSizer(rows=2, cols=5, vgap=10, hgap=10)
+        grid_sizer_base.Add(self.label_taille, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer_base.Add(self.ctrl_taille, 0, wx.EXPAND, 0)
+        staticbox.Add(grid_sizer_base, 1, wx.ALL|wx.EXPAND, 5)
+        self.SetSizer(staticbox)
+        staticbox.Fit(self)
+
+    def Importation(self):
+        taille = UTILS_Parametres.Parametres(mode="get", categorie="comptes_internet", nom="taille_passwords", valeur=7)
+        self.ctrl_taille.SetValue(taille)
+
+    def Validation(self):
+        return True
+
+    def Sauvegarde(self):
+        taille = self.ctrl_taille.GetValue()
+        UTILS_Parametres.Parametres(mode="set", categorie="comptes_internet", nom="taille_passwords", valeur=taille)
 
 # ------------------------------------------------------------------------------------------------------------------------
 
@@ -802,8 +824,8 @@ class Dialog(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE)
         self.parent = parent
-        
-        intro = _("Vous pouvez modifier ici les paramètres de base du logiciel. Les fonctionnalités marquées d'un astérisque (*) nécessitent un redémarrage du logiciel.")
+        self.isAdmin = UTILS_Utilisateurs.IsAdmin(False)
+        intro = _("Vous pouvez modifier ici les paramètres de base du logiciel. Certains ne s'appliquent qu'à otre station<BR>(1) nécessite un redémarrage du logiciel (2) s'applique à toute station et tout utilisateur.")
         titre = _("Préférences")
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Configuration2.png")
         self.userConfig = {}
@@ -821,19 +843,21 @@ class Dialog(wx.Dialog):
         self.ctrl_email = Email(self)
 
         # Redémarrage
-        self.label_redemarrage = wx.StaticText(self, -1, _("* Le changement sera effectif au redémarrage du logiciel"))
+        self.label_redemarrage = wx.StaticText(self, -1, _("(1) Le changement sera effectif au redémarrage du logiciel"))
         self.label_redemarrage.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL))
-        
+        self.label_admin = wx.StaticText(self, -1, _("(2) S'applique partout, la modification requiert des droits 'administrateur'"))
+        self.label_admin.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL))
+
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"), cheminImage="Images/32x32/Valider.png")
         self.bouton_annuler = CTRL_Bouton_image.CTRL(self, id=wx.ID_CANCEL, texte=_("Annuler"), cheminImage="Images/32x32/Annuler.png")
-                
+
+
         self.__set_properties()
         self.__do_layout()
 
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAide, self.bouton_aide)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonOk, self.bouton_ok)
-
         
     def __set_properties(self):
         self.SetTitle(_("Préférences"))
@@ -842,27 +866,28 @@ class Dialog(wx.Dialog):
         self.bouton_annuler.SetToolTip(wx.ToolTip(_("Cliquez ici pour annuler et fermer")))
 
     def __do_layout(self):
-        grid_sizer_base = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
+        grid_sizer_base = wx.FlexGridSizer(rows=5, cols=1, vgap=10, hgap=10)
         
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
         
-        grid_sizer_contenu = wx.FlexGridSizer(rows=10, cols=2, vgap=10, hgap=10)
-        
-        grid_sizer_gauche = wx.FlexGridSizer(rows=7, cols=1, vgap=10, hgap=10)
+        grid_sizer_gauche = wx.FlexGridSizer(rows=8, cols=1, vgap=10, hgap=10)
         grid_sizer_gauche.Add(self.ctrl_interface, 1, wx.EXPAND, 0)
         grid_sizer_gauche.Add(self.ctrl_interface_mysql, 1, wx.EXPAND, 0)
+        grid_sizer_gauche.Add(self.ctrl_derniers_fichiers, 1, wx.EXPAND, 0)
         grid_sizer_gauche.Add(self.ctrl_dates, 1, wx.EXPAND, 0)
         grid_sizer_gauche.Add(self.ctrl_adresses, 1, wx.EXPAND, 0)
-        grid_sizer_gauche.Add(self.label_redemarrage, 1, wx.EXPAND, 0)
+        grid_sizer_gauche.Add(self.ctrl_autodeconnect, 1, wx.EXPAND, 0)
+        grid_sizer_gauche.Add(self.ctrl_email, 1, wx.EXPAND, 0)
 
         grid_sizer_droit = wx.FlexGridSizer(rows=7, cols=1, vgap=10, hgap=10)
         grid_sizer_droit.Add(self.ctrl_propose_maj, 1, wx.EXPAND, 0)
         grid_sizer_droit.Add(self.ctrl_rapport_bugs, 1, wx.EXPAND, 0)
-        grid_sizer_droit.Add(self.ctrl_derniers_fichiers, 1, wx.EXPAND, 0)
         grid_sizer_droit.Add(self.ctrl_monnaie, 1, wx.EXPAND, 0)
-        grid_sizer_droit.Add(self.ctrl_autodeconnect, 1, wx.EXPAND, 0)
         grid_sizer_droit.Add(self.ctrl_comptes_internet, 1, wx.EXPAND, 0)
-        grid_sizer_droit.Add(self.ctrl_email, 1, wx.EXPAND, 0)
+        grid_sizer_droit.Add((10,10), 1, wx.EXPAND, 0)
+        grid_sizer_droit.Add(self.label_redemarrage, 1, wx.EXPAND, 0)
+        grid_sizer_droit.Add(self.label_admin, 1, wx.EXPAND, 0)
+        grid_sizer_droit.AddGrowableRow(4)
 
         grid_sizer_contenu = wx.FlexGridSizer(rows=10, cols=2, vgap=10, hgap=10)
         grid_sizer_contenu.Add(grid_sizer_gauche, 1, wx.EXPAND, 0)
@@ -891,10 +916,8 @@ class Dialog(wx.Dialog):
     def OnBoutonAide(self, event):
         from Utils import UTILS_Aide
         UTILS_Aide.Aide("Prfrences")
-    
+
     def OnBoutonOk(self, event):
-        if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("parametrage_preferences", "modifier") == False : return
-        
         # Validation des données
         if self.ctrl_interface.Validation() == False : return
         if self.ctrl_monnaie.Validation() == False : return

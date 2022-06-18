@@ -98,12 +98,11 @@ def ParametresCategorie(mode="get", categorie="", dictParametres={}, nomFichier=
     DB.Close()
     return dictFinal
 
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
 def Parametres(mode="get", categorie="", nom="", valeur=None, nomFichier=""):
-    """ Mémorise ou récupère un paramètre quelconque dans la base de données """
-    """ Le paramètre doit être str ou unicode obligatoirement """
-    """ si mode = 'get' : valeur est la valeur par défaut | si mode = 'set' : valeur est la valeur à donner au paramètre """
+    """ Mémorise ou récupère un paramètre quelconque dans la base de données
+        Le paramètre doit être str ou unicode obligatoirement
+        si mode = 'get' : valeur est la valeur par défaut
+        si mode = 'set' : valeur est la valeur à donner au paramètre """
    
     # Préparation de la valeur par défaut
     type_parametre = type(valeur)
@@ -154,6 +153,8 @@ def Parametres(mode="get", categorie="", nom="", valeur=None, nomFichier=""):
     DB.Close()
     return valeurTmp
 
+# ----------------------- TESTS --------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 def TestParametre(categorie="", nom="", valeur=None, nomFichier=""):
     """ Vérifie si un paramètre existe dans le fichier """
     DB = GestionDB.DB(nomFichier=nomFichier)
@@ -166,7 +167,6 @@ def TestParametre(categorie="", nom="", valeur=None, nomFichier=""):
     else:
         return True
 
-# ----------------------- TESTS --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
     #print(ParametresCategorie(mode="get", categorie="parametres_grille_conso", dictParametres={"affiche_colonne_memo":True, "test":u"ça marche !"}, nomFichier=""))
     reponse = Parametres(mode="get", categorie="dlg_ouvertures", nom="afficher_tous_groupes", valeur=False)

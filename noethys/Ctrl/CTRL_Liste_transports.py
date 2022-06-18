@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-15 -*-
 #-----------------------------------------------------------
-# Application :    Noethys, gestion multi-activités
+# Application :    Noethys, Branche Matthania
 # Site internet :  www.noethys.com
-# Auteur:           Ivan LUCAS
-# Copyright:       (c) 2010-12 Ivan LUCAS
+# Auteur:           Ivan LUCAS, JB
+# Copyright:       (c) 2010-12 Ivan LUCAS, JB
 # Licence:         Licence GNU GPL
 #-----------------------------------------------------------
 
@@ -32,6 +32,8 @@ COULEUR_FOND_REGROUPEMENT = (220, 220, 220)
 
             
 def DateEngFr(textDate):
+    if textDate == None: return ""
+    textDate = str(textDate)
     text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
     return text
 
@@ -43,8 +45,8 @@ def DateComplete(dateDD):
     return dateComplete
 
 def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
     if dateEng == None : return None
+    if not isinstance(dateEng,str): dateEng = str(dateEng)
     return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
         
 def PeriodeComplete(mois, annee):
@@ -88,11 +90,7 @@ class CTRL(HTL.HyperTreeList):
         
         # Style
         self.SetBackgroundColour(wx.WHITE)
-        if 'phoenix' in wx.PlatformInfo:
-            TR_COLUMN_LINES = HTL.TR_COLUMN_LINES
-        else :
-            TR_COLUMN_LINES = wx.TR_COLUMN_LINES
-        self.SetAGWWindowStyleFlag(wx.TR_HIDE_ROOT  | TR_COLUMN_LINES |wx.TR_HAS_VARIABLE_ROW_HEIGHT | wx.TR_FULL_ROW_HIGHLIGHT ) # HTL.TR_NO_HEADER
+        self.SetAGWWindowStyleFlag(wx.TR_HIDE_ROOT  | HTL.TR_COLUMN_LINES |wx.TR_HAS_VARIABLE_ROW_HEIGHT | wx.TR_FULL_ROW_HIGHLIGHT ) # HTL.TR_NO_HEADER
         self.EnableSelectionVista(True)
 
         # Binds
@@ -115,7 +113,7 @@ class CTRL(HTL.HyperTreeList):
         
     def CreationColonnes(self, listeDates=[]):
         # Création des colonnes
-        listeColonnes = [(u"", 300, wx.ALIGN_LEFT),]
+        listeColonnes = [("", 300, wx.ALIGN_LEFT),]
         
         self.dictIndexColonnes = {}
         index = 1
@@ -135,7 +133,6 @@ class CTRL(HTL.HyperTreeList):
     def Remplissage(self, listeDates=[], dictFiltres={}):        
         # Importation des données
         DB = GestionDB.DB()
-        
         # Création de la condition
         if len(listeDates) == 0 : 
             conditionDates = "depart_date='2999-01-01' "
@@ -150,7 +147,7 @@ class CTRL(HTL.HyperTreeList):
         # Récupération des lignes
         req = """SELECT IDligne, categorie, nom
         FROM transports_lignes;""" 
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req,MsgBox="CTRL_Liste_transports")
         listeValeurs = DB.ResultatReq()
         dictLignes = {}
         for IDligne, categorie, nom in listeValeurs :
@@ -160,7 +157,7 @@ class CTRL(HTL.HyperTreeList):
         req = """SELECT IDarret, IDligne, nom
         FROM transports_arrets
         ORDER BY ordre;""" 
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req,MsgBox="CTRL_Liste_transports")
         listeValeurs = DB.ResultatReq()
         dictArrets = {}
         for IDarret, IDligne, nom in listeValeurs :
@@ -169,7 +166,7 @@ class CTRL(HTL.HyperTreeList):
         # Récupération des lieux
         req = """SELECT IDlieu, categorie, nom
         FROM transports_lieux;""" 
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req,MsgBox="CTRL_Liste_transports")
         listeValeurs = DB.ResultatReq()
         dictLieux = {}
         for IDlieu, categorie, nom in listeValeurs :
@@ -178,7 +175,7 @@ class CTRL(HTL.HyperTreeList):
         # Récupération des individus
         req = """SELECT IDindividu, nom, prenom
         FROM individus;""" 
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req,MsgBox="CTRL_Liste_transports")
         listeValeurs = DB.ResultatReq()
         dictIndividus = {}
         for IDindividu, nom, prenom in listeValeurs :
@@ -192,7 +189,7 @@ class CTRL(HTL.HyperTreeList):
         req = """SELECT %s
         FROM transports 
         WHERE %s;""" % (", ".join(listeChamps), conditionDates)
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req,MsgBox="CTRL_Liste_transports")
         listeDonnees = DB.ResultatReq()
         DB.Close() 
         
@@ -326,8 +323,8 @@ class CTRL(HTL.HyperTreeList):
                     label = heure.replace(":", "h")
                 else :
                     label = _("Heure inconnue")
-                niveauHeure = self.AppendItem(niveauParent, label)
-                self.SetPyData(niveauHeure, {"type":"heures", "code":heure})
+                niveauHeure = self.Append(niveauParent, label)
+                self.SetItemData(niveauHeure, {"type":"heures", "code":heure})
                 
                 # Totaux par heure
                 dictImpressionColonnes = {}
@@ -360,8 +357,8 @@ class CTRL(HTL.HyperTreeList):
                 
                 for label, IDindividu, dictDates in listeIndividusTemp :
                     labelIndividu = label
-                    niveauIndividu = self.AppendItem(niveauHeure, labelIndividu)
-                    self.SetPyData(niveauIndividu, {"type":"individus", "code":IDindividu})
+                    niveauIndividu = self.Append(niveauHeure, labelIndividu)
+                    self.SetItemData(niveauIndividu, {"type":"individus", "code":IDindividu})
                     
                     # Dates
                     dictImpressionColonnes = {}
@@ -390,8 +387,8 @@ class CTRL(HTL.HyperTreeList):
             
             # Catégories
             label = DICT_CATEGORIES[categorie]["label"]
-            brancheCategorie = self.AppendItem(self.root, label)
-            self.SetPyData(brancheCategorie, {"type":"categories", "code":categorie})
+            brancheCategorie = self.Append(self.root, label)
+            self.SetItemData(brancheCategorie, {"type":"categories", "code":categorie})
             self.SetItemBold(brancheCategorie)
             self.SetItemBackgroundColour(brancheCategorie, wx.Colour(*COULEUR_FOND_REGROUPEMENT))
             self.SetItemImage(brancheCategorie, self.dictImages[categorie]["index"])
@@ -409,8 +406,8 @@ class CTRL(HTL.HyperTreeList):
             listeLignes.sort() 
 
             for label, IDligne in listeLignes :
-                niveauLigne = self.AppendItem(brancheCategorie, label)
-                self.SetPyData(niveauLigne, {"type":"lignes", "code":IDligne})
+                niveauLigne = self.Append(brancheCategorie, label)
+                self.SetItemData(niveauLigne, {"type":"lignes", "code":IDligne})
                 dictImpressionTemp["elements"].append({"type":"lignes", "texte":label, "marge":1})
                 
                 # Arrêts
@@ -424,8 +421,8 @@ class CTRL(HTL.HyperTreeList):
                 listeArrets.sort() 
                 
                 for label, IDarret, dictArret in listeArrets :
-                    niveauArret = self.AppendItem(niveauLigne, label)
-                    self.SetPyData(niveauArret, {"type":"arrets", "code":IDarret})
+                    niveauArret = self.Append(niveauLigne, label)
+                    self.SetItemData(niveauArret, {"type":"arrets", "code":IDarret})
                     dictImpressionTemp["elements"].append({"type":"arrets", "texte":label, "marge":2})
                     
                     # Insertion des branches Heures et Individus
@@ -443,8 +440,8 @@ class CTRL(HTL.HyperTreeList):
             listeLieux.sort() 
             
             for label, IDlieu, dictLieu in listeLieux :
-                niveauLieu = self.AppendItem(brancheCategorie, label)
-                self.SetPyData(niveauLieu, {"type":"lieux", "code":IDlieu})
+                niveauLieu = self.Append(brancheCategorie, label)
+                self.SetItemData(niveauLieu, {"type":"lieux", "code":IDlieu})
                 dictImpressionTemp["elements"].append({"type":"lieux", "texte":label, "marge":1})
                 
                 # Insertion des branches Heures et Individus
@@ -458,8 +455,8 @@ class CTRL(HTL.HyperTreeList):
             listeLocalisations.sort() 
             
             for label, localisation, dictLocalisation in listeLocalisations :
-                niveauLocalisation = self.AppendItem(brancheCategorie, label)
-                self.SetPyData(niveauLocalisation, {"type":"localisations", "code":localisation})
+                niveauLocalisation = self.Append(brancheCategorie, label)
+                self.SetItemData(niveauLocalisation, {"type":"localisations", "code":localisation})
                 dictImpressionTemp["elements"].append({"type":"localisations", "texte":label, "marge":1})
                 
                 # Insertion des branches Heures et Individus
@@ -486,13 +483,13 @@ class CTRL(HTL.HyperTreeList):
         if categorie != "individus" : return
         
         # Création du menu contextuel
-        menuPop = UTILS_Adaptations.Menu()
+        menuPop = wx.Menu()
 
         # Item Ouvrir fiche famille
         item = wx.MenuItem(menuPop, 10, _("Ouvrir la fiche famille"))
         bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Famille.png"), wx.BITMAP_TYPE_PNG)
         item.SetBitmap(bmp)
-        menuPop.AppendItem(item)
+        menuPop.Append(item)
         self.Bind(wx.EVT_MENU, self.OuvrirFicheFamille, id=10)
 
         # Finalisation du menu

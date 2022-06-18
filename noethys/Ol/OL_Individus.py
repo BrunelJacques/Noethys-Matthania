@@ -575,7 +575,8 @@ class ListView(FastObjectListView):
             # Ouverture fiche de l'individu
             if ouvrirFicheInd == True :
                 dlg.OuvrirFicheIndividu(IDindividu)
-            if dlg.ShowModal() == wx.ID_OK:
+            ret = dlg.ShowModal()
+            if ret== wx.ID_OK:
                 self.MAJ(IDindividu)
             dlg.Destroy()
             # MAJ du remplissage

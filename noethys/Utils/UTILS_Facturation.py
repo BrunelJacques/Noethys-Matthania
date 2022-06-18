@@ -670,7 +670,7 @@ class Facturation():
     #-------------------- Fin de la construction de dictToPdf ----------------------------------------------------------
 
     # Récupération des prélèvements sur une facture
-    def GetPrelevements(self, IDfacture):
+    def zzzGetPrelevements(self, IDfacture):
         if len(IDfactures) > 0 :
             condition = "WHERE factures.numero IN %s" % (str(tuple(IDfactures))[:-2]+")")
         else : condition = ""
@@ -704,7 +704,7 @@ class Facturation():
         # fin GetPrelevements
 
     # affecte le reliquat de règlements positifs non affecté sur les impayés hors page, puis sur la page
-    def ImputeReglLibres(self):
+    def zzzImputeReglLibres(self):
         # fonction filtrage des seuls réglements positifs
         def filtre(reglementsLibres):
             reglements = {}

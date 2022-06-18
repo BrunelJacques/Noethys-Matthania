@@ -196,7 +196,6 @@ class Notebook(wx.Notebook):
         dlg.ShowModal()
         dlg.Destroy()
 
-
 class Dialog(wx.Dialog):
     def __init__(self, parent, IDfamille=None, dataRattach=None, AfficherMessagesOuverture=True):
         wx.Dialog.__init__(self, parent, id=-1, name="fiche_famille", style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
@@ -927,7 +926,7 @@ if __name__ == "__main__":
     heure_debut = time.time()
     # ramel 567; perez marc 1724; bartoOliv 1861; branco 4499;  bourrel 6191
     #7735 parrainage; 8107 multifactures; 709 Brunel jacques
-    dialog_1 = Dialog(None, IDfamille= 6580)
+    dialog_1 = Dialog(None, IDfamille= 709)
     print("Temps de chargement fiche famille =", time.time() - heure_debut)
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()

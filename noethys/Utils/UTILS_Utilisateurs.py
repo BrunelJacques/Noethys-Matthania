@@ -1,20 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-15 -*-
 #------------------------------------------------------------------------
-# Application :    Noethys, gestion multi-activités
+# Application :    Noethys, Matthania
 # Site internet :  www.noethys.com
-# Auteur:           Ivan LUCAS
+# Auteur:           Ivan LUCAS, JB
 # Copyright:       (c) 2010-13 Ivan LUCAS
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
-
 
 import Chemins
 from Utils.UTILS_Traduction import _
 import wx
 from Crypto.Hash import SHA256
 import GestionDB
-
 
 def GetListeUtilisateurs(nomFichier=""):
     """ Récupère la liste des utilisateurs et de leurs droits """
@@ -98,7 +96,6 @@ def GetListeUtilisateurs(nomFichier=""):
     DB.Close()
     return listeUtilisateurs
 
-
 def VerificationDroits(dictUtilisateur=None, categorie="", action="", IDactivite=""):
     """ Vérifie si un utilisateur peut accéder à une action """
     if dictUtilisateur == None or ("droits" in dictUtilisateur) == False :
@@ -159,17 +156,29 @@ def VerificationDroitsUtilisateurActuel(categorie="", action="", IDactivite="", 
             AfficheDLGInterdiction() 
         return resultat
     return True
-    
-    
+
+def IsAdmin(afficheMessage=True):
+    try :
+        topWindow = wx.GetApp().GetTopWindow()
+        nomWindow = topWindow.GetName()
+    except :
+        nomWindow = None
+    if nomWindow == "general" :
+        # Si la frame 'General' est chargée, on y récupère le dict de config
+        dictUtilisateur = topWindow.dictUtilisateur
+        resultat = dictUtilisateur["profil"] == "administrateur"
+        if resultat == False and afficheMessage == True :
+            AfficheDLGInterdiction()
+        return resultat
+    return True
+
 def AfficheDLGInterdiction():
     import wx.lib.dialogs as dialogs
     image = wx.Bitmap(Chemins.GetStaticPath("Images/32x32/Droits.png"), wx.BITMAP_TYPE_ANY)
     dlg = dialogs.MultiMessageDialog(None, _("Votre profil utilisateur ne vous permet pas d'accéder à cette fonctionnalité !"), caption=_("Accès non autorisé"), style=wx.ICON_ERROR | wx.OK, icon=image, btnLabels={wx.ID_OK : _("Ok")})
     dlg.ShowModal() 
     dlg.Destroy() 
-    
 
-            
 if __name__ == '__main__':
     listeUtilisateurs = GetListeUtilisateurs() 
     print(VerificationDroits(listeUtilisateurs[0], "parametrage_modes_reglements", "supprimer"))

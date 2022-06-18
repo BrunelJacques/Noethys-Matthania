@@ -47,17 +47,17 @@ def AjoutContacts(dFamille, dIndividu):
             break
     dFamille["telephones"] = dFamille["telephones"].replace('.', ' ')
 
-
     if not "mails" in dFamille or len(dFamille["mails"]) == 0:
         dFamille["mails"] = ""
         dFamille["mail_famille"] = ""
+
     for key in ("mail","travail_mail"):
             dFamille["mails"] = Ajout(dFamille["mails"],dIndividu[key])
     # cas du correspondant mail et téléphone seront ceux de la famille
     if not "correspondant" in list(dFamille.keys()):
         dFamille["correspondant"] = None
 
-    if "IDindividu" in dIndividu and  dFamille["correspondant"] == dIndividu["IDindividu"]:
+    if "IDindividu" in dIndividu and dFamille["correspondant"] == dIndividu["IDindividu"]:
         dFamille["mail_famille"] = dIndividu["mail"]
         if not dIndividu["mail"] : dFamille["mail_famille"] = dIndividu["travail_mail"]
         dFamille["telephone_famille"] = dIndividu["tel_domicile"]
@@ -319,7 +319,6 @@ def GetTitulaires(listeIDfamille=[]):
 
     # Récupération des individus rattachés
 
-
     def compacte(adresse):
         compactee = ""
         if adresse:
@@ -539,9 +538,18 @@ def GetTitulaires(listeIDfamille=[]):
                                                   "IDsecteur": None, "nomSecteur": "",}
             dictFamilles[IDfamille]["mails"] = ""
             dictFamilles[IDfamille]["mail_famille"] = ""
+            dictFamilles[IDfamille]["listeMails"] = []
             dictFamilles[IDfamille]["tel_famille"] = ""
             dictFamilles[IDfamille]["telephones"] = ""
             dictFamilles[IDfamille]["listeMembres"] = []
+
+        # pour la compatibilité avec Noethys original
+        lstMails =  dictFamille["mails"].split(";")
+        if len(dictFamille["mail_famille"]) > 0:
+            lstAutres = [x for x in lstMails if x.strip() != dictFamille["mail_famille"].strip() ]
+            dictFamille["listeMails"] = [dictFamille["mail_famille"],] + lstAutres
+        else:
+            dictFamille["listeMails"] = lstMails
     DB.Close()
     return dictFamilles
 
@@ -837,7 +845,7 @@ def GetCorrespondant(IDfamille=None, IDindividu=None):
 
 if __name__ == '__main__':
     #print GetCorrespondant(IDindividu=16672)
-    dic = GetTitulaires(listeIDfamille=[8662])
+    dic = GetTitulaires(listeIDfamille=[709,])
     for k in list(dic.keys()):
         if len(dic[k]["titulairesCivilite"])>0:
             print((dic[k]["titulairesCivilite"],'   >>  ',dic[k]['titulairesSansCivilite']))

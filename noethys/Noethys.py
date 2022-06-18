@@ -1874,6 +1874,11 @@ class Redirect(object):
         else:
             self.filename.write(text)
             self.filename.flush()
+    def flush(self):
+        if self.filename.closed:
+            pass
+        else:
+            self.filename.flush()
 
 def main():
     # Vérifie l'existence des répertoires dans le répertoire Utilisateur
@@ -1903,11 +1908,12 @@ def main():
 
     # Redirection vers un fichier
     nomFichier = sys.executable
-    print(nomFichier)
     journal = CUSTOMIZE.GetValeur("journal", "actif", "1")
     nolog = os.path.isfile("nolog.txt")
+    #condJournal = CUSTOMIZE.GetValeur("journal", "actif", "1") != "0"
+    #condNolog = os.path.isfile("nolog.txt") == False
     #if nomFichier.endswith("python.exe") == False and journal != "0" and nolog == False :
-    if journal != "0" and nolog == False :
+    if journal != "0":
         sys.stdout = Redirect(nomJournal)
 
     # Lancement de l'application

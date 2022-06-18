@@ -32,8 +32,8 @@ class CTRL_Donnees(wx.TextCtrl):
         style = wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_RICH | wx.TE_DONTWRAP
         wx.TextCtrl.__init__(self, parent, id, label, pos, size, style=style)
         self.parent = parent
-        self.actuelle = self.GetVersionNow()
-        invite = "\nActuellement : %s\n\nChoisissez un fichier"%self.actuelle
+        self.actuelle = FonctionsPerso.GetVersionLogiciel(datee=True)
+        invite = "\nActuellement : Version %s\n\nChoisissez un fichier"%self.actuelle
         self.SetValue(invite)
 
     def MAJ(self):
@@ -66,11 +66,12 @@ class CTRL_Donnees(wx.TextCtrl):
             texte = GestionDB.Decod(GetVersionsFile(self.zipFile))
             # afichage du contenu
             if texte:
-                self.SetValue("\nActuellement : %s\n\nVersions à installer :\n\n%s"%(self.actuelle,texte))
+                self.SetValue("\nActuellement : Version %s\n\nVersions à installer :\n\n%s"%(self.actuelle,texte))
                 dc = wx.ClientDC(self)
                 dc.SetFont(self.GetFont())
-                pos = texte.find(")",0,50) + 1
-                versionChoisie = texte[:pos]
+                posDebut = texte.find("n")
+                posFin = texte.find(")",0,50) + 1
+                versionChoisie = texte[posDebut+1:posFin].strip()
                 if versionChoisie.split('.')[:3] != self.actuelle.split('.')[:3]:
                     mess = "Trop de différence entre les versions\n\n"
                     mess += "Refaites une installation complète depuis Github NoethysMatthania"
@@ -79,7 +80,7 @@ class CTRL_Donnees(wx.TextCtrl):
                 if versionChoisie < self.actuelle:
                     mess = "Rétropédalage à confirmer\n\n"
                     mess += "La %s remontée sera antérieure\nà l'actuelle %s\n\n"%(versionChoisie,self.actuelle)
-                    mess += "Certaines nouvelles modifications peuvent rester en place"
+                    mess += "Certaines nouvelles modifications pourront rester en place"
                     ret = wx.MessageBox(mess,style=wx.YES_NO|wx.ICON_INFORMATION)
                     if ret  != wx.YES:
                         return
@@ -91,15 +92,6 @@ class CTRL_Donnees(wx.TextCtrl):
                 mess = "Le fichier version importé n'est pas codé en UTF-8\n%s"%err
                 wx.MessageBox(mess,"Abandon")
             print(type(err),err)
-
-    def GetVersionNow(self):
-        fichier = codecs.open(
-            FonctionsPerso.GetRepertoireProjet("Versions.txt"),
-            encoding='utf-8', mode='r')
-        version = fichier.readlines()[0]
-        fichier.close()
-        pos = version.find(")") + 1
-        return version[:pos]
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------
 

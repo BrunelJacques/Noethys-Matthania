@@ -152,8 +152,6 @@ def SetParametre(nomParametre="", parametre=None):
         cfg = FichierConfig()
         cfg.SetItemConfig(nomParametre, parametre)
 
-
-
 # --------------Traitement par lot ------------------------------------------------------------------------------------------
 
 def GetParametres(dictParametres={}):
@@ -180,8 +178,6 @@ def GetParametres(dictParametres={}):
             dictFinal[nom] = valeur
     return dictFinal
 
-
-
 def SetParametres(dictParametres={}):
     """ dictParametres = {nom : valeur, nom: valeur...} """
     try :
@@ -198,8 +194,6 @@ def SetParametres(dictParametres={}):
         cfg = FichierConfig()
         cfg.SetItemsConfig(dictParametres)
     return dictParametres
-
-
 
 # --------------- TESTS ----------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":

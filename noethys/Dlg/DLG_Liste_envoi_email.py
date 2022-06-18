@@ -19,9 +19,6 @@ from Utils import UTILS_Titulaires
 from Dlg import DLG_Messagebox
 import GestionDB
 
-
-
-
 class Dialog(wx.Dialog):
     def __init__(self, parent, listview=None):
         wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE)
@@ -70,8 +67,11 @@ class Dialog(wx.Dialog):
         if self.listview.checkStateColumn == None :
             self.radio_lignes_cochees.Show(False)
 
+        selection = self.listview.GetSelectedObjects()
         if len(self.listview.GetSelectedObjects()) == 0 :
             self.radio_ligne_selectionnee.Show(False)
+        else:
+            self.radio_ligne_selectionnee.SetValue(True)
 
         self.__do_layout()
 
@@ -167,15 +167,15 @@ class Dialog(wx.Dialog):
                         listeAnomalies.append(nomIndividu)
 
         if self.radio_famille.GetValue() == True:
-            dict_titulaires = UTILS_Titulaires.GetTitulaires()
+            lstIDfamilles = [x.IDfamille for x in tracks if hasattr(x,"IDfamille")]
+            dict_titulaires = UTILS_Titulaires.GetTitulaires(lstIDfamilles)
 
             for track in tracks:
                 adresse = None
                 if track.IDfamille in dict_titulaires :
-                    #adresse = UTILS_Envoi_email.GetAdresseFamille(track.IDfamille, choixMultiple=False, muet=True, nomTitulaires=track.nomTitulaires)
-                    listeEmails = dict_titulaires[track.IDfamille]["listeMails"]
-                    if len(listeEmails) > 0 :
-                        adresse = listeEmails[0]
+                    mail = dict_titulaires[track.IDfamille]["mail_famille"]
+                    if len(mail) > 0 :
+                        adresse = mail
 
                     # Mémorisation des données
                     if adresse != None :
@@ -217,9 +217,6 @@ class Dialog(wx.Dialog):
         # Fermeture de la fenêtre
         self.EndModal(wx.ID_OK)
     
-
-
-
 
 if __name__ == "__main__":
     app = wx.App(0)

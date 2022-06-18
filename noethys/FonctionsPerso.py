@@ -682,13 +682,27 @@ def GetRepertoireProjet(fichier=""):
         chemin = os.path.dirname(sys.executable)
     return os.path.join(chemin, fichier)
 
-def GetVersionLogiciel():
+def GetTopWindow(onlyGeneral=False):
+    topWindow = wx.GetApp().GetTopWindow()
+    if onlyGeneral:
+        if topWindow.GetName() == "general":
+             return topWindow
+        else: return None
+    return topWindow
+
+def GetVersionLogiciel(datee=False):
     """ Recherche du numéro de version du logiciel """
-    fichierVersion = codecs.open(GetRepertoireProjet("Versions.txt"), encoding='utf-8', mode='r')
+    fichierVersion = codecs.open(
+        GetRepertoireProjet("Versions.txt"),
+        encoding='utf-8',
+        mode='r')
     txtVersion = fichierVersion.readlines()[0]
-    fichierVersion.close() 
+    fichierVersion.close()
     pos_debut_numVersion = txtVersion.find("n")
-    pos_fin_numVersion = txtVersion.find("(")
+    if datee:
+        pos_fin_numVersion = txtVersion.find(")") + 1
+    else:
+        pos_fin_numVersion = txtVersion.find("(")
     numVersion = txtVersion[pos_debut_numVersion+1:pos_fin_numVersion].strip()
     return numVersion
 
