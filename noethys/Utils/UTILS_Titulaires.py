@@ -62,7 +62,8 @@ def AjoutContacts(dFamille, dIndividu):
         if not dIndividu["mail"] : dFamille["mail_famille"] = dIndividu["travail_mail"]
         dFamille["telephone_famille"] = dIndividu["tel_domicile"]
         if not dIndividu["tel_domicile"]: dFamille["telephone_famille"] = dIndividu["tel_mobile"]
-
+        if not dFamille["mail_famille"] : dFamille["mail_famille"] = ""
+        if not dFamille["telephone_famille"]: dFamille["telephone_famille"] = ""
     # pas de return car w dans le pointeur dict
 
 def AjoutNomAdresse(dFamille, dIndividu):
@@ -474,9 +475,9 @@ def GetTitulaires(listeIDfamille=[]):
                 }
 
             # récup du correspondant dans la table famille qui va écraser les test précédents sauf si désignation null
-            if dictFamilles[IDfamille]["designation"] and len(dictFamilles[IDfamille]["designation"]) > 0:
-                dictFamilles[IDfamille]["nom"] = dictFamilles[IDfamille]["designation"]
-                designation = dictFamilles[IDfamille]["designation"]
+            if dictFamille["designation"] and len(dictFamille["designation"]) > 0:
+                dictFamille["nom"] = dictFamille["designation"]
+                designation = dictFamille["designation"]
                 (civilite, nom) = CutCivilite(designation)
                 nomsTitulaires = {
                     "IDcivilite": listeTitulaires[0]["IDcivilite"],
@@ -484,8 +485,8 @@ def GetTitulaires(listeIDfamille=[]):
                     "avecCivilite": designation,
                     "civilite": civilite
                 }
-            if dictFamilles[IDfamille]["correspondant"]:
-                IDcorrespondant = dictFamilles[IDfamille]["correspondant"]
+            if dictFamille["correspondant"]:
+                IDcorrespondant = dictFamille["correspondant"]
             else:
                 IDcorrespondant = listeTitulaires[0]["IDindividu"]
 
@@ -516,40 +517,42 @@ def GetTitulaires(listeIDfamille=[]):
             # Recherche des adresses Emails des titulaires
             mails = []
             for dictTemp in listeTitulaires:
-                AjoutContacts(dictFamilles[IDfamille],dictTemp)
+                AjoutContacts(dictFamille,dictTemp)
 
             # Définit les noms des titulaires
-            dictFamilles[IDfamille]["IDcivilite"] = nomsTitulaires["IDcivilite"]
-            dictFamilles[IDfamille]["titulairesAvecCivilite"] = nomsTitulaires["avecCivilite"]
-            dictFamilles[IDfamille]["titulairesSansCivilite"] = nomsTitulaires["sansCivilite"]
-            dictFamilles[IDfamille]["titulairesCivilite"] = nomsTitulaires["civilite"]
-            dictFamilles[IDfamille]["listeTitulaires"] = listeTitulaires
-            dictFamilles[IDfamille]["adresse"] = adresse
-            dictFamilles[IDfamille]["listeMembres"] = listeMembres
+            dictFamille["IDcivilite"] = nomsTitulaires["IDcivilite"]
+            dictFamille["titulairesAvecCivilite"] = nomsTitulaires["avecCivilite"]
+            dictFamille["titulairesSansCivilite"] = nomsTitulaires["sansCivilite"]
+            dictFamille["titulairesCivilite"] = nomsTitulaires["civilite"]
+            dictFamille["listeTitulaires"] = listeTitulaires
+            dictFamille["adresse"] = adresse
+            dictFamille["listeMembres"] = listeMembres
 
         # Aucun rattachement pour cette famille
         else:
-            dictFamilles[IDfamille]["IDcivilite"] = 0
-            dictFamilles[IDfamille]["titulairesAvecCivilite"] = _("%d sans titulaire" % IDfamille)
-            dictFamilles[IDfamille]["titulairesSansCivilite"] = _("%d sans titulaire" % IDfamille)
-            dictFamilles[IDfamille]["titulairesCivilite"] = ""
-            dictFamilles[IDfamille]["listeTitulaires"] = []
-            dictFamilles[IDfamille]["adresse"] = {"rue": "Aucun rattachement", "cp": "", "ville": "",
+            dictFamille["IDcivilite"] = 0
+            dictFamille["titulairesAvecCivilite"] = _("%d sans titulaire" % IDfamille)
+            dictFamille["titulairesSansCivilite"] = _("%d sans titulaire" % IDfamille)
+            dictFamille["titulairesCivilite"] = ""
+            dictFamille["listeTitulaires"] = []
+            dictFamille["adresse"] = {"rue": "Aucun rattachement", "cp": "", "ville": "",
                                                   "IDsecteur": None, "nomSecteur": "",}
-            dictFamilles[IDfamille]["mails"] = ""
-            dictFamilles[IDfamille]["mail_famille"] = ""
-            dictFamilles[IDfamille]["listeMails"] = []
-            dictFamilles[IDfamille]["tel_famille"] = ""
-            dictFamilles[IDfamille]["telephones"] = ""
-            dictFamilles[IDfamille]["listeMembres"] = []
+            dictFamille["mails"] = ""
+            dictFamille["mail_famille"] = ""
+            dictFamille["listeMails"] = []
+            dictFamille["tel_famille"] = ""
+            dictFamille["telephones"] = ""
+            dictFamille["listeMembres"] = []
 
         # pour la compatibilité avec Noethys original
         lstMails =  dictFamille["mails"].split(";")
+
         if len(dictFamille["mail_famille"]) > 0:
             lstAutres = [x for x in lstMails if x.strip() != dictFamille["mail_famille"].strip() ]
             dictFamille["listeMails"] = [dictFamille["mail_famille"],] + lstAutres
         else:
             dictFamille["listeMails"] = lstMails
+            
     DB.Close()
     return dictFamilles
 
@@ -558,7 +561,10 @@ def GetIndividus(listeIDindividus=[]):
     if len(listeIDindividus) == 0:
         conditionIndividus = ""
     elif len(listeIDindividus) == 1:
-        conditionIndividus = "WHERE IDindividu=%d" % listeIDindividus[0]
+        if not listeIDindividus[0]:
+            conditionIndividus = ""
+        else:
+            conditionIndividus = "WHERE IDindividu=%d" % listeIDindividus[0]
     else:
         conditionIndividus = "WHERE IDindividu IN %s" % str(tuple(listeIDindividus))
 
@@ -845,7 +851,7 @@ def GetCorrespondant(IDfamille=None, IDindividu=None):
 
 if __name__ == '__main__':
     #print GetCorrespondant(IDindividu=16672)
-    dic = GetTitulaires(listeIDfamille=[709,])
+    dic = GetTitulaires(listeIDfamille=[])
     for k in list(dic.keys()):
         if len(dic[k]["titulairesCivilite"])>0:
             print((dic[k]["titulairesCivilite"],'   >>  ',dic[k]['titulairesSansCivilite']))

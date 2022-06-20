@@ -98,6 +98,7 @@ class MainFrame(wx.Frame):
         # Diminution de la taille de la police sous linux
         from Utils import UTILS_Linux
         UTILS_Linux.AdaptePolice(self)
+        self.mess = ""
 
     def Initialisation(self):
         # Vérifie que le fichier de configuration existe bien
@@ -1439,40 +1440,14 @@ class MainFrame(wx.Frame):
             # retrourne une mise en texte du tuple version
             return str(versionTpl[:nbItems])[1:-1]
 
-        message = "Le logiciel n'a pas convertit le fichier !\n\nAbandon du traitement"
-        titre = "Abandon"
-        style = wx.OK | wx.ICON_INFORMATION
-        # Comparaison des versions par les tuples
-        if versionFichier[:2] != versionLogiciel[:2]:
-            # Changement majeur, MAJ base complète nécessaire
-            self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
-            self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(True)
-            info = "Lancement de la conversion %s -> %s..."%(VERSION_FICHIER, VERSION_APPLICATION)
-            self.SetStatusText(info)
-            print(info)
-            try:
-                import UpgradeDB
-                resultat = UpgradeDB.MAJ_TablesEtChamps(self)
-                if resultat == True:
-                    EnregistreVersion()
-            except Exception as err:
-                traceback.print_exc(file=sys.stdout)
-                message = "Désolé, le problème suivant a été rencontré dans la mise à jour de la base de données : \n\n%s"% err
-                titre = "Erreur"
-                style = wx.OK | wx.ICON_ERROR
-                resultat = False
-        elif versionFichier < versionLogiciel:
-            # Fait la conversion de la base par simple upgrade
-            info = "Lancement de la conversion %s -> %s..." %(VERSION_FICHIER,VERSION_APPLICATION)
-            self.SetStatusText(info)
-            print(info)
-            # Affiche d'une fenêtre d'attente
+        def UpdateDB(versionFichier):
+            # Lancement des updates par précédures
             try :
                 messAttente = _("Mise à jour de la base de données en cours... Veuillez patienter...")
                 attente = wx.BusyInfo(messAttente, None)
                 import UpgradeDB
                 DB = UpgradeDB.DB(nomFichier=nomFichier)
-                resultat = DB.Upgrade(versionFichier)
+                resultat = DB.UpdateDB(versionFichier)
                 DB.Close()
                 # Fermeture de la fenêtre d'attente
                 del attente
@@ -1484,6 +1459,65 @@ class MainFrame(wx.Frame):
                 titre = "Erreur"
                 style = wx.OK | wx.ICON_ERROR
                 resultat = False
+            return resultat
+
+        message = "Base de donnée pas convertie!\n\nAbandon du traitement"
+        titre = "Abandon"
+        style = wx.OK | wx.ICON_INFORMATION
+        # Comparaison des versions par les tuples
+        if versionFichier[:2] != versionLogiciel[:2]:
+            # Changement majeur, réserve l'action aux admins (version python?)
+            mess = "INCOHERENCE VERSIONS\n\n"
+            mess += "Version logiciel '%s' - Version base de donnée '%s'\n"%(
+                    versionFichier[:2],versionLogiciel[:2] )
+            mess += "Ce changement majeur nécessite une intervention éclairée\n"
+            mess += "sur la base ou la version en cohérence avec la version python."
+            wx.MessageBox(mess,"",style = wx.ICON_WARNING)
+            if not UTILS_Utilisateurs.IsAdmin():
+                self.Fermer(sauvegarde_auto=False)
+                return False
+            self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
+            self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(True)
+
+        elif versionFichier[:3] <= versionLogiciel[:3]:
+            # Changement de niveau version, nécessite MAJ_TablesEtChamps
+            mess = "UPGRADE BASE conseillé\n\n"
+            mess += "Version logiciel '%s' - Version base de donnée '%s'\n"%(
+                    versionFichier[:3],versionLogiciel[:3] )
+            mess += "Ce changement de niveau de version peut nécessiter une mise à jour de la base\n"
+            mess += "On peut quand même travailler en mode dégradé, avec un plus grand risque de bug."
+            wx.MessageBox(mess,"",style = wx.ICON_INFORMATION)
+            if UTILS_Utilisateurs.IsAdmin(afficheMessage=True):
+                self.SauvegardeAutomatique()
+                self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
+                self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(True)
+            else:
+                self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(False)
+                self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(False)
+                return
+            self.infoVersions = "Conversion des données %s -> %s"%(VERSION_FICHIER, VERSION_APPLICATION)
+            self.SetStatusText(self.infoVersions + " ...")
+            print(self.infoVersions)
+            try:
+                import UpgradeDB
+                resultat = UpgradeDB.MAJ_TablesEtChamps(self)
+                if resultat == True:
+                    resultat = UpdateDB(versionFichier)
+                    EnregistreVersion()
+            except Exception as err:
+                traceback.print_exc(file=sys.stdout)
+                message = "Désolé, le problème suivant a été rencontré dans la mise à jour de la base de données : \n\n%s"% err
+                titre = "Erreur"
+                style = wx.OK | wx.ICON_ERROR
+                resultat = False
+
+        elif versionFichier < versionLogiciel:
+            # Fait la conversion de la base par updateDB
+            info = "Lancement de la conversion %s -> %s..." %(VERSION_FICHIER,VERSION_APPLICATION)
+            self.SetStatusText(info)
+            print(info)
+            return UpdateDB(versionFichier)
+
         elif versionFichier[:3] > versionLogiciel[:3]:
             self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
             message = "Votre station n'est pas à jour!\n\n"
@@ -1492,6 +1526,7 @@ class MainFrame(wx.Frame):
             titre = "Erreur"
             style = wx.OK | wx.ICON_EXCLAMATION
             resultat = False
+
         elif versionFichier > versionLogiciel:
             self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
             message = "Votre station n'est pas à jour!\n\n"
@@ -1499,6 +1534,7 @@ class MainFrame(wx.Frame):
             titre = "Erreur"
             style = wx.OK | wx.ICON_EXCLAMATION
             resultat = False
+
         if resultat != True :
             dlg = wx.MessageDialog(self,message,titre,style=style)
             dlg.CenterOnParent()

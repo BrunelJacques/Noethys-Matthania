@@ -574,40 +574,7 @@ def A8452():
     DB.Close() 
     print("Nbre de liens supprimes :", len(listeLiensASupprimer))
     print(listeIDfamille)
-    
-def A8574():
-    """ Mise à niveau de la base de données """
-    import FonctionsPerso
-    versionApplication = FonctionsPerso.GetVersionLogiciel()
-    dlg = wx.TextEntryDialog(None, _("Saisissez le numéro de version à partir duquel vous souhaitez \neffectuer la mise à niveau ('x.x.x.x'):"), _("Mise à niveau de la base de données"), versionApplication)
-    reponse = dlg.ShowModal() 
-    version = dlg.GetValue()
-    dlg.Destroy()
-    if reponse != wx.ID_OK:
-        return
-    
-    valide = True
-    try :
-        version = tuple([int(x) for x in version.split(".")])
-    except :
-        valide = False
-    if len(version) != 4 :
-        valide = False
-    
-    if valide == False :
-        dlg = wx.MessageDialog(None, _("Impossible d'effectuer la procédure !\n\nLe numéro de version que vous avez saisi semble erroné. Vérifiez qu'il est formaté de la façon suivante : 'x.x.x.x'"), _("Erreur"), wx.OK | wx.ICON_ERROR)
-        dlg.ShowModal()
-        dlg.Destroy()
-        return False
-    
-    print("Procedure manuelle de mise a niveau de la base de donnee depuis la version : ", version)
-    import UpgradeDB
-    DB = UpgradeDB.DB()
-    resultat = DB.Upgrade(version)
-    DB.Close()
 
-    print(resultat)
-    
 def A8623():
     """ Remplacement des exercices comptables par les dates budgétaires """
     DB = GestionDB.DB()

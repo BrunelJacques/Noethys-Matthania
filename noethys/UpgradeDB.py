@@ -15,6 +15,7 @@ import GestionDB
 import FonctionsPerso as fp
 from Data import DATA_Tables
 from Utils import UTILS_Fichiers
+from Utils import UTILS_Utilisateurs
 
 class DB(GestionDB.DB):
     def __init__(self, *args, **kwds):
@@ -293,7 +294,7 @@ class DB(GestionDB.DB):
                 # Affichage dans la StatusBar
                 if parent:
                     parent.mess += "%s %s, " % (nomIndex, ret)
-                    parent.SetStatusText(parent.mess)
+                    parent.SetStatusText(parent.mess[-200:])
         if parent:
             if parent.mess[-17:] == "Index PK Terminés":
                 parent.mess += "- Index alt Terminés"
@@ -450,16 +451,21 @@ class DB(GestionDB.DB):
         # création de table ou ajout|modif des champs selon description fournie
         if not tables or tables == []:
             tables = dicTables.keys()
+        messFix = ""
+        nomTable = "aucune"
+        if parent:
+            messFix = parent.mess
+            parent.SetStatusText(messFix)
         for nomTable in tables:
             # les possibles vues sont préfixées v_ donc ignorées
             ret = ""
             if nomTable[:2] == "v_":
                 continue
-            mess = None
-            print(nomTable,end=":")
+            print(nomTable,end=": ")
             if not self.IsTableExists(nomTable):
                 ret = self.CreationUneTable(dicTables=dicTables,nomTable=nomTable)
-                mess = "Création de la table de données %s: %s" %(nomTable,ret)
+                mess = "Création table '%s': %s" %(nomTable,ret)
+                messFix += mess
                 
             # controle des champs à modifier
             else:
@@ -467,39 +473,51 @@ class DB(GestionDB.DB):
                 lstChampsBD = self.GetListeChamps(nomTable)
                 lstNomsChampsBD = [ x[0].lower() for x in lstChampsBD]
                 lstTypesChampsBD = [ x[1] for x in lstChampsBD]
-                mess = "Champs: "
+                mess = "\tChamps: "
                 for (nomChampModel, typeChampModel, info) in tableModel:
                     ret = None
                     # ajout du champ manquant
                     if not nomChampModel.lower() in lstNomsChampsBD:
                         ret = self.AjoutChamp(nomTable,nomChampModel,typeChampModel)
+                        if ret == "ok":
+                            ret = "ajouté"
                     else:
                         # modif du type de champ
                         typeChampBD = lstTypesChampsBD[lstNomsChampsBD.index(nomChampModel.lower())]
                         futurType = self.TransposeChamp(typeChampModel)
+                        if self.isNetwork == True and futurType.lower() == "real":
+                            futurType = "DOUBLE"
                         if futurType[:3].lower() != typeChampBD[:3].lower():
                             ret  = self.ModifTypeChamp(nomTable,nomChampModel,futurType)
                     if ret:
                         mess += "; %s.%s: %s"%(nomTable,nomChampModel,ret)
-            if mess and mess != "Champs: ":
+                        if ret != "ok":
+                            messFix += mess
+            if mess and mess != "\tChamps: ":
                 print("\n" + mess)
-                # Affichage dans la StatusBar
-                if parent and mess:
-                    parent.mess += "%s %s, "%(nomTable,ret)
-                    parent.SetStatusText(parent.mess[-200:])
+            else: print("-")
+            # Affichage dans la StatusBar
+            if parent and mess:
+                parent.SetStatusText(messFix + " %s %s, "%(nomTable,ret))
             if ret != None:
                 print(nomTable + " fin: ",ret)
-        if nomTable != tables[-1]:
+        fin = True
+        if len(tables) == 0:
+            messFix += "Table fournie: %s"%nomTable
+            fin =  False
+        elif nomTable != tables[-1]:
             # traitement inachevé
-            print("Traitement seulement jusqu'à table : %s"%nomTable)
-            return False
+            messFix += "Traitement seulement jusqu'à table : %s"%nomTable
+            fin =  False
         if parent:
-            parent.mess += "- CtrlTables Terminé"
+            messFix += "- Fin CtrlTables = %s"%str(fin)
+            parent.mess = messFix
             parent.SetStatusText(parent.mess[-200:])
-        else: print("CtrlTables Terminé")
-        return True
 
-    def Upgrade(self, versionFichier=(0, 0, 0, 0) ) :
+        else: print(messFix)
+        return fin
+
+    def UpdateDB(self, versionFichier=(0, 0, 0, 0) ) :
         """ Adapte un fichier obsolète à la version actuelle du logiciel """
 
         # exemples passé ==================================================
@@ -579,7 +597,9 @@ def ConversionLocalReseau(nomFichier="", nouveauFichier="", fenetreParente=None)
     """ Convertit une DB locale en version RESEAU MySQL """
     print("Lancement de la procedure de conversion local->reseau :")
 
-    for suffixe, dictTables in ( ("DATA", DATA_Tables.DB_DATA), ("PHOTOS", DATA_Tables.DB_PHOTOS), ("DOCUMENTS", DATA_Tables.DB_DOCUMENTS) ) :
+    for suffixe, dictTables in ( ("DATA", DATA_Tables.DB_DATA),
+                                 ("PHOTOS", DATA_Tables.DB_PHOTOS),
+                                 ("DOCUMENTS", DATA_Tables.DB_DOCUMENTS) ) :
 
         nomFichierActif = UTILS_Fichiers.GetRepData(u"%s_%s.dat" % (nomFichier, suffixe))
         nouveauNom = nouveauFichier[nouveauFichier.index("[RESEAU]"):].replace("[RESEAU]", "")
@@ -719,9 +739,10 @@ class Ajout_IndexMat(wx.Frame):
             dlg.Destroy()
         DB1.Close()
 
-def Init_tables(parent=None, mode='creation',tables=[],db_tables=None,db_ix=None,db_pk=None):
+def Init_tables(parent=None, mode='creation',tables=[],
+                db_tables=None,db_ix=None,db_pk=None,suffixe="DATA"):
     # actualise ou vérifie la structure des tables : test, creation, ctrl
-    db = DB()
+    db = DB(suffixe=suffixe)
     if db.echec: return False
 
     if hasattr(db,'cursor'):
@@ -729,9 +750,9 @@ def Init_tables(parent=None, mode='creation',tables=[],db_tables=None,db_ix=None
 
     db.cursor = db.connexion.cursor()
     ret = None
-    if mode != "test" and parent:
-        parent.mess = "Lancement créations: "
-        parent.SetStatusText(parent.mess)
+    if parent:
+        parent.mess += " >> "
+        parent.SetStatusText(parent.mess[-200:])
 
     # ne fait que la création de nouvelles tables et les indexe
     if mode == "creation":
@@ -752,14 +773,14 @@ def Init_tables(parent=None, mode='creation',tables=[],db_tables=None,db_ix=None
     elif mode == "ctrl":
         ret = db.CtrlTables(parent,db_tables,tables)
 
-    elif mode == "test":
-        ret = db.TestTables(parent,db_tables,tables)
     db.Close() # fermeture pour prise en compte de la création
     return ret
 
 def MAJ_TablesEtChamps(parent=None, mode='ctrl',lstTables=[]):
+    if not UTILS_Utilisateurs.IsAdmin(afficheMessage=True):
+        return
     # Complète une bd spécifique pour fonctionner avec cette version Noethys
-    from Data.DATA_Tables import DB_DATA,DB_INDEX
+    from Data.DATA_Tables import DB_DATA,DB_INDEX,DB_DOCUMENTS,DB_PHOTOS
     tblOptionnelles = []
     allTables = False
     if not lstTables: lstTables = []
@@ -788,22 +809,44 @@ def MAJ_TablesEtChamps(parent=None, mode='ctrl',lstTables=[]):
         if mode in ('creation', 'test'):
             txt = "de toutes les tables manquantes à l'appli mère"
         else: txt = "de toutes les tables et de leurs champs"
+
+        infoVersions = "lancement direct sur base de donnée par défaut"
+        if parent:
+            infoVersions = "%s"%parent.infoVersions
         md = wx.MessageDialog(
                 parent,
-                "%s %s:\n\n'%s...'\n\nConfirmez qu'il s'agit de la reprise d'une sauvegarde!"%(libModes[mode],
+                "%s %s:\n\n'%s...'\n\nConfirmez qu'il s'agit d'un upgrade normal de Noethys!"%(libModes[mode],
                                                   txt,
-                                                  str(db_tables.keys())[10:500]),
+                                                  infoVersions,),
                 "Confirmation nécessaire",
-                style=wx.YES_NO)
+                style=wx.YES_NO|wx.ICON_EXCLAMATION)
         if md.ShowModal() != wx.ID_YES:
             return False
     mess = "Traitement Ctrl des tables de données "
     mess += "\n\n Suivi en bas de l'écran et fenêtre DOS"
     attente = fp.GetAttente(parent,mess)
+
+    if parent:
+        parent.mess = "Upgrade _DATA -"
+    # traitement de la base _data
     ret = Init_tables(parent,mode=mode,tables=tables,db_tables=db_tables,db_ix=db_ix)
+
+    # traitement des deux autres bases
+    for suffixe, base in (("DOCUMENTS", DB_DOCUMENTS),("PHOTOS",DB_PHOTOS)):
+        if parent:
+            parent.mess += " - %s -"%suffixe
+        tables = []
+        db_tables = {}
+        for nomTable, dicTable in base.items():
+            if (not allTables) and not (nomTable in lstTables):
+                continue
+            tables.append(nomTable)
+            db_tables[nomTable] = dicTable
+            ret = Init_tables(parent, mode=mode, tables=tables,
+                          db_tables=db_tables, suffixe=suffixe)
     del attente
 
-    wx.MessageBox("Fin de traitement")
+    wx.MessageBox("Fin de traitement"," ",style=wx.OK)
     return True
 
 if __name__ == "__main__":
@@ -823,4 +866,4 @@ if __name__ == "__main__":
     #print(gdb.GetOccupations())
 
     # Update de la base de données : def ConversionDB(self, versionFichier=(0, 0, 0, 0) )
-    MAJ_TablesEtChamps(None,mode='ctrl',lstTables=["documents_modeles"])
+    MAJ_TablesEtChamps(None,mode='ctrl',lstTables=["documents"])

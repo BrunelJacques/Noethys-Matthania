@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------
 # Application :    Noethys, gestion multi-activités
 # Site internet :  www.noethys.com
-# Auteur:           Ivan LUCAS
+# Auteur:           Ivan LUCAS, JB
 # Copyright:       (c) 2010-14 Ivan LUCAS
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
@@ -228,8 +228,8 @@ class ListView(FastObjectListView):
     
     def GetTracks(self):
         """ Récupération des données """
-        self.individus = UTILS_Titulaires.GetIndividus() 
-        self.titulaires = UTILS_Titulaires.GetTitulaires() 
+        self.individus = UTILS_Titulaires.GetIndividus([self.IDindividu,])  #JB pour vitesse
+        self.titulaires = UTILS_Titulaires.GetTitulaires([self.IDfamille,])  #JB pour vitesse
         
         listeID = None
         DB = GestionDB.DB()
@@ -884,8 +884,9 @@ class ListView(FastObjectListView):
             # Actualisation de l'affichage
             self.MAJ()
             
-        DB.Close() 
-        dlg.Destroy()
+        DB.Close()
+        if dlg: # JB
+            dlg.Destroy()
 
     def OuvrirFicheFamille(self, event):
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_fiche", "consulter") == False : return

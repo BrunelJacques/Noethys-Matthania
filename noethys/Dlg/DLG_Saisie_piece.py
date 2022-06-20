@@ -10,13 +10,11 @@
 
 
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
 import datetime
 import GestionDB
-import calendar
 from dateutil import relativedelta
 from Utils import UTILS_Historique
 from Ctrl import CTRL_Saisie_date
@@ -139,7 +137,6 @@ class Choix_Piece_autre(wx.Choice):
         return self.listeDonnees[index]
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
-
 
 class Dialog(wx.Dialog):
     def __init__(self, parent, IDpiece=None, IDfamille=None, IDindividu=None, dictFamillesRattachees={}):
@@ -653,11 +650,8 @@ class Dialog(wx.Dialog):
         self.EndModal(wx.ID_OK)
 
 
-
-
 if __name__ == "__main__":
     app = wx.App(0)
-    #wx.InitAllImageHandlers()
     dialog_1 = Dialog(None, IDpiece=18, IDindividu=None, IDfamille=7)
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()
