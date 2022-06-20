@@ -517,7 +517,7 @@ class DB(GestionDB.DB):
         else: print(messFix)
         return fin
 
-    def UpdateDB(self, versionFichier=(0, 0, 0, 0) ) :
+    def UpdateDB(self,parent, versionFichier=(0, 0, 0, 0) ) :
         """ Adapte un fichier obsolète à la version actuelle du logiciel """
 
         # exemples passé ==================================================
@@ -591,6 +591,17 @@ class DB(GestionDB.DB):
                 return " filtre de conversion %s | " % ".".join(
                     [str(x) for x in versionFiltre]) + str(err)
         """
+        versionFiltre = (1, 3, 1, 13)
+        if versionFichier <= versionFiltre:
+            try:
+                Init_tables(parent=parent, mode='creation', tables=["releases"],
+                            db_tables=Data.DATA_Tables.DB_DOCUMENTS,
+                            suffixe="DOCUMENTS")
+                print("Mise a niveau base %s\t\t\t\t>>>>>>> OK" % ".".join(
+                    [str(x) for x in versionFiltre]))
+            except Exception as err:
+                return " filtre de conversion %s | " % ".".join(
+                    [str(x) for x in versionFiltre]) + str(err)
         return True
 
 def ConversionLocalReseau(nomFichier="", nouveauFichier="", fenetreParente=None):

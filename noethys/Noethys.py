@@ -1283,7 +1283,8 @@ class MainFrame(wx.Frame):
             if self.ValidationVersionFichier(nomFichier) == False :
                 if "[RESEAU]" in nomFichier :
                     nomFichier = nomFichier[nomFichier.index("[RESEAU]"):]
-                self.SetStatusText(_("Echec de l'ouverture du fichier '%s'.") % nomFichier)
+                self.mess = _("Echec de l'ouverture du fichier '%s'.") % nomFichier
+                self.SetStatusText(self.mess)
                 self.userConfig["nomFichier"] = ancienFichier
                 return False
 
@@ -1326,8 +1327,9 @@ class MainFrame(wx.Frame):
         # Confirmation de succès
         if "[RESEAU]" in nomFichier :
                 nomFichier = nomFichier[nomFichier.index("[RESEAU]"):]
-        self.SetStatusText(_("Le fichier '%s' a été ouvert avec succès.") % nomFichier)  
-        
+        self.mess += " Le fichier '%s' a été ouvert avec succès."%(nomFichier)
+        self.SetStatusText(self.mess)
+
         # Mémorise dans l'historique l'ouverture du fichier
         try:
             UTILS_Historique.InsertActions([{"IDcategorie":1, "action":_("Ouverture du fichier %s") % nomFichier},])
@@ -1430,36 +1432,40 @@ class MainFrame(wx.Frame):
                 nom="version",
                 valeur=VERSION_APPLICATION,
                 nomFichier=nomFichier)
-            info = "Conversion %s -> %s reussie." % (
+            self.mess = "Conversion %s -> %s reussie." % (
                 VERSION_FICHIER,
                 VERSION_APPLICATION)
-            self.SetStatusText(info)
-            print(info)
+            self.SetStatusText(self.mess)
+            print(self.mess)
 
         def VersionTexte(versionTpl,nbItems=4):
             # retrourne une mise en texte du tuple version
             return str(versionTpl[:nbItems])[1:-1]
 
         def UpdateDB(versionFichier):
-            # Lancement des updates par précédures
+            # Lancement des updates de la base par les procédures
             try :
+                titre = "Erreur UpDate"
+                style = wx.OK | wx.ICON_ERROR
+                message = "Pb Update"
                 messAttente = _("Mise à jour de la base de données en cours... Veuillez patienter...")
                 attente = wx.BusyInfo(messAttente, None)
                 import UpgradeDB
                 DB = UpgradeDB.DB(nomFichier=nomFichier)
-                resultat = DB.UpdateDB(versionFichier)
+                resultat = DB.UpdateDB(self,versionFichier)
                 DB.Close()
+                if resultat == True:
+                    EnregistreVersion()
+                else:
+                    raise Exception(resultat)
+            except Exception as err:
+                traceback.print_exc(file=sys.stdout)
+                message =  "Problème lors de la mise à jour de la base de données : \n\n%s"% err
+                resultat = False
+            finally:
                 # Fermeture de la fenêtre d'attente
                 del attente
-                EnregistreVersion()
-            except Exception as err:
-                del attente
-                traceback.print_exc(file=sys.stdout)
-                message =  "Désolé, le problème suivant a été rencontré dans la mise à jour de la base de données : \n\n%s"% err
-                titre = "Erreur"
-                style = wx.OK | wx.ICON_ERROR
-                resultat = False
-            return resultat
+            return resultat, message,titre,style
 
         message = "Base de donnée inchangée!\n\nAbandon du traitement"
         titre = "Abandon"
@@ -1478,6 +1484,7 @@ class MainFrame(wx.Frame):
                 return False
             self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
             self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(True)
+            resultat = True
 
         elif versionFichier[:3] < versionLogiciel[:3]:
             # Changement de niveau version, nécessite MAJ_TablesEtChamps
@@ -1494,19 +1501,19 @@ class MainFrame(wx.Frame):
             else:
                 self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(False)
                 self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(False)
-                return
+                return True
             self.infoVersions = "Conversion des données %s -> %s"%(VERSION_FICHIER, VERSION_APPLICATION)
             self.SetStatusText(self.infoVersions + " ...")
             print(self.infoVersions)
+            self.mess = self.infoVersions
             try:
                 import UpgradeDB
                 resultat = UpgradeDB.MAJ_TablesEtChamps(self)
                 if resultat == True:
-                    resultat = UpdateDB(versionFichier)
-                    EnregistreVersion()
+                    resultat, message,titre,style = UpdateDB(versionFichier)
             except Exception as err:
                 traceback.print_exc(file=sys.stdout)
-                message = "Désolé, le problème suivant a été rencontré dans la mise à jour de la base de données : \n\n%s"% err
+                message = "Problème de mise à jour de la base de données : \n\n%s"% err
                 titre = "Erreur"
                 style = wx.OK | wx.ICON_ERROR
                 resultat = False
@@ -1516,7 +1523,7 @@ class MainFrame(wx.Frame):
             info = "Lancement de la conversion %s -> %s..." %(VERSION_FICHIER,VERSION_APPLICATION)
             self.SetStatusText(info)
             print(info)
-            return UpdateDB(versionFichier)
+            resultat, message,titre,style = UpdateDB(versionFichier)
 
         elif versionFichier[:3] > versionLogiciel[:3]:
             self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)

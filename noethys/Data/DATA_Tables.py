@@ -2017,8 +2017,16 @@ DB_DOCUMENTS = {
             ("label", "VARCHAR(400)", "Label du document"),
             ("last_update", "VARCHAR(50)", "Horodatage de la dernière modification du document"),
             ], # BLOB documents
+    "releases": [
+        ("IDrelease", "INTEGER PRIMARY KEY AUTOINCREMENT", "ID de la release"),
+        ("categorie", "VARCHAR(16)", "Préfixe de la série"),
+        ("niveau", "INTEGER", "Niveau du groupe de release"),
+        ("echelon", "INTEGER", "échelon dans le niveau"),
+        ("description", "BLOB", "Description de la release"),
+        ("fichier", "LONGBLOB", "Fichier zip de la release"),
+        ("dateImport", "VARCHAR(32)","date de l'importation"),
+        ],
     }
-
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------
 
 DB_PK = {
