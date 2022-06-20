@@ -1461,7 +1461,7 @@ class MainFrame(wx.Frame):
                 resultat = False
             return resultat
 
-        message = "Base de donnée pas convertie!\n\nAbandon du traitement"
+        message = "Base de donnée inchangée!\n\nAbandon du traitement"
         titre = "Abandon"
         style = wx.OK | wx.ICON_INFORMATION
         # Comparaison des versions par les tuples
@@ -1479,7 +1479,7 @@ class MainFrame(wx.Frame):
             self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
             self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(True)
 
-        elif versionFichier[:3] <= versionLogiciel[:3]:
+        elif versionFichier[:3] < versionLogiciel[:3]:
             # Changement de niveau version, nécessite MAJ_TablesEtChamps
             mess = "UPGRADE BASE conseillé\n\n"
             mess += "Version logiciel '%s' - Version base de donnée '%s'\n"%(
