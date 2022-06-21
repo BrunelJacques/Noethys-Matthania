@@ -55,7 +55,7 @@ if "linux" in sys.platform :
 # Constantes générales
 CUSTOMIZE = None
 HEUREDEBUT = time.time()
-VERSION_APPLICATION = FonctionsPerso.GetVersionLogiciel()
+VERSION_LOGICIEL = FonctionsPerso.GetVersionLogiciel()
 NOM_APPLICATION = "Noethys-Matthania"
 
 # ID pour la barre des menus
@@ -93,7 +93,7 @@ class MainFrame(wx.Frame):
         dateDuJour = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         systeme = "%s %s %s %s " % (sys.platform, platform.system(), platform.release(), platform.machine())
         version_python = "3"
-        print("-------- %s | %s | Python %s | wxPython %s | %s --------" % (dateDuJour, VERSION_APPLICATION, version_python, wx.version(), systeme))
+        print("-------- %s | %s | Python %s | wxPython %s | %s --------" % (dateDuJour, VERSION_LOGICIEL, version_python, wx.version(), systeme))
 
         # Diminution de la taille de la police sous linux
         from Utils import UTILS_Linux
@@ -276,7 +276,7 @@ class MainFrame(wx.Frame):
             nomFichier = _("Fichier réseau : %s | %s | %s") % (nomFichier, hote, user)
         if nomFichier != "" :
             nomFichier = " - [" + nomFichier + "]"
-        titreFrame = NOM_APPLICATION + " v" + VERSION_APPLICATION + nomFichier
+        titreFrame = NOM_APPLICATION + " v" + VERSION_LOGICIEL + nomFichier
         self.SetTitle(titreFrame)
 
     def GetFichierConfig(self):
@@ -921,7 +921,7 @@ class MainFrame(wx.Frame):
         # Mémorisation des informations sur le fichier
         listeDonnees = [
             ("date_creation", str(datetime.date.today())),
-            ("version", VERSION_APPLICATION),
+            ("version", VERSION_LOGICIEL),
             ("IDfichier", IDfichier),
         ]
         DB = GestionDB.DB()
@@ -1407,21 +1407,15 @@ class MainFrame(wx.Frame):
             else:
                 return True
 
-    def ConvertVersionTuple(self, txtVersion=""):
-        """ Convertit un numéro de version texte en tuple """
-        texteVersion = FonctionsPerso.ChiffresSeuls(txtVersion)
-        tupleTemp = []
-        for num in texteVersion.split(".") :
-            tupleTemp.append(int(num))
-        return tuple(tupleTemp)
-
     def ValidationVersionFichier(self, nomFichier):
         """ Vérifie que la version du fichier est à jour avec le logiciel """
         self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(False)
         # Récupère les numéros de version
-        versionLogiciel = self.ConvertVersionTuple(VERSION_APPLICATION)
-        VERSION_FICHIER =  UTILS_Parametres.Parametres(mode="get", categorie="fichier", nom="version", valeur=VERSION_APPLICATION, nomFichier=nomFichier)
-        versionFichier = self.ConvertVersionTuple(VERSION_FICHIER)
+        versionLogiciel = FonctionsPerso.ConvertVersionTuple(VERSION_LOGICIEL)
+        VERSION_DATA =  UTILS_Parametres.Parametres(mode="get", 
+                                categorie="fichier", nom="version", 
+                                valeur=VERSION_LOGICIEL, nomFichier=nomFichier)
+        versionData = FonctionsPerso.ConvertVersionTuple(VERSION_DATA)
         resultat = True
 
         def EnregistreVersion():
@@ -1430,11 +1424,11 @@ class MainFrame(wx.Frame):
                 mode="set",
                 categorie="fichier",
                 nom="version",
-                valeur=VERSION_APPLICATION,
+                valeur=VERSION_LOGICIEL,
                 nomFichier=nomFichier)
             self.mess = "Conversion %s -> %s reussie." % (
-                VERSION_FICHIER,
-                VERSION_APPLICATION)
+                VERSION_DATA,
+                VERSION_LOGICIEL)
             self.SetStatusText(self.mess)
             print(self.mess)
 
@@ -1442,7 +1436,7 @@ class MainFrame(wx.Frame):
             # retrourne une mise en texte du tuple version
             return str(versionTpl[:nbItems])[1:-1]
 
-        def UpdateDB(versionFichier):
+        def UpdateDB(versionData):
             # Lancement des updates de la base par les procédures
             try :
                 titre = "Erreur UpDate"
@@ -1452,7 +1446,7 @@ class MainFrame(wx.Frame):
                 attente = wx.BusyInfo(messAttente, None)
                 import UpgradeDB
                 DB = UpgradeDB.DB(nomFichier=nomFichier)
-                resultat = DB.UpdateDB(self,versionFichier)
+                resultat = DB.UpdateDB(self,versionData)
                 DB.Close()
                 if resultat == True:
                     EnregistreVersion()
@@ -1470,12 +1464,12 @@ class MainFrame(wx.Frame):
         message = "Base de donnée inchangée!\n\nAbandon du traitement"
         titre = "Abandon"
         style = wx.OK | wx.ICON_INFORMATION
-        # Comparaison des versions par les tuples
-        if versionFichier[:2] != versionLogiciel[:2]:
+        # Compare les versions par les tuples
+        if versionData[:2] != versionLogiciel[:2]:
             # Changement majeur, réserve l'action aux admins (version python?)
             mess = "INCOHERENCE VERSIONS\n\n"
             mess += "Version logiciel '%s' - Version base de donnée '%s'\n"%(
-                    versionFichier[:2],versionLogiciel[:2] )
+                    versionData[:2],versionLogiciel[:2] )
             mess += "Ce changement majeur nécessite une intervention éclairée\n"
             mess += "sur la base ou la version en cohérence avec la version python."
             wx.MessageBox(mess,"",style = wx.ICON_WARNING)
@@ -1486,11 +1480,11 @@ class MainFrame(wx.Frame):
             self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(True)
             resultat = True
 
-        elif versionFichier[:3] < versionLogiciel[:3]:
+        elif versionData[:3] < versionLogiciel[:3]:
             # Changement de niveau version, nécessite MAJ_TablesEtChamps
             mess = "UPGRADE BASE conseillé\n\n"
             mess += "Version logiciel '%s' - Version base de donnée '%s'\n"%(
-                    versionFichier[:3],versionLogiciel[:3] )
+                    versionData[:3],versionLogiciel[:3] )
             mess += "Ce changement de niveau de version peut nécessiter une mise à jour de la base\n"
             mess += "On peut quand même travailler en mode dégradé, avec un plus grand risque de bug."
             wx.MessageBox(mess,"",style = wx.ICON_INFORMATION)
@@ -1502,7 +1496,7 @@ class MainFrame(wx.Frame):
                 self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(False)
                 self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(False)
                 return True
-            self.infoVersions = "Conversion des données %s -> %s"%(VERSION_FICHIER, VERSION_APPLICATION)
+            self.infoVersions = "Conversion des données %s -> %s"%(VERSION_DATA, VERSION_LOGICIEL)
             self.SetStatusText(self.infoVersions + " ...")
             print(self.infoVersions)
             self.mess = self.infoVersions
@@ -1510,7 +1504,7 @@ class MainFrame(wx.Frame):
                 import UpgradeDB
                 resultat = UpgradeDB.MAJ_TablesEtChamps(self)
                 if resultat == True:
-                    resultat, message,titre,style = UpdateDB(versionFichier)
+                    resultat, message,titre,style = UpdateDB(versionData)
             except Exception as err:
                 traceback.print_exc(file=sys.stdout)
                 message = "Problème de mise à jour de la base de données : \n\n%s"% err
@@ -1518,26 +1512,28 @@ class MainFrame(wx.Frame):
                 style = wx.OK | wx.ICON_ERROR
                 resultat = False
 
-        elif versionFichier < versionLogiciel:
+        elif versionData < versionLogiciel:
             # Fait la conversion de la base par updateDB
-            info = "Lancement de la conversion %s -> %s..." %(VERSION_FICHIER,VERSION_APPLICATION)
+            info = "Lancement de la conversion %s -> %s..." %(VERSION_DATA,VERSION_LOGICIEL)
             self.SetStatusText(info)
             print(info)
-            resultat, message,titre,style = UpdateDB(versionFichier)
+            resultat, message,titre,style = UpdateDB(versionData)
 
-        elif versionFichier[:3] > versionLogiciel[:3]:
+        elif versionData[:3] > versionLogiciel[:3]:
+            # Changement de niveau: seuls les programmes modifiés au nouveau niveau seront désormais présents
             self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
             message = "Votre station n'est pas à jour!\n\n"
+            # alerte pour avoir bien fait la dernière version du niveau antérieur
             message += "Si vous n'avez pas fait la dernière MAJ '%s',\n"%VersionTexte(versionLogiciel,3)
-            message += "Réinstallez le logiciel ou installez cette dernière version puis la nouvelle '%s'"%VersionTexte(versionFichier,3)
+            message += "Réinstallez le logiciel ou installez cette dernière version puis la nouvelle '%s'"%VersionTexte(versionData,3)
             titre = "Erreur"
             style = wx.OK | wx.ICON_EXCLAMATION
             resultat = False
 
-        elif versionFichier > versionLogiciel:
+        elif versionData > versionLogiciel:
             self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
             message = "Votre station n'est pas à jour!\n\n"
-            message += "installez la version '%s' ou travaillez en mode dégradé."%VERSION_APPLICATION
+            message += "installez la version '%s' ou travaillez en mode dégradé."%VERSION_LOGICIEL
             titre = "Erreur"
             style = wx.OK | wx.ICON_EXCLAMATION
             resultat = False
@@ -1647,7 +1643,7 @@ class MainFrame(wx.Frame):
     def zzRechercheMAJinternet(self):
         """ Recherche une mise à jour sur internet """
         # Récupère la version de l'application
-        versionApplication = VERSION_APPLICATION
+        versionApplication = VERSION_LOGICIEL
         # Récupère la version de la MAJ sur internet
         try :
             if "linux" in sys.platform :
@@ -1666,7 +1662,7 @@ class MainFrame(wx.Frame):
             versionMaj = "0.0.0.0"
         # Compare les deux versions et renvois le résultat
         try :
-            if self.ConvertVersionTuple(versionMaj) > self.ConvertVersionTuple(VERSION_APPLICATION) :
+            if FonctionsPerso.ConvertVersionTuple(versionMaj) > FonctionsPerso.ConvertVersionTuple(VERSION_LOGICIEL) :
                 self.versionMAJ = versionMaj
                 return True
             else:
@@ -1687,7 +1683,7 @@ class MainFrame(wx.Frame):
         nomFichier = sys.executable
         if nomFichier.endswith("python.exe") == False :
             versionAnnonce = self.GetVersionAnnonce()
-            versionLogiciel = self.ConvertVersionTuple(VERSION_APPLICATION)
+            versionLogiciel = FonctionsPerso.ConvertVersionTuple(VERSION_LOGICIEL)
             if versionAnnonce < versionLogiciel :
                 # Déplace les fichiers exemples vers le répertoire des fichiers de données
                 try :
@@ -1938,7 +1934,7 @@ def main():
     CUSTOMIZE = UTILS_Customize.Customize()
 
     # Crash report
-    UTILS_Rapport_bugs.Activer_rapport_erreurs(version=VERSION_APPLICATION)
+    UTILS_Rapport_bugs.Activer_rapport_erreurs(version=VERSION_LOGICIEL)
 
     # Log
     nomJournal = UTILS_Fichiers.GetRepUtilisateur(CUSTOMIZE.GetValeur("journal", "nom", "journal.log"))

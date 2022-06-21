@@ -517,13 +517,13 @@ class DB(GestionDB.DB):
         else: print(messFix)
         return fin
 
-    def UpdateDB(self,parent, versionFichier=(0, 0, 0, 0) ) :
+    def UpdateDB(self,parent, versionData=(0, 0, 0, 0) ) :
         """ Adapte un fichier obsolète à la version actuelle du logiciel """
 
         # exemples passé ==================================================
         """
                 versionFiltre = (1, 1, 2, 3)
-        if False and versionFichier < versionFiltre:
+        if False and versionData < versionFiltre:
             try:
                 self.AjoutChamp("unites", "coeff", "VARCHAR(50)")
                 # ------------
@@ -540,7 +540,7 @@ class DB(GestionDB.DB):
                     [str(x) for x in versionFiltre]) + str(err)
 
         versionFiltre = (1, 2, 4, 70)
-        if versionFichier < versionFiltre:
+        if versionData < versionFiltre:
             try:
                 self.AjoutChamp("reglements", "compta", "INTEGER")
                 self.AjoutChamp("matPieces", "pieComptaFac", "INTEGER")
@@ -556,7 +556,7 @@ class DB(GestionDB.DB):
                     [str(x) for x in versionFiltre]) + str(err)
 
         versionFiltre = (1, 2, 5, 90)
-        if versionFichier < versionFiltre:
+        if versionData < versionFiltre:
             from Utils import UTILS_SaisieAdresse
             try:
                 UTILS_SaisieAdresse.RemonteSecteurs()
@@ -569,7 +569,7 @@ class DB(GestionDB.DB):
                     [str(x) for x in versionFiltre]) + str(err)
 
         versionFiltre = (1, 2, 5, 91)
-        if versionFichier < versionFiltre:
+        if versionData < versionFiltre:
             try:
                 Ajout_IndexMat()
                 self.AjoutChamp("individus", "adresse_normee", "INTEGER NULL"),
@@ -592,7 +592,7 @@ class DB(GestionDB.DB):
                     [str(x) for x in versionFiltre]) + str(err)
         """
         versionFiltre = (1, 3, 1, 13)
-        if versionFichier <= versionFiltre:
+        if versionData <= versionFiltre:
             try:
                 Init_tables(parent=parent, mode='creation', tables=["releases"],
                             db_tables=Data.DATA_Tables.DB_DOCUMENTS,
@@ -876,5 +876,5 @@ if __name__ == "__main__":
     #gdb = GestionBase()#nomFichier=u'3306;192.168.1.43;root;motdepasse[RESEAU]information_schema',suffixe=None
     #print(gdb.GetOccupations())
 
-    # Update de la base de données : def ConversionDB(self, versionFichier=(0, 0, 0, 0) )
+    # Update de la base de données : def ConversionDB(self, versionData=(0, 0, 0, 0) )
     MAJ_TablesEtChamps(None,mode='ctrl',lstTables=["documents"])

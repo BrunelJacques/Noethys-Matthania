@@ -558,12 +558,6 @@ def Aide(numItem=None):
         from subprocess import Popen
         Popen(commande)
 
-def CompareVersions(versionApp="", versionMaj=""):
-    """ Compare 2 versions """
-    """ Return True si la version MAJ est plus récente """
-    a,b = [[int(n) for n in version.split(".")] for version in [versionMaj, versionApp]]
-    return a>b
-
 def RecupNomCadrePersonne(IDpersonne):
     """ Récupère le nom du cadre de décoration pour une personne donnée """
     DB = GestionDB.DB()        
@@ -691,7 +685,7 @@ def GetTopWindow(onlyGeneral=False):
     return topWindow
 
 def GetVersionLogiciel(datee=False):
-    """ Recherche du numéro de version du logiciel """
+    """ Recherche du texte version du logiciel dans fichier versions """
     fichierVersion = codecs.open(
         GetRepertoireProjet("Versions.txt"),
         encoding='utf-8',
@@ -705,6 +699,23 @@ def GetVersionLogiciel(datee=False):
         pos_fin_numVersion = txtVersion.find("(")
     numVersion = txtVersion[pos_debut_numVersion+1:pos_fin_numVersion].strip()
     return numVersion
+
+def ConvertVersionTuple(txtVersion=""):
+    """ Convertit un numéro de version texte en tuple """
+    if "(" in txtVersion:
+        # si la version est avec ('date'), il faut s'en tenir au numéro version
+        txtVersion = txtVersion.split("(")[0]
+    texteVersion = ChiffresSeuls(txtVersion)
+    tupleTemp = []
+    for num in texteVersion.split(".") :
+        tupleTemp.append(int(num))
+    return tuple(tupleTemp)
+
+def CompareVersions(versionApp="", versionMaj=""):
+    """ Compare 2 versions """
+    """ Return True si la version MAJ est plus récente """
+    a,b = [[int(n) for n in version.split(".")] for version in [versionMaj, versionApp]]
+    return a>b
 
 def LanceFichierExterne(nomFichier) :
     """ Ouvre un fichier externe sous windows ou linux """

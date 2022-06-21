@@ -23,7 +23,7 @@ import FonctionsPerso
 
 sys.modules['UTILS_Cryptage_fichier'] = UTILS_Cryptage_fichier
 
-class CTRL_Donnees(wx.TextCtrl):
+class CTRL_AfficheVersion(wx.TextCtrl):
     def __init__(self, parent):
         label = "Info dernières versions"
         id = wx.ID_ANY
@@ -33,20 +33,23 @@ class CTRL_Donnees(wx.TextCtrl):
         wx.TextCtrl.__init__(self, parent, id, label, pos, size, style=style)
         self.parent = parent
         self.actuelle = FonctionsPerso.GetVersionLogiciel(datee=True)
+        self.tplActuelle = FonctionsPerso.ConvertVersionTuple(self.actuelle)
+        # les deux premiers items sont exprimés en texte comme préfixe
+        self.categorie = str(self.tplActuelle[:2])
         invite = "\nActuellement : Version %s\n\nChoisissez un fichier"%self.actuelle
         self.SetValue(invite)
 
-    def MAJ(self):
+    def ChoisirFichier(self):
 
         # --- Fonctions préliminaires à UTILS_Fichiers
-
         def GetNameReleaseZip():
-            # Demande l'emplacement du fichier
+            # Pointe un fichier release.zip
             wildcard = "Release Noethys (*.zip; *.7z)|*.*"
             intro = "Veuillez sélectionner le fichier contenant la MISE A JOUR DE NOETHYS"
             return UTILS_Fichiers.SelectionFichier(intro, wildcard, verifZip=True)
 
         def GetVersionsFile(releaseZip):
+            # Cherche la version dans le fichier selectionné, retourne le fichier
             if not releaseZip: return
             lstFichiers = UTILS_Fichiers.GetListeFichiersZip(releaseZip)
             lstVersions = [x for x in lstFichiers if "versions" in x.lower()]
@@ -93,6 +96,16 @@ class CTRL_Donnees(wx.TextCtrl):
                 wx.MessageBox(mess,"Abandon")
             print(type(err),err)
 
+    def GetInData(self):
+        # Retourne le fichier zip-release de la base de donnée
+        DBdoc = GestionDB(suffixe="DOCUMENTS")
+        req = """
+        SELECT fichier
+        FROM releases
+        WHERE categorie = %s 
+            AND """
+        #todo
+
 # ------------------------------------------------------------------------------------------------------------------------------------------------
 
 class Dialog(wx.Dialog):
@@ -107,7 +120,7 @@ class Dialog(wx.Dialog):
                 
         # Données
         self.box_donnees_staticbox = wx.StaticBox(self, -1, _("Description des versions :"))
-        self.ctrl_donnees = CTRL_Donnees(self)
+        self.ctrl_donnees = CTRL_AfficheVersion(self)
         self.ctrl_donnees.SetMinSize((250, -1))
         
         # Boutons
@@ -153,7 +166,7 @@ class Dialog(wx.Dialog):
         self.CenterOnScreen() 
 
     def OnBoutonFichier(self, event):
-        self.ctrl_donnees.MAJ()
+        self.ctrl_donnees.ChoisirFichier()
         return
 
     def OnBoutonAnnuler(self, event):

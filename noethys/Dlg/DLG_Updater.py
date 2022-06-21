@@ -307,11 +307,11 @@ class Page_recherche(wx.Panel):
             self.texteNouveautes = self.texteNouveautes.decode("iso-8859-15")
         pos_debut_numVersion = self.texteNouveautes.find("n")
         pos_fin_numVersion = self.texteNouveautes.find("(")
-        self.versionFichier = self.texteNouveautes[pos_debut_numVersion+1:pos_fin_numVersion].strip()
+        self.versionData = self.texteNouveautes[pos_debut_numVersion+1:pos_fin_numVersion].strip()
         
         # Si la mise à jour n'est pas nécessaire :
         versionLogiciel = self.ConvertVersionTuple(self.GetVersionLogiciel())
-        versionInternet = self.ConvertVersionTuple(self.versionFichier)
+        versionInternet = self.ConvertVersionTuple(self.versionData)
         
 ##        print "versionLogiciel=", versionLogiciel, " | versionInternet=", versionInternet
         if versionInternet <= versionLogiciel and DEBUG == False :
@@ -345,8 +345,8 @@ class Page_recherche(wx.Panel):
             self.Layout()
         if etat == "trouvee" :
             # Une mise à jour a été trouvée !
-            self.parent.versionFichier = self.versionFichier
-            self.parent.fichierDest = UTILS_Fichiers.GetRepUpdates(fichier=self.parent.versionFichier)
+            self.parent.versionData = self.versionData
+            self.parent.fichierDest = UTILS_Fichiers.GetRepUpdates(fichier=self.parent.versionData)
             if sys.platform.startswith("win") : self.parent.fichierDest = self.parent.fichierDest.replace("/", "\\")
             # Vérifie qu'elle n'a pas déjà été téléchargée sur le disque dur
             fichierAverifier = self.parent.fichierDest+ "/" + self.parent.nomFichier
@@ -356,12 +356,12 @@ class Page_recherche(wx.Panel):
                 tailleFichierOrigin = self.parent.tailleFichier
                 if tailleFichierAverifier == tailleFichierOrigin :
                     # Ok le fichier existe bien déjà
-                    texteIntro1 = _("La mise à jour ") + self.versionFichier + _(" a déjà été téléchargée précédemment.")
+                    texteIntro1 = _("La mise à jour ") + self.versionData + _(" a déjà été téléchargée précédemment.")
                     self.parent.GetPage("page_fin_telechargement").label_introduction1.SetLabel(texteIntro1)
                     self.parent.Active_page("page_fin_telechargement")
             else:
                 # Sinon, on la télécharge...
-                texteIntro1 = _("La version ") + self.versionFichier + " de Noethys est disponible (" + self.tailleFichier + ")."
+                texteIntro1 = _("La version ") + self.versionData + " de Noethys est disponible (" + self.tailleFichier + ")."
                 self.parent.GetPage("page_disponible").label_introduction1.SetLabel(texteIntro1)
                 texteNouveautes = self.texteNouveautes
                 if six.PY2:
@@ -544,8 +544,8 @@ class Page_telechargement(wx.Panel):
             else:
                 typeFichier = "windows"
             try :
-                versionFichier = self.parent.versionFichier
-                fichier = "%s-%s-%s" % (typeFichier, versionFichier, id)
+                versionData = self.parent.versionData
+                fichier = "%s-%s-%s" % (typeFichier, versionData, id)
                 req = Request("http://www.noethys.com/fichiers/telechargement.cgi?fichier=%s" % fichier)
                 handle = urlopen(req)
             except :
@@ -849,7 +849,7 @@ class Dialog(wx.Dialog):
             
         self.fichierDest = ""
         self.tailleFichier = 0
-        self.versionFichier = ""
+        self.versionData = ""
         
         # Création du sizer
         self.sizer_base = wx.FlexGridSizer(rows=6, cols=1, vgap=0, hgap=0)
