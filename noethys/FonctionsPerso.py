@@ -17,8 +17,8 @@ import codecs
 from Utils import UTILS_Fichiers
 
 # ---- Fonctions usuelles-------------------------------
-def ChdirRoot():
-    os.chdir("..")
+def GetPathRoot():
+    return Chemins.GetMainPath("..")
 
 def NoPunctuation(txt = ''):
     if not txt: return ''

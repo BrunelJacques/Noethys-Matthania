@@ -367,7 +367,10 @@ class MainFrame(wx.Frame):
         # Détruit le taskBarIcon
         self.taskBarIcon.Cacher()
         self.taskBarIcon.Detruire()
+        import time
+        time.sleep(1)
         self.Destroy()
+        time.sleep(1)
 
     def SauvegardeAutomatique(self):
         save = UTILS_Sauvegarde_auto.Sauvegarde_auto(self)
@@ -1937,7 +1940,7 @@ def main():
     # Supprime le journal.log si supérieur à 1 Mo
     if os.path.isfile(nomJournal) :
         taille = os.path.getsize(nomJournal)
-        if taille > 1000000 :
+        if taille > 100000 :
             os.remove(nomJournal)
 
     # Redirection vers un fichier

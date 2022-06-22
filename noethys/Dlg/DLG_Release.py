@@ -8,15 +8,16 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-import Chemins
 from Utils.UTILS_Traduction import _
 import wx
 import GestionDB
 import FonctionsPerso
+import datetime
 from Ctrl import CTRL_Bouton_image
 from Ctrl import CTRL_Bandeau
 from Utils import UTILS_Fichiers
 from Utils import UTILS_Parametres
+from Utils import UTILS_Dates
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -74,12 +75,15 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         if posF == -1:
             posF = min(2000, len(texte))
         nouveautes = texte[:posF].strip()
-        self.SetValue("%sVersions à installer :\n\n%s" % (self.invite, nouveautes))
-        dc = wx.ClientDC(self)
-        dc.SetFont(self.GetFont())
+        #dc = wx.ClientDC(self)
+        #dc.SetFont(self.GetFont())
         posDebut = texte.find("n")
         posFin = texte.find("(", 0, 50)
-        return texte[posDebut + 1:posFin].strip()
+        version = texte[posDebut + 1:posFin].strip()
+        if nouveautes.strip() == "":
+            nouveautes = "%s\n Même version !"%version
+        self.SetValue("%sVersions à installer :\n\n%s" % (self.invite, nouveautes))
+        return version
 
     def ChoisirFichier(self):
         # choix d'un fichier et affichage du contenu de versions
@@ -125,25 +129,17 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         # Copie le fichier zip-release dans la base de donnée
         DBdoc = GestionDB.DB(suffixe="DOCUMENTS")
         categorie = "%d.%d"%(tplVersion[0],tplVersion[1])
-        req = """
-        SELECT fichier
-        FROM releases
-        WHERE categorie = %s 
-            AND niveau = %d
-            AND echelon = %d"""%(categorie,tplVersion[2],tplVersion[3])
-        ret = DBdoc.ExecuterReq(req,MsgBox="DLG_Release.GetReleaseDocument")
-        if ret != "ok":
-            return ret
-        recordset = DBdoc.ResultatReq()
-        self.zipFile = None
-        if len(recordset) == 0:
-            return "Fichier non présent dans 'documents'"
-        self.zipFile = recordset[0][0]
-        versions = GetVersionsFromZipFile("Release %s"%str(tplVersion)[1:-1], self.zipFile)
-        texte = GestionDB.Decod(versions)
-        invite = "%s\n%s"%(self.invite,texte)
-        self.SetValue(invite)
-        return "ok"
+        dte = UTILS_Dates.DateDDEnDateEng(datetime.date.today())
+        lstTplDon = [
+            ("categorie",categorie),
+            ("niveau",tplVersion[2]),
+            ("echelon", tplVersion[3]),
+            ("dateImport", dte),
+            ("fichier",self.zipFile),
+            ("description","{user:%s}"%DBdoc.UtilisateurActuel())
+            ]
+        mess = "DLG_Release.SetReleaseDocument"
+        return DBdoc.ReqInsert("releases",lstTplDon,MsgBox=mess)
 
     def GetReleaseDocument(self, tplVersion):
         # Retourne le fichier zip-release de la base de donnée
@@ -254,10 +250,10 @@ class Dialog(wx.Dialog):
 
     def OnBoutonOk(self, event):
         # release doit contenir l'arborescence à partir de noethys inclus
-        noethysPath = "%s"%Chemins.REP_PARENT
+        pathRoot = "%s"%FonctionsPerso.GetPathRoot()
         # test si on est bien à l'emplacement
         try:
-            fichierVersion = open("%s/noethys/Versions.txt"%noethysPath)
+            fichierVersion = open("%s/noethys/Versions.txt"%pathRoot)
             fichierVersion.close()
         except Exception as err:
             print(err)
@@ -265,11 +261,14 @@ class Dialog(wx.Dialog):
             wx.MessageBox(mess, "Erreur inattendue", style=wx.ICON_ERROR)
             return
         # action de dézippage
+        mess = "Process interrompu !!"
         if self.ctrl_donnees.zipFile:
-            self.ctrl_donnees.zipFile.extractall("%s"%noethysPath)
+            self.ctrl_donnees.zipFile.extractall("%s"%pathRoot)
+
+            mess = "Le processus de mise à jour est terminé."
 
         # Fin du processus
-        dlg = wx.MessageDialog(self, _("Le processus de mise à jour est terminé."), "Release", wx.OK | wx.ICON_INFORMATION)
+        dlg = wx.MessageDialog(self,mess, "Release", wx.OK | wx.ICON_INFORMATION)
         dlg.ShowModal()
         dlg.Destroy()
 
@@ -278,6 +277,7 @@ class Dialog(wx.Dialog):
 
 if __name__ == "__main__":
     app = wx.App(0)
+    FonctionsPerso.GetPathRoot()
     dialog_1 = Dialog(None,"1.3.1.12","version 1.3.1.10 (15/06/2022)")
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()
