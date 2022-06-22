@@ -448,7 +448,7 @@ class Composition():
                     IDventilation, nature, noFacture, date_prestation, date_facture in recordset :
             if not ventile:
                 ventile = 0.0
-            if date_prestation > dateFin:
+            if date_prestation and date_prestation > dateFin:
                 ventile = 0.0
                 IDventilation = None
             #if date_differe != None:
@@ -493,7 +493,7 @@ class Composition():
 
         for IDreglement, date_reglement, date_differe, mode, noCheque, emetteur, payeur, ventile, surMontant, \
             IDventilation, nature, noFacture, date_prestation, date_facture in recordset:
-            if date_prestation > dateFin:
+            if date_prestation and  date_prestation > dateFin:
                 ventile = 0.0
                 IDventilation = None
             date = DateEngEnDateDD(date_reglement)
