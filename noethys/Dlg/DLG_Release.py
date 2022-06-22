@@ -8,20 +8,29 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
 import Chemins
 from Utils.UTILS_Traduction import _
 import wx
 import GestionDB
+import FonctionsPerso
 from Ctrl import CTRL_Bouton_image
-import sys
 from Ctrl import CTRL_Bandeau
 from Utils import UTILS_Fichiers
-from Utils import UTILS_Cryptage_fichier
-import codecs
-import FonctionsPerso
+from Utils import UTILS_Parametres
 
-sys.modules['UTILS_Cryptage_fichier'] = UTILS_Cryptage_fichier
+# ------------------------------------------------------------------------------------------------------------------------------------------------
+
+def GetVersionsFromZipFile(nameFichier, releaseZip):
+    # Cherche le fichier versions dans le fichier zip, retourne le fichier
+    if not releaseZip: return
+    lstFichiers = UTILS_Fichiers.GetListeFichiersZip(releaseZip)
+    lstVersions = [x for x in lstFichiers if "versions" in x.lower()]
+    if len(lstVersions) == 0:
+        mess = "Le Zip %s ne contient pas de fichier 'Versions.txt'" % nameFichier
+        wx.MessageBox(mess, "Echec", style=wx.ICON_ERROR)
+        return
+    nameVersionsFile = lstVersions[0]
+    return UTILS_Fichiers.GetOneFileInZip(releaseZip, nameVersionsFile)
 
 class CTRL_AfficheVersion(wx.TextCtrl):
     def __init__(self, parent):
@@ -32,57 +41,75 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         style = wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_RICH | wx.TE_DONTWRAP
         wx.TextCtrl.__init__(self, parent, id, label, pos, size, style=style)
         self.parent = parent
-        self.actuelle = FonctionsPerso.GetVersionLogiciel(datee=True)
-        self.tplActuelle = FonctionsPerso.ConvertVersionTuple(self.actuelle)
+        self.version_logiciel = self.parent.version_logiciel
+        self.tplVersionLogiciel = self.parent.tplVersionLogiciel
+        tplVersionData = self.parent.tplVersionData
+
         # les deux premiers items sont exprimés en texte comme préfixe
-        self.categorie = str(self.tplActuelle[:2])
-        invite = "\nActuellement : Version %s\n\nChoisissez un fichier"%self.actuelle
-        self.SetValue(invite)
+        self.categorie = str(self.tplVersionLogiciel[:2])
+        self.invite = "\nActuellement: Version % s\n"%self.version_logiciel
+
+
+        if tplVersionData == self.tplVersionLogiciel:
+            self.parent.bouton_ok.Enable(False)
+            self.parent.bouton_fichier.Enable(True)
+            # le logiciel est à jour
+            invite = "%s\nChoisissez un fichier"%self.invite
+            self.SetValue(invite)
+        else:
+            # release automatique
+            self.parent.bouton_ok.Enable(True)
+            self.parent.bouton_fichier.Enable(False)
+            ret = self.GetAuto(tplVersionData)
+            if ret != "ok":
+                invite = "%s\nEchec sur ouverture release" % self.invite
+                invite += "\n%s"%ret
+                self.SetValue(invite)
+                self.parent.bouton_ok.Enable(False)
+                self.parent.bouton_fichier.Enable(True)
+
+    def GetVersionChoisie(self,texte):
+        self.SetValue("%sVersions à installer :\n\n%s" % (self.invite, texte))
+        dc = wx.ClientDC(self)
+        dc.SetFont(self.GetFont())
+        posDebut = texte.find("n")
+        posFin = texte.find(")", 0, 50) + 1
+        return texte[posDebut + 1:posFin].strip()
+
+    def GetNouveaute(self,texte,oldVersion):
+        self.SetValue("%sVersions à installer :\n\n%s" % (self.invite, texte))
+        dc = wx.ClientDC(self)
+        dc.SetFont(self.GetFont())
+        txtOld = str(oldVersion)[1:-1]
+        posFin = texte.find("%s"%txtOld,0,600) - 16
+        return texte[:posFin].strip()
 
     def ChoisirFichier(self):
+        # choix d'un fichier et affichage du contenu de versions
 
-        # --- Fonctions préliminaires à UTILS_Fichiers
         def GetNameReleaseZip():
-            # Pointe un fichier release.zip
+            # Recherche et sélectionne un fichier release.zip
             wildcard = "Release Noethys (*.zip; *.7z)|*.*"
             intro = "Veuillez sélectionner le fichier contenant la MISE A JOUR DE NOETHYS"
             return UTILS_Fichiers.SelectionFichier(intro, wildcard, verifZip=True)
 
-        def GetVersionsFile(releaseZip):
-            # Cherche la version dans le fichier selectionné, retourne le fichier
-            if not releaseZip: return
-            lstFichiers = UTILS_Fichiers.GetListeFichiersZip(releaseZip)
-            lstVersions = [x for x in lstFichiers if "versions" in x.lower()]
-            if len(lstVersions) == 0:
-                mess = "Le Zip %s ne contient pas de fichier 'Versions.txt'"%self.nameRelease
-                wx.MessageBox(mess, "Echec",style=wx.ICON_ERROR)
-                return
-            nameVersionsFile = lstVersions[0]
-            return UTILS_Fichiers.GetOneFileInZip(releaseZip,nameVersionsFile)
-
-        # action de mise à jour
-        self.nameRelease = GetNameReleaseZip()
-        if not self.nameRelease:
+        nameFichier = GetNameReleaseZip()
+        if not nameFichier:
             return
         try:
-            self.zipFile = UTILS_Fichiers.GetZipFile(self.nameRelease,"r")
-            texte = GestionDB.Decod(GetVersionsFile(self.zipFile))
+            self.zipFile = UTILS_Fichiers.GetZipFile(nameFichier,"r")
+            texte = GestionDB.Decod(GetVersionsFromZipFile(nameFichier,self.zipFile))
             # afichage du contenu
             if texte:
-                self.SetValue("\nActuellement : Version %s\n\nVersions à installer :\n\n%s"%(self.actuelle,texte))
-                dc = wx.ClientDC(self)
-                dc.SetFont(self.GetFont())
-                posDebut = texte.find("n")
-                posFin = texte.find(")",0,50) + 1
-                versionChoisie = texte[posDebut+1:posFin].strip()
-                if versionChoisie.split('.')[:3] != self.actuelle.split('.')[:3]:
+                versionChoisie = self.GetVersionChoixie(texte)
+                if versionChoisie.split('.')[:3] != self.version_logiciel.split('.')[:3]:
                     mess = "Trop de différence entre les versions\n\n"
                     mess += "Refaites une installation complète depuis Github NoethysMatthania"
                     wx.MessageBox(mess, "Impossible",style=wx.ICON_ERROR)
                     return
-                if versionChoisie < self.actuelle:
+                if versionChoisie < self.version_logiciel:
                     mess = "Rétropédalage à confirmer\n\n"
-                    mess += "La %s remontée sera antérieure\nà l'actuelle %s\n\n"%(versionChoisie,self.actuelle)
+                    mess += "La %s remontée sera antérieure\nà l'actuelle %s\n\n"%(versionChoisie,self.version_logiciel)
                     mess += "Certaines nouvelles modifications pourront rester en place"
                     ret = wx.MessageBox(mess,style=wx.YES_NO|wx.ICON_INFORMATION)
                     if ret  != wx.YES:
@@ -95,38 +122,61 @@ class CTRL_AfficheVersion(wx.TextCtrl):
                 mess = "Le fichier version importé n'est pas codé en UTF-8\n%s"%err
                 wx.MessageBox(mess,"Abandon")
             print(type(err),err)
+        return
 
-    def GetInData(self):
+    def GetAuto(self,tplVersion):
         # Retourne le fichier zip-release de la base de donnée
-        DBdoc = GestionDB(suffixe="DOCUMENTS")
+        DBdoc = GestionDB.DB(suffixe="DOCUMENTS")
+        categorie = "%d.%d"%(tplVersion[0],tplVersion[1])
         req = """
         SELECT fichier
         FROM releases
         WHERE categorie = %s 
-            AND """
-        #todo
-
-# ------------------------------------------------------------------------------------------------------------------------------------------------
+            AND niveau = %d
+            AND echelon = %d"""%(categorie,tplVersion[2],tplVersion[3])
+        ret = DBdoc.ExecuterReq(req,MsgBox="DLG_Release.GetAuto")
+        if ret != "ok":
+            return ret
+        recordset = DBdoc.ResultatReq()
+        self.zipFile = None
+        if len(recordset) == 0:
+            return "Fichier non présent dans 'documents'"
+        self.zipFile = recordset[0][0]
+        versions = GetVersionsFromZipFile("Release %s"%str(tplVersion)[1:-1], self.zipFile)
+        texte = GestionDB.Decod(versions)
+        invite = "%s\n%s"%(self.invite,texte)
+        self.SetValue(invite)
+        return "ok"
 
 class Dialog(wx.Dialog):
-    def __init__(self, parent):
+    def __init__(self, parent,version_data=None,version_logiciel=None):
         wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
         self.parent = parent
+        if not version_data or not version_logiciel:
+            version_data, version_logiciel = self.GetVersions()
+        self.version_logiciel = version_logiciel
+        self.version_data = version_data
+        self.tplVersionLogiciel = FonctionsPerso.ConvertVersionTuple(version_logiciel)
+        self.tplVersionData = FonctionsPerso.ConvertVersionTuple(version_data)
 
-        intro = _("Vous pouvez ici mettre à jour votre version Noethys, à partir d'un fichier ZIP contenant la release")
+        if self.tplVersionData == self.tplVersionLogiciel:
+            intro = _("Vous pouvez ici mettre à jour votre version Noethys, à partir d'un fichier ZIP contenant la release")
+        else:
+            intro = _("Vous pouvez ici mettre à jour votre version Noethys automatiquement")
         titre = _("Release")
         self.SetTitle(titre)
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Restaurer.png")
-                
-        # Données
-        self.box_donnees_staticbox = wx.StaticBox(self, -1, _("Description des versions :"))
-        self.ctrl_donnees = CTRL_AfficheVersion(self)
-        self.ctrl_donnees.SetMinSize((250, -1))
-        
+
         # Boutons
         self.bouton_fichier = CTRL_Bouton_image.CTRL(self, texte=_("Choisir le fichier"), cheminImage="Images/32x32/Desarchiver.png")
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok pour release"), cheminImage="Images/32x32/Valider.png")
         self.bouton_annuler = CTRL_Bouton_image.CTRL(self, texte=_("Annuler"), cheminImage="Images/32x32/Annuler.png")
+
+        # Affichage de la version proposée
+        self.box_donnees_staticbox = wx.StaticBox(self, -1,
+                                                  _("Description des versions :"))
+        self.ctrl_donnees = CTRL_AfficheVersion(self)
+        self.ctrl_donnees.SetMinSize((250, -1))
 
         self.__set_properties()
         self.__do_layout()
@@ -140,7 +190,6 @@ class Dialog(wx.Dialog):
         self.bouton_ok.SetToolTip(wx.ToolTip(_("Cliquez ici pour lancer la restauration")))
         self.bouton_annuler.SetToolTip(wx.ToolTip(_("Cliquez ici pour annuler")))
         self.SetMinSize((600, 800))
-        self.bouton_ok.Enable(False)
 
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
@@ -164,6 +213,13 @@ class Dialog(wx.Dialog):
         grid_sizer_base.AddGrowableCol(0)
         self.Layout()
         self.CenterOnScreen() 
+
+    def GetVersions(self):
+        version_logiciel = FonctionsPerso.GetVersionLogiciel(datee=True)
+        version_data =  UTILS_Parametres.Parametres(mode="get",
+                                categorie="fichier", nom="version", 
+                                valeur=version_logiciel)
+        return version_data, version_logiciel
 
     def OnBoutonFichier(self, event):
         self.ctrl_donnees.ChoisirFichier()
@@ -197,7 +253,7 @@ class Dialog(wx.Dialog):
 
 if __name__ == "__main__":
     app = wx.App(0)
-    dialog_1 = Dialog(None)
+    dialog_1 = Dialog(None,"1.3.1.12","1.3.1.10 (madate)")
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()
     app.MainLoop()

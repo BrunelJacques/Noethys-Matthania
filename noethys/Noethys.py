@@ -55,7 +55,8 @@ if "linux" in sys.platform :
 # Constantes générales
 CUSTOMIZE = None
 HEUREDEBUT = time.time()
-VERSION_LOGICIEL = FonctionsPerso.GetVersionLogiciel()
+VERSION_LOGICIEL_DATE = FonctionsPerso.GetVersionLogiciel(datee=True)
+VERSION_LOGICIEL = VERSION_LOGICIEL_DATE.split("(")[0].strip()
 NOM_APPLICATION = "Noethys-Matthania"
 
 # ID pour la barre des menus
@@ -1416,8 +1417,13 @@ class MainFrame(wx.Frame):
                                 categorie="fichier", nom="version", 
                                 valeur=VERSION_LOGICIEL, nomFichier=nomFichier)
         versionData = FonctionsPerso.ConvertVersionTuple(VERSION_DATA)
-        resultat = True
 
+        # les versions correspondent: on passe
+        if versionData == versionLogiciel:
+            return True
+
+        # synchronisation des versions
+        resultat = True
         def EnregistreVersion():
             # Mémorisation de la nouvelle version du fichier
             UTILS_Parametres.Parametres(
@@ -1431,10 +1437,6 @@ class MainFrame(wx.Frame):
                 VERSION_LOGICIEL)
             self.SetStatusText(self.mess)
             print(self.mess)
-
-        def VersionTexte(versionTpl,nbItems=4):
-            # retrourne une mise en texte du tuple version
-            return str(versionTpl[:nbItems])[1:-1]
 
         def UpdateDB(versionData):
             # Lancement des updates de la base par les procédures
@@ -1519,24 +1521,17 @@ class MainFrame(wx.Frame):
             print(info)
             resultat, message,titre,style = UpdateDB(versionData)
 
-        elif versionData[:3] > versionLogiciel[:3]:
-            # Changement de niveau: seuls les programmes modifiés au nouveau niveau seront désormais présents
-            self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
-            message = "Votre station n'est pas à jour!\n\n"
-            # alerte pour avoir bien fait la dernière version du niveau antérieur
-            message += "Si vous n'avez pas fait la dernière MAJ '%s',\n"%VersionTexte(versionLogiciel,3)
-            message += "Réinstallez le logiciel ou installez cette dernière version puis la nouvelle '%s'"%VersionTexte(versionData,3)
-            titre = "Erreur"
-            style = wx.OK | wx.ICON_EXCLAMATION
-            resultat = False
-
         elif versionData > versionLogiciel:
-            self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
-            message = "Votre station n'est pas à jour!\n\n"
-            message += "installez la version '%s' ou travaillez en mode dégradé."%VERSION_LOGICIEL
-            titre = "Erreur"
-            style = wx.OK | wx.ICON_EXCLAMATION
-            resultat = False
+            import DLG_Release
+            dlg = DLG_Release.Dialog(self,VERSION_DATA,VERSION_LOGICIEL_DATE)
+            resultat = dlg.ShowModal()
+            dlg.Destroy()
+            if resultat != True:
+                self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
+                message = "Votre station n'est pas à jour!\n\n"
+                message += "installez la version '%s.xxx' la plus récente ."%VERSION_LOGICIEL[:3]
+                titre = "Erreur"
+                style = wx.OK | wx.ICON_EXCLAMATION
 
         if resultat != True :
             dlg = wx.MessageDialog(self,message,titre,style=style)

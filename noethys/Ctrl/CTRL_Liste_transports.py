@@ -323,8 +323,8 @@ class CTRL(HTL.HyperTreeList):
                     label = heure.replace(":", "h")
                 else :
                     label = _("Heure inconnue")
-                niveauHeure = self.Append(niveauParent, label)
-                self.SetItemData(niveauHeure, {"type":"heures", "code":heure})
+                niveauHeure = self.AppendItem(niveauParent, label)
+                self.SetPyData(niveauHeure, {"type":"heures", "code":heure})
                 
                 # Totaux par heure
                 dictImpressionColonnes = {}
@@ -357,8 +357,8 @@ class CTRL(HTL.HyperTreeList):
                 
                 for label, IDindividu, dictDates in listeIndividusTemp :
                     labelIndividu = label
-                    niveauIndividu = self.Append(niveauHeure, labelIndividu)
-                    self.SetItemData(niveauIndividu, {"type":"individus", "code":IDindividu})
+                    niveauIndividu = self.AppendItem(niveauHeure, labelIndividu)
+                    self.SetPyData(niveauIndividu, {"type":"individus", "code":IDindividu})
                     
                     # Dates
                     dictImpressionColonnes = {}
@@ -387,8 +387,8 @@ class CTRL(HTL.HyperTreeList):
             
             # Catégories
             label = DICT_CATEGORIES[categorie]["label"]
-            brancheCategorie = self.Append(self.root, label)
-            self.SetItemData(brancheCategorie, {"type":"categories", "code":categorie})
+            brancheCategorie = self.AppendItem(self.root, label)
+            self.SetPyData(brancheCategorie, {"type":"categories", "code":categorie})
             self.SetItemBold(brancheCategorie)
             self.SetItemBackgroundColour(brancheCategorie, wx.Colour(*COULEUR_FOND_REGROUPEMENT))
             self.SetItemImage(brancheCategorie, self.dictImages[categorie]["index"])
@@ -406,8 +406,8 @@ class CTRL(HTL.HyperTreeList):
             listeLignes.sort() 
 
             for label, IDligne in listeLignes :
-                niveauLigne = self.Append(brancheCategorie, label)
-                self.SetItemData(niveauLigne, {"type":"lignes", "code":IDligne})
+                niveauLigne = self.AppendItem(brancheCategorie, label)
+                self.SetPyData(niveauLigne, {"type":"lignes", "code":IDligne})
                 dictImpressionTemp["elements"].append({"type":"lignes", "texte":label, "marge":1})
                 
                 # Arrêts
@@ -421,8 +421,8 @@ class CTRL(HTL.HyperTreeList):
                 listeArrets.sort() 
                 
                 for label, IDarret, dictArret in listeArrets :
-                    niveauArret = self.Append(niveauLigne, label)
-                    self.SetItemData(niveauArret, {"type":"arrets", "code":IDarret})
+                    niveauArret = self.AppendItem(niveauLigne, label)
+                    self.SetPyData(niveauArret, {"type":"arrets", "code":IDarret})
                     dictImpressionTemp["elements"].append({"type":"arrets", "texte":label, "marge":2})
                     
                     # Insertion des branches Heures et Individus
@@ -440,8 +440,8 @@ class CTRL(HTL.HyperTreeList):
             listeLieux.sort() 
             
             for label, IDlieu, dictLieu in listeLieux :
-                niveauLieu = self.Append(brancheCategorie, label)
-                self.SetItemData(niveauLieu, {"type":"lieux", "code":IDlieu})
+                niveauLieu = self.AppendItem(brancheCategorie, label)
+                self.SetPyData(niveauLieu, {"type":"lieux", "code":IDlieu})
                 dictImpressionTemp["elements"].append({"type":"lieux", "texte":label, "marge":1})
                 
                 # Insertion des branches Heures et Individus
@@ -455,8 +455,8 @@ class CTRL(HTL.HyperTreeList):
             listeLocalisations.sort() 
             
             for label, localisation, dictLocalisation in listeLocalisations :
-                niveauLocalisation = self.Append(brancheCategorie, label)
-                self.SetItemData(niveauLocalisation, {"type":"localisations", "code":localisation})
+                niveauLocalisation = self.AppendItem(brancheCategorie, label)
+                self.SetPyData(niveauLocalisation, {"type":"localisations", "code":localisation})
                 dictImpressionTemp["elements"].append({"type":"localisations", "texte":label, "marge":1})
                 
                 # Insertion des branches Heures et Individus
