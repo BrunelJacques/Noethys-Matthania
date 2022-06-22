@@ -1,5 +1,10 @@
+version 1.3.1.13 (22/06/2022):
+- Relevé de prestations bug en cas de prestation associée "null"
+- Mise en place de l'automatisme release
+
+
 version 1.3.1.12 (20/06/2022):
-***** Récap des transports reprise du programme Matthania
+- Récap des transports reprise du programme Matthania
 - Correction de l'erreur à l'ouverture et fermeture si NbreInscrits par camp à l'accueil
 - Envoi de rapport de bug à l'auteur, dans param valeur par défaut
 - Rapport de bug, copie d'écran jointe et journal log
