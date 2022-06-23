@@ -1425,14 +1425,14 @@ class Donnees():
                 #dateCpta = dateReglement
                 #dateLib = dateDepot
                 modeLib = 'Dep'
-                cle = (IDreglement)
+                cle = (IDreglement,0)
                 if nomEmetteur == None: emetteur = ""
                 else : emetteur = nomEmetteur[:5]+' '
                 label = "%s%s %s" % (modeReglement[:3]+emetteur,modeLib+FormateDate(DateEngEnDateDD(dateLib))[:5],
                                        nomPayeur)
                 ref = "%s" % nomPayeur
             else :
-                cle = (IDreglement)
+                cle = (IDreglement,0)
                 if nomEmetteur == None: nomEmetteur = ""
                 label = "%s %s %s" % (modeReglement[:3]+nomEmetteur[:5],
                                        FormateDate(DateEngEnDateDD(dateLib))[:5],nomPayeur)
