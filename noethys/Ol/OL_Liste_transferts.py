@@ -8,19 +8,15 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
-from Utils.UTILS_Traduction import _
+import copy
 import Chemins
 import wx
 import GestionDB
 import datetime
-
+import decimal
+from Utils.UTILS_Traduction import _
 from Utils import UTILS_Config
-SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
-
 from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, CTRL_Outils, PanelAvecFooter
-
-from Utils import UTILS_Dates
 
 def Nz(valeur):
     if valeur == None:
@@ -32,12 +28,9 @@ def DateEngDateFr(date):
     text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
     return text
 
-def zzDateDblDateFr(dateDbl):
-    textDate = str(dateDbl)
-    text = str(textDate[6:8]) + "/" + str(textDate[4:6]) + "/" + str(textDate[:4])
-    return text
-
 def DateDblDateEng(dateDbl):
+    if not dateDbl:
+        return None
     textDate = str(dateDbl)
     return "%s-%s-%s"%(textDate[:4],textDate[4:6],textDate[6:8])
 
@@ -47,29 +40,31 @@ class Track(object):
             self.transfert = donnees["transfert"]
         else:
             self.transfert = str(DateDblDateEng(donnees["transfert"]))
-        self.IDtransfert = donnees["IDtransfert"]
+        self.noLigne= self.IDfacture = decimal.Decimal(u"%.0f" % donnees["noLigne"])
+        for champ in ("prestations","reglements","mvt","cumul"):
+            donnees[champ] = decimal.Decimal(u"%.2f"%donnees[champ])
         self.prestations = donnees["prestations"]
         self.reglements = donnees["reglements"]
         self.mvt = donnees["mvt"]
         self.cumul = donnees["cumul"]
 
 class TrackSepare(object):
-    def __init__(self, texte,idx):
+    def __init__(self, texte,noLigne):
         self.transfert = texte
-        self.IDtransfert = idx
-        self.prestations = None
-        self.reglements = None
-        self.mvt = None
-        self.cumul = None
-    
+        self.noLigne= decimal.Decimal(u"%.0f" %noLigne)
+        self.prestations = decimal.Decimal(u"%.2f"%0.0)
+        self.reglements = decimal.Decimal(u"%.2f"%0.0)
+        self.mvt = decimal.Decimal(u"%.2f"%0.0)
+        self.cumul = decimal.Decimal(u"%.2f"%0.0)
+        
 class ListView(FastObjectListView):
     def __init__(self, *args, **kwds):
-        self.dateFin = kwds.pop("dateFin", None)
+        self.dateFin = kwds.pop("dateFin", datetime.date.today())
         # Initialisation du listCtrl
         FastObjectListView.__init__(self, *args, **kwds)
         # Binds perso
         self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
-
+        
     def InitModel(self):
         self.donnees = self.GetTracks()
 
@@ -79,30 +74,46 @@ class ListView(FastObjectListView):
 
         """     CALCULS DES MONTANTS COMPTA PAR DATE DE TRANSFERTS      """
 
-        # Recherche la date fin de l'exercice
-        if self.dateFin == None:
-            exdeb, exfin = DB.GetExercice(datetime.date.today(),alertes=False,approche=True)
-            dateMax =  exdeb - datetime.timedelta(1)
-        else:
-            dateMax=self.dateFin
-
-        avant = "<= '%s'" %dateMax
-        apres = ">   '%s'" %dateMax
-
+        # Recherche les bornes de l'exercice
+        self.dateDeb, self.dateFin = DB.GetExercice(datetime.date.today(), alertes=True, approche=True)
+        strDateMin = str(self.dateDeb)
+        strDateMax = str(self.dateFin)
+        # conditions de ruptures sur dates d'écritures
+        jusquAN = "< '%s'"%strDateMin
+        avant = "BETWEEN '%s' AND '%s'" %(strDateMin, strDateMax)
+        apres = "> '%s'" %strDateMax
+        lstConditions = [(0,"Exercices précédents",jusquAN),
+                         (1,"Exercice %s"%strDateMax[:4],avant),
+                         (2,"Ecritures post %s"%DateEngDateFr(strDateMax),apres)]
+        
         dictTransferts = {}
-        for condition in [avant, apres]:
-            # Lecture des prestations non facturées
+        dictVide ={ "transfert": "",
+                    "prestations": 0.0,
+                    "reglements": 0.0,
+                    "mvt":0.0,
+                    "cumul":0.0}
+        # déroulé des trois périodes de ruptures 
+        for rupture, lblCondition, condition in lstConditions:
+            dictTransferts[(rupture,"")] = copy.deepcopy(dictVide)
+            dictTransferts[(rupture, "")]["transfert"]: lblCondition
+            # Lecture des prestations hors 'conso' et transférées
             req = """SELECT compta,Sum(montant)
             FROM prestations
-            WHERE (categorie NOT LIKE 'conso%%') AND (compta IS NOT NULL) AND prestations.date %s
+            WHERE (categorie NOT LIKE 'conso%%') 
+                    AND prestations.date %s
             GROUP BY compta
             ORDER BY compta;""" % condition
             DB.ExecuterReq(req,MsgBox = "OL_Liste_transferts GetTracks11")
             listeTransferts = DB.ResultatReq()
 
             for transfert, montant in listeTransferts:
-                labels = ("%s"%( condition),transfert)
-                dictTransferts[labels] = {}
+                transfert = DateDblDateEng(transfert)
+                if not transfert:
+                    dictTransferts[(rupture,"")]["prestations"] += montant
+                    continue
+                labels = (rupture,transfert)
+                dictTransferts[labels] = copy.deepcopy(dictVide)
+
                 dictTransferts[labels]["transfert"] = transfert
                 dictTransferts[labels]["prestations"] = montant
                 dictTransferts[labels]["reglements"] = 0.00
@@ -116,16 +127,16 @@ class ListView(FastObjectListView):
             DB.ExecuterReq(req,MsgBox = "OL_Liste_transferts GetTracks12")
             listeTransferts = DB.ResultatReq()
             for transfert, mttTranspAller, mttTranspRetour in listeTransferts:
-                labels = ("%s"%condition,transfert)
+                transfert = DateDblDateEng(transfert)
+                if not transfert:
+                    dictTransferts[(rupture,"")]["prestations"] += montant
+                    continue
+                labels = (rupture,transfert)
                 montant = Nz(mttTranspAller) + Nz(mttTranspRetour)
-                if labels in dictTransferts:
-                    dictTransferts[labels]["prestations"] += montant
-                    dictTransferts[labels]["reglements"] = 0.00
-                else:
-                    dictTransferts[labels] = {}
+                if not labels in dictTransferts:
+                    dictTransferts[labels] = copy.deepcopy(dictVide)
                     dictTransferts[labels]["transfert"] = transfert
-                    dictTransferts[labels]["prestations"] = montant
-                    dictTransferts[labels]["reglements"] = 0.00
+                dictTransferts[labels]["prestations"] += montant
 
             # Lecture des lignes des pièces factures
             req = """SELECT matPieces.pieComptaFac, Sum(matPiecesLignes.ligMontant)
@@ -137,11 +148,16 @@ class ListView(FastObjectListView):
             DB.ExecuterReq(req,MsgBox = "OL_Liste_transferts GetTracks12")
             listeTransferts = DB.ResultatReq()
             for transfert, mttLignes in listeTransferts:
-                labels = ("%s"%( condition),transfert)
+                transfert = DateDblDateEng(transfert)
+                if not transfert:
+                    dictTransferts[(rupture,"")]["prestations"] += montant
+                    continue
+                labels = (rupture,transfert)
                 montant = Nz(mttLignes)
-                if labels in dictTransferts:
-                    dictTransferts[labels]["prestations"] += montant
-                    dictTransferts[labels]["reglements"] = 0.00
+                if not labels in dictTransferts:
+                    dictTransferts[labels] = copy.deepcopy(dictVide)
+                    dictTransferts[labels]["transfert"] = transfert
+                dictTransferts[labels]["prestations"] += montant
 
             # Lecture des transports avoirs
             req = """SELECT matPieces.pieComptaAvo, Sum(matPieces.piePrixTranspAller), Sum(matPieces.piePrixTranspRetour)
@@ -152,16 +168,16 @@ class ListView(FastObjectListView):
             DB.ExecuterReq(req,MsgBox = "OL_Liste_transferts GetTracks13")
             listeTransferts = DB.ResultatReq()
             for transfert, mttTranspAller, mttTranspRetour in listeTransferts:
-                labels = ("%s"%( condition),transfert)
+                transfert = DateDblDateEng(transfert)
+                if not transfert:
+                    dictTransferts[(rupture,"")]["prestations"] += montant
+                    continue
+                labels = (rupture,transfert)
                 montant = -Nz(mttTranspAller)-Nz(mttTranspRetour)
-                if labels in dictTransferts:
-                    dictTransferts[labels]["prestations"] += montant
-                    dictTransferts[labels]["reglements"] = 0.00
-                else:
-                    dictTransferts[labels] = {}
+                if not labels in dictTransferts:
+                    dictTransferts[labels] = copy.deepcopy(dictVide)
                     dictTransferts[labels]["transfert"] = transfert
-                    dictTransferts[labels]["prestations"] = montant
-                    dictTransferts[labels]["reglements"] = 0.00
+                dictTransferts[labels]["prestations"] += montant
 
             # Lecture des avoirs
             req = """SELECT matPieces.pieComptaAvo, Sum(matPiecesLignes.ligMontant)
@@ -173,11 +189,16 @@ class ListView(FastObjectListView):
             DB.ExecuterReq(req,MsgBox = "OL_Liste_transferts GetTracks13")
             listeTransferts = DB.ResultatReq()
             for transfert, mttLignes in listeTransferts:
-                labels = ("%s"%( condition),transfert)
+                transfert = DateDblDateEng(transfert)
+                if not transfert:
+                    dictTransferts[(rupture,"")]["prestations"] += montant
+                    continue
+                labels = (rupture,transfert)
                 montant = -Nz(mttLignes)
-                if labels in dictTransferts:
-                    dictTransferts[labels]["prestations"] += montant
-                    dictTransferts[labels]["reglements"] = 0.00
+                if not labels in dictTransferts:
+                    dictTransferts[labels] = copy.deepcopy(dictVide)
+                    dictTransferts[labels]["transfert"] = transfert
+                dictTransferts[labels]["prestations"] += montant
 
             """     REGLEMENTS   """
 
@@ -192,85 +213,83 @@ class ListView(FastObjectListView):
             DB.ExecuterReq(req,MsgBox = "OL_Liste_transferts GetTracks2")
             listeTransf2 = DB.ResultatReq()
             for transfert, montant in listeTransf2:
-                labels = ("%s"%( condition),transfert)
-                if labels not in dictTransferts:
-                    dictTransferts[labels] = {}
+                transfert = DateDblDateEng(transfert)
+                if not transfert:
+                    dictTransferts[(rupture,"")]["reglements"] += montant
+                    continue
+                labels = (rupture,transfert)
+                if not labels in dictTransferts:
+                    dictTransferts[labels] = copy.deepcopy(dictVide)
                     dictTransferts[labels]["transfert"] = transfert
-                    dictTransferts[labels]["prestations"] = 0.00
                 # Analyse des opérations
-                dictTransferts[labels]["reglements"] = montant
+                dictTransferts[labels]["reglements"] += montant
+        dictTransferts[(99,"")] = copy.deepcopy(dictVide)
 
-        """     REPRISE SUR CHARNIERE FIN D'EXERCICE PUIS PAR DATE TRANSFERTS     """
+        """     REPRISE SUR RUTPTURES PUIS PAR DATE TRANSFERTS     """
 
         #calcul ID et génération lignes et calcul des cumuls
         listeListeView = []
-        reste={}
         cumul = 0.00
-        strDateMax = DateEngDateFr(dateMax)
-        track = TrackSepare("Avant Clôture au %s"%strDateMax,0)
-        listeListeView.append(track)
-        idxavant = 1
-        idxapres = 1000
-        clereste= None
-
-        def takeFirst(elem):
-            return elem[0]
-
-        # première boucle avant clôture
-        for (condition,transfert) in sorted(dictTransferts.keys(), key=takeFirst) :
-            if condition == avant:
-                dicTransf = dictTransferts[(condition,transfert)]
-                if dicTransf["reglements"] == None: dicTransf["reglements"] = 0.00
-                if dicTransf["prestations"] == None: dicTransf["prestations"] = 0.00
-                dicTransf["mvt"] = dicTransf["prestations"] - dicTransf["reglements"]
-                if transfert != None :
-                    dicTransf["IDtransfert"] = idxavant
-                    idxavant += 1
-                    cumul += dicTransf["mvt"]
-                    dicTransf["cumul"]= cumul
-                    track = Track(dicTransf)
-                    listeListeView.append(track)
+        noLigne = 1
+        oldRupture = 0
+        dictAnterieur = copy.deepcopy(dictVide)
+        #dictAnteNoTrans = copy.deepcopy(dictVide)
+        # boucle de reprise du dictionnaire constitué
+        lstKeys = [x for x in sorted(dictTransferts.keys())]
+        for (rupture,transfert) in lstKeys:
+            if rupture == 0:
+                if transfert == "":
+                    # pour l'antérieur on ne cumule que le transféré
+                    #dictAnteNoTrans = dictTransferts[(rupture,transfert)]
+                    continue
                 else:
-                    if condition != apres:
-                        dicTransf["IDtransfert"] = idxapres-2
-                        clereste = (condition,transfert)
-                        reste=dicTransf
-        if clereste != None:
-            reste["transfert"]= "Non transféré"
-            reste["cumul"]= reste["mvt"]+cumul
-            listeListeView.append(Track(reste))
-
-        # boucle après clôture
-        track = TrackSepare(" ",idxapres-2)
-        listeListeView.append(track)
-        track = TrackSepare("Après Clôture au %s"%strDateMax,idxapres-1)
-        listeListeView.append(track)
-
-        clereste = None
-        for (condition,transfert) in sorted(dictTransferts.keys(), key=takeFirst) :
-            if condition == apres:
-                dicTransf = dictTransferts[(condition,transfert)]
-                if dicTransf["reglements"] == None: dicTransf["reglements"] = 0.00
-                if dicTransf["prestations"] == None: dicTransf["prestations"] = 0.00
-                dicTransf["mvt"] = dicTransf["prestations"] - dicTransf["reglements"]
-                if transfert != None :
-                    dicTransf["IDtransfert"] = idxapres
-                    idxapres += 1
-                    cumul += dicTransf["mvt"]
-                    dicTransf["cumul"]= cumul
-                    track = Track(dicTransf)
+                    dicTransf = dictTransferts[(rupture,transfert)]
+                dictAnterieur["reglements"] += dicTransf["reglements"]
+                dictAnterieur["prestations"] += dicTransf["prestations"]
+                dictAnterieur["mvt"] += dicTransf["prestations"] - dicTransf["reglements"]
+                oldRupture = rupture
+                continue
+            if rupture != oldRupture:
+                oldTransfert = lstConditions[oldRupture][1]
+                if oldRupture == 0:
+                    # pose l'antérieur sur une seule ligne
+                    dictAnterieur["transfert"] = oldTransfert
+                    dictAnterieur["noLigne"] = noLigne
+                    cumul += dictAnterieur["mvt"]
+                    dictAnterieur["cumul"] = cumul
+                    listeListeView.append(Track(dictAnterieur))
+                    noLigne += 1
+                    #dictTransferts[(oldRupture, "")] = dictAnteNoTrans
+                dictNoTrans = dictTransferts[(oldRupture, "")]
+                dictNoTrans["mvt"] = dictNoTrans["prestations"] - dictNoTrans["reglements"]
+                # pose le non transféré groupé de la rupture
+                if dictNoTrans["mvt"] != 0.0:
+                    dictNoTrans["transfert"] = "Non transféré %s"%oldTransfert
+                    dictNoTrans["noLigne"] = noLigne
+                    cumul += dictNoTrans["mvt"]
+                    dictNoTrans["cumul"] = cumul
+                    listeListeView.append(Track(dictNoTrans))
+                    noLigne += 1
+                # pose une ligne séparation
+                if rupture < 3:
+                    track = TrackSepare(lstConditions[rupture][1], noLigne)
                     listeListeView.append(track)
-                else:
-                    if condition != avant:
-                        dicTransf["IDtransfert"] = idxapres *2
-                        clereste = (condition,transfert)
-                        reste=dicTransf
-        if clereste != None:
-            reste["transfert"]= "Non transféré"
-            reste["cumul"]= reste["mvt"]+cumul
-            listeListeView.append(Track(reste))
+                    noLigne += 1
+                oldRupture = rupture
+                
+            if transfert == "":
+                # le non transféré sera repris au changement de rupture
+                continue
+            dictTrans = dictTransferts[(rupture,transfert)]
+            dictTrans["noLigne"] = noLigne
+            dictTrans["mvt"] = dictTrans["prestations"] - dictTrans[
+                "reglements"]
+            cumul += dictTrans["mvt"]
+            dictTrans["cumul"] = cumul
+            listeListeView.append(Track(dictTrans))
+            noLigne += 1
 
-        """     AJOUT DES DATES MAXI   """
+        """     AJOUT DERNIER TRANSFERT DEPOT   """
 
         # Lecture des dates de transferts des reglements
         req = """SELECT Max(depots.date)
@@ -280,8 +299,9 @@ class ListView(FastObjectListView):
         recordset = DB.ResultatReq()
         lastReglement = recordset[0][0]
         strLastReglement = DateEngDateFr(lastReglement)
-        track = TrackSepare("Dernier dépôt transféré: %s"%strLastReglement,idxapres*3)
+        track = TrackSepare("Dernier dépôt transféré: %s"%strLastReglement,noLigne)
         listeListeView.append(track)
+        noLigne += 1
 
         DB.Close()
         return listeListeView
@@ -299,13 +319,20 @@ class ListView(FastObjectListView):
 
         def FormateMontant(montant):
             if montant == None : return ""
+            if montant == 0.0:
+                return ""
             strMontant = '{:,.2f}'.format(montant).replace(',', ' ')
             return strMontant
 
+        def FormateEntier(entier):
+            if entier == None : return ""
+            strMontant = '{:0f}'.format(entier)
+            return strMontant
+
         liste_Colonnes = [
-            ColumnDefn("ID", "right", 0, "IDtransfert", typeDonnee="entier"),
+            ColumnDefn("ID", "left", 50, "noLigne", typeDonnee="entier", stringConverter=FormateEntier),
             ColumnDefn("Transferts", "left", 200, "transfert", typeDonnee="texte", stringConverter=FormateDate),
-            ColumnDefn(_("Prestations"), 'right', 90, "prestations", typeDonnee="montant", stringConverter=FormateMontant),
+            ColumnDefn(_("Prestations"), 'right', 90, "prestations", typeDonnee="montant", stringConverter=FormateMontant,),
             ColumnDefn(_("Règlements"), 'right', 90, "reglements", typeDonnee="montant", stringConverter=FormateMontant),
             ColumnDefn(_("Mvt Clients"), "right", 90, "mvt", typeDonnee="montant", stringConverter=FormateMontant),
             ColumnDefn(_("Cumul clients"), "right", 120, "cumul", typeDonnee="montant", stringConverter=FormateMontant),
@@ -314,7 +341,7 @@ class ListView(FastObjectListView):
         self.SetColumns(liste_Colonnes)
         self.SetEmptyListMsg(_("Aucun transfert"))
         self.SetEmptyListMsgFont(wx.FFont(11, wx.DEFAULT, faceName="Tekton"))
-        self.SetSortColumn(self.columns[0])
+        #self.SetSortColumn(self.columns[0])
         self.SetObjects(self.donnees)
        
     def MAJ(self, track=None):
@@ -337,7 +364,7 @@ class ListView(FastObjectListView):
             noSelection = True
         else:
             noSelection = False
-            ID = self.Selection()[0].IDtransfert
+            ID = self.Selection()[0].noLigne
                 
         # Création du menu contextuel
         menuPop = wx.Menu()

@@ -108,7 +108,6 @@ class Dialog(wx.Dialog):
         from Utils import UTILS_Aide
         UTILS_Aide.Aide("Listedescomptes")
 
-
     def OnBoutonNonTrans(self, event):
         from Dlg import DLG_Liste_non_transferts
         dlg = DLG_Liste_non_transferts.Dialog(self,dateFin = self.dateFin)
