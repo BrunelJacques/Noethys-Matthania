@@ -13,6 +13,7 @@ import wx
 import datetime
 import copy
 import os
+import decimal
 from Ctrl import CTRL_Footer
 from Utils.UTILS_Traduction import _
 import ListCtrlPrinter as LCP
@@ -212,9 +213,8 @@ class ObjectListView(OLV.ObjectListView):
                 primary = str(primary)
             elif primary == None:
                 primary = ""
-            elif type(primary) in (int, float):
-                primary = str(primary)
-
+            #elif type(primary) in (int, float): # le tri ne fonctionnerait pas
+            #    primary = str(primary)
             try:
                 primary = primary.lower()
             except AttributeError:

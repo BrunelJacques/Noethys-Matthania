@@ -13,9 +13,7 @@ import Chemins
 import wx
 import GestionDB
 import datetime
-import decimal
 from Utils.UTILS_Traduction import _
-from Utils import UTILS_Config
 from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, CTRL_Outils, PanelAvecFooter
 
 def Nz(valeur):
@@ -40,9 +38,9 @@ class Track(object):
             self.transfert = donnees["transfert"]
         else:
             self.transfert = str(DateDblDateEng(donnees["transfert"]))
-        self.noLigne= self.IDfacture = decimal.Decimal(u"%.0f" % donnees["noLigne"])
-        for champ in ("prestations","reglements","mvt","cumul"):
-            donnees[champ] = decimal.Decimal(u"%.2f"%donnees[champ])
+        self.noLigne= self.IDfacture = donnees["noLigne"]
+        #for champ in ("prestations","reglements","mvt","cumul"):
+        #    donnees[champ] = Decimal(donnees[champ])
         self.prestations = donnees["prestations"]
         self.reglements = donnees["reglements"]
         self.mvt = donnees["mvt"]
@@ -51,11 +49,11 @@ class Track(object):
 class TrackSepare(object):
     def __init__(self, texte,noLigne):
         self.transfert = texte
-        self.noLigne= decimal.Decimal(u"%.0f" %noLigne)
-        self.prestations = decimal.Decimal(u"%.2f"%0.0)
-        self.reglements = decimal.Decimal(u"%.2f"%0.0)
-        self.mvt = decimal.Decimal(u"%.2f"%0.0)
-        self.cumul = decimal.Decimal(u"%.2f"%0.0)
+        self.noLigne= noLigne
+        self.prestations = 0.0
+        self.reglements = 0.0
+        self.mvt = 0.0
+        self.cumul = 0.0
         
 class ListView(FastObjectListView):
     def __init__(self, *args, **kwds):
@@ -326,11 +324,11 @@ class ListView(FastObjectListView):
 
         def FormateEntier(entier):
             if entier == None : return ""
-            strMontant = '{:0f}'.format(entier)
+            strMontant = ('   {:.0f}'.format(entier))[-3:]
             return strMontant
 
         liste_Colonnes = [
-            ColumnDefn("ID", "left", 50, "noLigne", typeDonnee="entier", stringConverter=FormateEntier),
+            ColumnDefn("Ligne", "left", 45, "noLigne", typeDonnee="entier", stringConverter=FormateEntier),
             ColumnDefn("Transferts", "left", 200, "transfert", typeDonnee="texte", stringConverter=FormateDate),
             ColumnDefn(_("Prestations"), 'right', 90, "prestations", typeDonnee="montant", stringConverter=FormateMontant,),
             ColumnDefn(_("Règlements"), 'right', 90, "reglements", typeDonnee="montant", stringConverter=FormateMontant),

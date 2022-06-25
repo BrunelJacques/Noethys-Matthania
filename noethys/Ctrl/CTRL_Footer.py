@@ -11,6 +11,7 @@
 import wx
 import datetime
 import six
+from decimal import Decimal
 
 if 'phoenix' in wx.PlatformInfo:
     from wx import Control
@@ -53,13 +54,13 @@ class Footer(Control):
                         total = getattr(track, nomColonne)
                         if (nomColonne in self.dictTotaux) == False :
                             # Format classique (numérique)
-                            self.dictTotaux[nomColonne] = 0
+                            self.dictTotaux[nomColonne] = Decimal('0')
                             # Autre format
                             if "format" in dictColonne :
                                 if dictColonne["format"] in ("temps", "duree") :
                                     self.dictTotaux[nomColonne] = datetime.timedelta(0)
                         if total != None :
-                            self.dictTotaux[nomColonne] += total
+                            self.dictTotaux[nomColonne] += Decimal(total)
     
     def MAJ(self):
         self.MAJ_totaux()
