@@ -16,7 +16,7 @@ import wx
 from Ctrl import CTRL_Bouton_image
 import sys
 import wx.grid as gridlib
-import wx.lib.mixins.gridlabelrenderer as glr
+import Outils.gridlabelrenderer as glr
 import GestionDB
 from Ctrl import CTRL_Selection_activites
 import wx.lib.agw.supertooltip as STT

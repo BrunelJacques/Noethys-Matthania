@@ -41,10 +41,7 @@ ID_ANNEE_SUIVANTE = 320
 
 # expression régulière pour une date (JJ/MM/AAAA)
 datePattern = re.compile(
-    r"(?P<jour>[\d]{1,2})/(?P<mois>[\d]{1,2})/(?P<annee>[\d]{4})"
-)
-
-
+    r"(?P<jour>[\d]{1,2})/(?P<mois>[\d]{1,2})/(?P<annee>[\d]{4})")
 
 class myparserinfo(parserinfo):
     JUMP = [" ", ".", ",", ";", "-", "/", "'",
@@ -81,8 +78,6 @@ class myparserinfo(parserinfo):
 
     def __init__(self) :
         parserinfo.__init__(self, dayfirst=True, yearfirst=False)
-
-
 
 class Date(masked.TextCtrl):
     """ Contrôle Date simple """
@@ -336,7 +331,6 @@ class Date(masked.TextCtrl):
             from Utils import UTILS_Aide
             UTILS_Aide.Aide("Slectionnerunedate")
 
-
 def ValideDate(texte, date_min="01/01/1900", date_max="01/01/2999", avecMessages=True, mask=""):
     """ Verificateur de validite de date """
     if texte == "  /  /    " or texte == "" :
@@ -404,7 +398,6 @@ def ValideDate(texte, date_min="01/01/1900", date_max="01/01/2999", avecMessages
         message = _("La date que vous venez de saisir ne semble pas valide !")
         wx.MessageBox(message, "Erreur de date")
     return False
-
 
 class Date2(wx.Panel):
     """ Contrôle Date avec Bouton Calendrier inclus """
@@ -503,8 +496,6 @@ class Date2(wx.Panel):
     
     def SetFocus(self):
         self.ctrl_date.SetFocus()
-        
-        
 
 class MyFrame(wx.Frame):
     def __init__(self, *args, **kwds):
@@ -527,8 +518,6 @@ class MyFrame(wx.Frame):
 
     def OnBouton1(self, event):
         print(self.ctrl1.Validation())
-
-
 
 if __name__ == '__main__':
     app = wx.App(0)

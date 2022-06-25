@@ -22,7 +22,7 @@ if rows == [-1] : return
 import wx
 from Ctrl import CTRL_Bouton_image
 import wx.grid as gridlib
-import wx.lib.mixins.gridlabelrenderer as glr
+import Outils.gridlabelrenderer as glr
 import datetime
 import decimal
 import copy

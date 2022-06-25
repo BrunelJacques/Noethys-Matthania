@@ -21,7 +21,7 @@ if rows == [-1] : return
 import wx
 import wx.grid as gridlib
 import wx.lib.wordwrap as wordwrap
-import wx.lib.mixins.gridlabelrenderer as glr
+import Outils.gridlabelrenderer as glr
 import datetime
 import FonctionsPerso
 import sys

@@ -58,8 +58,11 @@ def DateEngEnDateDD(dateEng):
     return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 def DateFREnDateDD(dateFR):
-    return datetime.date(int(dateFR[6:10]),int(dateFR[3:5]),int(dateFR[:2]), )
-
+    try:
+        dateDD = datetime.date(int(dateFR[6:10]),int(dateFR[3:5]),int(dateFR[:2]), )
+    except:
+        dateDD = datetime.date.today()
+    return dateDD
 
 
 class CTRL_Image(wx.StaticBitmap):
@@ -1381,7 +1384,7 @@ class Dialog(wx.Dialog):
         # Date
         date = self.ctrl_date.GetDate()
         if date == None :
-            dlg = wx.MessageDialog(self, _("Vous devez obligatoirement saisir une date d'émission du règlement !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
+            dlg = wx.MessageDialog(self, _("Vous devez saisir une date d'émission du règlement correcte !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
             dlg.ShowModal()
             dlg.Destroy()
             self.ctrl_date.SetFocus()

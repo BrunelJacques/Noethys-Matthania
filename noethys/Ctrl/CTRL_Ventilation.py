@@ -369,9 +369,9 @@ class Ligne_prestation(object):
             if auMoinsUneCochee == False :
                 self.ligneRegroupement.SetEtat(False)
 
-class RendererCaseMontant(gridlib.PyGridCellRenderer):
+class RendererCaseMontant(gridlib.GridCellRenderer):
     def __init__(self):
-        gridlib.PyGridCellRenderer.__init__(self)
+        gridlib.GridCellRenderer.__init__(self)
         self.grid = None
 
     def Draw(self, grid, attr, dc, rect, row, col, isSelected):
@@ -408,10 +408,10 @@ class RendererCaseMontant(gridlib.PyGridCellRenderer):
     def Clone(self):
         return RendererCaseMontant()
 
-class EditeurMontant(gridlib.PyGridCellEditor):
+class EditeurMontant(gridlib.GridCellEditor):
     def __init__(self, ligne=None):
         self.ligne = ligne
-        gridlib.PyGridCellEditor.__init__(self)
+        gridlib.GridCellEditor.__init__(self)
 
     def Create(self, parent, id, evtHandler):
         self._tc = CTRL_Saisie_euros.CTRL(parent, style=wx.TE_RIGHT|wx.TE_PROCESS_ENTER)

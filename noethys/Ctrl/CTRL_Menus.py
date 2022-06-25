@@ -15,7 +15,7 @@ from Utils.UTILS_Traduction import _
 import wx
 import datetime
 import wx.grid as gridlib
-import wx.lib.mixins.gridlabelrenderer as glr
+import Outils.gridlabelrenderer as glr
 import GestionDB
 import calendar
 from Ctrl import CTRL_Bouton_image

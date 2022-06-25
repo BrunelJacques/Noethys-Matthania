@@ -16,7 +16,7 @@ import wx
 import datetime
 import copy
 import wx.grid as gridlib
-import wx.lib.mixins.gridlabelrenderer as glr
+import Outils.gridlabelrenderer as glr
 import GestionDB
 import six
 from Ctrl import CTRL_Bouton_image

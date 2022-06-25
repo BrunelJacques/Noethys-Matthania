@@ -1487,6 +1487,14 @@ class MainFrame(wx.Frame):
 
         elif versionData[:3] < versionLogiciel[:3]:
             # Changement de niveau version, nécessite MAJ_TablesEtChamps
+            mess = "Base de donnée d'un niveau inférieur\n\n"
+            mess += "Faut-il mettre à jour la base de donnée distante?"
+            dlg = wx.MessageDialog(self, mess, _(""),
+                                   wx.YES_NO | wx.YES_DEFAULT | wx.ICON_WARNING)
+            reponse = dlg.ShowModal()
+            dlg.Destroy()
+            if reponse != wx.ID_YES:
+                return True
             mess = "UPGRADE BASE conseillé\n\n"
             mess += "Version logiciel '%s' - Version base de donnée '%s'\n"%(
                     versionData[:3],versionLogiciel[:3] )
@@ -1518,11 +1526,21 @@ class MainFrame(wx.Frame):
                 resultat = False
 
         elif versionData < versionLogiciel:
-            # Fait la conversion de la base par updateDB
-            info = "Lancement de la conversion %s -> %s..." %(VERSION_DATA,VERSION_LOGICIEL)
-            self.SetStatusText(info)
-            print(info)
-            resultat, message,titre,style = UpdateDB(versionData)
+            if not "192.168" in nomFichier:
+                mess = "Base de donnée d'un niveau inférieur\n\n"
+                mess +=  "Faut-il mettre à jour la base de donnée distante?"
+                dlg = wx.MessageDialog(self, mess, "Confirmation",
+                                       wx.YES_NO | wx.YES_DEFAULT | wx.ICON_WARNING)
+                reponse = dlg.ShowModal()
+                dlg.Destroy()
+                if reponse != wx.ID_YES:
+                    resultat = False
+            if resultat == True:
+                # Fait la conversion de la base par updateDB
+                info = "Lancement de la conversion %s -> %s..." %(VERSION_DATA,VERSION_LOGICIEL)
+                self.SetStatusText(info)
+                print(info)
+                resultat, message,titre,style = UpdateDB(versionData)
 
         elif versionData > versionLogiciel:
             import DLG_Release
