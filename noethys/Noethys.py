@@ -657,10 +657,13 @@ class MainFrame(wx.Frame):
         
         if len(listeDerniersFichiers) > 0 : 
             index = 0
+            lstCtrl = []
             for nomFichier in listeDerniersFichiers :
                 if "[RESEAU]" in nomFichier :
                     port, hote, user, mdp = nomFichier.split(";")
                     nomFichier = nomFichier[nomFichier.index("[RESEAU]"):]+ " - %s"%hote
+                if nomFichier in lstCtrl:
+                    continue
                 item = wx.MenuItem(menu_fichier, ID_DERNIER_FICHIER + index, "%d. %s" % (index+1, nomFichier), _("Ouvrir le fichier : '%s'") % nomFichier)
                 menu_fichier.Append(item)
                 index += 1

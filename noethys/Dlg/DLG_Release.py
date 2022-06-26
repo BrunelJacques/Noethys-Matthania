@@ -18,6 +18,7 @@ from Ctrl import CTRL_Bandeau
 from Utils import UTILS_Fichiers
 from Utils import UTILS_Parametres
 from Utils import UTILS_Dates
+from Utils import UTILS_Config
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -63,7 +64,7 @@ class CTRL_AfficheVersion(wx.TextCtrl):
             self.parent.bouton_fichier.Enable(False)
             ret = self.GetReleaseDocument(tplVersionData)
             if ret != "ok":
-                invite = "%s\nEchec sur ouverture release" % self.invite
+                invite = "%s\nEchec sur ouverture du fichier version '%s'" %(self.invite,str(tplVersionData))
                 invite += "\n%s"%ret
                 self.SetValue(invite)
                 self.parent.bouton_ok.Enable(False)
@@ -141,10 +142,46 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         mess = "DLG_Release.SetReleaseDocument"
         return DBdoc.ReqInsert("releases",lstTplDon,MsgBox=mess)
 
-    def GetReleaseDocument(self, tplVersion):
+    def GetNoReleases(self,DBdoc,categorie):
+        req = """
+        SELECT niveau, echelon
+        FROM releases
+        WHERE categorie = %s
+        ORDER BY niveau desc, echelon DESC
+        ;"""%(categorie)
+        ret = DBdoc.ExecuterReq(req,MsgBox="DLG_Release.GetReleaseDocument")
+        if ret != "ok":
+            return ret
+        recordset = DBdoc.ResultatReq()
+        a,b = categorie.split(".")
+        tplCategorie = (int(a), int(b))
+        lstNoReleases = [ tplCategorie + (x,y) for (x,y) in recordset]
+        return lstNoReleases
+
+    def GetReleaseDocument(self, tplVersion,nomFichier=''):
         # Retourne le fichier zip-release de la base de donnée
-        DBdoc = GestionDB.DB(suffixe="DOCUMENTS")
+        ix = self.parent.choice_baseDonnees.GetSelection()
+        nomFichier = self.parent.choice_baseDonnees.GetString(ix)
+        if nomFichier == '':
+            DBdoc = GestionDB.DB(suffixe="DOCUMENTS")
+        else:
+            DBdoc = GestionDB.DB(nomFichier=nomFichier,suffixe="DOCUMENTS")
         categorie = "%d.%d"%(tplVersion[0],tplVersion[1])
+
+        lstNoReleases = self.GetNoReleases(DBdoc, categorie)
+        lastNoRelease = None
+        if len(lstNoReleases) > 0 :
+            lastNoRelease = lstNoReleases[0]
+
+        mess = None
+        if not lastNoRelease:
+            mess = "Pas de releases sockées dans cette base pour Noethys '(%s)'"%categorie
+        elif lastNoRelease != tplVersion:
+            mess = "La version '%s' n'est pas stockée dans cette base, d'autres versions sont disponibles"%str(tplVersion)
+        if mess:
+            return mess
+
+        # La release de la version attendue est présente
         req = """
         SELECT fichier
         FROM releases
@@ -157,7 +194,7 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         recordset = DBdoc.ResultatReq()
         self.zipFile = None
         if len(recordset) == 0:
-            return "Fichier non présent dans 'documents'"
+            return "Fichier de mise à jour n'est pas présent dans la base"
         self.zipFile = recordset[0][0]
         versions = GetVersionsFromZipFile("Release %s"%str(tplVersion)[1:-1], self.zipFile)
         texte = GestionDB.Decod(versions)
@@ -183,18 +220,22 @@ class Dialog(wx.Dialog):
             intro = _("Vous pouvez ici mettre à jour votre version Noethys, à partir d'un fichier ZIP contenant la release")
         else:
             intro = _("Vous pouvez ici mettre à jour votre version Noethys automatiquement")
-        titre = _("Release")
+        titre ="Mise à jour"
         self.SetTitle(titre)
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Restaurer.png")
 
+        self.txt_base = wx.StaticBox(self,-1,"Stockage des versions : ")
+        self.choice_baseDonnees = wx.Choice(self, -1, choices=self.__getDerniersFichiers())
+        self.check_maj =     wx.CheckBox(self, -1, "Mettre à jour ma station")
+        self.check_stocke =  wx.CheckBox(self, -1, "Stocker pour partager")
         # Boutons
+        self.bouton_versions = CTRL_Bouton_image.CTRL(self, texte=_("Anciennes Versions"), cheminImage="Images/32x32/Droits.png")
         self.bouton_fichier = CTRL_Bouton_image.CTRL(self, texte=_("Choisir le fichier"), cheminImage="Images/32x32/Desarchiver.png")
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok pour release"), cheminImage="Images/32x32/Valider.png")
         self.bouton_annuler = CTRL_Bouton_image.CTRL(self, texte=_("Annuler"), cheminImage="Images/32x32/Annuler.png")
 
         # Affichage de la version proposée
-        self.box_donnees_staticbox = wx.StaticBox(self, -1,
-                                                  _("Description des versions :"))
+        self.box_donnees_staticbox = wx.StaticBox(self, -1,"Description des versions :")
         self.ctrl_donnees = CTRL_AfficheVersion(self)
         self.ctrl_donnees.SetMinSize((250, -1))
 
@@ -206,31 +247,62 @@ class Dialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAnnuler, self.bouton_annuler)
 
     def __set_properties(self):
+        self.choice_baseDonnees.Select(0)
+        self.check_maj.SetValue(True)
+        self.check_stocke.SetValue(True)
+        self.txt_base.SetToolTip(wx.ToolTip("Choix de la base de donnée qui conserve les versions"))
+        self.choice_baseDonnees.SetToolTip(wx.ToolTip("Base de donnée qui conserve les différentes versions"))
+        self.check_maj.SetToolTip(wx.ToolTip("Pour mettre à jour l'application sur votre station de travail"))
+        self.check_stocke.SetToolTip(wx.ToolTip("Pour enregistrer la mise à jour dans la base et qu'elle devienne accessible aux autres stations"))
         self.bouton_fichier.SetToolTip(wx.ToolTip(_("Cliquez ici pour choisir le fichier release.zip")))
         self.bouton_ok.SetToolTip(wx.ToolTip(_("Cliquez ici pour lancer la restauration")))
         self.bouton_annuler.SetToolTip(wx.ToolTip(_("Cliquez ici pour annuler")))
         self.SetMinSize((600, 800))
 
+    def __getDerniersFichiers(self):
+        cfg = UTILS_Config.FichierConfig()
+        userConfig = cfg.GetDictConfig()
+        lstFichiers = userConfig["derniersFichiers"]
+        lstNomsFichiers = []
+        for nomFichier in lstFichiers:
+            if "[RESEAU]" in nomFichier:
+                port, hote, user, mdp = nomFichier.split(";")
+                nomFichier = nomFichier[
+                             nomFichier.index("[RESEAU]")+8:] + " - %s" % hote
+                if not nomFichier in lstNomsFichiers:
+                    lstNomsFichiers.append(nomFichier)
+        return lstNomsFichiers
+
     def __do_layout(self):
-        grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
+        grid_sizer_base = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
         
         box_donnees = wx.StaticBoxSizer(self.box_donnees_staticbox, wx.VERTICAL)
         box_donnees.Add(self.ctrl_donnees, 1, wx.ALL|wx.EXPAND, 10)
         grid_sizer_base.Add(box_donnees, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
-        
-        grid_sizer_boutons = wx.FlexGridSizer(rows=1, cols=4, vgap=10, hgap=10)
-        grid_sizer_boutons.Add((20, 20), 0, wx.EXPAND, 0)
+
+        grid_sizer_bd = wx.FlexGridSizer(rows=1, cols=4, vgap=0, hgap=0)
+        grid_sizer_bd.Add(self.txt_base,0,0,0)
+        grid_sizer_bd.Add(self.choice_baseDonnees,1,wx.EXPAND,0)
+        grid_sizer_bd.Add((150,10),1,wx.EXPAND,0)
+        grid_sizer_bd.Add(self.bouton_versions,1,wx.EXPAND,0)
+        grid_sizer_base.Add(grid_sizer_bd,1,wx.EXPAND,0)
+
+        grid_sizer_boutons = wx.FlexGridSizer(rows=1, cols=5, vgap=10, hgap=10)
+        grid_sizer_options = wx.FlexGridSizer(rows=2, cols=1, vgap=2, hgap=3)
+        grid_sizer_options.Add(self.check_maj, 0, wx.LEFT, 4)
+        grid_sizer_options.Add(self.check_stocke, 0, wx.LEFT, 4)
+        grid_sizer_boutons.Add(grid_sizer_options, 1, wx.EXPAND, 0)
         grid_sizer_boutons.Add(self.bouton_fichier, 0, 0, 0)
         grid_sizer_boutons.Add(self.bouton_ok, 0, 0, 0)
         grid_sizer_boutons.Add(self.bouton_annuler, 0, 0, 0)
         grid_sizer_boutons.AddGrowableCol(0)
         grid_sizer_base.Add(grid_sizer_boutons, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 10)
-        
-        self.SetSizer(grid_sizer_base)
-        grid_sizer_base.Fit(self)
         grid_sizer_base.AddGrowableRow(1)
         grid_sizer_base.AddGrowableCol(0)
+
+        self.SetSizer(grid_sizer_base)
+        grid_sizer_base.Fit(self)
         self.Layout()
         self.CenterOnScreen() 
 
