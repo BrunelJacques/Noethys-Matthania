@@ -163,8 +163,8 @@ class DB():
     def GetParamConnexionReseau(self):
         """ Récupération des paramètres de connexion si fichier MySQL """
         pos = self.nomFichier.index("[RESEAU]")
-        paramConnexions = self.nomFichier[:pos]
-        port, host, user, passwd = paramConnexions.split(";")
+        paramConnexion = self.nomFichier[:pos]
+        port, host, user, passwd = paramConnexion.split(";")
         nomFichier = self.nomFichier[pos:].replace("[RESEAU]", "")
         nomFichier = nomFichier.lower()
         dictDonnees = {"port":int(port), "hote":host, "host":host, "user":user, "utilisateur":user, "mdp":passwd, "password":passwd, "fichier":nomFichier}
@@ -1238,8 +1238,8 @@ class DB():
 
 def GetConnexionReseau(nomFichier=""):
     pos = nomFichier.index("[RESEAU]")
-    paramConnexions = nomFichier[:pos]
-    port, host, user, passwd = paramConnexions.split(";")
+    paramConnexion = nomFichier[:pos]
+    port, host, user, passwd = paramConnexion.split(";")
     nomFichier = nomFichier[pos:].replace("[RESEAU]", "")
     nomFichier = nomFichier.lower()
     passwd = DecodeMdpReseau(passwd)
