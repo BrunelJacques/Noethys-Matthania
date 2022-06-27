@@ -5,6 +5,7 @@ if not exist "c:\Program Files\Python39" (
 ) else (
 	"c:\Program Files\Python39\"python -m pip install --upgrade pip --no-warn-script-location
 	"c:\Program Files\Python39\"python -m pip install wxPython --no-warn-script-location
+	"c:\Program Files\Python39\"python -m pip install wx --no-warn-script-location
 	"c:\Program Files\Python39\"python -m pip install appdirs --no-warn-script-location
 	"c:\Program Files\Python39\"python -m pip install XlsxWriter --no-warn-script-location
 	"c:\Program Files\Python39\"python -m pip install pyttsx3 --no-warn-script-location
