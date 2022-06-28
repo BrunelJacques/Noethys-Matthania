@@ -421,6 +421,7 @@ class ObjectListView(OLV.ObjectListView):
     def formatageFiltres(self, listeFiltres=[]):
         # Formatage du filtre
         listeFiltresFinale = []
+        filtre = None
         for dictFiltre in listeFiltres :
             code = dictFiltre["code"]
             choix = dictFiltre["choix"]
@@ -536,7 +537,8 @@ class ObjectListView(OLV.ObjectListView):
                     filtre = "track.ID%s in %s" % (code, self.GetInscrits(mode=code, choix=choix, criteres=criteres))
                     
             # Mémorisation
-            listeFiltresFinale.append(filtre) 
+            if filtre:
+                listeFiltresFinale.append(filtre)
         
         return listeFiltresFinale
 

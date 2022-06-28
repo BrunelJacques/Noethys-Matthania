@@ -33,7 +33,8 @@ def FormateValue(value):
 
 def FormateMontant(montant):   
     if not montant : return ""
-    if not isinstance(montant,(int,float,decimal,bool)) : return montant
+    elif not isinstance(montant,(int,float,bool,decimal.Decimal)) :
+        return montant
     if int(montant*100) == 0: return ""
     if isinstance(montant,(int,bool)): return "%d"%(montant)
     return "%.2f" %(montant)
@@ -1283,7 +1284,6 @@ class Dialog(wx.Dialog):
         return self.choix
 
 if __name__ == "__main__":
-
     app = wx.App(0)
     dlg = DLGventilations(None,
                           {12456:{"designations":["pièce réglée 1",datetime.date.today()],
