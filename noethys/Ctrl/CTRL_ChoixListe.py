@@ -1236,7 +1236,7 @@ class Dialog(wx.Dialog):
         self.listview.useExpansionColumn = True
         self.listview.SetColumns([
             ColumnDefn("Code", "left", self.wCode,  0),
-            ColumnDefn("Libelle (non modifiables)", "left", self.wLib, 1,isSpaceFilling = True),
+            ColumnDefn("Description - libellé ", "left", self.wLib, 1,isSpaceFilling = True),
             ])
         self.listview.SetSortColumn(self.listview.columns[self.colSort])
         self.listview.SetObjects(self.liste)

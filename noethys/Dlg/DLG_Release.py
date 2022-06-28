@@ -22,13 +22,13 @@ from Utils import UTILS_Config
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------
 
-def GetVersionsFromZipFile(releaseZip=None, nameFichier="???"):
+def GetVersionsFromZipFile(releaseZip=None, nomFichier="???"):
     # Cherche le fichier versions dans le fichier zip, retourne le fichier
     if not releaseZip: return
     lstFichiers = UTILS_Fichiers.GetListeFichiersZip(releaseZip)
     lstVersions = [x for x in lstFichiers if "versions" in x.lower()]
     if len(lstVersions) == 0:
-        mess = "Le Zip %s ne contient pas de fichier 'Versions.txt'" % nameFichier
+        mess = "Le Zip %s ne contient pas de fichier 'Versions.txt'" % nomFichier
         wx.MessageBox(mess, "Echec", style=wx.ICON_ERROR)
         return
     pathNameVersions = lstVersions[0]
@@ -59,7 +59,8 @@ class CTRL_AfficheVersion(wx.TextCtrl):
 
         self.tplVersionLogiciel = FonctionsPerso.ConvertVersionTuple(self.version_logiciel)
         self.version_data = self.parent.version_data
-        self.zipFile = None
+        self.zipFile = None # vient d'un fichier ou de la base (alors non re-stockable)
+        self.nomFichier = None # signale un fichier valide - chargé - stockable
         self.tplVersionData = None
         self.MAJ(self.version_data)
 
@@ -86,9 +87,9 @@ class CTRL_AfficheVersion(wx.TextCtrl):
 
     def UpdateBlobInDocuments(self,ID):
         # Copie le fichier zip-release dans la base de donnée
-        blob = self.zipFile
         try:
-            self.dbDoc.MAJimage("releases","IDrelease", ID, blob,"fichier")
+            bytesBuffer = UTILS_Fichiers.GetBytesFromFile(self.nomFichier)
+            self.dbDoc.MAJimage("releases","IDrelease", ID, bytesBuffer,"fichier")
         except Exception as err:
             return "%s\n%s" % ("DLG_Release.UpdateBlobInDocuments", err)
         return 'ok'
@@ -155,7 +156,7 @@ class CTRL_AfficheVersion(wx.TextCtrl):
             return
         titre = "Choisissez une version d'application"
         intro = "Un double clic vous permet de choisir une ligne, ou bien sélectionnez puis 'ok'"
-        dlg = CTRL_ChoixListe.Dialog(self,lstChoix,titre=titre,intro=intro)
+        dlg = CTRL_ChoixListe.Dialog(self,lstChoix,titre=titre,intro=intro,LargeurCode=100)
         #listeOriginale=[("Choix1","Texte1"),],LargeurCode=150,LargeurLib=100,colSort=0, minSize=(600, 350),
         #         titre="Faites un choix !", intro="Double Clic sur la réponse souhaitée...")
         ret = dlg.ShowModal()
@@ -175,10 +176,10 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         version = versions[posDebut + 1:posFin].strip()
         return version
 
-    def ValidationFile(self,zipFile,nameFichier="???"):
+    def ValidationFile(self,zipFile,nomFichier=None):
         self.parent.tplVersionChoix = None
 
-        tplVersions = GetVersionsFromZipFile(zipFile,nameFichier)
+        tplVersions = GetVersionsFromZipFile(zipFile,nomFichier)
         if not tplVersions:
             return
 
@@ -215,6 +216,11 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         # Enregistrement de la validation
         self.parent.tplVersionChoix = tplVersionChoix
         self.zipFile = zipFile
+        self.nomFichier = nomFichier
+        if nomFichier:
+            self.parent.check_stocke.SetValue(True)
+        else: self.parent.check_stocke.SetValue(False)
+        self.parent.check_maj.Setvalue(True)
         self.MAJ(version_choix)
         return "ok"
 
@@ -226,15 +232,15 @@ class CTRL_AfficheVersion(wx.TextCtrl):
             intro = "Veuillez sélectionner le fichier contenant la MISE A JOUR DE NOETHYS"
             return UTILS_Fichiers.SelectionFichier(intro, wildcard, verifZip=True)
 
-        nameFichier = GetNameZipFile()
-        if not nameFichier:
+        nomFichier = GetNameZipFile()
+        if not nomFichier:
             return
         try:
-            zipFile = UTILS_Fichiers.GetZipFile(nameFichier, "r")
+            zipFile = UTILS_Fichiers.GetZipFile(nomFichier, "r")
         except Exception as err:
             print(type(err), err)
             return
-        self.ValidationFile(zipFile,nameFichier)
+        self.ValidationFile(zipFile,nomFichier)
 
     def GetFileInDocuments(self, tplVersion):
         # Ouvre le fichier zip-release de la base de donnée et affiche son contenu
@@ -266,6 +272,7 @@ class CTRL_AfficheVersion(wx.TextCtrl):
             return ret
         recordset = dbDoc.ResultatReq()
         self.zipFile = None
+        self.nomFichier = None
         if len(recordset) == 0:
             return "Fichier de mise à jour n'est pas présent dans la base"
         dataBytes = recordset[0][0]
@@ -276,7 +283,7 @@ class CTRL_AfficheVersion(wx.TextCtrl):
             mess += "\n%s" % ret
             return mess
         zipFile = UTILS_Fichiers.GetZipFile(fileName)
-        return self.ValidationFile(zipFile,"Fichier_partagé")
+        return self.ValidationFile(zipFile,None)
 
     def GetLabelsReleases(self):
         dbDoc = self.dbDoc
@@ -293,7 +300,7 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         recordset = dbDoc.ResultatReq()
         for categorie, niveau, echelon,description,dateImport in recordset:
             version = "%s.%d.%d" % (categorie,niveau,echelon)
-            label =  "Version %s (%s): %s" % (version,str(dateImport),description)
+            label =  "Version %s (%s): %s" % (version,str(dateImport),description.decode())
             lstReleases.append((version,label))
         return lstReleases
 
@@ -451,6 +458,9 @@ class Dialog(wx.Dialog):
         self.bouton_fichier.Enable(not ok)
         self.choice_baseDonnees.Enable(not ok)
         self.bouton_versions.Enable(not ok)
+        if ok and not self.ctrl_donnees.nomFichier:
+            self.check_stocke.SetValue(False)
+            self.check_stocke.Enable(False)
         # porte dérobée pour dégriser l'accès aux autres versions
         if not self.check_maj.GetValue() and not self.check_stocke.GetValue():
             self.bouton_fichier.Enable(True)
@@ -486,7 +496,7 @@ class Dialog(wx.Dialog):
     def OnBoutonOk(self, event):
         # stockage de la release dans la base pointée
         messStockage = "Pas de stockage"
-        if self.check_stocke.GetValue():
+        if self.check_stocke.GetValue() and self.ctrl_donnees.nomFichier:
             ret = self.ctrl_donnees.StockerInDocuments(self.tplVersionChoix)
             if ret == 'ok':
                 messStockage = "Version stockée pour être partagée aux stations"

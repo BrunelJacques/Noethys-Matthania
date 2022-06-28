@@ -172,8 +172,8 @@ def GetBytesFromFile(fileName, buffer=True):
     if not buffer:
         return data
     buffer = io.BytesIO(data)
-    bytes = buffer.read()
-    return bytes
+    bytesBuffer = buffer.read()
+    return bytesBuffer
 
 def SetFileFromBytes(fileName,dataBytes):
     # Création du fichier dans le répertoire Temp
