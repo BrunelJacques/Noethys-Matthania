@@ -1370,7 +1370,7 @@ if __name__ == '__main__':
 
 """
 try:
-except Exception() as err:
+except Exception as err:
         print(err)
         raise
 """

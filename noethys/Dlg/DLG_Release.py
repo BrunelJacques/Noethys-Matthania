@@ -36,7 +36,7 @@ def GetVersionsFromZipFile(releaseZip=None, nameFichier="???"):
     try:
         versions = UTILS_Fichiers.GetOneFileInZip(releaseZip, pathNameVersions)
         versions = GestionDB.Decod(versions)
-    except Exception() as err:
+    except Exception as err:
         if isinstance(err, UnicodeDecodeError):
             mess = "Le fichier version importé n'est pas codé en UTF-8\n%s" % err
             wx.MessageBox(mess, "Abandon")
@@ -84,21 +84,51 @@ class CTRL_AfficheVersion(wx.TextCtrl):
     def SetParamConnexion(self,paramConnexion):
         self.dbDoc = GestionDB.DB(nomFichier=paramConnexion, suffixe="DOCUMENTS")
 
-    def SetFileInDocuments(self,tplVersion):
+    def UpdateBlobInDocuments(self,ID):
         # Copie le fichier zip-release dans la base de donnée
+        blob = self.zipFile
+        try:
+            self.dbDoc.MAJimage("releases","IDrelease", ID, blob,"fichier")
+        except Exception as err:
+            return "%s\n%s" % ("DLG_Release.UpdateBlobInDocuments", err)
+        return 'ok'
+
+    def StockerInDocuments(self,tplVersion):
+        # Crée ou met à jour un record dans documents.releases
         dbDoc = self.dbDoc
         categorie = "%d.%d"%(tplVersion[0],tplVersion[1])
         dte = UTILS_Dates.DateDDEnDateEng(datetime.date.today())
+        # composition du cartouche
         lstTplDon = [
             ("categorie",categorie),
             ("niveau",tplVersion[2]),
             ("echelon", tplVersion[3]),
             ("dateImport", dte),
-            ("fichier","%s" % self.zipFile),
-            ("description","{user:%s}"%dbDoc.UtilisateurActuel())
+            ("description","'partagé par':'%s'" % dbDoc.UtilisateurActuel())
             ]
-        mess = "DLG_Release.SetFileInDocuments"
-        return dbDoc.ReqInsert("releases",lstTplDon,retourID=False,MsgBox=mess)
+        mess = "DLG_Release.StockerInDocuments"
+
+        # Teste l'existence préalable
+        req = """
+        SELECT IDrelease
+        FROM releases
+        WHERE categorie = '%s' AND niveau = %d AND echelon = %d
+        ;""" % (categorie, tplVersion[2], tplVersion[3])
+        ret = dbDoc.ExecuterReq(req)
+        if ret != "ok":
+            return ret
+        recordset = dbDoc.ResultatReq()
+        ID = None
+        if len(recordset) > 0:
+            ID = recordset[0][0]
+        if not ID:
+            ID = dbDoc.ReqInsert("releases",lstTplDon,retourID=True,MsgBox=mess)
+        else:
+            ret = dbDoc.ReqMAJ("releases",lstTplDon, "IDrelease", ID, IDestChaine=False,
+                               MsgBox=mess)
+        if ret == 'ok':
+            ret = self.UpdateBlobInDocuments(ID)
+        return ret
 
     def GetNouveautes(self,zipFile):
         tplVersions = GetVersionsFromZipFile(zipFile)
@@ -123,11 +153,19 @@ class CTRL_AfficheVersion(wx.TextCtrl):
             mess = "Aucune release\n\nDésolé aucune release partagée dans cette base de données!"
             wx.MessageBox(mess,"résultat")
             return
-        lstStrChoix = [(str(x),y) for x,y in lstChoix]
-        dlg = CTRL_ChoixListe.Dialog(lstStrChoix)
+        titre = "Choisissez une version d'application"
+        intro = "Un double clic vous permet de choisir une ligne, ou bien sélectionnez puis 'ok'"
+        dlg = CTRL_ChoixListe.Dialog(self,lstChoix,titre=titre,intro=intro)
         #listeOriginale=[("Choix1","Texte1"),],LargeurCode=150,LargeurLib=100,colSort=0, minSize=(600, 350),
         #         titre="Faites un choix !", intro="Double Clic sur la réponse souhaitée...")
         ret = dlg.ShowModal()
+        version_choix = None
+        if ret == wx.ID_OK:
+            choix = dlg.GetChoix()
+            version_choix = choix[0]
+        dlg.Destroy()
+        if version_choix:
+            self.MAJ(version_choix)
 
     @staticmethod
     def GetVersionInTexte(versions):
@@ -203,7 +241,7 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         dbDoc = self.dbDoc
         categorie = "%d.%d"%(tplVersion[0],tplVersion[1])
 
-        lstNumReleases = self.GetNumReleases(dbDoc, categorie)
+        lstNumReleases = self.GetNumReleases(categorie)
         trouvee = False
         for no in lstNumReleases:
             if no == tplVersion:
@@ -240,29 +278,28 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         zipFile = UTILS_Fichiers.GetZipFile(fileName)
         return self.ValidationFile(zipFile,"Fichier_partagé")
 
-    @staticmethod
-    def GetLabelsReleases(dbDoc, categorie):
-        # retrourne la liste des Releases dispo
+    def GetLabelsReleases(self):
+        dbDoc = self.dbDoc
+        # retourne la liste des Releases dispo
         req = """
         SELECT categorie, niveau, echelon,description,dateImport
         FROM releases
-        ORDER BY categorie desc niveau desc, echelon DESC
-        ;""" % categorie
-        ret = dbDoc.ExecuterReq(req,MsgBox="DLG_Release.GetLanelsReleases")
+        ORDER BY categorie desc, niveau desc, echelon DESC
+        ;"""
+        ret = dbDoc.ExecuterReq(req,MsgBox="DLG_Release.GetLabelsReleases")
         if ret != "ok":
             return []
         lstReleases = []
         recordset = dbDoc.ResultatReq()
         for categorie, niveau, echelon,description,dateImport in recordset:
-            a, b = categorie.split(".")
-            version = (int(a), int(b),niveau,echelon)
-            label =  "(%s) %s" % (str(dateImport),description)
+            version = "%s.%d.%d" % (categorie,niveau,echelon)
+            label =  "Version %s (%s): %s" % (version,str(dateImport),description)
             lstReleases.append((version,label))
         return lstReleases
 
-    @staticmethod
-    def GetNumReleases(dbDoc, categorie):
-        # retrourne la liste des Releases dispo
+    def GetNumReleases(self,categorie=""):
+        # retourne la liste des Releases dispo
+        dbDoc = self.dbDoc
         req = """
         SELECT niveau, echelon
         FROM releases
@@ -430,7 +467,7 @@ class Dialog(wx.Dialog):
         ix = self.choice_baseDonnees.GetSelection()
         nomFichierDB = self.choice_baseDonnees.GetString(ix)
         self.ctrl_donnees.SetParamConnexion(self.lstDicParamsDB[nomFichierDB])
-        # réinitialise la recherche de releass
+        # réinitialise la recherche de release
         self.ctrl_donnees.zipFile = None
         self.ctrl_donnees.MAJ(self.version_data)
         return
@@ -449,9 +486,8 @@ class Dialog(wx.Dialog):
     def OnBoutonOk(self, event):
         # stockage de la release dans la base pointée
         messStockage = "Pas de stockage"
-        i = self.check_stocke.GetValue()
         if self.check_stocke.GetValue():
-            ret = self.ctrl_donnees.SetFileInDocuments(self.tplVersionChoix)
+            ret = self.ctrl_donnees.StockerInDocuments(self.tplVersionChoix)
             if ret == 'ok':
                 messStockage = "Version stockée pour être partagée aux stations"
             else:
@@ -487,14 +523,14 @@ class Dialog(wx.Dialog):
         # Fermeture
         self.Quitter(wx.ID_OK)
 
-    def Quitter(self, IDend = wx.ID_CANCEL):
+    def Quitter(self, IDfin = wx.ID_CANCEL):
         self.ctrl_donnees.dbDoc.Close()
-        self.EndModal(IDend)
+        self.EndModal(IDfin)
 
 if __name__ == "__main__":
     app = wx.App(0)
     FonctionsPerso.GetPathRoot()
-    dialog_1 = Dialog(None,"1.3.1.10","version 1.3.1.10 (15/06/2022)")
+    dialog_1 = Dialog(None,"1.3.1.12","version 1.3.1.14 (15/06/2022)")
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()
     app.MainLoop()
