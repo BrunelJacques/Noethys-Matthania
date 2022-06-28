@@ -347,18 +347,11 @@ class DB():
         return IDphoto
 
     def MAJimage(self, table=None, key=None, IDkey=None, blobImage=None, nomChampBlob="image"):
-        """ Enregistre une image dans les modes de règlement ou emetteurs """
+        #Enregistre un blob 'image de fichier' dans une table
         if self.isNetwork == True :
-            # Version MySQL
-            if INTERFACE_MYSQL == "mysqldb" :
-                    req = "UPDATE %s SET %s=XXBLOBXX WHERE %s=%s" % (table, nomChampBlob, key, IDkey)
-                    req = req.replace("XXBLOBXX", "%s")
-                    self.cursor.execute(req, (blobImage,))
-            # Version Connector
-            if INTERFACE_MYSQL == "mysql.connector" :
-                req = "UPDATE %s SET %s=XXBLOBXX WHERE %s=%s" % (table, nomChampBlob, key, IDkey)
-                req = req.replace("XXBLOBXX", "%s")
-                self.cursor.execute(req, (blobImage,))
+            req = "UPDATE %s SET %s=XXBLOBXX WHERE %s=%s" % (table, nomChampBlob, key, IDkey)
+            req = req.replace("XXBLOBXX", "%s")
+            self.cursor.execute(req, (blobImage,))
             self.connexion.commit()
         else:
             # Version Sqlite

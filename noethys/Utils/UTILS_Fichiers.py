@@ -11,6 +11,7 @@
 import Chemins
 import wx
 import os
+import io
 import sys
 import shutil
 import platform
@@ -157,13 +158,33 @@ def OuvrirRepertoire(rep):
     else:
         subprocess.Popen(["xdg-open", rep])
 
-def GetMessageFromFile(fileName):
+def GetUnicodeFromFile(fileName):
     # lecture du contenu unicode d'un fichier
     import codecs
-    fichier = codecs.open(
-        fileName,
-        encoding='utf-8', mode='r')
+    fichier = codecs.open(fileName, encoding='utf-8', mode='r')
     return fichier.read()
+
+def GetBytesFromFile(fileName, buffer=True):
+    # lecture du contenu 'nature' via buffer d'un fichier
+    file = open(fileName, "rb")
+    data = file.read()
+    file.close()
+    if not buffer:
+        return data
+    buffer = io.BytesIO(data)
+    bytes = buffer.read()
+    return bytes
+
+def SetFileFromBytes(fileName,dataBytes):
+    # Création du fichier dans le répertoire Temp
+    try:
+        file = open(fileName, "wb")
+        file.write(dataBytes)
+        file.close()
+    except Exception as err:
+        print(err)
+        return err
+    return 'ok'
 
 #- Gestion des fichiers Zip -------------------------------------------------
 
@@ -204,7 +225,7 @@ def SelectionFichier(intro="Choix",wildcard="*.zip",defaultDir=None,
             fichier = None
     return fichier
 
-def GetZipFile(nameFile,modeRW):
+def GetZipFile(nameFile,modeRW='r'):
     # connecte au fichier en mode écriture ou lecture
     return zipfile.ZipFile(nameFile, modeRW.lower(), compression=zipfile.ZIP_DEFLATED)
 

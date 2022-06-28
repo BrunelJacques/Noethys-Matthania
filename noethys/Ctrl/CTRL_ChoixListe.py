@@ -1303,7 +1303,7 @@ if __name__ == "__main__":
                           ["libellé1", "Date"])
     """
     """
-    #dlg = Dialog(None)
+    dlg = Dialog(None)
     app.SetTopWindow(dlg)
     print(dlg.ShowModal())
     #print dlg.GetChoix()
