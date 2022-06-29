@@ -12,11 +12,15 @@ import Chemins
 import copy,datetime
 import FonctionsPerso as fp
 from Ctrl import CTRL_Bouton_image
+from Utils import UTILS_Config
 import decimal
 from Ctrl.CTRL_ObjectListView import FastObjectListView, ObjectListView, ColumnDefn, Filter, CTRL_Outils, PanelAvecFooter
 from Utils.UTILS_Decimal import FloatToDecimal
 from Ctrl import CTRL_Bandeau
 import GestionDB
+
+SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "€")
+
 
 def Nz(valeur):
     if valeur == None:
@@ -218,6 +222,10 @@ class DLGventilations(wx.Dialog):
                                                  nomImage=Chemins.GetStaticPath("Images/22x22/Smiley_nul.png"))
 
         # Pied de l'écran
+
+        self.ctrl_labelMontant = wx.StaticText(self, -1,"Montant coché : ")
+        self.ctrl_montant = wx.TextCtrl(self, -1, style= wx.TE_RIGHT|wx.TE_READONLY)
+
         self.case_avecLettrees = wx.CheckBox(self,-1,"Masquer les lignes entièrement lettrées")
         self.bouton_lettrer = CTRL_Bouton_image.CTRL(self, texte="Lettrer", cheminImage="Images/32x32/Configuration2.png")
         self.bouton_delettrer = CTRL_Bouton_image.CTRL(self, texte="DeLettrer", cheminImage="Images/32x32/Depannage.png")
@@ -229,7 +237,13 @@ class DLGventilations(wx.Dialog):
             self.__do_layout()
 
     def __set_properties(self):
+        font = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
+        style = wx.TextAttr(wx.BLUE, wx.LIGHT_GREY, font=font)
+        self.ctrl_montant.SetDefaultStyle(style)
+        self.ctrl_montant.SetValue("{:10.2f} {}".format(0,SYMBOLE))
+
         # TipString, Bind et constitution des colonnes de l'OLV
+        self.ctrl_montant.SetToolTip("Pour aider la recherche, ici la somme des montants à lettrer")
         self.case_avecLettrees.SetToolTip("Cliquez ici après avoir coché des lignes à associer")
         self.bouton_lettrer.SetToolTip("Cliquez ici après avoir coché des lignes à associer")
         self.bouton_delettrer.SetToolTip("Cliquez ici après avoir sélectionné une ligne de la lettre à supprimer")
@@ -242,7 +256,7 @@ class DLGventilations(wx.Dialog):
         self.Bind(wx.EVT_CHECKBOX, self.OnCaseLettrees, self.case_avecLettrees)
         self.Bind(wx.EVT_BUTTON, self.OnClicLettrer, self.bouton_lettrer)
         self.Bind(wx.EVT_BUTTON, self.OnClicDelettrer, self.bouton_delettrer)
-        self.listview.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnDblClic)
+        self.listview.Bind(wx.EVT_COMMAND_LEFT_CLICK, self.OnCalculLettres)
 
     def __do_layout(self):
         gridsizer_base = wx.FlexGridSizer(rows=6, cols=1, vgap=0, hgap=0)
@@ -253,7 +267,9 @@ class DLGventilations(wx.Dialog):
         gridsizer_base.Add((5, 5), 0, wx.LEFT | wx.RIGHT | wx.EXPAND, 0)
 
         # Bas d'écran
-        gridsizer_boutons = wx.FlexGridSizer(rows=1, cols=7, vgap=0, hgap=0)
+        gridsizer_boutons = wx.FlexGridSizer(rows=1, cols=9, vgap=0, hgap=0)
+        gridsizer_boutons.Add(self.ctrl_labelMontant, 0, wx.ALL, 5)
+        gridsizer_boutons.Add(self.ctrl_montant, 1, 0, 0)
         gridsizer_boutons.Add((20, 20), 1, wx.ALIGN_BOTTOM, 0)
         gridsizer_boutons.Add(self.case_avecLettrees, 1, wx.EXPAND, 0)
         gridsizer_boutons.Add(self.bouton_lettrer, 1, wx.EXPAND, 0)
@@ -261,7 +277,7 @@ class DLGventilations(wx.Dialog):
         gridsizer_boutons.Add((20, 20), 1, wx.ALIGN_BOTTOM, 0)
         gridsizer_boutons.Add(self.bouton_fermer, 1, wx.EXPAND, 0)
         gridsizer_boutons.Add(self.bouton_ok, 1, wx.EXPAND, 0)
-        gridsizer_boutons.AddGrowableCol(0)
+        gridsizer_boutons.AddGrowableCol(2)
         gridsizer_base.Add(gridsizer_boutons, 1, wx.RIGHT | wx.BOTTOM | wx.EXPAND, 10)
         gridsizer_base.AddGrowableRow(1)
         gridsizer_base.AddGrowableCol(0)
@@ -553,14 +569,11 @@ class DLGventilations(wx.Dialog):
 
         return
 
-    def OnDblClic(self, event):
-        state = self.listview.GetCheckState(self.listview.GetSelectedObject())
-        if state:
-            state = False
-        else:
-            state = True
-        self.listview.SetCheckState(self.listview.GetSelectedObject(), state)
-        self.listview.Refresh()
+    def OnCalculLettres(self, event):
+        mtt = 0.0
+        for track in self.listview.GetCheckedObjects():
+            mtt += track.mtt
+        self.ctrl_montant.SetValue("{:10.2f} {}".format(mtt,SYMBOLE))
 
     def ClearLetters(self,choix):
         # récup des ID à lettrer, puis suppression des items
@@ -1333,7 +1346,7 @@ if __name__ == "__main__":
                           ["libellé1", "Date"])
     """
     """
-    dlg = Dialog(None)
+    #dlg = Dialog(None)
     app.SetTopWindow(dlg)
     print(dlg.ShowModal())
     #print dlg.GetChoix()

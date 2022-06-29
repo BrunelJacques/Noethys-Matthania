@@ -427,7 +427,11 @@ class ObjectListView(OLV.ObjectListView):
             choix = dictFiltre["choix"]
             criteres = dictFiltre["criteres"]
             typeDonnee = dictFiltre["typeDonnee"]
-            
+
+            # Filtre librement composé comme une condition de if
+            if typeDonnee == "libre" :
+                filtre = criteres
+
             # Texte
             if typeDonnee == "texte" :
                 if choix == "EGAL" :
