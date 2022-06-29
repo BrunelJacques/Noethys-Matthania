@@ -18,7 +18,6 @@ import platform
 import subprocess
 from Utils import UTILS_Customize
 import appdirs
-import six
 import zipfile
 
 def GetRepData(fichier=""):
@@ -39,7 +38,7 @@ def GetRepData(fichier=""):
     # Recherche le chemin du répertoire des données
     if sys.platform == "win32" and platform.release() != "Vista" :
 
-        chemin = appdirs.site_data_dir(appname=None, appauthor=False)
+        chemin = appdirs.site_data_dir(appname=None, appauthor=None)
         #chemin = chemin.decode("iso-8859-15")
 
         chemin = os.path.join(chemin, "noethys")
@@ -48,7 +47,7 @@ def GetRepData(fichier=""):
 
     else :
 
-        chemin = appdirs.user_data_dir(appname=None, appauthor=False)
+        chemin = appdirs.user_data_dir(appname=None, appauthor=None)
         #chemin = chemin.decode("iso-8859-15")
 
         chemin = os.path.join(chemin, "noethys")
@@ -67,8 +66,8 @@ def GetRepTemp(fichier=""):
     return os.path.join(chemin, fichier)
 
 def GetRepUpdates(fichier=""):
-    chemin = GetRepUtilisateur("Updates")
-    return os.path.join(chemin, fichier)
+    path = GetRepUtilisateur("Updates")
+    return os.path.join(path, fichier)
 
 def GetRepLang(fichier=""):
     chemin = GetRepUtilisateur("Lang")
@@ -84,15 +83,13 @@ def GetRepExtensions(fichier=""):
 
 def GetRepUtilisateur(fichier=""):
     """ Recherche le répertoire Utilisateur pour stockage des fichiers de config et provisoires """
-    chemin = None
-
     # Vérifie si un répertoire 'Portable' existe
     chemin = Chemins.GetMainPath("Portable")
     if os.path.isdir(chemin):
         return os.path.join(chemin, fichier)
 
     # Recherche le chemin du répertoire de l'utilisateur
-    chemin = appdirs.user_config_dir(appname=None, appauthor=False, roaming=True)
+    chemin = appdirs.user_config_dir(appname=None, appauthor=None, roaming=True)
     #chemin = chemin.decode("iso-8859-15")
 
     # Ajoute 'noethys' dans le chemin et création du répertoire
@@ -111,14 +108,14 @@ def DeplaceFichiers():
         for rep in ("", Chemins.GetMainPath("Data"), os.path.join(os.path.expanduser("~"), "noethys")) :
             fichier = os.path.join(rep, nom)
             if os.path.isfile(fichier) :
-                print(["deplacement fichier config :", fichier, " > ", GetRepUtilisateur(nom)])
+                print(["déplacement fichier config :", fichier, " > ", GetRepUtilisateur(nom)])
                 shutil.move(fichier, GetRepUtilisateur(nom))
 
     # Déplace les fichiers xlang
     if os.path.isdir(Chemins.GetMainPath("Lang")) :
         for nomFichier in os.listdir(Chemins.GetMainPath("Lang")) :
             if nomFichier.endswith(".xlang") :
-                print(["deplacement fichier xlang :", fichier, " > ", GetRepLang(nomFichier)])
+                print(["déplacement fichier xlang :", fichier, " > ", GetRepLang(nomFichier)])
                 shutil.move(u"Lang/%s" % nomFichier, GetRepLang(nomFichier))
 
     # Déplace les fichiers du répertoire Sync
@@ -129,8 +126,6 @@ def DeplaceFichiers():
     # Déplace les fichiers de données du répertoire Data
     if GetRepData() != "Data/" and os.path.isdir(Chemins.GetMainPath("Data")) :
         for nomFichier in os.listdir(Chemins.GetMainPath("Data")) :
-            if six.PY2:
-                nomFichier = nomFichier.decode("iso-8859-15")
             if nomFichier.endswith(".dat") and "_" in nomFichier and "EXEMPLE_" not in nomFichier and "_archive.dat" not in nomFichier :
                 # Déplace le fichier vers le répertoire des fichiers de données
                 print(["copie base de donnees :", nomFichier, " > ", GetRepData(nomFichier)])
@@ -225,9 +220,13 @@ def SelectionFichier(intro="Choix",wildcard="*.zip",defaultDir=None,
             fichier = None
     return fichier
 
-def GetZipFile(nameFile,modeRW='r'):
-    # connecte au fichier en mode écriture ou lecture
-    return zipfile.ZipFile(nameFile, modeRW.lower(), compression=zipfile.ZIP_DEFLATED)
+def GetZipFile(nameFile='',modeRW='r'):
+    # connecte au fichier en mode écriture ou lecture, retourne fichier ou message erreur
+    try:
+        zip =  zipfile.ZipFile(nameFile, modeRW, compression=zipfile.ZIP_DEFLATED)
+    except Exception as err:
+        zip = "Accès au fichier Zip impossible \n%s" % err
+    return zip
 
 def GetListeFichiersZip(fichierZip):
     """ Récupère la liste des fichiers du ZIP """
@@ -237,8 +236,8 @@ def GetListeFichiersZip(fichierZip):
     return listeFichiers
 
 def GetOneFileInZip(myZipFile,oneFile):
-    with myZipFile.open(oneFile) as myfile:
-        return myfile.read()
+    with myZipFile.open(oneFile) as myFile:
+        return myFile.read()
 
 
 if __name__ == "__main__":

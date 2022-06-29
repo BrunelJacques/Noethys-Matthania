@@ -110,26 +110,35 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         mess = "DLG_Release.StockerInDocuments"
 
         # Teste l'existence préalable
-        req = """
-        SELECT IDrelease
-        FROM releases
-        WHERE categorie = '%s' AND niveau = %d AND echelon = %d
-        ;""" % (categorie, tplVersion[2], tplVersion[3])
-        ret = dbDoc.ExecuterReq(req)
-        if ret != "ok":
-            return ret
-        recordset = dbDoc.ResultatReq()
-        ID = None
-        if len(recordset) > 0:
-            ID = recordset[0][0]
+        ID = self.GetIdRelease(tplVersion)
+        ret = 'ok'
         if not ID:
             ID = dbDoc.ReqInsert("releases",lstTplDon,retourID=True,MsgBox=mess)
+            if not isinstance(ID,int):
+                ret = 'Erreur sur Insert du cartouche'
         else:
             ret = dbDoc.ReqMAJ("releases",lstTplDon, "IDrelease", ID, IDestChaine=False,
                                MsgBox=mess)
         if ret == 'ok':
             ret = self.UpdateBlobInDocuments(ID)
         return ret
+
+    def GetIdRelease(self,tplVersion):
+        # retourne l'ID de l'enregistrement document
+        categorie = "%d.%d"%(tplVersion[0],tplVersion[1])
+        req = """
+        SELECT IDrelease
+        FROM releases
+        WHERE categorie = '%s' AND niveau = %d AND echelon = %d
+        ;""" % (categorie, tplVersion[2], tplVersion[3])
+        ret = self.dbDoc.ExecuterReq(req)
+        if ret != "ok":
+            return ret
+        recordset = self.dbDoc.ResultatReq()
+        ID = None
+        if len(recordset) > 0:
+            ID = recordset[0][0]
+        return ID
 
     def GetNouveautes(self,zipFile):
         tplVersions = GetVersionsFromZipFile(zipFile)
@@ -155,7 +164,7 @@ class CTRL_AfficheVersion(wx.TextCtrl):
             wx.MessageBox(mess,"résultat")
             return
         titre = "Choisissez une version d'application"
-        intro = "Un double clic vous permet de choisir une ligne, ou bien sélectionnez puis 'ok'"
+        intro = "Double-clic vous permet de choisir une ligne, <B>'SUPPR' pour retirer la version de la base</B>"
         dlg = CTRL_ChoixListe.Dialog(self,lstChoix,titre=titre,intro=intro,LargeurCode=100)
         #listeOriginale=[("Choix1","Texte1"),],LargeurCode=150,LargeurLib=100,colSort=0, minSize=(600, 350),
         #         titre="Faites un choix !", intro="Double Clic sur la réponse souhaitée...")
@@ -220,7 +229,7 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         if nomFichier:
             self.parent.check_stocke.SetValue(True)
         else: self.parent.check_stocke.SetValue(False)
-        self.parent.check_maj.Setvalue(True)
+        self.parent.check_maj.SetValue(True)
         self.MAJ(version_choix)
         return "ok"
 
@@ -283,6 +292,9 @@ class CTRL_AfficheVersion(wx.TextCtrl):
             mess += "\n%s" % ret
             return mess
         zipFile = UTILS_Fichiers.GetZipFile(fileName)
+        if isinstance(zipFile,str):
+            # un message d'erreur a été retourné
+            return zipFile
         return self.ValidationFile(zipFile,None)
 
     def GetLabelsReleases(self):
@@ -321,6 +333,19 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         tplCategorie = (int(a), int(b))
         lstNumReleases = [ tplCategorie + (x,y) for (x,y) in recordset]
         return lstNumReleases
+
+    def OnDeleteChoixListe(self,item):
+        # touche delete activée sur un item de choixListe
+        version_choix, label = item
+        tplVersion = FonctionsPerso.ConvertVersionTuple(version_choix)
+        ID = self.GetIdRelease(tplVersion)
+        mess = "DLG_Releases.OnDeleteChoixListe"
+        ret = self.dbDoc.ReqDEL( nomTable="releases", nomChampID="IDrelease",
+                           ID=ID,MsgBox=mess)
+        if ret == 'ok':
+            return True
+        else: return False
+
 
 class Dialog(wx.Dialog):
     def __init__(self, parent,version_data=None,version_logiciel_date=None):
@@ -458,9 +483,10 @@ class Dialog(wx.Dialog):
         self.bouton_fichier.Enable(not ok)
         self.choice_baseDonnees.Enable(not ok)
         self.bouton_versions.Enable(not ok)
-        if ok and not self.ctrl_donnees.nomFichier:
-            self.check_stocke.SetValue(False)
-            self.check_stocke.Enable(False)
+        if hasattr(self,"ctrl_donnees"):
+            if not self.ctrl_donnees.nomFichier:
+                self.check_stocke.SetValue(False)
+                self.check_stocke.Enable(False)
         # porte dérobée pour dégriser l'accès aux autres versions
         if not self.check_maj.GetValue() and not self.check_stocke.GetValue():
             self.bouton_fichier.Enable(True)
@@ -518,20 +544,29 @@ class Dialog(wx.Dialog):
 
         # action de dézippage
         mess = "Mise à jour station NON FAITE !!"
+        majFaite = False
         if self.check_maj.GetValue():
             mess = "MAJ Process interrompu !!"
             if self.ctrl_donnees.zipFile:
                 self.ctrl_donnees.zipFile.extractall("%s"%pathRoot)
                 mess = "Le processus de mise à jour est terminé."
+                majFaite = True
 
         mess = "Fin d'opération\n\n-\t%s\n-\t%s" % (messStockage, mess)
+        style = wx.OK
+        if majFaite:
+            mess += "\n\nRedémarrage de Noethys pour prendre en compte la version à jour"
+            style = wx.YES_NO
         # Fin du processus
-        dlg = wx.MessageDialog(self,mess, "Release", wx.OK | wx.ICON_INFORMATION)
-        dlg.ShowModal()
+        dlg = wx.MessageDialog(self,mess, "Release", style | wx.ICON_INFORMATION)
+        ret = dlg.ShowModal()
         dlg.Destroy()
+        if ret == wx.ID_YES:
+            IDfin = wx.ID_OK
+        else: IDfin = wx.ID_CANCEL
 
         # Fermeture
-        self.Quitter(wx.ID_OK)
+        self.Quitter(IDfin)
 
     def Quitter(self, IDfin = wx.ID_CANCEL):
         self.ctrl_donnees.dbDoc.Close()

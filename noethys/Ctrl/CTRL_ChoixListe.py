@@ -27,7 +27,7 @@ def FormateValue(value):
     if not value : return ""
     if isinstance(value,(datetime.date,datetime.datetime,wx.DateTime)):
         return str(value)
-    if isinstance(value,(int,float,decimal,bool)):
+    if isinstance(value,(int,float,decimal.Decimal,bool)):
         return "%.2f " % (value)
     return value
 
@@ -77,7 +77,7 @@ class CTRL_Solde(wx.Panel):
         self.ctrl_solde.SetToolTip("Solde")
 
     def SetSolde(self, montant=FloatToDecimal(0.0)):
-        """ MAJ integrale du controle avec MAJ des donnees """
+        """ MAJ intégrale du controle avec MAJ des donnees """
         if montant > FloatToDecimal(0.0):
             label = "+ %.2f " % (montant)
             self.SetBackgroundColour("#C4BCFC")  # Bleu
@@ -111,12 +111,12 @@ class ListviewAvecFooter(PanelAvecFooter):
 #---------------------------------------------------------------------------------------------------------------------
 
 class DLGventilations(wx.Dialog):
-    # Gestion d'un lettrage à partir de deux dictionnaires d'écritures, ventilations,  liste des champs de désignations  
-    # La clé des dictionnaire est l'ID  (origine fichier), ensuite deux clés 'designations,montant.
-    # les tuples de ventilations sont IDdébit, IDcredit, montant
+    # Gestion d'un lettrage à partir de deux dictionnaires d'écritures, ventilations, liste des champs de désignations
+    # La clé des dictionnaires est l'ID  (origine fichier), ensuite deux clés 'designations, montant.
+    # les tuples de ventilations sont IDdebit, IDcredit, montant
     # la liste champs de désignation est les labels correspondants aux valeurs désignations des dictionnaires
     
-    def __init__(self, parent,ddDebits={},ddCredits={},ltVentilations=[],lChampsDesign=[],**kwds):
+    def __init__(self, parent,ddDebits={},ddCredits={},ltVentilations=[],lChampsDesign=(),**kwds):
 
         parentName = parent.__class__.__name__
         self.parent = parent
@@ -162,7 +162,7 @@ class DLGventilations(wx.Dialog):
         self.listview = self.pnlListview.GetListview()
         self.ctrl_outils = CTRL_Outils(self, listview=self.listview, afficherCocher=True)
 
-        # préaffectation des pointeurs de ventilations pour  accès plus rapide colonnes vent et reste
+        # préaffectation des pointeurs de ventilations pour accès plus rapide colonnes vent et reste
         let = "d`" # da sera la première lettre
         for key,dic in self.ddDebits.items():
             let = LettreSuivante(let)
@@ -529,9 +529,9 @@ class DLGventilations(wx.Dialog):
     def Lettrage(self):
         # application de la lettre dans les données
         ixLet = self.ixChampsMilieu
-        ixIDc = self.ixChampsCredits - 1 # l'ID précède les champ désignés
+        ixIDc = self.ixChampsCredits - 1 # l'ID précède les champs désignés
 
-        # compose la lettre de la ligne à partir des deux moitiées assemblées
+        # compose la lettre de la ligne à partir des deux moitiés assemblées
         for donnee in self.lstDonnees:
             letD, letC = '', ''
             if donnee[0] > 0 :
@@ -733,7 +733,7 @@ class DLGventilations(wx.Dialog):
 
 class DialogLettrage(wx.Dialog):
     # Gestion d'un lettrage à partir de deux dictionnaires, mots clés des champs : montant en dernière position
-    # La première colonne sera le sens suivi de l'ID  (origine fichier). La suite sera les champs
+    # La première colonne sera le sens suivi de l'ID (origine fichier). La suite sera les champs
     # le dernier champ montant étant remplacé par lettre et débit puis crédit
     def __init__(self, parent,dicList1={},lstChamps1=[],dicList2={},lstChamps2=[],lstLettres=[],**kwds):
 
@@ -788,12 +788,12 @@ class DialogLettrage(wx.Dialog):
         # constitution de la liste de données et calcul au passage de la largeur nécessaire pour les colonnes
         self.lstDonnees = []
         self.lstWidth = [40]*(self.nbColonnes+1) # préalimentation d'une largeur par défaut
-        multiwidth = 7 # multiplicateur du nombre de caratère maxi dans la colonne pour déterminer la largeur
+        multiwidth = 7 # multiplicateur du nombre de caractère maxi dans la colonne pour déterminer la largeur
         for libel in self.lstLibels:
             if self.lstWidth[self.lstLibels.index(libel)] < multiwidth*len(libel)+10:
                 self.lstWidth[self.lstLibels.index(libel)] = multiwidth*len(libel)+10
-        self.lstWidth[0]=0 # lardeur de la colonne DC
-        self.lstWidth[1]=55 # lardeur de la colonne ID
+        self.lstWidth[0]=0 # largeur de la colonne DC
+        self.lstWidth[1]=55 # largeur de la colonne ID
 
         for sens in (+1.0,-1.0):
             # les montants seront alignés dans les deux colonnes le plus à droite
@@ -813,6 +813,7 @@ class DialogLettrage(wx.Dialog):
             for key,item in dic.items():
                 donnee=[sens,key] + ([""]*(self.nbValeurs-1)) + ["",0.0,0.0]
                 ixVal = 2
+                valMtt = 0.0
                 for i in range(nbval):
                     if "montant" in champs[i].lower():
                         valMtt = item[i]
@@ -912,7 +913,7 @@ class DialogLettrage(wx.Dialog):
             # on étend la lettre déjà présente
             elif let1: self.dicLettres[(-1,ID2)] = let1
             elif let2: self.dicLettres[(+1,ID1)] = let2
-            # pose la lettre dans les deux lignes car non encore lettrées
+            # pose la lettre dans les deux lignes, car non encore lettrées
             else:
                 self.dicLettres[(+1,ID1)] = lettre
                 self.dicLettres[(-1,ID2)] = lettre
@@ -1016,7 +1017,7 @@ class DialogLettrage(wx.Dialog):
         for ID1,ID2, solde in self.lstLettres:
             if ID1 in lstID1 or ID2 in lstID2:
                 lstSupprimer.append((ID1,ID2, solde))
-        # suppression des ancienes lettres
+        # suppression des anciennes lettres
         for item in lstSupprimer:
             self.lstLettres.remove(item)
         return lstID1,lstID2
@@ -1034,14 +1035,14 @@ class DialogLettrage(wx.Dialog):
             event.Skip()
             return
 
-        # test si les réglements sont supérieurs au dûs, à confirmer
+        # test si les règlements sont supérieurs au dûs, à confirmer
         deb = 0.0
         cre = 0.0
         for track in choix:
             deb += Nz(track.debits)
             cre += Nz(track.credits)
         if deb + cre < 0.01:
-            mess = "Vous lettrez plus de réglements que la somme due, est-ce bien ce que vous voulez?"
+            mess = "Vous lettrez plus de règlements que la somme due, est-ce bien ce que vous voulez?"
             ret = wx.MessageBox(mess, "Confirmez une anomalie", wx.YES_NO, self)
             if ret != wx.YES:
                 event.Skip()
@@ -1225,6 +1226,7 @@ class Dialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnDblClicOk, self.bouton_ok)
         self.Bind(wx.EVT_BUTTON, self.OnDblClicFermer, self.bouton_fermer)
         self.listview.Bind(wx.EVT_LIST_ITEM_ACTIVATED,self.OnDblClic)
+        self.listview.Bind(wx.EVT_KEY_DOWN,self.OnDelete)
 
     def __set_properties(self):
         self.SetMinSize(self.minSize)
@@ -1279,6 +1281,34 @@ class Dialog(wx.Dialog):
         self.choix = self.listview.GetSelectedObject()
         self.EndModal(wx.ID_OK)
 
+    def OnDelete(self,event):
+        if event.KeyCode in (wx.WXK_NUMPAD_DELETE,wx.WXK_DELETE):
+            if not hasattr(self.parent,"OnDeleteChoixListe"):
+                wx.MessageBox("Suppression sans effet","Non prévu")
+            else:
+                selection = self.GetChoix()
+                if selection == None:
+                    dlg = wx.MessageDialog(self,
+                                           "Pas de sélection faite !\nIl faut choisir une ligne ou cliquer sur annuler",
+                                           "Accord Impossible",
+                                           wx.OK | wx.ICON_EXCLAMATION)
+                    dlg.ShowModal()
+                    dlg.Destroy()
+                else:
+                    dlg = wx.MessageDialog(self,
+                                           "Suppression demandée !\n\nConfirmez vous la suppression de la ligne sélectionnée?",
+                                           "Accord nécessaire",
+                                           wx.YES_NO | wx.ICON_EXCLAMATION)
+                    ret = dlg.ShowModal()
+                    dlg.Destroy()
+                    if ret == wx.ID_YES:
+                        # action de suppression gérée par le parent, puis rafraichissement
+                        if self.parent.OnDeleteChoixListe(selection):
+                            self.liste.remove(selection)
+                            self.listview.SetObjects(self.liste)
+                            self.listview.RepopulateList()
+        event.Skip()
+
     def GetChoix(self):
         self.choix = self.listview.GetSelectedObject()
         return self.choix
@@ -1292,10 +1322,10 @@ if __name__ == "__main__":
                           12457:{"designations":["pièce récente 2",datetime.date.today()],
                                   "montant":37,
                                   }},
-                          {6545:{"designations":["reglement 1",datetime.date.today()],
+                          {6545:{"designations":["règlement 1",datetime.date.today()],
                                  "montant":15.25,
                                  },
-                          6546:{"designations":["reglement 2",datetime.date.today()],
+                          6546:{"designations":["règlement 2",datetime.date.today()],
                                     "montant":30,
                             },},
                           [(12456,6545,15.25),
