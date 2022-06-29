@@ -1,6 +1,9 @@
-version 1.3.1.15 (27/06/2022):
-- Automatisme de mise à jour avec stockage de la release partagée
+version 1.3.1.15 (29/06/2022):
+- Liste consos: adaptation de Noethys original pour le statut inscription
 - Bug outil Ventilation CTRL_ChoixListe
+- Divers programmes liés au statut d'inscription non renseigné
+- Divers programmes group by incorrect chez Noethys original
+- Automatisme de mise à jour avec stockage de la release partagée
 
 version 1.3.1.14 (24/06/2022):
 - Transfert en compta: Refonte du rapport
