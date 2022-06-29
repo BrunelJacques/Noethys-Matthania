@@ -37,7 +37,7 @@ class CTRL_Individus(wx.CheckListBox):
         LEFT JOIN individus ON individus.IDindividu = rattachements.IDindividu
         LEFT JOIN inscriptions ON inscriptions.IDindividu = rattachements.IDindividu
         WHERE rattachements.IDfamille=%d AND IDcategorie IN (1, 2)
-        AND inscriptions.statut='ok' AND inscriptions.IDactivite IS NOT NULL
+        AND ((inscriptions.statut = 'ok') OR (inscriptions.statut Is Null)) AND inscriptions.IDactivite IS NOT NULL
         GROUP BY individus.IDindividu
         ORDER BY individus.nom, individus.prenom;""" % self.IDfamille
         db.ExecuterReq(req,MsgBox="ExecuterReq")

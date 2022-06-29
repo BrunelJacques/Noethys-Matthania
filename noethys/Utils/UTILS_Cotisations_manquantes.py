@@ -50,7 +50,8 @@ def GetListeCotisationsManquantes(dateReference=None, listeActivites=None, prese
     DB = GestionDB.DB()
     req = """
     SELECT 
-    inscriptions.IDfamille, cotisations_activites.IDactivite, cotisations_activites.IDtype_cotisation, types_cotisations.nom, types_cotisations.type, individus.prenom, individus.IDindividu
+    inscriptions.IDfamille, cotisations_activites.IDactivite, cotisations_activites.IDtype_cotisation, 
+    types_cotisations.nom, types_cotisations.type, individus.prenom, individus.IDindividu
     FROM cotisations_activites 
     LEFT JOIN types_cotisations ON types_cotisations.IDtype_cotisation = cotisations_activites.IDtype_cotisation
     LEFT JOIN inscriptions ON inscriptions.IDactivite = cotisations_activites.IDactivite
@@ -58,7 +59,10 @@ def GetListeCotisationsManquantes(dateReference=None, listeActivites=None, prese
     LEFT JOIN activites ON activites.IDactivite = inscriptions.IDactivite
     %s
     WHERE inscriptions.statut='ok' AND (inscriptions.date_desinscription IS NULL OR inscriptions.date_desinscription>='%s') %s %s AND activites.date_fin>='%s'
-    GROUP BY inscriptions.IDfamille, cotisations_activites.IDtype_cotisation, individus.IDindividu, cotisations_activites.IDactivite;
+    GROUP BY inscriptions.IDfamille, cotisations_activites.IDtype_cotisation, 
+    individus.IDindividu, cotisations_activites.IDactivite,
+    types_cotisations.nom, types_cotisations.type, individus.prenom
+    ;
     """ % (jonctionPresents, dateReference, conditionActivites, conditionPresents, dateReference)
     DB.ExecuterReq(req,MsgBox="ExecuterReq")
     listeCotisationsObligatoires = DB.ResultatReq()

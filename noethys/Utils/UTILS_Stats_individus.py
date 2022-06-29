@@ -605,7 +605,7 @@ class Tableau_nombre_individus(MODELES.Tableau):
         # SELECT inscriptions.IDactivite, COUNT(inscriptions.IDindividu)
         # FROM inscriptions
         # LEFT JOIN activites ON activites.IDactivite = inscriptions.IDactivite
-        # WHERE activites.date_debut<='%s' AND activites.date_fin>='%s' AND inscriptions.statut='ok' AND inscriptions.IDactivite IN %s
+        # WHERE activites.date_debut<='%s' AND activites.date_fin>='%s' AND ((inscriptions.statut = 'ok') OR (inscriptions.statut Is Null)) AND inscriptions.IDactivite IN %s
         # GROUP BY inscriptions.IDactivite, inscriptions.IDindividu
         # ;""" % (date_debut, date_fin, conditionsActivites, date_fin, date_debut, conditionsActivites)
 

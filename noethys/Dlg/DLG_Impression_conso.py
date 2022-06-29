@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------
 # Application :    Noethys, gestion multi-activités
 # Site internet :  www.noethys.com
-# Auteur:          Ivan LUCAS
+# Auteur:          Ivan LUCAS, JB group by
 # Copyright:       (c) 2010-17 Ivan LUCAS
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
@@ -34,7 +34,6 @@ from Ctrl import CTRL_Profil
 from Ol import OL_Impression_conso_colonnes
 
 import GestionDB
-from Utils import UTILS_Config
 from Utils import UTILS_Organisateur
 from Utils import UTILS_Cotisations_manquantes
 from Utils import UTILS_Pieces_manquantes
@@ -49,10 +48,7 @@ from Utils import UTILS_Infos_individus
 
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
 from reportlab.platypus.flowables import ParagraphAndImage, Image
-from reportlab.rl_config import defaultPageSize
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.units import inch, cm
-from reportlab.lib.utils import ImageReader
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.graphics.barcode import code39
@@ -258,9 +254,10 @@ class CTRL_Activites(HTL.HyperTreeList):
         LEFT JOIN ouvertures ON ouvertures.IDactivite = activites.IDactivite
         LEFT JOIN groupes ON groupes.IDgroupe = ouvertures.IDgroupe
         WHERE ouvertures.date IN %s
-        GROUP BY groupes.IDgroupe, activites.IDactivite
+        GROUP BY groupes.IDgroupe, activites.IDactivite, activites.nom, activites.abrege, 
+            date_debut, date_fin, groupes.nom, groupes.ordre
         ORDER BY groupes.ordre;""" % conditionDates
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req,MsgBox="DLG_Impression_conso")
         listeDonnees = DB.ResultatReq()      
         DB.Close() 
         for IDactivite, nom, abrege, date_debut, date_fin, IDgroupe, nomGroupe, ordreGroupe in listeDonnees :
@@ -382,7 +379,7 @@ class CTRL_Ecoles(HTL.HyperTreeList):
         req = """SELECT IDniveau, ordre, nom, abrege
         FROM niveaux_scolaires
         ORDER BY ordre; """ 
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req,MsgBox="DLG_Impression_conso")
         listeDonnees = DB.ResultatReq()
         DB.Close()
         for IDniveau, ordre, nom, abrege in listeDonnees :
@@ -437,7 +434,7 @@ class CTRL_Ecoles(HTL.HyperTreeList):
         LEFT JOIN classes ON classes.IDclasse = scolarite.IDclasse
         WHERE scolarite.date_debut<='%s' AND scolarite.date_fin>='%s'
         ;""" % (date_max, date_min)
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req,MsgBox="DLG_Impression_conso")
         listeEtapes = DB.ResultatReq()
         DB.Close()
         for IDindividu, IDecole, ecole_nom, IDclasse, classe_nom, classe_debut, classe_fin, niveaux in listeEtapes :
@@ -1520,7 +1517,7 @@ class Dialog(wx.Dialog):
         WHERE ouvertures.IDactivite IN %s AND date IN %s
         AND IDgroupe IN %s
         ORDER BY ordre; """ % (conditionActivites, conditionDates, conditionGroupes)
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req,MsgBox="DLG_Impression_conso")
         listeOuvertures = DB.ResultatReq()
         dictOuvertures = {}
         for IDouverture, IDactivite, IDunite, IDgroupe, date in listeOuvertures :
@@ -1537,7 +1534,7 @@ class Dialog(wx.Dialog):
         # Récupération des infos sur les unités
         req = """SELECT IDunite, IDactivite, nom, abrege, type, heure_debut, heure_fin, date_debut, date_fin, ordre
         FROM unites;"""
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req,MsgBox="DLG_Impression_conso")
         listeUnites = DB.ResultatReq()
         dictUnites = {}
         for IDunite, IDactivite, nom, abrege, typeTemp, heure_debut, heure_fin, date_debut, date_fin, ordre in listeUnites :
@@ -1550,7 +1547,7 @@ class Dialog(wx.Dialog):
         FROM unites_remplissage
         LEFT JOIN unites_remplissage_unites ON unites_remplissage.IDunite_remplissage = unites_remplissage_unites.IDunite_remplissage
         ;"""
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req,MsgBox="DLG_Impression_conso")
         listeUnitesRemplissage = DB.ResultatReq()
         dictUnitesRemplissage = {}
         for IDunite_remplissage, nom, abrege, etiquettes, heure_min, heure_max, IDunite_remplissage_unite, IDunite in listeUnitesRemplissage :
@@ -1586,11 +1583,11 @@ class Dialog(wx.Dialog):
         LEFT JOIN inscriptions ON inscriptions.IDinscription = consommations.IDinscription
         LEFT JOIN scolarite ON scolarite.IDindividu = consommations.IDindividu AND scolarite.date_debut <= consommations.date AND scolarite.date_fin >= consommations.date
         WHERE consommations.etat IN ("reservation", "present")
-        AND inscriptions.statut='ok'
+        AND ((inscriptions.statut = 'ok') OR (inscriptions.statut Is Null))
         AND consommations.IDactivite IN %s AND consommations.date IN %s %s %s
         ORDER BY consommations.date, consommations.heure_debut
         ;""" % (conditionActivites, conditionDates, conditionsScolarite, conditionsEvenements)
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req,MsgBox="DLG_Impression_conso")
         listeConso = DB.ResultatReq()
         dictConso = {}
         dictIndividus = {}
@@ -1674,7 +1671,7 @@ class Dialog(wx.Dialog):
             LEFT JOIN scolarite ON scolarite.IDindividu = individus.IDindividu AND scolarite.date_debut <= '%s' AND scolarite.date_fin >= '%s'
             WHERE inscriptions.statut='ok' AND inscriptions.IDactivite IN %s and (inscriptions.date_desinscription IS NULL OR inscriptions.date_desinscription>='%s')
             ; """ % (min(listeDates), max(listeDates), conditionActivites, max(listeDates))
-            DB.ExecuterReq(req,MsgBox="ExecuterReq")
+            DB.ExecuterReq(req,MsgBox="DLG_Impression_conso")
             listeTousInscrits = DB.ResultatReq()
             for IDindividu, IDcivilite, nom, prenom, date_naiss, nomSieste, IDactivite, IDgroupe, IDfamille, IDecole, IDclasse in listeTousInscrits :
 
@@ -1727,7 +1724,7 @@ class Dialog(wx.Dialog):
         WHERE date IN %s
         ORDER BY date
         ; """ % conditionDates
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req,MsgBox="DLG_Impression_conso")
         listeMemos = DB.ResultatReq()
         dictMemos = {}
         for IDmemo, IDindividu, date, texte, couleur in listeMemos :
@@ -1760,7 +1757,7 @@ class Dialog(wx.Dialog):
         FROM messages
         WHERE afficher_liste=1
         ;"""
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req,MsgBox="DLG_Impression_conso")
         listeMessages = DB.ResultatReq()
         dictMessagesFamilles = {}
         dictMessagesIndividus = {}
@@ -1788,7 +1785,7 @@ class Dialog(wx.Dialog):
         FROM problemes_sante
         WHERE diffusion_listing_conso = 1
         AND date_debut <= '%s' AND date_fin >= '%s';""" % (min(listeDates), max(listeDates))
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req,MsgBox="DLG_Impression_conso")
         listeInfosMedicales = DB.ResultatReq()
         dictInfosMedicales = {}
         for IDprobleme, IDindividu, IDtype, intitule, description, traitement_medical, description_traitement, date_debut_traitement, date_fin_traitement in listeInfosMedicales :
@@ -2566,7 +2563,7 @@ class Dialog(wx.Dialog):
                                             dlg = wx.MessageDialog(self, _("Il y a trop de colonnes dans le tableau ! \n\nVeuillez sélectionner moins de jours dans le calendrier..."), _("Erreur"), wx.OK | wx.ICON_ERROR)
                                             dlg.ShowModal()
                                             dlg.Destroy()
-                                            DlgAttente.Destroy()
+                                            del DlgAttente
                                             return False
 
                                 # Création du tableau
@@ -2810,7 +2807,7 @@ class Dialog(wx.Dialog):
 if __name__ == "__main__":
     app = wx.App(0)
     #wx.InitAllImageHandlers()
-    dialog_1 = Dialog(None, date=datetime.date(2018, 2, 12))
+    dialog_1 = Dialog(None, date=datetime.date(2022, 7, 14))
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()
     app.MainLoop()

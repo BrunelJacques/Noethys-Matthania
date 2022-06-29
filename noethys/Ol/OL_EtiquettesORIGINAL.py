@@ -189,9 +189,9 @@ def GetListeIndividus(listview=None, listeActivites=None, presents=None, IDindiv
         conditionActivites = ""
     else:
         if len(listeActivites) == 1 :
-            conditionActivites = " AND inscriptions.IDactivite=%d AND inscriptions.statut='ok' AND (inscriptions.date_desinscription IS NULL OR inscriptions.date_desinscription>='%s') " % (listeActivites[0], datetime.date.today())
+            conditionActivites = " AND inscriptions.IDactivite=%d AND ((inscriptions.statut = 'ok') OR (inscriptions.statut Is Null)) AND (inscriptions.date_desinscription IS NULL OR inscriptions.date_desinscription>='%s') " % (listeActivites[0], datetime.date.today())
         else:
-            conditionActivites = " AND inscriptions.IDactivite IN %s AND inscriptions.statut='ok' AND (inscriptions.date_desinscription IS NULL OR inscriptions.date_desinscription>='%s') " % (str(tuple(listeActivites)), datetime.date.today())
+            conditionActivites = " AND inscriptions.IDactivite IN %s AND ((inscriptions.statut = 'ok') OR (inscriptions.statut Is Null)) AND (inscriptions.date_desinscription IS NULL OR inscriptions.date_desinscription>='%s') " % (str(tuple(listeActivites)), datetime.date.today())
 
     # Conditions Présents
     conditionPresents = ""
@@ -355,7 +355,7 @@ def GetListeFamilles(listview=None, listeActivites=None, presents=None, IDfamill
     AND inscriptions.IDfamille = familles.IDfamille
     LEFT JOIN caisses ON caisses.IDcaisse = familles.IDcaisse
     LEFT JOIN regimes ON regimes.IDregime = caisses.IDregime
-    WHERE familles.etat IS NULL AND inscriptions.statut='ok' AND (inscriptions.date_desinscription IS NULL OR inscriptions.date_desinscription>='%s') %s %s %s
+    WHERE familles.etat IS NULL AND ((inscriptions.statut = 'ok') OR (inscriptions.statut Is Null)) AND (inscriptions.date_desinscription IS NULL OR inscriptions.date_desinscription>='%s') %s %s %s
     GROUP BY familles.IDfamille
     ;""" % (jointurePresents, datetime.date.today(), conditionActivites, conditionPresents, conditionFamilles)
 

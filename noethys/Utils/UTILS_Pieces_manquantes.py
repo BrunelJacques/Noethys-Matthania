@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------
 # Application :    Noethys, gestion multi-activités
 # Site internet :  www.noethys.com
-# Auteur:           Ivan LUCAS
+# Auteur:           Ivan LUCAS, JB pour group by
 # Copyright:       (c) 2010-11 Ivan LUCAS
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
@@ -47,23 +47,6 @@ def GetListePiecesManquantes(dateReference=None, listeActivites=None, presents=N
 ##        jonctionPresents = "LEFT JOIN consommations ON consommations.IDindividu = individus.IDindividu"
     
     DB = GestionDB.DB()
-    
-    # Récupération des pièces à fournir
-
-## # Ancienne Version moins rapide :
-##    req = """
-##    SELECT 
-##    inscriptions.IDfamille, pieces_activites.IDtype_piece, types_pieces.nom, types_pieces.public, types_pieces.valide_rattachement, individus.prenom, individus.IDindividu
-##    FROM pieces_activites 
-##    LEFT JOIN types_pieces ON types_pieces.IDtype_piece = pieces_activites.IDtype_piece
-##    LEFT JOIN inscriptions ON inscriptions.IDactivite = pieces_activites.IDactivite
-##    LEFT JOIN individus ON individus.IDindividu = inscriptions.IDindividu
-##    %s
-##    WHERE inscriptions.parti=0 %s %s
-##    GROUP BY inscriptions.IDfamille, pieces_activites.IDtype_piece, individus.IDindividu
-##    ;""" % (jonctionPresents, conditionActivites, conditionPresents)
-##    DB.ExecuterReq(req,MsgBox="ExecuterReq")
-##    listePiecesObligatoires = DB.ResultatReq()
 
     # Récupération des individus présents
     listePresents = []
@@ -72,7 +55,7 @@ def GetListePiecesManquantes(dateReference=None, listeActivites=None, presents=N
         SELECT IDindividu, IDinscription
         FROM consommations
         WHERE date>='%s' AND date<='%s' AND consommations.etat IN ('reservation', 'present') %s
-        GROUP BY IDindividu
+        GROUP BY IDindividu, IDinscription
         ;"""  % (str(presents[0]), str(presents[1]), conditionActivites)
         DB.ExecuterReq(req,MsgBox="ExecuterReq")
         listeIndividusPresents = DB.ResultatReq()
@@ -81,15 +64,18 @@ def GetListePiecesManquantes(dateReference=None, listeActivites=None, presents=N
 
 
     req = """
-    SELECT 
-    inscriptions.IDfamille, pieces_activites.IDtype_piece, types_pieces.nom, types_pieces.public, types_pieces.valide_rattachement, individus.prenom, individus.IDindividu
+    SELECT inscriptions.IDfamille, pieces_activites.IDtype_piece, types_pieces.nom, 
+        types_pieces.public, types_pieces.valide_rattachement, individus.prenom, 
+        individus.IDindividu
     FROM pieces_activites 
     LEFT JOIN types_pieces ON types_pieces.IDtype_piece = pieces_activites.IDtype_piece
     LEFT JOIN inscriptions ON inscriptions.IDactivite = pieces_activites.IDactivite
     LEFT JOIN individus ON individus.IDindividu = inscriptions.IDindividu
     LEFT JOIN activites ON activites.IDactivite = inscriptions.IDactivite
     WHERE inscriptions.statut='ok' AND (inscriptions.date_desinscription IS NULL OR inscriptions.date_desinscription>='%s') %s AND activites.date_fin>='%s'
-    GROUP BY inscriptions.IDfamille, pieces_activites.IDtype_piece, individus.IDindividu
+    GROUP BY inscriptions.IDfamille, pieces_activites.IDtype_piece, 
+        individus.IDindividu, types_pieces.nom, 
+        types_pieces.public, types_pieces.valide_rattachement, individus.prenom
     ;""" % (dateReference, conditionActivites.replace("consommations", "inscriptions"), dateReference)
     DB.ExecuterReq(req,MsgBox="ExecuterReq")
     listePiecesObligatoires = DB.ResultatReq()

@@ -134,7 +134,7 @@ class CTRL(HTL.HyperTreeList):
         # Recherche des inscriptions existantes
         req = """SELECT IDgroupe, COUNT(IDinscription)
         FROM inscriptions
-        WHERE inscriptions.%s AND inscriptions.statut='ok'
+        WHERE inscriptions.%s AND ((inscriptions.statut = 'ok') OR (inscriptions.statut Is Null))
         GROUP BY IDgroupe;""" % conditionActivites
         DB.ExecuterReq(req,MsgBox="ExecuterReq")
         listeInscriptions = DB.ResultatReq()
