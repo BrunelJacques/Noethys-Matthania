@@ -70,6 +70,8 @@ class Footer(Control):
         """ Dessine une colonne """
         render = wx.RendererNative.Get()
         options = wx.HeaderButtonParams()
+        if not isinstance(label,str):
+            label = str(label)
         options.m_labelText = label
         if alignement : options.m_labelAlignment = alignement
         if couleur : options.m_labelColour = couleur

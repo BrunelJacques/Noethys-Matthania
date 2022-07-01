@@ -495,7 +495,6 @@ class DB(GestionDB.DB):
                             messFix += mess
             if mess and mess != "\tChamps: ":
                 print("\n" + mess)
-            else: print("-")
             # Affichage dans la StatusBar
             if parent and mess:
                 parent.SetStatusText(messFix + " %s %s, "%(nomTable,ret))
