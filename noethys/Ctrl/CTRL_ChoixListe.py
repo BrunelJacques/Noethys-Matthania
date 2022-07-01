@@ -572,7 +572,10 @@ class DLGventilations(wx.Dialog):
     def OnCalculLettres(self, event):
         mtt = 0.0
         for track in self.listview.GetCheckedObjects():
-            mtt += track.mtt
+            if track.credit == 0:
+                mtt += track.mtt
+            else:
+                mtt -= track.mtt
         self.ctrl_montant.SetValue("{:10.2f} {}".format(mtt,SYMBOLE))
 
     def ClearLetters(self,choix):

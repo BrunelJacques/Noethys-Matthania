@@ -43,11 +43,12 @@ def GetListeUtilisateurs(nomFichier=""):
     resultat = DB.ExecuterReq(req)
     if resultat == "ok" :
         listeDonnees = DB.ResultatReq()
+    """
     else :
         # Fonction provisoire pour pouvoir ouvrir Noethys avant la version 1.1.8.7.
-        req = """SELECT IDutilisateur, sexe, nom, prenom, mdp, profil, actif
+        req = ""SELECT IDutilisateur, sexe, nom, prenom, mdp, profil, actif
         FROM utilisateurs
-        WHERE actif=1;"""
+        WHERE actif=1;""
         DB.ExecuterReq(req,MsgBox="UTILS_Utilsateurs")
         listeDonneesTemp = DB.ResultatReq()
         listeDonnees = []
@@ -57,20 +58,20 @@ def GetListeUtilisateurs(nomFichier=""):
             else :
                 mdpcrypt = mdp
             listeDonnees.append((IDutilisateur, sexe, nom, prenom, mdp, mdpcrypt, profil, actif))
-
+    """
     listeUtilisateurs = []
     
     # chargement avatars
     try :
         req = """SELECT IDutilisateur, image
         FROM utilisateurs;"""
-        DB.ExecuterReq(req,MsgBox="UTILS_Utilsateurs")
+        DB.ExecuterReq(req)
         listeAvatars = DB.ResultatReq()
+        dictAvatars = {}
+        for IDutilisateur, image in listeAvatars :
+            dictAvatars[IDutilisateur] = image
     except :
-        pass
-    dictAvatars = {}
-    for IDutilisateur, image in listeAvatars :
-        dictAvatars[IDutilisateur] = image
+        return []
 
     for IDutilisateur, sexe, nom, prenom, mdp, mdpcrypt, profil, actif in listeDonnees :
         droits = None
