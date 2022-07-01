@@ -1655,8 +1655,10 @@ class Facturation():
             nomDoc = "%s %s"%(nomDoc ,now)
 
         # ajout du chemin devant le nom
+        if not nomDoc.endswith(".pdf"):
+            nomDoc = "%s.pdf" %(nomDoc)
         if not repertoire:
-            nomDoc = UTILS_Fichiers.GetRepTemp("%s.pdf" %(nomDoc))
+            nomDoc = UTILS_Fichiers.GetRepTemp(nomDoc)
 
         self.dictChampsFusion = {}
 
