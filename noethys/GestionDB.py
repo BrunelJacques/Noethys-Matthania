@@ -268,7 +268,11 @@ class DB():
             self.connexion.commit()
 
     def ErrCursor(self,req,err):
-        if not hasattr(self.cursor.connection,"open"):
+
+        if not hasattr(self.cursor, "connection"):
+            self.retourReq = ("Requete sqlite incorrecte :\n%s\npas de connection:\n%s") % (
+            req, err)
+        elif not hasattr(self.cursor.connection,"open"):
             self.retourReq= ("Requete sqlite incorrecte :\n%s\nErreur detectee:\n%s") % (req, err)
         elif self.cursor.connection.open == 0:
             ID = self.IDconnexion

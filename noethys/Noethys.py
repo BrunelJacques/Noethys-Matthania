@@ -1423,6 +1423,8 @@ class MainFrame(wx.Frame):
                                 categorie="fichier", nom="version", 
                                 valeur=VERSION_LOGICIEL, nomFichier=nomFichier)
         versionData = FonctionsPerso.ConvertVersionTuple(VERSION_DATA)
+        self.infoVersions = "Conversion des données %s -> %s" % (
+        VERSION_DATA, VERSION_LOGICIEL)
 
         # les versions correspondent: on passe
         if versionData == versionLogiciel:
@@ -1512,7 +1514,6 @@ class MainFrame(wx.Frame):
                 self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(False)
                 self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(False)
                 return True
-            self.infoVersions = "Conversion des données %s -> %s"%(VERSION_DATA, VERSION_LOGICIEL)
             self.SetStatusText(self.infoVersions + " ...")
             print(self.infoVersions)
             self.mess = self.infoVersions
