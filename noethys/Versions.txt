@@ -1,3 +1,6 @@
+version 1.3.1.17 (ND 01/07/2022 19:16):
+- nouveaux champs lettrage pour ventilations
+
 version 1.3.1.17 (01/07/2022 19:16):
 - Envois des pièces par mail: Correction du double '.pdf' provoquant un bug
 

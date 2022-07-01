@@ -75,10 +75,10 @@ def GetVentilations(IDfamille=None):
 class Lettrage(object):
     def __init__(self,IDfamille=None):
         lstChamps = ["Libellé","date","Nature"]
-        dictFooter = {  "dlibelle": {"mode" : "nombre","singulier":"ligne afichée","pluriel":"lignes afichées"},
-                        "debit" :   {"mode" : "total"},
-                        "mtt" :     {"mode" : "total"},
-                        "credit" :  {"mode" : "total"},}
+        dictFooter = {  "dlibelle": {"mode" : "nombre",
+                                     "singulier":"ligne afichée             Total lettre:",
+                                     "pluriel":"lignes afichées            Total letttres:"},
+                        "mtt" :     {"mode" : "total"}}
         dicPrestations = GetPrestations(IDfamille)
         dicReglements = GetReglements(IDfamille)
         dlg = CTRL_ChoixListe.DLGventilations(self,ddDebits=dicPrestations,ddCredits=dicReglements,
@@ -117,5 +117,5 @@ class Lettrage(object):
 
 if __name__ == "__main__":
     app = wx.App(0)
-    Lettrage(IDfamille = 1684)
+    Lettrage(IDfamille = 7271)
     app.MainLoop()

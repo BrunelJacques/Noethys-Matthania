@@ -555,7 +555,8 @@ class Dialog(wx.Dialog):
         mess = "Fin d'opération\n\n-\t%s\n-\t%s" % (messStockage, mess)
         style = wx.OK
         if majFaite:
-            mess += "\n\nRedémarrage de Noethys pour prendre en compte la version à jour"
+            mess += "\n\nRedémarrage de Noethys pour prendre en compte la version à jour?"
+            mess += "\nSans redémarrage les anciens programmes restent chargés."
             style = wx.YES_NO
         # Fin du processus
         dlg = wx.MessageDialog(self,mess, "Release", style | wx.ICON_INFORMATION)

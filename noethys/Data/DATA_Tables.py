@@ -669,11 +669,13 @@ DB_DATA = {
                 ("compta", "INTEGER", "Pointeur de transfert en compta"),
                 ], # Règlements
     
-    "ventilation":[             ("IDventilation", "INTEGER PRIMARY KEY AUTOINCREMENT", "ID Ventilation"),
+    "ventilation":[("IDventilation", "INTEGER PRIMARY KEY AUTOINCREMENT", "ID Ventilation"),
                 ("IDcompte_payeur", "INTEGER", "ID du compte payeur"),
                 ("IDreglement", "INTEGER", "ID du règlement"),
                 ("IDprestation", "INTEGER", "ID de la prestation"),
                 ("montant", "FLOAT", "Montant de la ventilation"),
+                ("lettrePrestation", "VARCHAR(3)", "Lettre de la prestation"),
+                ("lettreReglement", "VARCHAR(3)", "Lettre du règlement"),
                 ], # Ventilation
     
     "depots":[                  ("IDdepot", "INTEGER PRIMARY KEY AUTOINCREMENT", "ID Dépôt"),

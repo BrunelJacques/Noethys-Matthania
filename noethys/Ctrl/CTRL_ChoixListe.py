@@ -127,9 +127,7 @@ class DLGventilations(wx.Dialog):
         intro =         kwds.pop('intro',"Cochez les lignes associées puis cliquez sur lettrage ou délettrage...")
         titre_bandeau = kwds.pop('titre',"Lettrage par les montants ventilés")
         titre_frame =   kwds.pop('titre_frame',"%s / CTRL_ChoixListe.DLGventilations"%parentName)
-        dfooter   =  {"debit" : {"mode" : "total"},
-                        "mtt" : {"mode" : "total"},
-                        "credit" : {"mode" : "total"},}
+        dfooter   =  {"mtt" : {"mode" : "total"}}
         dictFooter =    kwds.pop('dictFooter',dfooter)
         autoLayout =    kwds.pop('autoLayout',True)
         columnSort =    kwds.pop('columnSort',2)
@@ -226,7 +224,7 @@ class DLGventilations(wx.Dialog):
         self.ctrl_labelMontant = wx.StaticText(self, -1,"Montant coché : ")
         self.ctrl_montant = wx.TextCtrl(self, -1, style= wx.TE_RIGHT|wx.TE_READONLY)
 
-        self.case_avecLettrees = wx.CheckBox(self,-1,"Masquer les lignes entièrement lettrées")
+        self.check_avecLettrees = wx.CheckBox(self,-1,"Masquer les lignes entièrement lettrées")
         self.bouton_lettrer = CTRL_Bouton_image.CTRL(self, texte="Lettrer", cheminImage="Images/32x32/Configuration2.png")
         self.bouton_delettrer = CTRL_Bouton_image.CTRL(self, texte="DeLettrer", cheminImage="Images/32x32/Depannage.png")
         self.bouton_fermer = CTRL_Bouton_image.CTRL(self, texte="Annuler", cheminImage="Images/32x32/Annuler.png")
@@ -244,7 +242,7 @@ class DLGventilations(wx.Dialog):
 
         # TipString, Bind et constitution des colonnes de l'OLV
         self.ctrl_montant.SetToolTip("Pour aider la recherche, ici la somme des montants à lettrer")
-        self.case_avecLettrees.SetToolTip("Cliquez ici après avoir coché des lignes à associer")
+        self.check_avecLettrees.SetToolTip("Cliquez ici après avoir coché des lignes à associer")
         self.bouton_lettrer.SetToolTip("Cliquez ici après avoir coché des lignes à associer")
         self.bouton_delettrer.SetToolTip("Cliquez ici après avoir sélectionné une ligne de la lettre à supprimer")
         self.bouton_ok.SetToolTip("Cliquez ici pour valider et enregistrer les modifications")
@@ -253,10 +251,11 @@ class DLGventilations(wx.Dialog):
         # Binds
         self.Bind(wx.EVT_BUTTON, self.OnClicOk, self.bouton_ok)
         self.Bind(wx.EVT_BUTTON, self.OnClicFermer, self.bouton_fermer)
-        self.Bind(wx.EVT_CHECKBOX, self.OnCaseLettrees, self.case_avecLettrees)
+        self.Bind(wx.EVT_CHECKBOX, self.OnCheckLettrees, self.check_avecLettrees)
         self.Bind(wx.EVT_BUTTON, self.OnClicLettrer, self.bouton_lettrer)
         self.Bind(wx.EVT_BUTTON, self.OnClicDelettrer, self.bouton_delettrer)
         self.listview.Bind(wx.EVT_COMMAND_LEFT_CLICK, self.OnCalculLettres)
+        self.ctrl_outils.bouton_cocher.Bind(wx.EVT_ERASE_BACKGROUND,self.OnCalculLettres)
 
     def __do_layout(self):
         gridsizer_base = wx.FlexGridSizer(rows=6, cols=1, vgap=0, hgap=0)
@@ -271,7 +270,7 @@ class DLGventilations(wx.Dialog):
         gridsizer_boutons.Add(self.ctrl_labelMontant, 0, wx.ALL, 5)
         gridsizer_boutons.Add(self.ctrl_montant, 1, 0, 0)
         gridsizer_boutons.Add((20, 20), 1, wx.ALIGN_BOTTOM, 0)
-        gridsizer_boutons.Add(self.case_avecLettrees, 1, wx.EXPAND, 0)
+        gridsizer_boutons.Add(self.check_avecLettrees, 1, wx.EXPAND, 0)
         gridsizer_boutons.Add(self.bouton_lettrer, 1, wx.EXPAND, 0)
         gridsizer_boutons.Add(self.bouton_delettrer, 1, wx.EXPAND, 0)
         gridsizer_boutons.Add((20, 20), 1, wx.ALIGN_BOTTOM, 0)
@@ -338,10 +337,10 @@ class DLGventilations(wx.Dialog):
         self.listview.CreateCheckStateColumn(self.ixChampsMilieu+1)
         self.listview.SetObjects(self.tracks)
         self.listview.CocheListeRien()
+
         equilibre = {'typeDonnee': "libre",'criteres': "track.lettre.upper() != track.lettre",
                      'choix':"",'code':"",'titre':"",}
-
-        if self.case_avecLettrees.GetValue() == True:
+        if self.check_avecLettrees.GetValue() == True:
             if not equilibre in self.listview.listeFiltresColonnes:
                 self.listview.listeFiltresColonnes += [equilibre,]
         elif equilibre in self.listview.listeFiltresColonnes:
@@ -357,6 +356,7 @@ class DLGventilations(wx.Dialog):
         self.Layout()
         search = self.ctrl_outils.barreRecherche.GetValue()
         self.listview.Filtrer(search)
+        self.OnCalculLettres(None)
 
     # affectation de la couleur de l'image
     def GetCouleurLettre(self,track):
@@ -472,7 +472,7 @@ class DLGventilations(wx.Dialog):
         ptVentil = None # reperage de la lettre commune de compensation
         dicLetEquil = {}
         for ddDic in (self.ddDebits,self.ddCredits):
-            ixIDzero = None
+
             for key,item in ddDic.items():
                 # déroule tous les items, une ligne pour chacun restant à lettrer
                 if abs(item['montant'] - item['mtVentil']) < 0.005:
@@ -601,7 +601,7 @@ class DLGventilations(wx.Dialog):
             if item['ptVentil'] in lstletDeb:
                 item['ptVentil'] = item['ptVentil'].lower()
 
-    def OnCaseLettrees(self,event):
+    def OnCheckLettrees(self,event):
         self.MAJ()
 
     def OnClicLettrer(self, event):
@@ -1331,22 +1331,30 @@ class Dialog(wx.Dialog):
 
 if __name__ == "__main__":
     app = wx.App(0)
-    dlg = DLGventilations(None,
-                          {12456:{"designations":["pièce réglée 1",datetime.date.today()],
-                                  "montant":15.25,
-                                  },
-                          12457:{"designations":["pièce récente 2",datetime.date.today()],
-                                  "montant":37,
-                                  }},
-                          {6545:{"designations":["règlement 1",datetime.date.today()],
-                                 "montant":15.25,
-                                 },
-                          6546:{"designations":["règlement 2",datetime.date.today()],
-                                    "montant":30,
-                            },},
-                          [(12456,6545,15.25),
-                           (12457,6546,7)],
-                          ["libellé1", "Date"])
+    ddDebits = {
+        12456: {"designations": ["pièce réglée 1", datetime.date.today()],
+                "montant": 15.25,
+                },
+        12457: {"designations": ["pièce récente 2", datetime.date.today()],
+                "montant": 37,
+                }}
+    ddCredits = {
+        6544: {"designations": ["règlement 1", datetime.date.today()],
+               "montant": 15.25,
+               },
+        6545: {"designations": ["remboursement 1", datetime.date.today()],
+               "montant": -10,
+               },
+        6546: {"designations": ["règlement 2", datetime.date.today()],
+               "montant": 30,
+               },
+        6547: {"designations": ["règlement 3", datetime.date.today()],
+               "montant": 8},
+               }
+    ltVentilations = [(12456, 6544, 15.25),
+                      (12457, 6546, 7)]
+    lChampsDesign = ["libellé1", "Date"]
+    dlg = DLGventilations(None, ddDebits, ddCredits, ltVentilations, lChampsDesign)
     """
     """
     #dlg = Dialog(None)
