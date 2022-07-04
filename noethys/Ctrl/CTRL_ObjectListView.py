@@ -207,14 +207,15 @@ class ObjectListView(OLV.ObjectListView):
         # exception than it is to test for the class
         def _getSortValue(x):
             primary = sortColumn.GetValue(x)
-
-            # Pour contrer bug sur comparaison datetime et NoneType
-            if type(primary) == datetime.date :
+            # pour des tris numériques on garde le type d'origine de primary
+            if sortColumn.typeDonnee in ("montant", "entier","bool" ):
+                if not isinstance(primary,(float,int,decimal.Decimal)):
+                    primary = 0.0
+            else:
+                # Ramener a des comparaisons texte, pour cas général
+                if primary == None:
+                    primary = ""
                 primary = str(primary)
-            elif primary == None:
-                primary = ""
-            #elif type(primary) in (int, float): # le tri ne fonctionnerait pas
-            #    primary = str(primary)
             try:
                 primary = primary.lower()
             except AttributeError:

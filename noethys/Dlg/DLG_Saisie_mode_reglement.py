@@ -8,7 +8,6 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
 import Chemins
 from Utils.UTILS_Traduction import _
 import wx
@@ -17,13 +16,12 @@ from Ctrl import CTRL_Bouton_image
 import GestionDB
 from Ctrl import CTRL_Saisie_euros
 from Ctrl import CTRL_Image_mode
-
+from Dlg import DLG_Saisie_reglement
 
 LISTE_METHODES_ARRONDI = [
     (_("Arrondi au centime supérieur"), "centimesup"),
     (_("Arrondi au centime inférieur"), "centimeinf"),
     ]
-
 
 class Dialog(wx.Dialog):
     def __init__(self, parent, IDmode=None):
@@ -44,10 +42,11 @@ class Dialog(wx.Dialog):
                                                                _("Regroupé par emetteur dans le dépôt"),
                                                                _("Détail règlements, date du dépôt"),
                                                                _("Détail règlements, date du règlement")])
-        #self.ctrl_type_comptable.SetSelection(0)
         self.label_code_comptable = wx.StaticText(self, -1, _("Compta :"))
         self.ctrl_code_comptable = wx.TextCtrl(self, -1, "")
 
+        self.label_banque = wx.StaticText(self, -1, _("Dépôt sur :"))
+        self.ctrl_banque = DLG_Saisie_reglement.CTRL_Compte(self)
         # Options
         self.staticbox_options_staticbox = wx.StaticBox(self, -1, _("Options"))
         
@@ -141,6 +140,7 @@ class Dialog(wx.Dialog):
         self.ctrl_type_comptable.SetToolTip(_("'Le type de traitement comptable détermine le niveau de détail transféré en compta,"+
                                                     "\nil est rétroactif sur les saisies des règlements, conditionne les prochains transferts."))
         self.ctrl_code_comptable.SetToolTip(_("Code comptable pour ce mode de règlement (ignoré si un dépôt facultatif a été fait) ."))
+        self.ctrl_banque.SetToolTip(_("Banque de dépôt du règlement qui sera proposée par défaut, sera modifiable en saisie de règlements"))
         self.bouton_aide.SetToolTip(wx.ToolTip(_("Cliquez ici pour obtenir de l'aide")))
         self.bouton_ok.SetToolTip(wx.ToolTip(_("Cliquez ici pour valider la saisie")))
         self.bouton_annuler.SetToolTip(wx.ToolTip(_("Cliquez ici pour annuler la saisie")))
@@ -159,7 +159,7 @@ class Dialog(wx.Dialog):
         grid_sizer_numero = wx.FlexGridSizer(rows=4, cols=1, vgap=5, hgap=5)
         grid_sizer_numero_numerique = wx.FlexGridSizer(rows=1, cols=3, vgap=5, hgap=5)
         staticbox_generalites = wx.StaticBoxSizer(self.staticbox_generalites_staticbox, wx.VERTICAL)
-        grid_sizer_generalites = wx.FlexGridSizer(rows=5, cols=2, vgap=10, hgap=10)
+        grid_sizer_generalites = wx.FlexGridSizer(rows=6, cols=2, vgap=10, hgap=10)
         grid_sizer_image = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_boutons_image = wx.FlexGridSizer(rows=3, cols=1, vgap=5, hgap=5)
         grid_sizer_generalites.Add(self.label_label, 0, wx.ALIGN_RIGHT, 0)
@@ -174,6 +174,8 @@ class Dialog(wx.Dialog):
         grid_sizer_generalites.Add(self.ctrl_type_comptable, 0, wx.EXPAND, 0)
         grid_sizer_generalites.Add(self.label_code_comptable, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT, 0)
         grid_sizer_generalites.Add(self.ctrl_code_comptable, 0, wx.EXPAND, 0)
+        grid_sizer_generalites.Add(self.label_banque, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT, 0)
+        grid_sizer_generalites.Add(self.ctrl_banque, 0, wx.EXPAND, 0)
 
         grid_sizer_generalites.AddGrowableCol(1)
         staticbox_generalites.Add(grid_sizer_generalites, 1, wx.ALL|wx.EXPAND, 10)
@@ -384,7 +386,7 @@ class Dialog(wx.Dialog):
                 dlg.Destroy()
                 self.ctrl_frais_label.SetFocus()
                 return
-        
+        type_comptable = ""
         if self.ctrl_type_comptable.GetSelection() == 0 :
             type_comptable = "banque"
         elif self.ctrl_type_comptable.GetSelection() == 1  :
@@ -396,7 +398,8 @@ class Dialog(wx.Dialog):
             #détail par règlement avec date du règlement
             type_comptable = "regreg"
         else: wx.MessageBox("Choix inconnu en DLG_Saisie_mode_reglement")
-        code_comptable = self.ctrl_code_comptable.GetValue() 
+        code_comptable = self.ctrl_code_comptable.GetValue()
+        IDcompte = self.ctrl_banque.GetID()
         
         # Sauvegarde
         DB = GestionDB.DB()
@@ -412,7 +415,8 @@ class Dialog(wx.Dialog):
                 ("frais_label", frais_label),
                 ("type_comptable", type_comptable),
                 ("code_compta", code_comptable),
-            ]
+                ("IDcompte", IDcompte),
+        ]
         if self.IDmode == None :
             self.IDmode = DB.ReqInsert("modes_reglements", listeDonnees)
         else:
@@ -429,9 +433,9 @@ class Dialog(wx.Dialog):
     def Importation(self):
         """ Importation des données """
         DB = GestionDB.DB()
-        req = """SELECT label, image, 
-        numero_piece, nbre_chiffres, 
-        frais_gestion, frais_montant, frais_pourcentage, frais_arrondi, frais_label, type_comptable, code_compta
+        req = """SELECT label, image, numero_piece, nbre_chiffres, frais_gestion, 
+                frais_montant, frais_pourcentage, frais_arrondi, frais_label, 
+                type_comptable, code_compta, IDcompte
         FROM modes_reglements 
         WHERE IDmode=%d;""" % self.IDmode
         DB.ExecuterReq(req,MsgBox="DLG_Saisie_mode_reglement")
@@ -439,7 +443,9 @@ class Dialog(wx.Dialog):
         DB.Close()
         if len(listeDonnees) == 0 : return
         mode = listeDonnees[0]
-        label, image, numero_piece, nbre_chiffres, frais_gestion, frais_montant, frais_pourcentage, frais_arrondi, frais_label, type_comptable, code_compta = mode
+        label, image, numero_piece, nbre_chiffres, frais_gestion, frais_montant, \
+        frais_pourcentage, frais_arrondi, frais_label, type_comptable, \
+        code_compta, IDcompte = mode
         
         # label
         self.ctrl_label.SetLabel(label)
@@ -491,10 +497,12 @@ class Dialog(wx.Dialog):
             code_compta = ""
         self.ctrl_code_comptable.SetValue(code_compta)
         
+        # Compte banque
+        if IDcompte != None:
+            self.ctrl_banque.SetID(IDcompte)
+        
     def GetIDmode(self):
         return self.IDmode
-
-
 
 
 if __name__ == "__main__":

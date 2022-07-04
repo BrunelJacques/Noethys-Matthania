@@ -38,7 +38,7 @@ from Ctrl import CTRL_Ventilation as CTRL_Ventilation
 
 ID_OPTION_BLOQUER_VENTILATION = wx.Window.NewControlId() 
 
-
+# ----------------------------------------------------------------------------------------
 
 def DateEngFr(textDate):
     if textDate == None: return ""
@@ -64,6 +64,7 @@ def DateFREnDateDD(dateFR):
         dateDD = datetime.date.today()
     return dateDD
 
+# ----------------------------------------------------------------------------------------
 
 class CTRL_Image(wx.StaticBitmap):
     def __init__(self, parent, style=0):
@@ -119,8 +120,6 @@ class CTRL_Image(wx.StaticBitmap):
             bmp = bmp.ConvertToBitmap()
             return bmp
         return None
-    
-# ---------------------------------------------------------------------------------------------------------------------------------------
 
 class CTRL_Infos(html.HtmlWindow):
     def __init__(self, parent, texte="", hauteur=32,  couleurFond=(255, 255, 255), style=0):
@@ -142,9 +141,8 @@ class CTRL_Infos(html.HtmlWindow):
     def OnLinkClicked(self, linkinfo):
         IDfamille = int(linkinfo.GetHref())
 
-# ---------------------------------------------------------------------------------------------------------------------------------------
-
 class CTRL_Mode(wx.Choice):
+    # choix du mode de paiement
     def __init__(self, parent):
         wx.Choice.__init__(self, parent, -1) 
         self.parent = parent
@@ -155,11 +153,12 @@ class CTRL_Mode(wx.Choice):
         if len(listeItems) == 0 :
             self.Enable(False)
         self.SetItems(listeItems)
-                                        
+
     def GetListeDonnees(self):
         db = GestionDB.DB()
-        req = """SELECT IDmode, label, numero_piece, nbre_chiffres, 
-        frais_gestion, frais_montant, frais_pourcentage, frais_arrondi, frais_label
+        req = """
+        SELECT IDmode, label, numero_piece, nbre_chiffres,  frais_gestion, frais_montant, 
+        frais_pourcentage, frais_arrondi, frais_label, IDcompte
         FROM modes_reglements
         ORDER BY label;"""
         db.ExecuterReq(req,MsgBox="ExecuterReq")
@@ -168,11 +167,12 @@ class CTRL_Mode(wx.Choice):
         listeItems = []
         self.dictDonnees = {}
         index = 0
-        for IDmode, label, numero_piece, nbre_chiffres, frais_gestion, frais_montant, frais_pourcentage, frais_arrondi, frais_label in listeDonnees :
+        for IDmode, label, numero_piece, nbre_chiffres, frais_gestion, frais_montant, \
+            frais_pourcentage, frais_arrondi, frais_label, IDcompte in listeDonnees :
             self.dictDonnees[index] = { 
-                "ID" : IDmode, "label" : label, "numero_piece" : numero_piece, "nbre_chiffres" : nbre_chiffres,
-                "frais_gestion" : frais_gestion, "frais_montant" : frais_montant, "frais_pourcentage" : frais_pourcentage, 
-                "frais_arrondi" : frais_arrondi, "frais_label" : frais_label, 
+                "ID": IDmode, "label": label, "numero_piece": numero_piece, "nbre_chiffres": nbre_chiffres,
+                "frais_gestion": frais_gestion, "frais_montant": frais_montant, "frais_pourcentage": frais_pourcentage, 
+                "frais_arrondi": frais_arrondi, "frais_label": frais_label, "IDcompte": IDcompte
                 }
             listeItems.append(label)
             index += 1
@@ -193,9 +193,6 @@ class CTRL_Mode(wx.Choice):
         index = self.GetSelection()
         if index == -1 : return None
         return self.dictDonnees[index]
-        
-
-# -----------------------------------------------------------------------------------------------------------------------
 
 class CTRL_Emetteur(wx.Choice):
     def __init__(self, parent):
@@ -242,9 +239,6 @@ class CTRL_Emetteur(wx.Choice):
         index = self.GetSelection()
         if index == -1 : return None
         return self.dictDonnees[index]["ID"]
-
-# -----------------------------------------------------------------------------------------------------------------------
-
 
 class CTRL_Payeurs(wx.ListBox):
     def __init__(self, parent, IDcompte_payeur=None):
@@ -354,62 +348,6 @@ class CTRL_Payeurs(wx.ListBox):
             self.MAJ()
         dlg.Destroy()
 
-
-class CTRL_Mode(wx.Choice):
-    def __init__(self, parent):
-        wx.Choice.__init__(self, parent, -1) 
-        self.parent = parent
-        self.MAJ() 
-        if len(self.dictDonnees) > 0 :
-            self.SetSelection(0)
-    
-    def MAJ(self):
-        listeItems = self.GetListeDonnees()
-        if len(listeItems) == 0 :
-            self.Enable(False)
-        self.SetItems(listeItems)
-                                        
-    def GetListeDonnees(self):
-        db = GestionDB.DB()
-        req = """SELECT IDmode, label, numero_piece, nbre_chiffres, 
-        frais_gestion, frais_montant, frais_pourcentage, frais_arrondi, frais_label
-        FROM modes_reglements
-        ORDER BY label;"""
-        db.ExecuterReq(req,MsgBox="ExecuterReq")
-        listeDonnees = db.ResultatReq()
-        db.Close()
-        listeItems = []
-        self.dictDonnees = {}
-        index = 0
-        for IDmode, label, numero_piece, nbre_chiffres, frais_gestion, frais_montant, frais_pourcentage, frais_arrondi, frais_label in listeDonnees :
-            self.dictDonnees[index] = { 
-                "ID" : IDmode, "label" : label, "numero_piece" : numero_piece, "nbre_chiffres" : nbre_chiffres,
-                "frais_gestion" : frais_gestion, "frais_montant" : frais_montant, "frais_pourcentage" : frais_pourcentage, 
-                "frais_arrondi" : frais_arrondi, "frais_label" : frais_label, 
-                }
-            listeItems.append(label)
-            index += 1
-        return listeItems
-
-    def SetID(self, ID=0):
-        for index, values in self.dictDonnees.items():
-            if values["ID"] == ID :
-                 self.SetSelection(index)
-
-    def GetID(self):
-        index = self.GetSelection()
-        if index == -1 : return None
-        return self.dictDonnees[index]["ID"]
-    
-    def GetInfosMode(self):
-        """ Récupère les infos sur le mode sélectionné """
-        index = self.GetSelection()
-        if index == -1 : return None
-        return self.dictDonnees[index]
-        
-
-# -----------------------------------------------------------------------------------------------------------------------
-
 class CTRL_Frais(Hyperlink.HyperLinkCtrl):
     def __init__(self, parent, id=-1, label="", infobulle="", URL="", size=(-1, -1), pos=(0, 0)):
         Hyperlink.HyperLinkCtrl.__init__(self, parent, id, label, URL=URL, size=size, pos=pos)
@@ -516,11 +454,9 @@ class CTRL_Frais(Hyperlink.HyperLinkCtrl):
         else :
             # Autres types : Fixe et prorata
             return (self.montantPrestation, self.labelPrestation, self.IDprestationFrais)
-        
-
-# -----------------------------------------------------------------------------------------------------------------------
 
 class CTRL_Compte(wx.Choice):
+    # Choix du Compte bancaire et des paramètres du dépôt
     def __init__(self, parent):
         wx.Choice.__init__(self, parent, -1) 
         self.parent = parent
@@ -566,10 +502,7 @@ class CTRL_Compte(wx.Choice):
         if index == -1 : return None
         return self.dictDonnees[index]["ID"]
 
-
-
-# -----------------------------------------------------------------------------------------------------------------------------------------------
-
+# ----------------------------------------------------------------------------------------
 
 class Dialog(wx.Dialog):
     def __init__(self, parent, IDcompte_payeur=None, IDreglement=None):
@@ -695,6 +628,7 @@ class Dialog(wx.Dialog):
         
         self.Bind(wx.EVT_CHOICE, self.OnChoixEmetteur, self.ctrl_emetteur)
         self.Bind(wx.EVT_CHOICE, self.OnChoixMode, self.ctrl_mode)
+        self.Bind(wx.EVT_CHOICE, self.OnChoixCompte, self.ctrl_compte)
         self.ctrl_date.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocusDate)
         self.bouton_calendrier.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocusDate)
 
@@ -730,9 +664,9 @@ class Dialog(wx.Dialog):
             titreFamille = ""
         if self.IDreglement != None :
             self.Importation() 
-            self.SetTitle(_("DLG_Saisie_reglemnt : Saisie d'un règlement de %s") % titreFamille)
+            self.SetTitle(_("DLG_Saisie_reglement : Saisie d'un règlement de %s") % titreFamille)
         else:
-            self.SetTitle(_("DLG_Saisie_reglemnt : Modification d'un règlement de  %s") % titreFamille)
+            self.SetTitle(_("DLG_Saisie_reglement : Modification d'un règlement de  %s") % titreFamille)
             
         # Initialisation des contrôles
         self.OnCheckDiffere(None)
@@ -753,7 +687,6 @@ class Dialog(wx.Dialog):
         # Focus
         self.ctrl_date.SetFocus() 
         wx.CallAfter(self.ctrl_date.SetInsertionPoint, 0)
-                
 
     def __set_properties(self):
         self.ctrl_date.SetToolTip(_("Saisissez la date d'émission du règlement"))
@@ -965,7 +898,6 @@ class Dialog(wx.Dialog):
             #self.ctrl_attente.Enable(False)
             self.bouton_calendrier_differe.Enable(False)
 
-    
     def MAJinfos(self):
         texte = ""
         # IDrèglement
@@ -1017,12 +949,32 @@ class Dialog(wx.Dialog):
             
         self.ctrl_infos.SetLabel(texte)
 
-    def OnChoixMode(self, event): 
+    def StockeCompteDefault(self,dicInfo, IDcompte):
+        mess = "Ce choix est-il habituel pour les '%s'?" % dicInfo["label"]
+        mess += "\n\nSi cette banque est la destination normale pour ce mode de règlement,"
+        mess += "nous allons l'enregistrer pour le proposer la prochaine fois.\n"
+        mess += "Il est toujours possible de revenir sur la valeur proposée par la gestion des modes de règlements."
+        dlg = wx.MessageDialog(self,mess,"Choix du compte bancaire",style=wx.YES_NO|wx.ICON_EXCLAMATION)
+        ret = dlg.ShowModal()
+        if ret != wx.ID_YES:
+            return
+        DB = GestionDB.DB()
+        listeDonnees = [("IDcompte", IDcompte),]
+        mess = "DLG_Saisie_reglements.StockeCompteDefault"
+        ret = DB.ReqMAJ("modes_reglements", listeDonnees, "IDmode", dicInfo["ID"],MsgBox=mess)
+        if ret == "ok":
+            dicInfo["IDcompte"] = IDcompte
+        DB.Close()
+    def OnChoixMode(self, event):
         IDmode = self.ctrl_mode.GetID()
         self.ctrl_emetteur.MAJ(IDmode)
         self.ctrl_image.SetPhotoMode(IDmode)
         self.FormateNumPiece() 
-        self.SetFraisGestion() 
+        self.SetFraisGestion()
+        IDcompte = self.ctrl_mode.GetInfosMode()["IDcompte"]
+        if IDcompte:
+            self.ctrl_compte.SetID(IDcompte)
+
 
     def OnChoixEmetteur(self, event): 
         IDemetteur = self.ctrl_emetteur.GetID()
@@ -1045,6 +997,13 @@ class Dialog(wx.Dialog):
         self.ctrl_mode.MAJ()
         self.ctrl_mode.SetID(IDmode)
         self.OnChoixMode(None)
+
+    def OnChoixCompte(self,event):
+        # Stocke l'ID compte bancaire dans le champ par défaut du mode de règlement
+        dicInfo = self.ctrl_mode.GetInfosMode()
+        IDcompte = self.ctrl_compte.GetID()
+        if dicInfo["IDcompte"] != IDcompte:
+            self.StockeCompteDefault(dicInfo,IDcompte)
 
     def OnBoutonEmetteur(self, event): 
         IDemetteur = self.ctrl_emetteur.GetID()
@@ -1624,7 +1583,7 @@ if __name__ == "__main__":
     #wx.InitAllImageHandlers()
     import time
     heure_debut = time.time()
-    dialog_1 = Dialog(None, IDcompte_payeur=7384, IDreglement=22669)
+    dialog_1 = Dialog(None, IDcompte_payeur=4542, IDreglement=31945)
     print("Temps de chargement Saisie d'un reglement =", time.time() - heure_debut)
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()

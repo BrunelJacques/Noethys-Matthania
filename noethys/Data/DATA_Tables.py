@@ -616,7 +616,8 @@ DB_DATA = {
                 ("frais_label", "VARCHAR(200)", "Label de la prestation"),
                 ("type_comptable", "VARCHAR(200)", "Type comptable (banque ou caisse)"),
                 ("code_compta", "VARCHAR(200)", "Code comptable pour export vers logiciels de compta"),
-                ], # Modes de règlements
+                ("IDcompte", "INTEGER","Code du compte bancaire par défaut pour dépots"),
+           ], # Modes de règlements
     
     "emetteurs":[             ("IDemetteur", "INTEGER PRIMARY KEY AUTOINCREMENT", "ID Emetteur"),
                 ("IDmode", "INTEGER", "ID du mode concerné"),
@@ -674,8 +675,7 @@ DB_DATA = {
                 ("IDreglement", "INTEGER", "ID du règlement"),
                 ("IDprestation", "INTEGER", "ID de la prestation"),
                 ("montant", "FLOAT", "Montant de la ventilation"),
-                ("lettrePrestation", "VARCHAR(3)", "Lettre de la prestation"),
-                ("lettreReglement", "VARCHAR(3)", "Lettre du règlement"),
+                ("lettrage", "VARCHAR(3)", "Lettre de l'enregistrement"),
                 ], # Ventilation
     
     "depots":[                  ("IDdepot", "INTEGER PRIMARY KEY AUTOINCREMENT", "ID Dépôt"),
