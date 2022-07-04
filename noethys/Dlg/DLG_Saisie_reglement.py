@@ -971,9 +971,11 @@ class Dialog(wx.Dialog):
         self.ctrl_image.SetPhotoMode(IDmode)
         self.FormateNumPiece() 
         self.SetFraisGestion()
-        IDcompte = self.ctrl_mode.GetInfosMode()["IDcompte"]
-        if IDcompte:
-            self.ctrl_compte.SetID(IDcompte)
+        dicInfos = self.ctrl_mode.GetInfosMode()
+        if dicInfos and "IDcompte" in dicInfos:
+            IDcompte = self.ctrl_mode.GetInfosMode()["IDcompte"]
+            if IDcompte:
+                self.ctrl_compte.SetID(IDcompte)
 
 
     def OnChoixEmetteur(self, event): 

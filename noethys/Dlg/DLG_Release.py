@@ -351,6 +351,7 @@ class Dialog(wx.Dialog):
     def __init__(self, parent,version_data=None,version_logiciel_date=None):
         wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
         self.parent = parent
+        self.majFaite = False
         if not version_data or not version_logiciel_date:
             version_data, version_logiciel_date = self.GetVersions()
         posDeb = version_logiciel_date.find("n") +1
@@ -544,17 +545,16 @@ class Dialog(wx.Dialog):
 
         # action de dézippage
         mess = "Mise à jour station NON FAITE !!"
-        majFaite = False
         if self.check_maj.GetValue():
             mess = "MAJ Process interrompu !!"
             if self.ctrl_donnees.zipFile:
                 self.ctrl_donnees.zipFile.extractall("%s"%pathRoot)
                 mess = "Le processus de mise à jour est terminé."
-                majFaite = True
+                self.majFaite = True
 
         mess = "Fin d'opération\n\n-\t%s\n-\t%s" % (messStockage, mess)
         style = wx.OK
-        if majFaite:
+        if self.majFaite:
             mess += "\n\nRedémarrage de Noethys pour prendre en compte la version à jour?"
             mess += "\nSans redémarrage les anciens programmes restent chargés."
             style = wx.YES_NO

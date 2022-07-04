@@ -1,3 +1,8 @@
+version 1.3.1.19 (04/07/2022 21:22):
+- Nouveau règlement : ok
+- Impression de plusieurs pièces de nature différente : ok
+- Redémarrage automatique après release : modifié, à tester pour la prochaine release
+
 version 1.3.1.18 (04/07/2022 14:16):
 - Tri sur colonnes de nombres: corection du bug
 - Saisie des règlements: Une banque par défaut est proposée selon le mode règlement

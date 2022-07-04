@@ -217,7 +217,7 @@ class Facturation():
                                 ["texte"] = str
                                 ["montant"] = decimal
                                 ["ventilation"] = decimal
-            ["reports"][periode]
+            ["reports"][str(periode)]
                                 [nature] = decimal 
             ["reglements"][IDreglement] = dictReglement
             autres clé  int: IDfamille,IDpage,noPage,noFact,select,nature,nomSansCivilite,texte_introduction,
@@ -517,11 +517,11 @@ class Facturation():
                             montant_impaye = dictImpayes[periode][type]
                             # presence de comptes à éditer
                             if (periode in dictToPage["reports"]) == False :
-                                dictToPage["reports"][periode] = {}
-                            if (type in dictToPage["reports"][periode]) == False :
-                                dictToPage["reports"][periode][type] = FloatToDecimal(0.0)
+                                dictToPage["reports"][str(periode)] = {}
+                            if (type in dictToPage["reports"][str(periode)]) == False :
+                                dictToPage["reports"][str(periode)][type] = FloatToDecimal(0.0)
                             solde += montant_impaye
-                            dictToPage["reports"][periode][type] += montant_impaye
+                            dictToPage["reports"][str(periode)][type] += montant_impaye
                     dictToPage["total_reports"] += solde
 
             # Reports: déduction des règlements toujours libres
@@ -1756,7 +1756,7 @@ class Facturation():
             except Exception as err:
                 del dlgAttente
                 traceback.print_exc(file=sys.stdout)
-                err = str(err).decode("iso-8859-15")
+                err = str(err)
                 dlg = wx.MessageDialog(None, _("Désolé, le problème suivant a été rencontré dans l'édition des factures : \n\n%s") % err, _("Erreur"), wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()

@@ -1550,14 +1550,21 @@ class MainFrame(wx.Frame):
             import DLG_Release
             dlg = DLG_Release.Dialog(self,VERSION_DATA,VERSION_LOGICIEL_DATE)
             resultat = dlg.ShowModal()
+            majFaite = dlg.majFaite
             dlg.Destroy()
-            if resultat != True:
+            if not majFaite:
                 self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
                 message = "Votre station n'est pas à jour!\n\n"
                 message += "installez la version '%s.xxx' la plus récente ."%VERSION_LOGICIEL[:3]
                 titre = "Erreur"
                 style = wx.OK | wx.ICON_EXCLAMATION
-
+            else:
+                if resultat == wx.ID_OK:
+                    # redémarrage après release faite et confirmée par l'utilisateur
+                    self.Quitter(videRepertoiresTemp=False, sauvegardeAuto=False)
+                else:
+                    message = "Votre station sera à jour après le prochain démarrage"
+                    titre = "L'ancienne version reste active"
         if resultat != True :
             dlg = wx.MessageDialog(self,message,titre,style=style)
             dlg.CenterOnParent()
