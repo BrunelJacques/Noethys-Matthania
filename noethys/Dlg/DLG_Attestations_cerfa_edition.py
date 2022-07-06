@@ -442,13 +442,16 @@ class Panel(wx.Panel):
         self.tracksOut = []
         for track in tracks:
             #complémentation des track
-            strCerfa = str(track.cerfa[1:-1])
+            if isinstance(track.cerfa,str):
+                strCerfa = track.cerfa
+            else:
+                strCerfa = track.cerfa.decode()
+            strCerfa = strCerfa[1:-1]
             lstCerfa = strCerfa.split("##")
             dictCerfa = {}
             for item in lstCerfa:
                 lstItem = item.split("::")
                 if len(lstItem) == 2:
-
                     dictCerfa[str(lstItem[0])] = lstItem[1]
             dictCerfa["IDcerfa"] = track.IDcerfa
             trackOut = TrackOut(dictCerfa)
