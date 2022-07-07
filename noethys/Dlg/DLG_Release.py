@@ -62,6 +62,7 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         self.zipFile = None # vient d'un fichier ou de la base (alors non re-stockable)
         self.nomFichier = None # signale un fichier valide - chargé - stockable
         self.tplVersionData = None
+
         self.MAJ(self.version_data)
 
     def MAJ(self,version_choix):
@@ -258,12 +259,18 @@ class CTRL_AfficheVersion(wx.TextCtrl):
 
         lstNumReleases = self.GetNumReleases(categorie)
         trouvee = False
+        lastVersion = tplVersion
         for no in lstNumReleases:
             if no == tplVersion:
                 trouvee = True
+            if no > tplVersion and no > lastVersion:
+                lastVersion = no
         mess = None
         if len(lstNumReleases) == 0:
             mess = "Pas de releases stockées dans cette base pour Noethys '(%s)'"%categorie
+        elif lastVersion >= tplVersion:
+            # on priviligie la dernière version car tplVersion n'a pas été actualisé
+            tplVersion = lastVersion
         elif not trouvee:
             mess = "La version '%s' n'est pas stockée dans cette base, " % str(tplVersion)
             mess += "d'autres versions sont disponibles"
@@ -528,7 +535,7 @@ class Dialog(wx.Dialog):
             if ret == 'ok':
                 messStockage = "Version stockée pour être partagée aux stations"
             else:
-                messStockage = "Echec Stockage: \n%s"%ret 
+                messStockage = "Echec Stockage: \n%s"%ret
                 
         # Mise à jour de la station
         pathRoot = "%s"%FonctionsPerso.GetPathRoot()

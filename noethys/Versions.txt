@@ -1,3 +1,6 @@
+version 1.3.1.21 (ND07/07/2022 18:00):
+- Nouvelle version accessible sans redémarrer avant la mise à jour, seulemen après:
+
 version 1.3.1.20 (07/07/2022 17:00):
 - Edition Cerfas : adaptation python3 pour impression suivant génération
 - Ajout de ligne en facturation : corrigé
