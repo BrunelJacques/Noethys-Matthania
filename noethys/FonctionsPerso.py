@@ -29,7 +29,7 @@ def NoPunctuation(txt = ''):
     regex = regex.sub(' ', txt)
     return regex.replace('  ',' ')
 
-def ChiffresSeuls(txt = ''):
+def ChiffresSeuls(txt = ""):
     permis = "0123456789+-.,"
     new = ""
     for a in txt:

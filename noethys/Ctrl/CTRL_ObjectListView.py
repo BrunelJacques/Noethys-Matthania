@@ -208,7 +208,11 @@ class ObjectListView(OLV.ObjectListView):
         def _getSortValue(x):
             primary = sortColumn.GetValue(x)
             # pour des tris numériques on garde le type d'origine de primary
-            if sortColumn.typeDonnee in ("montant", "entier","bool" ):
+            isNum = isinstance(primary,(float,decimal.Decimal,int,bool))
+            if hasattr(sortColumn,'typeDonnee'):
+                if sortColumn.typeDonnee in ("montant", "entier","bool" ):
+                    isNum = True
+            if isNum:
                 if not isinstance(primary,(float,int,decimal.Decimal)):
                     primary = 0.0
             else:
