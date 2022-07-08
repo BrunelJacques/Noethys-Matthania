@@ -60,58 +60,55 @@ def GetReglements(IDfamille=None):
 
 def GetVentilations(IDfamille=None):
     ltVentilations = []
+    lstIDventilations = []
     DB = GestionDB.DB()
-    req = """   SELECT IDventilation, IDprestation, IDreglement, montant
+    req = """   SELECT IDventilation, IDprestation, IDreglement, montant, lettrage
                 FROM ventilation 
                 WHERE (ventilation.IDcompte_payeur = %d);
                 """%IDfamille
     DB.ExecuterReq(req,MsgBox="DLG_LettrageVentil.GetVentilations")
     ventilations = DB.ResultatReq()
     DB.Close()
-    for IDventilation, IDprestation, IDreglement, montant in ventilations:
-        ltVentilations.append((IDprestation,IDreglement,montant))
-    return ltVentilations
+    for IDventilation, IDprestation, IDreglement, montant, lettrage in ventilations:
+        ltVentilations.append((IDprestation,IDreglement,round(montant,2), lettrage))
+        lstIDventilations.append(IDventilation)
+    return ltVentilations, lstIDventilations
 
 class Lettrage(object):
     def __init__(self,IDfamille=None):
-        lstChamps = ["Libellé","date","Nature"]
-        dictFooter = {  "dlibelle": {"mode" : "nombre",
-                                     "singulier":"ligne afichée             Total lettre:",
-                                     "pluriel":"lignes afichées            Total letttres:"},
-                        "mtt" :     {"mode" : "total"}}
         dicPrestations = GetPrestations(IDfamille)
         dicReglements = GetReglements(IDfamille)
-        dlg = CTRL_ChoixListe.DLGventilations(self,ddDebits=dicPrestations,ddCredits=dicReglements,
-                        ltVentilations=GetVentilations(IDfamille),lChampsDesign=lstChamps,
-                        dictFooter= dictFooter,
-                        size=(1100, 600),titre="Ventilation des règlements sur les pièces",
-                        pos=wx.Point(100,50)
-                        )
+        ltVentilations, lstIDventil = GetVentilations(IDfamille)
+
+        dlg = CTRL_ChoixListe.DLGventilations(self,
+                        ddDebits=dicPrestations,ddCredits=dicReglements,
+                        ltVentilations=ltVentilations, pos=wx.Point(100,50))
         ret = dlg.ShowModal()
         if ret == wx.ID_OK:
             DB = GestionDB.DB()
-            self.SupprVentilations(DB,dlg.GetVentilSuppr(),IDfamille)
+            lstIDsuppr = [lstIDventil[ltVentilations.index(x)] for x in dlg.GetVentilSuppr()]
+            self.SupprVentilations(DB,lstIDsuppr,IDfamille)
             self.CreeVentilations(DB,dlg.GetVentilNews(),IDfamille)
             DB.Close()
         dlg.Destroy()
 
-    def SupprVentilations(self,DB,ltVentil,IDfamille):
-        lprest = [ x for (x,y,z) in ltVentil]
-        lregl = [ y for (x,y,z) in ltVentil]
+    def SupprVentilations(self,DB,lstIDventil,IDfamille):
+
         req = """   DELETE FROM ventilation 
                     WHERE   IDcompte_payeur = %d
-                            AND IDprestation in (%s)
-                            AND IDreglement in (%s);
-                    """ %(IDfamille,str(lprest)[1:-1],str(lregl)[1:-1])
+                            AND IDventilation in (%s);
+                    """ %(IDfamille,str(lstIDventil)[1:-1])
         DB.ExecuterReq(req, MsgBox="DLG_LettrageVentil.SupprVentilations")
 
-    def CreeVentilations(self,DB,ltVentil,IDfamille):
-        for IDprestation,IDreglement, montant in ltVentil:
+    def CreeVentilations(self,DB,llVentil,IDfamille):
+        for IDprestation,IDreglement, montant, lettre in llVentil:
             donnees = [("IDcompte_payeur",IDfamille),
                        ("IDreglement",IDreglement),
                        ("IDprestation",IDprestation),
-                       ("montant",montant)]
-            ret = DB.ReqInsert('ventilation',donnees,retourID=False,MsgBox="DLG_LettrageVentil.CreeVentilations")
+                       ("montant",montant),
+                       ("lettrage",lettre)]
+            ret = DB.ReqInsert('ventilation',donnees,retourID=False,
+                               MsgBox="DLG_LettrageVentil.CreeVentilations")
 
     # -----------------------------------------------------------------------------------------------------
 

@@ -1,68 +1,144 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#------------------------------------------------------------------------
+# ------------------------------------------------------------------------
 # Application :    Noethys, Matthania
-# Auteur:           Ivan LUCAS, JB, Jacques Brunel
-# Licence:         Licence GNU GPL
+# Auteur :           Ivan LUCAS, JB, Jacques Brunel
+# Licence :         Licence GNU GPL
 # Permet un choix dans une liste et retourne l'indice
-#------------------------------------------------------------------------
+# ------------------------------------------------------------------------
 
 import wx
 import Chemins
-import copy,datetime
+import GestionDB
+import datetime
 import FonctionsPerso as fp
 from Ctrl import CTRL_Bouton_image
 from Utils import UTILS_Config
 import decimal
-from Ctrl.CTRL_ObjectListView import FastObjectListView, ObjectListView, ColumnDefn, Filter, CTRL_Outils, PanelAvecFooter
-from Utils.UTILS_Decimal import FloatToDecimal
+from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, \
+    Filter, CTRL_Outils, PanelAvecFooter
 from Ctrl import CTRL_Bandeau
-import GestionDB
 
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "€")
 
-
 def Nz(valeur):
-    if valeur == None:
+    if not valeur:
         valeur = 0
     return valeur
 
-def FormateValue(value):   
-    if not value : return ""
-    if isinstance(value,(datetime.date,datetime.datetime,wx.DateTime)):
-        return str(value)
-    if isinstance(value,(int,float,decimal.Decimal,bool)):
-        return "%.2f " % (value)
-    return value
-
-def FormateMontant(montant):   
-    if not montant : return ""
-    elif not isinstance(montant,(int,float,bool,decimal.Decimal)) :
+def FmtNombre(montant, zero = True):
+    if montant == None:
+        return ""
+    elif not isinstance(montant, (int, float, bool, decimal.Decimal)):
         return montant
-    if int(montant*100) == 0: return ""
-    if isinstance(montant,(int,bool)): return "%d"%(montant)
-    return "%.2f" %(montant)
+    if zero:
+        if isinstance(montant, (int, bool)): return "%d.00" % montant
+        return '{:.2f}'.format(montant)
+    else:
+        if int(montant * 100) == 0:
+            return ""
+        return '{:.2f}'.format(montant)
+
+
+def FormateMontant(montant):
+    return FmtNombre(montant,zero=False)
+
+def FormateCumul(montant):
+    return FmtNombre(montant,zero=True)
+
+def GetColonnesVentil():
+    lstColumns = [
+        ColumnDefn("Nature",'left',60,'nature',typeDonnee='texte', isSpaceFilling=False),
+        ColumnDefn("Date", 'left', 80, 'date',typeDonnee='texte',isSpaceFilling=False),
+        ColumnDefn("ID", 'left', 60, "ID", typeDonnee="entier", isSpaceFilling=False),
+        ColumnDefn("Libellé",'left',240,'label',typeDonnee='texte',isSpaceFilling=True),
+        ColumnDefn("Montant", 'right', 80, 'montant_aff', typeDonnee='montant',
+                   isSpaceFilling=False, stringConverter=FormateMontant),
+        ColumnDefn("A ventiler", 'right', 80, 'mttVentiler_aff', typeDonnee='montant',
+                   isSpaceFilling=False, stringConverter=FormateMontant),
+        ColumnDefn("Let", 'right', 30, 'lettreID', typeDonnee='texte',
+                   isSpaceFilling=False),
+        ColumnDefn("Lettrage", 'left', 240, 'lettres', typeDonnee='texte',
+                   isSpaceFilling=True),
+        ColumnDefn("Solde Progressif", 'right', 80, 'solde', typeDonnee='montant',
+                   isSpaceFilling=False, stringConverter=FormateCumul),
+    ]
+    return lstColumns
+
+def AlphaSeuls(txt):
+    new = ""
+    for car in txt:
+        if (car >= "a") and (car <= "z"):
+            new += car
+        if (car >= "A") and (car <= "Z"):
+            new += car
+    return new
 
 def LettreSuivante(lettre=''):
-    if not isinstance(lettre,str): lettre = 'A'
-    if lettre == '': lettre = 'A'
-    # incrémentation d'un lettrage
+    # plusieurs caractères possibles, chiffres ou lettres de casses différentes
+    if not isinstance(lettre, str): lettre = 'A'
+    lettre = lettre.strip()
+    if lettre == '': lettre = '@'
+    # incrémentation d'un lettrage dans la même casse
     lastcar = lettre[-1]
     precars = lettre[:-1]
-    if ord(lastcar) in (90,122):
-        if len(precars) == 0:
-            precars = chr(ord(lastcar)-25)
+    dicPlage = {"9":"1", "Z":"A", "z":"a"}
+    if lastcar in ("9","Z","z"):
+        # limite atteinte: lastcar recule en début de plage et incrementation precars
+        if len(precars) > 0 \
+                and (precars[-1] <= lastcar) \
+                and (precars[-1] > dicPlage[lastcar]):
+            # le caractère précédent est de même casse, on l'incrémente
+            precars = LettreSuivante(precars)
         else:
-            precars= LettreSuivante(precars)
-        new = precars + chr(ord(lastcar)-25)
+            # le préfixe étant absent ou de casse différente, on insère un nouveau caractère
+            precars += dicPlage[lastcar]
+        # rétrogradation de lastcar pour les chiffres il faut '10' et non ('11' ou '00')
+        if lastcar == "9":
+            new = precars + "0"
+        else:
+            new = precars + dicPlage[lastcar]
+
     else:
+        # incrémentation simple dans la casse
         new = precars + chr(ord(lastcar) + 1)
     return new
 
+def LettresMax(lstLignes, pos):
+    lstLettres = [x[pos] for x in lstLignes if x[pos]]
+    lstNombres = [0,]
+    lstAlpha = [" ",]
+    for lettre in lstLettres:
+        chiffres = fp.ChiffresSeuls(lettre)
+        if len(chiffres) > 0 :
+            lstNombres.append(int(chiffres))
+        alphas = AlphaSeuls(lettre)
+        if len(alphas) > 0:
+            lstAlpha.append(alphas)
+    lstNombres.sort()
+    lstAlpha.sort()
+    return str(lstNombres[-1]), lstAlpha[-1]
+
+def rowFormatter(listItem, track):
+    if track.nature == 'P':
+        listItem.SetBackgroundColour(wx.Colour(255, 205, 210))
+    elif track.nature == 'R':
+        listItem.SetBackgroundColour(wx.Colour(220, 237, 200))
+    if track.montant < 0:
+        listItem.SetTextColour(wx.BLUE)
+
+class Track(object):
+    # Reçoit un dic donnees  et une liste champs, retrourne une track
+    def __init__(self, donnees, champs):
+        for ix in range(len(champs)):
+            champ = champs[ix]
+            valeur = donnees[champ]
+            setattr(self, champ, valeur)
+
 class CTRL_Solde(wx.Panel):
     def __init__(self, parent):
-        wx.Panel.__init__(self, parent, id=-1, name="panel_solde", style=wx.SUNKEN_BORDER | wx.TAB_TRAVERSAL,
-                          size=(100, 40))
+        wx.Panel.__init__(self, parent, id=-1, name='panel_solde', style=wx.SUNKEN_BORDER | wx.TAB_TRAVERSAL,
+                          size=(100, 30))
         self.parent = parent
 
         # Solde du compte
@@ -78,14 +154,14 @@ class CTRL_Solde(wx.Panel):
         grid_sizer_base.AddGrowableCol(0)
         grid_sizer_base.AddGrowableRow(0)
         # self.SetToolTip(u"Solde")
-        self.ctrl_solde.SetToolTip("Solde")
+        self.ctrl_solde.SetToolTip("Afichage du solde calculé")
 
-    def SetSolde(self, montant=FloatToDecimal(0.0)):
+    def SetValue(self, montant):
         """ MAJ intégrale du controle avec MAJ des donnees """
-        if montant > FloatToDecimal(0.0):
-            label = "+ %.2f " % (montant)
+        if montant > 0.0:
+            label = "+ %.2f " % montant
             self.SetBackgroundColour("#C4BCFC")  # Bleu
-        elif montant == FloatToDecimal(0.0):
+        elif montant == 0.0:
             label = "0.00 "
             self.SetBackgroundColour("#5DF020")  # Vert
         else:
@@ -95,167 +171,122 @@ class CTRL_Solde(wx.Panel):
         self.Layout()
         self.Refresh()
 
-class Track(object):
-    def __init__(self, donnees,champs):
-        for ix in range(len(champs)):
-            champ= champs[ix]
-            setattr(self, "%s" % champ, donnees[ix])
+# ----------------------------------------------------------------------------------------
 
-            # -------------------------------------------------------------------------------------------------------------------------------------------
-
-class ListView(ObjectListView):
+class ListView(FastObjectListView):
     def __init__(self, *args, **kwds):
-        kwds['style'] = wx.LC_REPORT | wx.SUNKEN_BORDER | wx.LC_SINGLE_SEL | wx.LC_HRULES | wx.LC_VRULES
-        ObjectListView.__init__(self, *args,**kwds)
+        kwds[
+            'style'] = wx.LC_REPORT | wx.SUNKEN_BORDER | wx.LC_SINGLE_SEL | wx.LC_HRULES | wx.LC_VRULES
+        FastObjectListView.__init__(self, *args, **kwds)
+        self.rowFormatter = rowFormatter
 
 class ListviewAvecFooter(PanelAvecFooter):
     def __init__(self, parent, dictFooter={}, kwargs={}):
         PanelAvecFooter.__init__(self, parent, ListView, kwargs, dictFooter)
 
-#---------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------------------
 
 class DLGventilations(wx.Dialog):
     # Gestion d'un lettrage à partir de deux dictionnaires d'écritures, ventilations, liste des champs de désignations
     # La clé des dictionnaires est l'ID  (origine fichier), ensuite deux clés 'designations, montant.
     # les tuples de ventilations sont IDdebit, IDcredit, montant
     # la liste champs de désignation est les labels correspondants aux valeurs désignations des dictionnaires
-    
-    def __init__(self, parent,ddDebits={},ddCredits={},ltVentilations=[],lChampsDesign=(),**kwds):
+
+    def __init__(self, parent, ddDebits=None, ddCredits=None, ltVentilations=(), **kwds):
 
         parentName = parent.__class__.__name__
         self.parent = parent
-        intro =         kwds.pop('intro',"Cochez les lignes associées puis cliquez sur lettrage ou délettrage...")
-        titre_bandeau = kwds.pop('titre',"Lettrage par les montants ventilés")
-        titre_frame =   kwds.pop('titre_frame',"%s / CTRL_ChoixListe.DLGventilations"%parentName)
-        dfooter   =  {"mtt" : {"mode" : "total"}}
-        dictFooter =    kwds.pop('dictFooter',dfooter)
-        autoLayout =    kwds.pop('autoLayout',True)
-        columnSort =    kwds.pop('columnSort',2)
-        lstWidth =      kwds.pop('lstWidts',None)
-        minSize  =      kwds.pop('minSize',(500, 350))
+        intro = kwds.pop('intro',
+                         "Cochez les lignes associées puis cliquez sur lettrage ou délettrage...")
+        titre_bandeau = kwds.pop('titre', "Lettrage par les montants ventilés")
+        titre_frame = kwds.pop('titre_frame',
+                               "%s / CTRL_ChoixListe.DLGventilations" % parentName)
+        dfooter = {'montant_aff': {'mode': 'total'},'mttVentiler_aff': {'mode': 'total'}}
+        dictFooter = kwds.pop('dictFooter', dfooter)
+        autoLayout = kwds.pop('autoLayout', True)
+        self.columnSort = kwds.pop('columnSort', 1)
+        minSize = kwds.pop('minSize', (600, 350))
 
         kwdlg = {}
-        kwdlg['size']=  kwds.pop('size',(1000, 500))
-        kwdlg['pos']=  kwds.pop('pos',(300,150))
-        style = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX
-        kwdlg['style']= kwds.pop('style',style)
+        kwdlg['size'] = kwds.pop('size', (1000, 700))
+        kwdlg['pos'] = kwds.pop('pos', (300, 50))
+        style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX
+        kwdlg['style'] = kwds.pop('style', style)
         wx.Dialog.__init__(self, None, -1, **kwdlg)
 
-        self.multiwidth = 7 # multiplicateur du nombre de caratère dans la colonne pour déterminer la largeur
-        self.maxWidth = 250 # longeur maxi d'une colonne avant extend
-        self.lstWidth = lstWidth
         self.SetMinSize(minSize)
         self.SetTitle(titre_frame)
-        self.ltVentilationsOriginal = copy.deepcopy(ltVentilations)
-        self.ltVentilations = ltVentilations
-        self.ddDebits = ddDebits
-        self.ddCredits = ddCredits
-        self.lChampsDesign = lChampsDesign
-        self.columnSort = columnSort
-        self.choix = None
-        self.nbChampsDesign = len(lChampsDesign)
-        self.autoWidth = False
-        if not self.lstWidth:
-            self.autoWidth = True
-        self.ixDateD = None
-        self.ixDateC = None
+        self.filtreLet = None
+        self.ltVentilationsOriginal = [x for x in ltVentilations]
+        self.llVentilations = [[w,x,round(y,2),z] for (w,x,y,z) in ltVentilations]
+        self.ddDonnees, self.ldDonnees = self.InitLignes(ddDebits, ddCredits)
+        # Construction des colonnes de l'OLV
+        self.lstColumns = GetColonnesVentil()
+        self.lstCodes = [x.valueGetter for x in self.lstColumns]
+        self.lstCodes += ['montant', 'mttVentiler', 'sens', 'signeMtt']
+
         # conteneur des données OLV
-        self.pnlListview = ListviewAvecFooter(self, dictFooter = dictFooter, kwargs=kwds)
+        self.pnlListview = ListviewAvecFooter(self, dictFooter=dictFooter, kwargs=kwds)
         self.listview = self.pnlListview.GetListview()
         self.ctrl_outils = CTRL_Outils(self, listview=self.listview, afficherCocher=True)
-
-        # préaffectation des pointeurs de ventilations pour accès plus rapide colonnes vent et reste
-        let = "d`" # da sera la première lettre
-        for key,dic in self.ddDebits.items():
-            let = LettreSuivante(let)
-            dic['ptVentil']= let
-        let = "c`" # ca sera la première lettre
-        for key,dic in self.ddCredits.items():
-            let = LettreSuivante(let)
-            dic['ptVentil']= let
-
-        # préparation des libellés de colonnes, remplissage à blanc
-        champsDesign = ["",]*(self.nbChampsDesign)
-        champsMilieu = ["Lettre D-C","Débit","Mtt lettre","Crédit","cID",]
-        champsEntete = ["dID",]
-        self.lstLibels =  champsEntete  + champsDesign +champsMilieu+ champsDesign
-        self.nbColonnes = len(self.lstLibels)
-
-        self.ixChampsDebits = len(champsEntete)
-        self.ixChampsMilieu = self.ixChampsDebits +self.nbChampsDesign
-        self.ixChampsCredits = self.ixChampsMilieu + len(champsMilieu)
-
-        #insertion des libelles désignations après l'ID en entête
-        ix = 0
-        for champ in lChampsDesign:
-            self.lstLibels[self.ixChampsDebits + ix] = 'd' + champ
-            self.lstLibels[self.ixChampsCredits + ix] = 'c' + champ
-            ix +=1
-
-        # constitution de liste des codes (le premier mot du libellé de la colonne, sans accent et en minuscule)
-        self.lstCodes = [fp.Supprime_accent(x.split(" ")[0].strip()).lower() for x in self.lstLibels]
-        if "ddate" in self.lstCodes:
-            self.ixDateD = self.lstCodes.index("ddate")
-        if "cdate" in self.lstCodes:
-            self.ixDateC = self.lstCodes.index("cdate")
-
-        # vérif unicité code
-        lstano = [x for x in self.lstCodes if self.lstCodes.count(x)>1]
-        if len(lstano)>0:
-            mess = "Les noms des champs doivent être uniques dans un même liste liste!\n voir le doublon: '%s'"%lstano[0]
-            wx.MessageBox(mess, "Impossible")
-            return
-
-
-        # calcul de la largeur nécessaire pour les colonnes si non fournie en kwds
-        self.lstDonnees = []
-        if self.autoWidth:
-            self.lstWidth = [50]*(self.nbColonnes) # préalimentation d'une largeur par défaut
-            for libel in self.lstLibels:
-                if self.lstWidth[self.lstLibels.index(libel)] < self.multiwidth*len(libel)+10:
-                    self.lstWidth[self.lstLibels.index(libel)] = min(self.maxWidth,self.multiwidth*len(libel)+10)
+        self.SetCouleurImages()
 
         # Bandeau
-        self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre_bandeau, texte=intro, hauteurHtml=15,
-                                                 nomImage=Chemins.GetStaticPath("Images/22x22/Smiley_nul.png"))
+        self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre_bandeau, texte=intro,
+                                                 hauteurHtml=15,
+                                                 nomImage=Chemins.GetStaticPath(
+                                                     "Images/22x22/Smiley_nul.png"))
 
         # Pied de l'écran
+        self.ctrl_labelMontant = wx.StaticText(self, -1, "Montant coché : ")
+        self.ctrl_montant = CTRL_Solde(self)
+        # wx.TextCtrl(self, -1, style=wx.TE_RIGHT | wx.TE_READONLY)
 
-        self.ctrl_labelMontant = wx.StaticText(self, -1,"Montant coché : ")
-        self.ctrl_montant = wx.TextCtrl(self, -1, style= wx.TE_RIGHT|wx.TE_READONLY)
+        self.ctrl_labelFiltreLet = wx.StaticText(self, -1, "Filtrer lettre: ")
+        self.ctrl_filtreLet = wx.TextCtrl(self, -1, style=wx.TE_PROCESS_ENTER,
+                                          size=(40, 25))
 
-        self.check_avecLettrees = wx.CheckBox(self,-1,"Masquer les lignes entièrement lettrées")
-        self.bouton_lettrer = CTRL_Bouton_image.CTRL(self, texte="Lettrer", cheminImage="Images/32x32/Configuration2.png")
-        self.bouton_delettrer = CTRL_Bouton_image.CTRL(self, texte="DeLettrer", cheminImage="Images/32x32/Depannage.png")
-        self.bouton_fermer = CTRL_Bouton_image.CTRL(self, texte="Annuler", cheminImage="Images/32x32/Annuler.png")
-        self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte="Valider", cheminImage="Images/32x32/Valider.png")
+        self.check_avecLettrees = wx.CheckBox(self, -1,
+                                              "Masquer les lignes ventilées")
+        self.bouton_lettrer = CTRL_Bouton_image.CTRL(self, texte="Lettrer",
+                                                     cheminImage="Images/32x32/Configuration2.png")
+        self.bouton_delettrer = CTRL_Bouton_image.CTRL(self, texte="DeLettrer",
+                                                       cheminImage="Images/32x32/Depannage.png")
+        self.bouton_fermer = CTRL_Bouton_image.CTRL(self, texte="Annuler",
+                                                    cheminImage="Images/32x32/Annuler.png")
+        self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte="Valider",
+                                                cheminImage="Images/32x32/Valider.png")
         self.__set_properties()
+        self.InitObjectListView()
         if autoLayout:
             self.MAJ()
             self.__do_layout()
 
     def __set_properties(self):
-        font = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
-        style = wx.TextAttr(wx.BLUE, wx.LIGHT_GREY, font=font)
-        self.ctrl_montant.SetDefaultStyle(style)
-        self.ctrl_montant.SetValue("{:10.2f} {}".format(0,SYMBOLE))
-
         # TipString, Bind et constitution des colonnes de l'OLV
-        self.ctrl_montant.SetToolTip("Pour aider la recherche, ici la somme des montants à lettrer")
-        self.check_avecLettrees.SetToolTip("Cliquez ici après avoir coché des lignes à associer")
-        self.bouton_lettrer.SetToolTip("Cliquez ici après avoir coché des lignes à associer")
-        self.bouton_delettrer.SetToolTip("Cliquez ici après avoir sélectionné une ligne de la lettre à supprimer")
-        self.bouton_ok.SetToolTip("Cliquez ici pour valider et enregistrer les modifications")
+        self.ctrl_montant.SetToolTip(
+            "Pour aider la recherche, ici la somme des montants à lettrer")
+        self.ctrl_filtreLet.SetToolTip(
+            "En saisisant une lettre seules les lignes associées seront filtrées")
+        self.check_avecLettrees.SetToolTip(
+            "Cliquez ici après avoir coché des lignes à associer")
+        self.bouton_lettrer.SetToolTip(
+            "Cliquez ici après avoir coché des lignes à associer")
+        self.bouton_delettrer.SetToolTip(
+            "Cliquez ici après avoir sélectionné une ligne de la lettre à supprimer")
+        self.bouton_ok.SetToolTip(
+            "Cliquez ici pour valider et enregistrer les modifications")
         self.bouton_fermer.SetToolTip("Cliquez ici pour abandonner les modifications")
         self.listview.SetToolTip("Double Cliquez pour cocher")
         # Binds
         self.Bind(wx.EVT_BUTTON, self.OnClicOk, self.bouton_ok)
         self.Bind(wx.EVT_BUTTON, self.OnClicFermer, self.bouton_fermer)
-        self.Bind(wx.EVT_CHECKBOX, self.OnCheckLettrees, self.check_avecLettrees)
+        self.Bind(wx.EVT_TEXT_ENTER, self.OnMAJ, self.ctrl_filtreLet)
+        self.Bind(wx.EVT_CHECKBOX, self.OnMAJ, self.check_avecLettrees)
         self.Bind(wx.EVT_BUTTON, self.OnClicLettrer, self.bouton_lettrer)
         self.Bind(wx.EVT_BUTTON, self.OnClicDelettrer, self.bouton_delettrer)
         self.listview.Bind(wx.EVT_COMMAND_LEFT_CLICK, self.OnCalculLettres)
-        self.ctrl_outils.bouton_cocher.Bind(wx.EVT_ERASE_BACKGROUND,self.OnCalculLettres)
+        self.ctrl_outils.bouton_cocher.Bind(wx.EVT_ERASE_BACKGROUND, self.OnCalculLettres)
 
     def __do_layout(self):
         gridsizer_base = wx.FlexGridSizer(rows=6, cols=1, vgap=0, hgap=0)
@@ -266,10 +297,12 @@ class DLGventilations(wx.Dialog):
         gridsizer_base.Add((5, 5), 0, wx.LEFT | wx.RIGHT | wx.EXPAND, 0)
 
         # Bas d'écran
-        gridsizer_boutons = wx.FlexGridSizer(rows=1, cols=9, vgap=0, hgap=0)
+        gridsizer_boutons = wx.FlexGridSizer(rows=1, cols=11, vgap=0, hgap=0)
         gridsizer_boutons.Add(self.ctrl_labelMontant, 0, wx.ALL, 5)
-        gridsizer_boutons.Add(self.ctrl_montant, 1, 0, 0)
+        gridsizer_boutons.Add(self.ctrl_montant, 1, wx.ALIGN_CENTER, 0)
         gridsizer_boutons.Add((20, 20), 1, wx.ALIGN_BOTTOM, 0)
+        gridsizer_boutons.Add(self.ctrl_labelFiltreLet, 0, wx.ALL, 5)
+        gridsizer_boutons.Add(self.ctrl_filtreLet, 1, wx.ALIGN_CENTER | wx.RIGHT, 25)
         gridsizer_boutons.Add(self.check_avecLettrees, 1, wx.EXPAND, 0)
         gridsizer_boutons.Add(self.bouton_lettrer, 1, wx.EXPAND, 0)
         gridsizer_boutons.Add(self.bouton_delettrer, 1, wx.EXPAND, 0)
@@ -280,461 +313,397 @@ class DLGventilations(wx.Dialog):
         gridsizer_base.Add(gridsizer_boutons, 1, wx.RIGHT | wx.BOTTOM | wx.EXPAND, 10)
         gridsizer_base.AddGrowableRow(1)
         gridsizer_base.AddGrowableCol(0)
-        self.SetSizer(gridsizer_base,)
+        self.SetSizer(gridsizer_base, )
         self.Layout()
+
+    def InitLignes(self, ddDebits, ddCredits):
+        # composition en init des lignes à destination de l'olv
+        ldDonnees = []
+        ddDonnees = {}
+
+        # compose ddDonnees et ldDonnees ajoute des champs calculés
+        nature = 'P'  # prestations au débits
+        sens = -1
+        for ddLignes in (ddDebits, ddCredits):
+            for ID, dic in ddLignes.items():
+                # 'designations' et 'montant' doivent être présents dans ddDebits-Credits
+                signeMtt = 1
+                if dic['montant'] < 0:
+                    signeMtt = -1
+                key = (nature, ID)
+                dic['nature'] = nature
+                dic['ID'] = ID
+                dic['sens'] = sens
+                dic['signeMtt'] = signeMtt
+                dic['montant'] = round(dic['montant'], 2)
+                dic['montant_aff'] = round(dic['montant'], 2) * sens
+                dic['key'] = key
+                dic['label'] = dic['designations'][0]
+                dic['date'] = dic['designations'][1]
+                dic['mttVentiler'] = 0.0
+                dic['mttVentiler_aff'] = 0.0
+                dic['lettres'] = None
+                dic['solde'] = None
+                dic['lettreID'] = None
+                ldDonnees.append(dic)
+                ddDonnees[key] = dic
+            # changement pour le deuxième passage (crédits = Règlements)
+            nature = 'R'  # Règlements au crédit quelque soit leur signe
+            sens = +1
+
+        # purge des ventilations ophelines des lignes
+        lstRemove = []
+        for IDdeb, IDcre, mttVent, lettre in self.llVentilations:
+            verif = 0
+            if IDdeb > 0 and ('P', IDdeb) in ddDonnees:
+                verif = 1
+            if IDcre > 0 and ('R', IDcre) in ddDonnees:
+                verif += 1
+            if verif == 2:
+                continue
+            lstRemove.append([IDdeb, IDcre, mttVent, lettre])
+
+        for ventilation in lstRemove:
+            self.llVentilations.remove(ventilation)
+
+        # précharge les lettres à partir de ltVentil
+        for IDdeb, IDcre, mttVent, lettre in self.llVentilations:
+            if not lettre or len(lettre.strip()) == 0:
+                continue
+            key = ('P', IDdeb)
+            if key in ddDonnees:
+                if not ddDonnees[key]['lettreID']:
+                    # une seule lettreID par ligne seule la première est retenue
+                    lettreLigne = fp.ChiffresSeuls(lettre)
+                    if len(lettreLigne) > 0:
+                        ddDonnees[key]['lettreID'] = lettreLigne
+
+            key = ('R', IDcre)
+            if key in ddDonnees:
+                if not ddDonnees[key]['lettreID']:
+                    lettreLigne = AlphaSeuls(lettre)
+                    if len(lettreLigne) > 0:
+                        ddDonnees[key]['lettreID'] = lettreLigne
+
+        # affecte un lettre aux lignes sans lettreID
+        maxLetNum, maxLetAlpha = LettresMax(self.llVentilations, 3)
+        letNumSuivante = LettreSuivante(maxLetNum)
+        letAlphaSuivante = LettreSuivante(maxLetAlpha)
+        for dDonnees in ldDonnees:
+            if dDonnees['nature'] == 'P':
+                dDonnees['lettreID'] = letNumSuivante
+                letNumSuivante = LettreSuivante(letNumSuivante)
+            else:
+                dDonnees['lettreID'] = letAlphaSuivante
+                letAlphaSuivante = LettreSuivante(letAlphaSuivante)
+        return ddDonnees, ldDonnees
 
     def InitModel(self):
         # transformation des lignes en track pour l'OLV
-        self.tracks = [Track(don,self.lstCodes ) for don in self.lstDonnees]
+        self.tracks = []
+        for don in self.ldDonnees:
+            track = Track(don, self.lstCodes)
+            track.montant_aff = round(track.montant * track.sens,2)
+            track.mttVentiler_aff = round(track.mttVentiler * track.sens,2)
+            self.tracks.append(track)
+        self.listview.SetObjects(self.tracks)
+
+        filtreLettre = {'typeDonnee': 'libre',
+                        'criteres': "'%s' in (track.lettres + track.lettreID)" % self.ctrl_filtreLet.GetValue(),
+                        'choix': "", 'code': "", 'titre': "", }
+        if self.filtreLet:
+            self.listview.listeFiltresColonnes.remove(self.filtreLet)
+            self.filtreLet = None
+
+        if len(self.ctrl_filtreLet.GetValue()) > 0:
+            self.listview.listeFiltresColonnes.append(filtreLettre)
+            self.filtreLet = filtreLettre
+
+        equilibre = {'typeDonnee': 'libre',
+                     'criteres': "int(track.mttVentiler) != 0",
+                     'choix': "", 'code': "", 'titre': "", }
+        if self.check_avecLettrees.GetValue():
+            if not equilibre in self.listview.listeFiltresColonnes:
+                self.listview.listeFiltresColonnes += [equilibre, ]
+        elif equilibre in self.listview.listeFiltresColonnes:
+            self.listview.listeFiltresColonnes.remove(equilibre)
 
     def InitObjectListView(self):
         # Couleur en alternance des lignes
         self.listview.oddRowsBackColor = "#F0FBED"
         self.listview.evenRowsBackColor = wx.Colour(255, 255, 255)
         self.listview.useExpansionColumn = True
-
-        # Image list
-        self.imgVert = self.listview.AddNamedImages("vert", wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ventilation_vert.png"), wx.BITMAP_TYPE_PNG))
-        self.imgRouge = self.listview.AddNamedImages("rouge", wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ventilation_rouge.png"), wx.BITMAP_TYPE_PNG))
-        self.imgOrange = self.listview.AddNamedImages("orange", wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ventilation_orange.png"), wx.BITMAP_TYPE_PNG))
-        self.imgVertRond = self.listview.AddNamedImages("vert", wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Euro_vert.png"), wx.BITMAP_TYPE_PNG))
-        self.imgOrangeRond = self.listview.AddNamedImages("orange", wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Euro_orange.png"), wx.BITMAP_TYPE_PNG))
-
-
-        # Construction des colonnes de l'OLV
-        lstColumns = []
-        for ix in range(0,self.nbColonnes):
-            lstColumns.append(
-                ColumnDefn(self.lstLibels[ix], self.lstJustifs[ix],
-                           width=self.lstWidth[ix],
-                           isSpaceFilling = (self.lstWidth[ix] > 150 or ix in (self.ixChampsCredits,self.ixChampsDebits)),
-                           valueGetter=self.lstCodes[ix],
-                           valueSetter=self.lstValSetter[ix],
-                           typeDonnee=self.lstTypesDonnees[ix],
-                           isEditable=False))
-            # retouche sur la colonne en cours de création
-            if lstColumns[-1].typeDonnee in ('entier','montant'):
-                lstColumns[-1].stringConverter = FormateMontant
-            if lstColumns[-1].typeDonnee in ('date',):
-                lstColumns[-1].width = 80
-            if lstColumns[-1].valueGetter == "lettre":
-                lstColumns[-1].imageGetter=self.GetCouleurLettre
-            if lstColumns[-1].valueGetter == "did":
-                lstColumns[-1].imageGetter=self.GetCouleurDID
-                lstColumns[-1].width = 60
-            if lstColumns[-1].valueGetter == "cid":
-                lstColumns[-1].imageGetter=self.GetCouleurCID
-                lstColumns[-1].width = 60
-            if lstColumns[-1].valueGetter in ('debit','credit'):
-                # l'édition est non encore implementée
-                lstColumns[-1].isEditable=False
-                if self.autoWidth:
-                    lstColumns[-1].width = 60
-
-        lstColumns[0].width += 20
-        self.listview.SetColumns(lstColumns)
+        #
+        self.listview.SetColumns(self.lstColumns)
         self.listview.SetSortColumn(self.columnSort)
-        self.listview.CreateCheckStateColumn(self.ixChampsMilieu+1)
-        self.listview.SetObjects(self.tracks)
+        self.listview.CreateCheckStateColumn(5)
         self.listview.CocheListeRien()
 
-        equilibre = {'typeDonnee': "libre",'criteres': "track.lettre.upper() != track.lettre",
-                     'choix':"",'code':"",'titre':"",}
-        if self.check_avecLettrees.GetValue() == True:
-            if not equilibre in self.listview.listeFiltresColonnes:
-                self.listview.listeFiltresColonnes += [equilibre,]
-        elif equilibre in self.listview.listeFiltresColonnes:
-            self.listview.listeFiltresColonnes.remove(equilibre)
-
-        #self.listview.cellEditMode = ObjectListView.CELLEDIT_DOUBLECLICK
+    def SetCumul(self):
+        cumul = 0.0
+        for track in self.listview.GetObjects():
+            cumul += track.montant_aff
+            track.solde = cumul
 
     def MAJ(self):
-        self.ComposeLignes(self.ddDebits,self.ddCredits)
-        self.Lettrage()
+        self.ComposeLignes()
         self.InitModel()
-        self.InitObjectListView()
         self.Layout()
         search = self.ctrl_outils.barreRecherche.GetValue()
         self.listview.Filtrer(search)
         self.OnCalculLettres(None)
+        self.SetCumul()
 
-    # affectation de la couleur de l'image
-    def GetCouleurLettre(self,track):
-        if track.lettre and len(track.lettre)>0 and track.lettre == track.lettre.upper():
+    # retourne l'image colorisée, colonne Montant
+    def GetCouleurMontant(self, track):
+        if round(track.mttVentiler_aff, 2) == 0 and len(track.lettres) < 50:
             return self.imgVert
-        elif track.cid > 0 and  track.credit and self.ddCredits[track.cid]['montant'] * track.credit < 0.0:
-            return self.imgRouge
-        elif track.did > 0 and track.debit and self.ddDebits[track.did]['montant'] * track.debit < 0.0:
-            return self.imgRouge
-        elif track.did != 0:
+        elif abs(track.mttVentiler) > 1:
             return self.imgOrange
+        else:
+            return self.imgRouge
 
-    def GetCouleurDID(self,track):
+    # retourne l'image colorisée, colonne aVentiler
+    def GetCouleurVentil(self, track):
         # si lettrage non vert
-        if track.lettre and len(track.lettre)>0 and track.lettre == track.lettre.upper():
+        if track.mttVentiler_aff == 0:
             return
-        # teste la couleur du côté débit
-        if track.did > 0:
-            if abs(self.ddDebits[track.did]['montant'] - self.ddDebits[track.did]['mtVentil']) < 0.005:
-                return self.imgVertRond
-            else: return self.imgOrangeRond
+        # teste la couleur
+        if abs(track.mttVentiler_aff) > abs(track.montant_aff):
+            return self.imgSupprimer
+        elif (track.mttVentiler_aff * track.montant_aff) < 0:
+            # signes différents
+            return self.imgSupprimer
+        elif track.mttVentiler == track.montant:
+            return self.imgVertRond
+        else:
+            return self.imgOrangeRond
 
-    def GetCouleurCID(self, track):
-        # si lettretrage non vert
-        if track.lettre and len(track.lettre)>0 and track.lettre == track.lettre.upper():
-            return
-        # teste la couleur du côté crédit
-        if track.cid > 0:
-            if abs(self.ddCredits[track.cid]['montant'] - self.ddCredits[track.cid]['mtVentil']) < 0.005:
-                return self.imgVertRond
+    # paramétrage des images à insérer
+    def InitCouleurs(self):
+        # Image list
+        self.imgVert = self.listview.AddNamedImages("vert", wx.Bitmap(
+            Chemins.GetStaticPath("Images/16x16/Ventilation_vert.png"),
+            wx.BITMAP_TYPE_PNG))
+        self.imgRouge = self.listview.AddNamedImages("rouge", wx.Bitmap(
+            Chemins.GetStaticPath("Images/16x16/Ventilation_rouge.png"),
+            wx.BITMAP_TYPE_PNG))
+        self.imgOrange = self.listview.AddNamedImages("orange", wx.Bitmap(
+            Chemins.GetStaticPath("Images/16x16/Ventilation_orange.png"),
+            wx.BITMAP_TYPE_PNG))
+        self.imgVertRond = self.listview.AddNamedImages("vert", wx.Bitmap(
+            Chemins.GetStaticPath("Images/16x16/Euro_vert.png"), wx.BITMAP_TYPE_PNG))
+        self.imgOrangeRond = self.listview.AddNamedImages("orange", wx.Bitmap(
+            Chemins.GetStaticPath("Images/16x16/Euro_orange.png"), wx.BITMAP_TYPE_PNG))
+        self.imgSupprimer = self.listview.AddNamedImages("supprimer", wx.Bitmap(
+            Chemins.GetStaticPath("Images/16x16/Supprimer_2.png"), wx.BITMAP_TYPE_PNG))
+
+    # pose les fonctions de colorisation dans les columnDefn
+    def SetCouleurImages(self):
+        # colorisation par image
+        self.InitCouleurs()
+        colonneMtt = self.lstColumns[self.lstCodes.index('montant_aff')]
+        colonneMtt.imageGetter = self.GetCouleurMontant
+        colonneVentil = self.lstColumns[self.lstCodes.index('mttVentiler_aff')]
+        colonneVentil.imageGetter = self.GetCouleurVentil
+
+    def ComposeLignes(self):
+        # MAJ des lignes selon ltVentilations changeant
+        for dDonnees in self.ldDonnees:
+            key = dDonnees['key']
+            dDonnees['mttVentiler'] = dDonnees['montant']
+            dDonnees['lettres'] = ""
+            # regroupement des ventilation éclatées
+            dVentil = {}
+            ltVentilations = []
+            for IDdeb, IDcre, mttVent, lettre in self.llVentilations:
+                if not (IDdeb, IDcre) in dVentil:
+                    dVentil[(IDdeb, IDcre)] = [IDdeb, IDcre, mttVent, lettre]
+                    ltVentilations.append(dVentil[(IDdeb, IDcre)])
+                else:
+                    dVentil[(IDdeb, IDcre)][2] += mttVent
+            self.llVentilations = ltVentilations
+
+            # déroulé des ventilations pour prise en compte des ventilations
+            for IDdeb, IDcre, mttVent, lettre in self.llVentilations:
+                sens = dDonnees['sens']
+                keyDeb = ('P', IDdeb)
+                keyCre = ('R', IDcre)
+                if not key in (keyDeb, keyCre):
+                    # La ventilation ne concerne pas cette ligne
+                    continue
+                # prise en compte du montant ventilé
+                dDonnees['mttVentiler'] -= mttVent
+
+                # récupération lettre de ventilation
+                if keyDeb in self.ddDonnees:
+                    lettreIDdeb = self.ddDonnees[keyDeb]['lettreID']
+                else:
+                    lettreIDdeb = '*'
+                if keyCre in self.ddDonnees:
+                    lettreIDcre = self.ddDonnees[keyCre]['lettreID']
+                else:
+                    lettreIDcre = '*'
+                lettre = lettreIDdeb + lettreIDcre
+                # Composition des lettres
+                signe = sens
+                dDonnees['lettres'] += "%s %.0f%s, " % (lettre, mttVent * signe, SYMBOLE)
+        return
+
+    def Lettrage(self, lstDemande, lstRecept):
+        # Création d'une ventilation des tracks Demande par Recept
+        def takeTwo(trackA, trackB):
+            if trackA == trackB:
+                return
+            if trackA.mttVentiler_aff * trackB.mttVentiler_aff >= 0:
+                # rien à ventiler car non opposés
+                return
+            mttVentilA = trackA.mttVentiler
+            mttVentilB = trackB.mttVentiler
+            absVentil = min(abs(mttVentilA), abs(mttVentilB))
+            if absVentil == 0:
+                return
+            trackA.mttVentiler -= absVentil * trackA.signeMtt
+            trackB.mttVentiler -= absVentil * trackB.signeMtt
+            letA = trackA.lettreID
+            letB = trackB.lettreID
+
+            if trackA.nature != trackB.nature:
+                if trackA.nature == 'P':
+                    letDeb = letA
+                    letCre = letB
+                    IDdeb = trackA.ID
+                    IDcre = trackB.ID
+                    mttVentil = absVentil * trackB.signeMtt
+                else:
+                    letDeb = letB
+                    letCre = letA
+                    IDdeb = trackB.ID
+                    IDcre = trackA.ID
+                    mttVentil = absVentil * trackA.signeMtt
+                lettre = letDeb + letCre
+                ventilation = [IDdeb, IDcre, mttVentil, lettre]
+                self.llVentilations.append(ventilation)
             else:
-                return self.imgOrangeRond
+                # les deux lignes sont de même nature
+                if trackA.nature == 'R':
+                    ventilation = [0, trackA.ID, absVentil * trackA.signeMtt,
+                                   trackA.lettreID]
+                    self.llVentilations.append(ventilation)
+                    ventilation = [0, trackB.ID, absVentil * trackB.signeMtt,
+                                   trackB.lettreID]
+                    self.llVentilations.append(ventilation)
+                else:
+                    ventilation = [trackA.ID, 0, absVentil * trackA.signeMtt,
+                                   trackA.lettreID]
+                    self.llVentilations.append(ventilation)
+                    ventilation = [trackB.ID, 0, absVentil * trackB.signeMtt,
+                                   trackB.lettreID]
+                    self.llVentilations.append(ventilation)
 
-    def ComposeLignes(self,ddDebits, ddCredits):
-        # composition des protolignes
-        self.lstDonnees = []
-        
-        # raz des champs cumuls ventilations dans les fichiers originaux
-        for key,dic in ddDebits.items():
-            dic['mtVentil'] = 0.0
-        for key,dic in ddCredits.items():
-            dic['mtVentil'] = 0.0
-    
-        # déroulé des ventilations pour créer les lignes
-        for kdeb, kcre, mtvent in self.ltVentilations:
-
-            # passe les ventilations non complètes par deux ID != 0 et présents
-            if (not (kdeb in list(ddDebits.keys()) and kcre in list(ddCredits.keys()))):
-                continue
-            # initialise les données, les champs désignation viendront ensuite
-            donnee = [""] * self.nbColonnes
-
-            # données de l'entête
-            donnee[0] = kdeb 
-
-            # calcul des donnée du milieu
-            dmtt, cmtt = 0.0 , 0.0
-            if kdeb in list(ddDebits.keys()):
-                dmtt = ddDebits[kdeb]["montant"]
-            if kcre in list(ddCredits.keys()):
-                cmtt = ddCredits[kcre]["montant"]
-
-            donneesMilieu = ["",dmtt,mtvent,cmtt,kcre]
-            for ix in range(len(donneesMilieu)):
-                donnee[self.ixChampsMilieu + ix] = donneesMilieu[ix]
-
-            # alimentation des données des désignations débits puis crédits
-            key = kdeb
-            ixMt = self.ixChampsMilieu
-            ixDesign = self.ixChampsDebits
-            for dic in (self.ddDebits,self.ddCredits):
-                item = dic[key]
-                item['mtVentil'] += mtvent
-                for i in range(self.nbChampsDesign):
-                    donnee[ixDesign+i] = item["designations"][i]
-                    if self.autoWidth:
-                        if isinstance(item["designations"][i], (str)):
-                            lg = len(item["designations"][i])
-                        else:
-                            lg = len(str(item["designations"][i]))
-                        if self.lstWidth[ixDesign] < self.multiwidth * lg + 10:
-                            self.lstWidth[ixDesign] = min(self.maxWidth, self.multiwidth * lg + 10)
-                ixDesign = self.ixChampsCredits
-                key = kcre
-                ixMt = self.ixChampsCredits-1
-            self.lstDonnees.append(donnee)
-
-        # traitement des ventilation présentes avec des opposées à zéro
-        for kdeb, kcre, mtvent in self.ltVentilations:
-            # passe les ventilations déja traitées car complètes par deux ID != 0
-            if kdeb != 0 and kcre != 0:
-                continue
-            if kdeb == 0:
-                let = "c@"
-                key = kcre
-                ddDic = self.ddCredits
-            elif kcre == 0:
-                let = "d@"
-                key = kdeb
-                ddDic = self.ddDebits
-            else: continue
-
-            item = ddDic[key]
-            # la clé opposée est nulle!
-            item['ptVentil'] = let
-
-
-    # --------------- passages supplémentaires pour constituer des lignes non ventilées ------------------
-        ixID = 0
-        ixDesign = self.ixChampsDebits
-        ixMt = self.ixChampsMilieu + 1
-        mttVentil = 0.0 # montant de ventilation des lignes négatives compensant d'autres dans la colonne
-        ptVentil = None # reperage de la lettre commune de compensation
-        dicLetEquil = {}
-        for ddDic in (self.ddDebits,self.ddCredits):
-
-            for key,item in ddDic.items():
-                # déroule tous les items, une ligne pour chacun restant à lettrer
-                if abs(item['montant'] - item['mtVentil']) < 0.005:
+        for trackD in lstDemande:
+            if trackD.mttVentiler == 0:
+                break
+            for trackR in lstRecept:
+                if trackR.mttVentiler == 0:
                     continue
-                donnee = [""] * self.nbColonnes
-                champsNum = [ x for x in range(self.ixChampsMilieu + 1,self.ixChampsCredits-1)]
-                champsNum += [self.ixChampsDebits-1,self.ixChampsCredits-1,]
-                for ix in champsNum:
-                    donnee[ix] = 0
-                # Test pour éventuelles compensations négatives dans la colonne
-                if '@' in item['ptVentil']:
-                    if mttVentil == 0: # nouveau groupe de lignes
-                        ptVentil = item['ptVentil']
-                        dicLetEquil[ptVentil] = []
-
-                    mttVentil += item['montant'] - item['mtVentil']
-                    dicLetEquil[ptVentil].append(key)
-
-                # données de la demi ligne
-                donnee[ixID] = key
-                donnee[self.ixChampsMilieu + 2] = item['montant'] - item['mtVentil']
-                donnee[ixMt] = item['montant']
-                for ix in range(self.nbChampsDesign):
-                    donnee[ixDesign + ix] = item['designations'][ix]
-                self.lstDonnees.append(donnee)
-
-            if mttVentil != 0: # la derniere lettre de suivi d'equilibre n'est pas équlibrée
-                del dicLetEquil[ptVentil]
-            for let, lstID in dicLetEquil.items(): # traitement des lettres s'équilibrant dans la colonne
-                for IDitem in lstID:
-                    item  = ddDic[IDitem]
-                    item['ptVentil'] = let.upper()
-                    item['mtVentil'] = item['montant']
-
-            # fixe les index pour le deuxième passage (crédits)
-            ixID = self.ixChampsCredits - 1
-            ixMt = self.ixChampsCredits - 2
-            ixDesign = self.ixChampsCredits
-            mttVentil = 0.0 # montant de ventilation des lignes négatives compensant d'autres dans la colonne
-            ptVentil = None # reperage de la lettre commune de compensation
-            dicLetEquil = {}
-
-        # ----------------- Constitution des valeurs par défaut ---------------------------------------------
-        self.lstValSetter = [None,] * self.nbColonnes
-        self.lstTypesDonnees = ['texte',] * self.nbColonnes
-        self.lstJustifs = ['centre',] * self.nbColonnes
-        for i in range(len(self.lstDonnees)):
-            for ix in range(self.nbColonnes):
-                value = self.lstDonnees[i][ix]
-                if value == None:
-                    continue
-                self.lstValSetter[ix]=value
-                if isinstance(value,(float,decimal.Decimal)):
-                    self.lstTypesDonnees[ix] = "montant"
-                    self.lstJustifs[ix] = "right"
-                elif isinstance(value, (int)):
-                    self.lstTypesDonnees[ix] = "entier"
-                    self.lstJustifs[ix] = "right"
-                elif isinstance(value, (datetime.date,datetime.datetime,wx.DateTime)):
-                    self.lstTypesDonnees[ix] = "date"
-                    self.lstJustifs[ix] = "centre"
-                elif isinstance(value, (str)) and len(value) == 10 and '-' in value:
-                    self.lstTypesDonnees[ix] = "date"
-                    self.lstJustifs[ix] = "centre"
-                elif isinstance(value,str) and len(value) > 0:
-                    self.lstTypesDonnees[ix] = "texte"
-                    self.lstJustifs[ix] = "left"
+                takeTwo(trackD, trackR)
         return
 
-    def Lettrage(self):
-        # application de la lettre dans les données
-        ixLet = self.ixChampsMilieu
-        ixIDc = self.ixChampsCredits - 1 # l'ID précède les champs désignés
+    def ClearLetters(self, choix):
+        # récup des ID à lettrer, puis suppression des items
+        lstRemove = []
 
-        # compose la lettre de la ligne à partir des deux moitiés assemblées
-        for donnee in self.lstDonnees:
-            letD, letC = '', ''
-            if donnee[0] > 0 :
-                letD = self.ddDebits[donnee[0]]['ptVentil']
+        def addRemove(tple):
+            if not tple in lstRemove:
+                lstRemove.append(tple)
 
-            if donnee[ixIDc] > 0:
-                letC += str(self.ddCredits[donnee[ixIDc]]['ptVentil'])
-
-            # forcer en majuscule si la partie le crédit ou le débit est totalement ventilé
-            if donnee[0] > 0:
-                if abs(self.ddDebits[donnee[0]]['montant'] - self.ddDebits[donnee[0]]['mtVentil']) < 0.005:
-                    letD = letD.upper()
-                    self.ddDebits[donnee[0]]['ptVentil'] = letD
-            if donnee[ixIDc] > 0:
-                if abs(self.ddCredits[donnee[ixIDc]]['montant'] - self.ddCredits[donnee[ixIDc]]['mtVentil']) < 0.005:
-                    letC = letC.upper()
-                    self.ddCredits[donnee[ixIDc]]['ptVentil'] = letC
-            donnee[ixLet] = letD + '-' +letC
-
-        return
+        for track in choix:
+            for IDdeb, IDcre, mttVent, lettre in self.llVentilations:
+                if ((IDdeb == track.ID) and (track.nature == 'P')) \
+                        or ((IDcre == track.ID) and (track.nature == 'R')):
+                    addRemove([IDdeb, IDcre, mttVent, lettre])
+        for lst in lstRemove:
+            self.llVentilations.remove(lst)
 
     def OnCalculLettres(self, event):
         mtt = 0.0
         for track in self.listview.GetCheckedObjects():
-            if track.credit == 0:
-                mtt += track.mtt
-            else:
-                mtt -= track.mtt
-        self.ctrl_montant.SetValue("{:10.2f} {}".format(mtt,SYMBOLE))
+            mtt += track.montant_aff
+        # self.ctrl_montant.SetValue("{:10.2f} {}".format(mtt, SYMBOLE))
+        self.ctrl_montant.SetValue(mtt)
 
-    def ClearLetters(self,choix):
-        # récup des ID à lettrer, puis suppression des items
-        lstletDeb, lstletCre = [], []
-        for track in choix:
-            for kdeb, kcre, mtvent in self.ltVentilations:
-                if kdeb == track.did and kcre == track.cid:
-                    self.ltVentilations.remove((kdeb, kcre, mtvent))
-                    if kcre > 0:
-                        lstletCre.append(kcre)
-                        self.ddCredits[kcre]['mtVentil'] -= mtvent
-                        self.ddCredits[kcre]['ptVentil'] = self.ddCredits[kcre]['ptVentil'].lower()
-                    if kdeb > 0:
-                        lstletDeb.append(kdeb)
-                        self.ddDebits[kdeb]['mtVentil'] -= mtvent
-                        self.ddDebits[kdeb]['ptVentil'] = self.ddDebits[kdeb]['ptVentil'].lower()
-        # changement de casse par extension
-        for key,item in self.ddCredits.items():
-            if item['ptVentil'] in lstletCre:
-                item['ptVentil'] = item['ptVentil'].lower()
-        for key,item in self.ddDebits.items():
-            if item['ptVentil'] in lstletDeb:
-                item['ptVentil'] = item['ptVentil'].lower()
-
-    def OnCheckLettrees(self,event):
+    def OnMAJ(self, event):
         self.MAJ()
 
     def OnClicLettrer(self, event):
         choix = self.listview.GetCheckedObjects()
         if len(choix) == 0:
-            event.Skip()
-            return
+            mess = "Pas de choix = 'Tous'\n\n"
+            mess += "Sans ligne cochée nous allons tout délettrer puis tout relettrer..."
+            ret = wx.MessageBox(mess, "Confirmez", style=wx.YES_NO | wx.ICON_INFORMATION)
+            if ret != wx.YES:
+                return
+            choix = self.listview.GetObjects()
 
-        # on réassocie en ventilation toutes les lignes selectionnées
-        lettrer = [x for x in choix]
-        if len(lettrer) < 2  :
-            wx.MessageBox("Pas de lettrage possible !\n\nIl faut cocher plusieurs lignes")
-            event.Skip()
-            return
-
+        lstIxChoix = [self.listview.modelObjects.index(x) for x in choix]
+        """
         # on délettre tout ce qui était coché, avant de refaire les ventilations
         self.ClearLetters(choix)
+        lstIxChoix = [self.listview.modelObjects.index(x) for x in choix]
+        self.MAJ()
+        # les tracks ont changé d'adresse
+        del choix        
+        choix = [self.listview.modelObjects[x] for x in lstIxChoix]"""
 
-        # constitution de listes de tuple (montant à ventiler, ID) pour les lignes cochées
-        ldid = set([x.did for x in choix if x.did >0])
-        ldmtt = [self.ddDebits[x]['montant']-self.ddDebits[x]['mtVentil']  for x in ldid]
-        # tri par date des opérations si présence d'une colonne date
-        if self.ixDateD:
-            lddate =  [self.ddDebits[x]['designations'][self.ixDateD-1] for x in ldid]
-            temp = sorted(zip(lddate,ldmtt,ldid))
-            ltDebits = [(y,z) for (x,y,z) in temp]
-        else:
-            ltDebits = list(zip(ldmtt,ldid))
-
-        # idem pour les crédits
-        lcid = [x.cid for x in choix if x.cid >0]
-        lcmtt = [self.ddCredits[x]['montant']-self.ddCredits[x]['mtVentil']  for x in lcid]
-        if self.ixDateC:
-            lcdate =  [self.ddCredits[x]['designations'][self.ixDateD-1] for x in lcid]
-            temp = sorted(zip(lcdate,lcmtt,lcid))
-            ltCredits = [(y,z) for (x,y,z) in temp]
-        else:
-            ltCredits = list(zip(lcmtt,lcid))
-
-        # les liste de tuple vont se conjuguer
-
-        # compensations des opposés dans une même colonne
-        ddSerie = self.ddDebits
-        ix= 0
-        for ltSerie in (ltDebits,ltCredits):
-            negatifs = [(x,y) for (x,y) in ltSerie if x <= -0.005]
-            for mt,id in negatifs:
-                let = ddSerie[id]['ptVentil']
-                for mtopp, idopp in ltSerie:
-                    if mtopp < 0.005:
-                        continue
-                    mtVentil = min(abs(mt) - ddSerie[id]['mtVentil'] , mtopp - ddSerie[idopp]['mtVentil'])
-                    if mtVentil < 0.05: continue
-                    # association par règlement 0
-                    ddSerie[id]['mtVentil'] += -mtVentil
-                    ddSerie[idopp]['mtVentil'] += mtVentil
-                    ddSerie[idopp]['ptVentil'] = let
-                    if ix == 0:
-                        self.ltVentilations.append((id, 0, -mtVentil))
-                        self.ltVentilations.append((idopp, 0, mtVentil))
-                    else:
-                        self.ltVentilations.append((0,id, -mtVentil))
-                        self.ltVentilations.append((0,idopp, mtVentil))
-            ddSerie = self.ddCredits
-            ix = 1
-                        
-        # ventilation par déroulé des deux listes
-        def ventile(debits,credits):
-            ltrestedeb = []
-            restedeb = 0.0
-            # déroule la partie gauche
-            for mttd, idd in debits:
-                # montant restant à ventiler
-                restedeb += self.ddDebits[idd]['montant']-self.ddDebits[idd]['mtVentil']
-
-                # déroule la partie droite
-                ltrestecre = []
-                restecre = 0.0
-                for mttc, idc in credits:
-                    restecre = self.ddCredits[idc]['montant'] - self.ddCredits[idc]['mtVentil']
-                    # associations de montant de mêmes signes et non nuls
-                    if restedeb * mttc > 0.005:
-
-                        mtVentil = min(abs(restedeb),
-                                       abs(restecre),
-                                       abs(self.ddDebits[idd]['montant'] - self.ddDebits[idd]['mtVentil']))
-                        if mtVentil != 0.0:
-                            self.ddDebits[idd]['mtVentil'] += mtVentil
-                            self.ddCredits[idc]['mtVentil'] += mtVentil
-                            self.ltVentilations.append((idd, idc, mtVentil))
-                            restedeb -= mtVentil
-                            restecre -= mtVentil
-                            mttc -= mtVentil
-                    if abs(restecre) >= 0.005:
-                        ltrestecre.append((restecre, idc))
-                if abs(restedeb) >= 0.005:
-                    ltrestedeb.append((restedeb, idd))
-                if len(ltrestedeb) >0 and len(ltrestecre) > 0 and ltrestedeb != debits and ltrestecre != credits:
-                    ventile(ltrestedeb,ltrestecre)
+        # on vérifie si des montants sont opposés sinon rien à faire
+        positives = [x for x in choix if x.montant_aff > 0]
+        negatives = [x for x in choix if x.montant_aff < 0]
+        if len(positives) * len(negatives) == 0:
+            mess = "Pas de lettrage possible !\n\n"
+            mess += "Il faut cocher des lignes avec des montants opposés + et -"
+            wx.MessageBox(mess, "Information", style=wx.ICON_EXCLAMATION)
             return
 
-        ventile(ltDebits,ltCredits)
+        lettrer = [x for x in choix]
 
-        # supprime les affectations de sens inversés sur les id considérés
-        for id in ldid:
-            for kdeb, kcre, mtvent in  self.ltVentilations:
-                if id == kdeb and mtvent * self.ddDebits[id]['montant'] < -0.005:
-                    self.ltVentilations.remove((kdeb, kcre, mtvent))
-        for id in lcid:
-            for kdeb, kcre, mtvent in  self.ltVentilations:
-                if id == kcre and mtvent * self.ddCredits[id]['montant'] < -0.005:
-                    self.ltVentilations.remove((kdeb, kcre, mtvent))
-        self.Lettrage()
-        event.Skip()
+        def triDate(track):
+            return track.date
+
+        lettrer.sort(key=triDate)
+
+        # premier passage pour imputer les négatifs sur les lignes de même nature
+        prestPositif = [x for x in lettrer if x.montant_aff < 0 and x.nature == 'P']
+        prestNegatif = [x for x in lettrer if x.montant_aff > 0 and x.nature == 'P']
+        reglPositif = [x for x in lettrer if x.montant_aff > 0 and x.nature == 'R']
+        reglNegatif = [x for x in lettrer if x.montant_aff < 0 and x.nature == 'R']
+        if (len(prestNegatif) * len(prestPositif)) > 0:
+            self.Lettrage(prestNegatif, prestPositif)
+        if (len(reglNegatif) * len(reglPositif)) > 0:
+            self.Lettrage(reglNegatif, reglPositif)
+
         self.MAJ()
+        # Deuxième lancement pour le reste
+        lettrer = [x for x in lettrer if x.mttVentiler != 0.0]
+        self.Lettrage(lettrer, lettrer)
+
+        choix = [self.listview.modelObjects[x] for x in lstIxChoix]
+        for track in choix:
+            self.listview.SetCheckState(track, True)
 
     def OnClicDelettrer(self, event):
-
-        choix = self.listview.GetSelectedObjects()
+        choix = self.listview.GetCheckedObjects()
         if len(choix) == 0:
-            event.Skip()
-            return
-
-        delettrer = [x for x in choix if x.cid and x.did and x.cid * x.did > 0]
-        if len(delettrer) == 0:
-            mess = "Il faut cocher des lignes complètes pour pouvoir dissocier Débit  et Crédit"
-            wx.MessageBox("Pas d'association!\n\n%s"%mess)
+            mess = "Sans ligne cochée nous allons tout délettrer..."
+            ret = wx.MessageBox("Pas de choix = 'Tous'\n\n%s" % mess, "Confirmez",
+                                style=wx.YES_NO | wx.ICON_INFORMATION)
+            if ret != wx.YES:
+                return
+            choix = self.listview.GetObjects()
         self.ClearLetters(choix)
-        event.Skip()
         self.MAJ()
 
     def OnClicFermer(self, event):
-        self.choix = []
         self.EndModal(wx.ID_CANCEL)
 
     def OnClicOk(self, event):
@@ -742,10 +711,14 @@ class DLGventilations(wx.Dialog):
         self.EndModal(wx.ID_OK)
 
     def GetVentilSuppr(self):
-        return [x for x in self.ltVentilationsOriginal if not x in self.ltVentilations]
+        lstSuppr = [x for x in self.ltVentilationsOriginal if not list(x) in self.llVentilations]
+        for x in lstSuppr:
+            print(x)
+        return lstSuppr
 
     def GetVentilNews(self):
-        return [x for x in self.ltVentilations if not x in self.ltVentilationsOriginal]
+        return [x for x in self.llVentilations if not tuple(x) in self.ltVentilationsOriginal]
+
 
 class DialogLettrage(wx.Dialog):
     # Gestion d'un lettrage à partir de deux dictionnaires, mots clés des champs : montant en dernière position
@@ -1332,33 +1305,65 @@ class Dialog(wx.Dialog):
 if __name__ == "__main__":
     app = wx.App(0)
     ddDebits = {
-        12456: {"designations": ["pièce réglée 1", datetime.date.today()],
-                "montant": 15.25,
+        12456: {"designations": ["pièce réglée 1", datetime.date.today()+datetime.timedelta(1)],
+                'montant': 150.25,
                 },
-        12457: {"designations": ["pièce récente 2", datetime.date.today()],
-                "montant": 37,
-                }}
+        12457: {"designations": ["pièce récente 2", datetime.date.today()+datetime.timedelta(5)],
+                'montant': 85,
+                },
+        12458: {"designations": ["avoir sur piece 2", datetime.date.today()+datetime.timedelta(10)],
+                'montant': -40,
+                },
+        12459: {"designations": ["avoir sur piece 1 à rembourser",
+                                 datetime.date.today() + datetime.timedelta(10)],
+                'montant': -27,
+                },
+    }
     ddCredits = {
         6544: {"designations": ["règlement 1", datetime.date.today()],
-               "montant": 15.25,
+               'montant': 100,
                },
-        6545: {"designations": ["remboursement 1", datetime.date.today()],
-               "montant": -10,
+        6545: {"designations": ["règlement 2", datetime.date.today()+datetime.timedelta(4)],
+               'montant': 90.25,
                },
-        6546: {"designations": ["règlement 2", datetime.date.today()],
-               "montant": 30,
+        6546: {"designations": ["remboursement 1", datetime.date.today()+datetime.timedelta(5)],
+               'montant': -20,
                },
-        6547: {"designations": ["règlement 3", datetime.date.today()],
-               "montant": 8},
-               }
-    ltVentilations = [(12456, 6544, 15.25),
-                      (12457, 6546, 7)]
-    lChampsDesign = ["libellé1", "Date"]
-    dlg = DLGventilations(None, ddDebits, ddCredits, ltVentilations, lChampsDesign)
+        6547: {"designations": ["règlement 3", datetime.date.today()+datetime.timedelta(11)],
+               'montant': 50},
+        6548: {"designations": ["remboursement avoir",
+                                datetime.date.today() + datetime.timedelta(5)],
+               'montant': -19,
+               },
+    }
+
+    ltVentilationsXXX = [
+        (12459,0,-13,None),
+        (12456, 6545, 34, "2O"),
+        (12457,0,13,None),
+        (12456, 6545, 7, "2O"),
+        (12456, 6546, -9, "2N"),
+        (12458, 6546, -11, "N"),
+    ]
+    ltVentilations= [
+                      (12456, 6545, 66,"2O"),
+                      (12456, 6545, 34, "2O"),
+                      (12456, 6548, -15, "2O"),
+                      (12456, 6546, -5,"2N"),
+                      (12457, 6546, -17,None),
+                      (12457, 65, 19, None),
+                      (0,6546,-10,"N"),
+                      (0,6544,10,None),
+                      (12458,6547,40,None),
+                      (12459,0,-13,None),
+                      (12457,0,13,None)
+                      ]
+
+    dlg = DLGventilations(None, ddDebits, ddCredits, ltVentilations)
     """
     """
-    #dlg = Dialog(None)
+    # dlg = Dialog(None)
     app.SetTopWindow(dlg)
     print(dlg.ShowModal())
-    #print dlg.GetChoix()
+    # print dlg.GetChoix()
     app.MainLoop()
