@@ -675,7 +675,7 @@ DB_DATA = {
                 ("IDreglement", "INTEGER", "ID du règlement"),
                 ("IDprestation", "INTEGER", "ID de la prestation"),
                 ("montant", "FLOAT", "Montant de la ventilation"),
-                ("lettrage", "VARCHAR(8)", "Lettre de l'enregistrement"),
+                ("lettrage", "VARCHAR(64)", "Lettre de l'enregistrement"),
                 ], # Ventilation
     
     "depots":[                  ("IDdepot", "INTEGER PRIMARY KEY AUTOINCREMENT", "ID Dépôt"),

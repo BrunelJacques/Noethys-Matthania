@@ -39,7 +39,6 @@ def FmtNombre(montant, zero = True):
             return ""
         return '{:.2f}'.format(montant)
 
-
 def FormateMontant(montant):
     return FmtNombre(montant,zero=False)
 
@@ -109,6 +108,9 @@ def LettresMax(lstLignes, pos):
     lstNombres = [0,]
     lstAlpha = [" ",]
     for lettre in lstLettres:
+        if "_" in lettre:
+            # le séparateur "_" trahit la présence d'un ID null, on garde la partie left
+            lettre = lettre.split("_")[0]
         chiffres = fp.ChiffresSeuls(lettre)
         if len(chiffres) > 0 :
             lstNombres.append(int(chiffres))
@@ -160,13 +162,13 @@ class CTRL_Solde(wx.Panel):
         """ MAJ intégrale du controle avec MAJ des donnees """
         if montant > 0.0:
             label = "+ %.2f " % montant
-            self.SetBackgroundColour("#C4BCFC")  # Bleu
+            self.SetBackgroundColour(wx.Colour(220, 237, 200))  # vert
         elif montant == 0.0:
             label = "0.00 "
             self.SetBackgroundColour("#5DF020")  # Vert
         else:
             label = "- %.2f " % (-montant,)
-            self.SetBackgroundColour("#F81515")  # Rouge
+            self.SetBackgroundColour(wx.Colour(255, 205, 210))  # Rouge
         self.ctrl_solde.SetLabel(label)
         self.Layout()
         self.Refresh()
@@ -238,16 +240,18 @@ class DLGventilations(wx.Dialog):
                                                      "Images/22x22/Smiley_nul.png"))
 
         # Pied de l'écran
-        self.ctrl_labelMontant = wx.StaticText(self, -1, "Montant coché : ")
+        self.ctrl_labelMttVentil = wx.StaticText(self, -1, "àVentiler coché : ")
+        self.ctrl_mttVentil = CTRL_Solde(self)
+
+        self.ctrl_labelMontant = wx.StaticText(self, -1,    "Montant coché : ")
         self.ctrl_montant = CTRL_Solde(self)
-        # wx.TextCtrl(self, -1, style=wx.TE_RIGHT | wx.TE_READONLY)
 
         self.ctrl_labelFiltreLet = wx.StaticText(self, -1, "Filtrer lettre: ")
         self.ctrl_filtreLet = wx.TextCtrl(self, -1, style=wx.TE_PROCESS_ENTER,
                                           size=(40, 25))
 
         self.check_avecLettrees = wx.CheckBox(self, -1,
-                                              "Masquer les lignes ventilées")
+                                              " Masquer les \n lignes ventilées")
         self.bouton_lettrer = CTRL_Bouton_image.CTRL(self, texte="Lettrer",
                                                      cheminImage="Images/32x32/Configuration2.png")
         self.bouton_delettrer = CTRL_Bouton_image.CTRL(self, texte="DeLettrer",
@@ -264,6 +268,8 @@ class DLGventilations(wx.Dialog):
 
     def __set_properties(self):
         # TipString, Bind et constitution des colonnes de l'OLV
+        self.ctrl_mttVentil.SetToolTip(
+            "Pour aider la recherche, ici la somme des mttVentils à lettrer")
         self.ctrl_montant.SetToolTip(
             "Pour aider la recherche, ici la somme des montants à lettrer")
         self.ctrl_filtreLet.SetToolTip(
@@ -293,14 +299,20 @@ class DLGventilations(wx.Dialog):
 
         gridsizer_base.Add(self.ctrl_bandeau, 1, wx.EXPAND, 0)
         gridsizer_base.Add(self.pnlListview, 5, wx.LEFT | wx.RIGHT | wx.EXPAND, 0)
-        gridsizer_base.Add(self.ctrl_outils, 1, wx.EXPAND, 0)
+        gridsizer_outils = wx.FlexGridSizer(rows=1, cols=4, vgap=0, hgap=0)
+        gridsizer_outils.Add(self.ctrl_labelMttVentil, 0, wx.ALL, 5)
+        gridsizer_outils.Add(self.ctrl_mttVentil, 1, wx.ALIGN_CENTER, 0)
+        gridsizer_outils.Add((85,10), 1, wx.EXPAND,0)
+        gridsizer_outils.Add(self.ctrl_outils, 1, wx.RIGHT|wx.EXPAND, 15)
+        gridsizer_outils.AddGrowableCol(3)
+        gridsizer_base.Add(gridsizer_outils, 1, wx.EXPAND, 0)
         gridsizer_base.Add((5, 5), 0, wx.LEFT | wx.RIGHT | wx.EXPAND, 0)
 
         # Bas d'écran
         gridsizer_boutons = wx.FlexGridSizer(rows=1, cols=11, vgap=0, hgap=0)
         gridsizer_boutons.Add(self.ctrl_labelMontant, 0, wx.ALL, 5)
         gridsizer_boutons.Add(self.ctrl_montant, 1, wx.ALIGN_CENTER, 0)
-        gridsizer_boutons.Add((20, 20), 1, wx.ALIGN_BOTTOM, 0)
+        gridsizer_boutons.Add((85, 20), 1, wx.ALIGN_BOTTOM, 0)
         gridsizer_boutons.Add(self.ctrl_labelFiltreLet, 0, wx.ALL, 5)
         gridsizer_boutons.Add(self.ctrl_filtreLet, 1, wx.ALIGN_CENTER | wx.RIGHT, 25)
         gridsizer_boutons.Add(self.check_avecLettrees, 1, wx.EXPAND, 0)
@@ -309,15 +321,30 @@ class DLGventilations(wx.Dialog):
         gridsizer_boutons.Add((20, 20), 1, wx.ALIGN_BOTTOM, 0)
         gridsizer_boutons.Add(self.bouton_fermer, 1, wx.EXPAND, 0)
         gridsizer_boutons.Add(self.bouton_ok, 1, wx.EXPAND, 0)
-        gridsizer_boutons.AddGrowableCol(2)
+        gridsizer_boutons.AddGrowableCol(3)
         gridsizer_base.Add(gridsizer_boutons, 1, wx.RIGHT | wx.BOTTOM | wx.EXPAND, 10)
         gridsizer_base.AddGrowableRow(1)
         gridsizer_base.AddGrowableCol(0)
         self.SetSizer(gridsizer_base, )
         self.Layout()
 
+    def SetLettresID(self,ldDonnees):
+        # affecte une lettre aux lignes sans lettreID
+        maxLetNum, maxLetAlpha = LettresMax(self.llVentilations, 3)
+        letNumSuivante = LettreSuivante(maxLetNum)
+        letAlphaSuivante = LettreSuivante(maxLetAlpha)
+        for dDonnees in ldDonnees:
+            if dDonnees['lettreID']:
+                continue
+            if dDonnees['nature'] == 'P':
+                dDonnees['lettreID'] = letNumSuivante
+                letNumSuivante = LettreSuivante(letNumSuivante)
+            else:
+                dDonnees['lettreID'] = letAlphaSuivante
+                letAlphaSuivante = LettreSuivante(letAlphaSuivante)
+
     def InitLignes(self, ddDebits, ddCredits):
-        # composition en init des lignes à destination de l'olv
+        # même contenu retourné en liste et en dic: lignes de l'OLV
         ldDonnees = []
         ddDonnees = {}
 
@@ -351,13 +378,13 @@ class DLGventilations(wx.Dialog):
             nature = 'R'  # Règlements au crédit quelque soit leur signe
             sens = +1
 
-        # purge des ventilations ophelines des lignes
+        # purge des ventilations orphelines des lignes
         lstRemove = []
         for IDdeb, IDcre, mttVent, lettre in self.llVentilations:
             verif = 0
-            if IDdeb > 0 and ('P', IDdeb) in ddDonnees:
+            if IDdeb == 0 or  ('P', IDdeb) in ddDonnees:
                 verif = 1
-            if IDcre > 0 and ('R', IDcre) in ddDonnees:
+            if IDcre == 0 or ('R', IDcre) in ddDonnees:
                 verif += 1
             if verif == 2:
                 continue
@@ -367,9 +394,13 @@ class DLGventilations(wx.Dialog):
             self.llVentilations.remove(ventilation)
 
         # précharge les lettres à partir de ltVentil
-        for IDdeb, IDcre, mttVent, lettre in self.llVentilations:
+        for ventilation in self.llVentilations:
+            IDdeb, IDcre, mttVent, lettre = ventilation
             if not lettre or len(lettre.strip()) == 0:
                 continue
+            if "_" in lettre:
+                # le séparateur "_" trahit la présence d'un ID null, on garde la partie left
+                lettre = lettre.split("_")[0]
             key = ('P', IDdeb)
             if key in ddDonnees:
                 if not ddDonnees[key]['lettreID']:
@@ -385,17 +416,9 @@ class DLGventilations(wx.Dialog):
                     if len(lettreLigne) > 0:
                         ddDonnees[key]['lettreID'] = lettreLigne
 
-        # affecte un lettre aux lignes sans lettreID
-        maxLetNum, maxLetAlpha = LettresMax(self.llVentilations, 3)
-        letNumSuivante = LettreSuivante(maxLetNum)
-        letAlphaSuivante = LettreSuivante(maxLetAlpha)
-        for dDonnees in ldDonnees:
-            if dDonnees['nature'] == 'P':
-                dDonnees['lettreID'] = letNumSuivante
-                letNumSuivante = LettreSuivante(letNumSuivante)
-            else:
-                dDonnees['lettreID'] = letAlphaSuivante
-                letAlphaSuivante = LettreSuivante(letAlphaSuivante)
+        # affecte une lettre aux lignes sans lettreID
+        self.SetLettresID(ldDonnees)
+
         return ddDonnees, ldDonnees
 
     def InitModel(self):
@@ -507,24 +530,78 @@ class DLGventilations(wx.Dialog):
         colonneVentil = self.lstColumns[self.lstCodes.index('mttVentiler_aff')]
         colonneVentil.imageGetter = self.GetCouleurVentil
 
+    def CoherenceVentil(self):
+        # vérifie les incohérences de ventilations de même nature
+        for ix  in range(2) :
+            lstVentils = []
+            cumul = 0.0
+            for ventil in self.llVentilations:
+                IDdeb, IDcre, mttVent, lettre = ventil
+                if ventil[ix] == 0:
+                    cumul += mttVent
+                    lstVentils.append(ventil)
+            if round(cumul,2) == 0.0:
+                continue
+            # corrige les incohérences de ventilation
+            for ventil in lstVentils:
+                IDdeb, IDcre, mttVent, lettre = ventil
+                if ventil[ix] * cumul < 0: # signes opposés
+                    continue
+                corr = min(abs(cumul),abs(mttVent))
+                if cumul < 0 : corr = -corr
+                cumul -= corr
+                ventil[2] -= corr
+                if cumul == 0.0:
+                    break
+
     def ComposeLignes(self):
+        self.CoherenceVentil()
+
+        def fusionLettres(lettreA, lettreB):
+            if lettreA == lettreB:
+                return lettreA
+            # cas des associations homonatures
+            llet = lettreA.split("_")
+            leftA = llet[0]
+            rightA = ""
+            if len(llet) >1:
+                rightA  = "".join(llet[1:])
+            llet = lettreB.split("_")
+            leftB = llet[0]
+            rightB = ""
+            if len(llet) >1:
+                rightB  = "".join(llet[1:])
+            if rightB in rightA: rightB = ""
+            if rightA in rightB: rightA = ""
+            if leftA == leftB:
+                return leftA + "_" + rightA + rightB
+            elif rightA == rightB:
+                return leftA + leftB + "_" + rightA
+            return leftA + leftB + "_" + rightA + rightB
+
         # MAJ des lignes selon ltVentilations changeant
         for dDonnees in self.ldDonnees:
             key = dDonnees['key']
             dDonnees['mttVentiler'] = dDonnees['montant']
             dDonnees['lettres'] = ""
-            # regroupement des ventilation éclatées
-            dVentil = {}
-            ltVentilations = []
-            for IDdeb, IDcre, mttVent, lettre in self.llVentilations:
-                if not (IDdeb, IDcre) in dVentil:
-                    dVentil[(IDdeb, IDcre)] = [IDdeb, IDcre, mttVent, lettre]
-                    ltVentilations.append(dVentil[(IDdeb, IDcre)])
-                else:
-                    dVentil[(IDdeb, IDcre)][2] += mttVent
-            self.llVentilations = ltVentilations
 
-            # déroulé des ventilations pour prise en compte des ventilations
+            # regroupement des ventilations éclatées
+            dVentil = {}
+            llSupprime = []
+            for ventil in self.llVentilations:
+                IDdeb, IDcre, mttVent, lettre = ventil
+                if not (IDdeb, IDcre) in dVentil:
+                    dVentil[(IDdeb, IDcre)] = ventil
+                else:
+                    # cumule la ventilation avec la précédente pour le même couple
+                    ix = self.llVentilations.index(dVentil[(IDdeb, IDcre)])
+                    self.llVentilations[ix][2] += mttVent
+                    self.llVentilations[ix][3] = fusionLettres(self.llVentilations[ix][3],lettre)
+                    llSupprime.append(ventil)
+            for ventil in llSupprime:
+                self.llVentilations.remove(ventil)
+
+            # déroulé pour prise en compte des ventilations
             for IDdeb, IDcre, mttVent, lettre in self.llVentilations:
                 sens = dDonnees['sens']
                 keyDeb = ('P', IDdeb)
@@ -537,17 +614,26 @@ class DLGventilations(wx.Dialog):
 
                 # récupération lettre de ventilation
                 if keyDeb in self.ddDonnees:
-                    lettreIDdeb = self.ddDonnees[keyDeb]['lettreID']
+                    if not lettre:
+                        lettre = self.ddDonnees[keyDeb]['lettreID']
+                    lettreIDdeb = lettre
                 else:
                     lettreIDdeb = '*'
                 if keyCre in self.ddDonnees:
-                    lettreIDcre = self.ddDonnees[keyCre]['lettreID']
+                    if not lettre:
+                        lettre = self.ddDonnees[keyCre]['lettreID']
+                    lettreIDcre = lettre
                 else:
                     lettreIDcre = '*'
-                lettre = lettreIDdeb + lettreIDcre
+
+                if lettreIDdeb == lettreIDcre:
+                    lettre = lettreIDcre
+                else:
+                    lettre = lettreIDdeb + lettreIDcre
                 # Composition des lettres
                 signe = sens
                 dDonnees['lettres'] += "%s %.0f%s, " % (lettre, mttVent * signe, SYMBOLE)
+
         return
 
     def Lettrage(self, lstDemande, lstRecept):
@@ -558,17 +644,31 @@ class DLGventilations(wx.Dialog):
             if trackA.mttVentiler_aff * trackB.mttVentiler_aff >= 0:
                 # rien à ventiler car non opposés
                 return
+            if trackA.montant * trackA.mttVentiler <= 0\
+                    or abs(trackA.montant) < abs(trackA.mttVentiler):
+                # Ventilation précédentes invalide
+                return
+            if trackB.montant * trackB.mttVentiler <= 0\
+                    or abs(trackB.montant) < abs(trackB.mttVentiler):
+                # Ventilation précédentes invalide
+                return
+
+            # calcul de la ventilation possible
             mttVentilA = trackA.mttVentiler
+            signeA = trackA.signeMtt
             mttVentilB = trackB.mttVentiler
+            signeB = trackB.signeMtt
             absVentil = min(abs(mttVentilA), abs(mttVentilB))
             if absVentil == 0:
                 return
-            trackA.mttVentiler -= absVentil * trackA.signeMtt
-            trackB.mttVentiler -= absVentil * trackB.signeMtt
+
+            trackA.mttVentiler -= absVentil * signeA
+            trackB.mttVentiler -= absVentil * signeB
             letA = trackA.lettreID
             letB = trackB.lettreID
 
             if trackA.nature != trackB.nature:
+                # les deux lignes sont de nature différente : chiffre+lettre
                 if trackA.nature == 'P':
                     letDeb = letA
                     letCre = letB
@@ -576,6 +676,7 @@ class DLGventilations(wx.Dialog):
                     IDcre = trackB.ID
                     mttVentil = absVentil * trackB.signeMtt
                 else:
+                    # nature de ligneA est règlement
                     letDeb = letB
                     letCre = letA
                     IDdeb = trackB.ID
@@ -585,20 +686,20 @@ class DLGventilations(wx.Dialog):
                 ventilation = [IDdeb, IDcre, mttVentil, lettre]
                 self.llVentilations.append(ventilation)
             else:
-                # les deux lignes sont de même nature
+                # les deux lignes sont de même nature association homo mais séparées
                 if trackA.nature == 'R':
                     ventilation = [0, trackA.ID, absVentil * trackA.signeMtt,
-                                   trackA.lettreID]
+                                   "%s_%s"%(letA,letB)]
                     self.llVentilations.append(ventilation)
                     ventilation = [0, trackB.ID, absVentil * trackB.signeMtt,
-                                   trackB.lettreID]
+                                   "%s_%s"%(letB,letA)]
                     self.llVentilations.append(ventilation)
                 else:
                     ventilation = [trackA.ID, 0, absVentil * trackA.signeMtt,
-                                   trackA.lettreID]
+                                   "%s_%s"%(letA,letB)]
                     self.llVentilations.append(ventilation)
                     ventilation = [trackB.ID, 0, absVentil * trackB.signeMtt,
-                                   trackB.lettreID]
+                                   "%s_%s"%(letB,letA)]
                     self.llVentilations.append(ventilation)
 
         for trackD in lstDemande:
@@ -613,6 +714,12 @@ class DLGventilations(wx.Dialog):
     def ClearLetters(self, choix):
         # récup des ID à lettrer, puis suppression des items
         lstRemove = []
+        if len(self.listview.GetCheckedObjects()) in (0,len(self.listview.modelObjects)):
+            # cas d'un reset global des ventilations
+            self.llVentilations = []
+            for dDonnees in self.ldDonnees:
+                dDonnees['lettreID'] = None
+            self.SetLettresID(self.ldDonnees)
 
         def addRemove(tple):
             if not tple in lstRemove:
@@ -628,10 +735,13 @@ class DLGventilations(wx.Dialog):
 
     def OnCalculLettres(self, event):
         mtt = 0.0
+        mttVentil = 0.0
         for track in self.listview.GetCheckedObjects():
             mtt += track.montant_aff
+            mttVentil += track.mttVentiler_aff
         # self.ctrl_montant.SetValue("{:10.2f} {}".format(mtt, SYMBOLE))
         self.ctrl_montant.SetValue(mtt)
+        self.ctrl_mttVentil.SetValue(mttVentil)
 
     def OnMAJ(self, event):
         self.MAJ()
@@ -640,21 +750,13 @@ class DLGventilations(wx.Dialog):
         choix = self.listview.GetCheckedObjects()
         if len(choix) == 0:
             mess = "Pas de choix = 'Tous'\n\n"
-            mess += "Sans ligne cochée nous allons tout délettrer puis tout relettrer..."
+            mess += "Sans ligne cochée nous les prenons toutes pour les lettrer sans délettrage préalable..."
             ret = wx.MessageBox(mess, "Confirmez", style=wx.YES_NO | wx.ICON_INFORMATION)
             if ret != wx.YES:
                 return
             choix = self.listview.GetObjects()
 
         lstIxChoix = [self.listview.modelObjects.index(x) for x in choix]
-        """
-        # on délettre tout ce qui était coché, avant de refaire les ventilations
-        self.ClearLetters(choix)
-        lstIxChoix = [self.listview.modelObjects.index(x) for x in choix]
-        self.MAJ()
-        # les tracks ont changé d'adresse
-        del choix        
-        choix = [self.listview.modelObjects[x] for x in lstIxChoix]"""
 
         # on vérifie si des montants sont opposés sinon rien à faire
         positives = [x for x in choix if x.montant_aff > 0]
@@ -690,6 +792,7 @@ class DLGventilations(wx.Dialog):
         choix = [self.listview.modelObjects[x] for x in lstIxChoix]
         for track in choix:
             self.listview.SetCheckState(track, True)
+        self.MAJ()
 
     def OnClicDelettrer(self, event):
         choix = self.listview.GetCheckedObjects()
@@ -712,8 +815,6 @@ class DLGventilations(wx.Dialog):
 
     def GetVentilSuppr(self):
         lstSuppr = [x for x in self.ltVentilationsOriginal if not list(x) in self.llVentilations]
-        for x in lstSuppr:
-            print(x)
         return lstSuppr
 
     def GetVentilNews(self):
@@ -1337,29 +1438,29 @@ if __name__ == "__main__":
                },
     }
 
-    ltVentilationsXXX = [
-        (12459,0,-13,None),
-        (12456, 6545, 34, "2O"),
-        (12457,0,13,None),
-        (12456, 6545, 7, "2O"),
-        (12456, 6546, -9, "2N"),
-        (12458, 6546, -11, "N"),
+    ltVentilations = [
+        (12458,0,-40,"3_1"),
+        (12456,0,40,"1_3"),
+        (0,6546, -20,"C_A"),
+        (0, 6544, 39, "A_CE"),
+        (0, 6547, -19, "E_A"),
+        (12456,4644,100,"1A")
     ]
-    ltVentilations= [
+    ltVentilationsXXX= [
                       (12456, 6545, 66,"2O"),
                       (12456, 6545, 34, "2O"),
                       (12456, 6548, -15, "2O"),
-                      (12456, 6546, -5,"2N"),
-                      (12457, 6546, -17,None),
+                      (12456, 6546, -5,"3R"),
                       (12457, 65, 19, None),
-                      (0,6546,-10,"N"),
-                      (0,6544,10,None),
+                      (0,6546,-10,"R P"),
+                      (0,6544,10,"P R"),
                       (12458,6547,40,None),
                       (12459,0,-13,None),
                       (12457,0,13,None)
                       ]
 
     dlg = DLGventilations(None, ddDebits, ddCredits, ltVentilations)
+
     """
     """
     # dlg = Dialog(None)
