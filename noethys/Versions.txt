@@ -1,3 +1,6 @@
+version 1.3.1.22 (13/07/2022 12:18):
+- Correction effet collateral lettrage
+
 version 1.3.1.21 (11/07/2022 18:00):
 - Getion des Ventilations par le menu Outil :  réecriture du programme
 - Nouvelle version accessible sans redémarrer avant la mise à jour, seulement après 1.22
