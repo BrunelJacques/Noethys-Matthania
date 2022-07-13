@@ -134,7 +134,10 @@ class Track(object):
     def __init__(self, donnees, champs):
         for ix in range(len(champs)):
             champ = champs[ix]
-            valeur = donnees[champ]
+            if isinstance(donnees, (list,tuple)):
+                valeur = donnees[ix]
+            else:
+                valeur = donnees[champ]
             setattr(self, champ, valeur)
 
 class CTRL_Solde(wx.Panel):
@@ -819,7 +822,6 @@ class DLGventilations(wx.Dialog):
 
     def GetVentilNews(self):
         return [x for x in self.llVentilations if not tuple(x) in self.ltVentilationsOriginal]
-
 
 class DialogLettrage(wx.Dialog):
     # Gestion d'un lettrage à partir de deux dictionnaires, mots clés des champs : montant en dernière position
