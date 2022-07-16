@@ -691,18 +691,20 @@ class Dialog(wx.Dialog):
         self.Bind(wx.EVT_CLOSE, self.OnBoutonAnnuler)
         
         # Init contrôles
-        if date_debut != None : 
-            self.ctrl_date_debut.SetDate(date_debut)
-        if date_fin != None : 
-            self.ctrl_date_fin.SetDate(date_fin)
-        if date_debut != None and date_fin != None :
-            self.ctrl_individus.SetPeriode(date_debut, date_fin)
-            listeIndividus = self.ctrl_individus.GetListeIndividus()
-            self.ctrl_activites.SetDonnees(listeIndividus, date_debut, date_fin)
-            listeActivites = self.ctrl_activites.GetListeActivites()
-            self.ctrl_unites.SetDonnees(listeIndividus, listeActivites, date_debut, date_fin)
-        
-        
+        today = datetime.date.today()
+        if date_debut == None:
+            date_debut = datetime.date(today.year, 1, 1)
+        if date_fin == None :
+            date_fin = datetime.date(today.year, 12, 31)
+        self.ctrl_date_debut.SetDate(date_debut)
+        self.ctrl_date_fin.SetDate(date_fin)
+        self.ctrl_individus.SetPeriode(date_debut, date_fin)
+        listeIndividus = self.ctrl_individus.GetListeIndividus()
+        self.ctrl_activites.SetDonnees(listeIndividus, date_debut, date_fin)
+        listeActivites = self.ctrl_activites.GetListeActivites()
+        self.ctrl_unites.SetDonnees(listeIndividus, listeActivites, date_debut, date_fin)
+
+
 
     def __set_properties(self):
         self.SetTitle(_("Edition d'une attestation de présence"))

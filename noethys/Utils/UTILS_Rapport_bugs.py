@@ -261,7 +261,7 @@ class DLG_Envoi(wx.Dialog):
             dicUser = {"prenom":"Lancement direct","nom":""}
         version = FonctionsPerso.GetVersionLogiciel(datee=True)
         userName = "%s %s Version %s"%(dicUser["prenom"],dicUser["nom"],version)
-        intro = "Bug envoyé par : %s\n\nQuelle action :\n\nBloquant et urgent :\n\n'"%userName
+        intro = "Bug envoyé par : %s\n\nQuelle action :\n\nRéponse demandée : NON Urgente\n\n'"%userName
         self.ctrl_commentaires = wx.TextCtrl(self, wx.ID_ANY, intro , style=wx.TE_MULTILINE)
 
         self.check_journal = wx.CheckBox(self, -1, _("Joindre la copie d'écran et le journal des erreurs (Facilite le diagnostic)"))

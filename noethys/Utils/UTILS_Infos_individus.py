@@ -218,7 +218,9 @@ class Informations() :
             piecesManquantes = True,
             questionnaires = True,   
             scolarite = True,
-            lstIDfamilles = [],
+            mode_adresse_facturation = False,
+            cotisations = True,
+            lstIDfamilles=[],
             ) :
         self.date_reference = date_reference
         self.qf = qf

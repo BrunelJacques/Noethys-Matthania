@@ -567,7 +567,7 @@ class Impression():
 ##                    listeMessages.append(Paragraph(dictOptions["echeance"], paraStyle))
 
                # QF aux dates de facture
-                if dictOptions["afficher_qf_dates"] == True :
+                if "afficher_qf_dates" in dictOptions and dictOptions["afficher_qf_dates"] == True :
                     dictQfdates = dictValeur["qfdates"]
                     listeDates = list(dictQfdates.keys()) 
                     listeDates.sort() 
@@ -579,7 +579,8 @@ class Impression():
                             listeMessages.append(Paragraph(texteQf, paraStyle))
 
                 # Reports
-                if dictOptions["afficher_impayes"] == True :
+
+                if ("afficher_impayes" in dictOptions) and (dictOptions["afficher_impayes"]) :
                     dictReports = dictValeur["reports"]
                     listePeriodes = list(dictReports.keys()) 
                     listePeriodes.sort()
@@ -616,7 +617,7 @@ class Impression():
                                 txt = txt[:-2]+ "."
                                 listeMessages.append(Paragraph(txt, paraStyle))
                 # Règlements
-                if dictOptions["afficher_reglements"] == True :
+                if ("afficher_reglements" in dictOptions) and dictOptions["afficher_reglements"] :
                     dictReglements = dictValeur["reglements"]
                     if len(dictReglements) > 0 :
                         listeTextesReglements = []
@@ -657,7 +658,7 @@ class Impression():
                             listeMessages.append(Paragraph(ligne, paraStyle))
 
                 # Messages
-                if dictOptions["afficher_messages"] == True :
+                if ("afficher_messages" in dictOptions) and dictOptions["afficher_messages"] == True :
                     for message in dictOptions["messages"] :
                         listeMessages.append(Paragraph(message, paraStyle))
 

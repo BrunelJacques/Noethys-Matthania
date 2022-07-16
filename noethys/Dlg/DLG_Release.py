@@ -9,7 +9,7 @@
 #-----------------------------------------------------------------------------------------
 
 import wx
-import GestionDB
+import UpgradeDB
 import FonctionsPerso
 import datetime
 from Ctrl import CTRL_Bouton_image
@@ -35,7 +35,7 @@ def GetVersionsFromZipFile(releaseZip=None, nomFichier="???"):
     versions = None
     try:
         versions = UTILS_Fichiers.GetOneFileInZip(releaseZip, pathNameVersions)
-        versions = GestionDB.Decod(versions)
+        versions = UpgradeDB.Decod(versions)
     except Exception as err:
         if isinstance(err, UnicodeDecodeError):
             mess = "Le fichier version importé n'est pas codé en UTF-8\n%s" % err
@@ -52,10 +52,10 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         wx.TextCtrl.__init__(self, parent, wx.ID_ANY, label, pos, size, style=style)
         self.parent = parent
         self.version_logiciel = self.parent.version_logiciel
+        self.version_choix = None
         # les deux premiers items affichés sont exprimés en texte comme préfixe
         self.invite = "\nActuellement: Version % s\n" % self.version_logiciel
-        self.dbDoc = None
-        self.SetParamConnexion("")
+        self.dbDoc, self.dbData = self.SetParamConnexion("")
 
         self.tplVersionLogiciel = FonctionsPerso.ConvertVersionTuple(self.version_logiciel)
         self.version_data = self.parent.version_data
@@ -84,7 +84,9 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         self.parent.EnableBoutons()
 
     def SetParamConnexion(self,paramConnexion):
-        self.dbDoc = GestionDB.DB(nomFichier=paramConnexion, suffixe="DOCUMENTS")
+        dbDoc = UpgradeDB.DB(nomFichier=paramConnexion, suffixe="DOCUMENTS")
+        dbData = UpgradeDB.DB(nomFichier=paramConnexion, suffixe="DATA")
+        return dbDoc, dbData
 
     def UpdateBlobInDocuments(self,ID):
         # Copie le fichier zip-release dans la base de donnée
@@ -142,6 +144,7 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         return ID
 
     def GetNouveautes(self,zipFile):
+        # dans le fichier version, isole les nouveautés à afficher
         tplVersions = GetVersionsFromZipFile(zipFile)
         if not tplVersions:
             return
@@ -225,6 +228,8 @@ class CTRL_AfficheVersion(wx.TextCtrl):
                 return
         # Enregistrement de la validation
         self.parent.tplVersionChoix = tplVersionChoix
+        self.version_choix = version_choix
+
         self.zipFile = zipFile
         self.nomFichier = nomFichier
         if nomFichier:
@@ -353,6 +358,22 @@ class CTRL_AfficheVersion(wx.TextCtrl):
             return True
         else: return False
 
+    def UpgradeDB(self):
+        # mise à jour de la base de donnée
+        resultat = self.dbData.UpdateDB(self, self.version_choix)
+        nomFichier = self.dbData.nomFichier
+        if resultat == True:
+            # Mémorisation de la nouvelle version du fichier
+            UTILS_Parametres.Parametres(
+                mode="set",
+                categorie="fichier",
+                nom="version",
+                valeur=self.version_choix,
+                nomFichier=nomFichier)
+            print(self.mess)
+            return resultat
+        else:
+            raise Exception(resultat)
 
 class Dialog(wx.Dialog):
     def __init__(self, parent,version_data=None,version_logiciel_date=None):
@@ -390,9 +411,9 @@ class Dialog(wx.Dialog):
         self.bouton_annuler = CTRL_Bouton_image.CTRL(self, texte="Annuler", cheminImage="Images/32x32/Annuler.png")
 
         # Affichage de la version proposée
-        self.box_donnees_staticbox = wx.StaticBox(self, -1,"Description des versions :")
-        self.ctrl_donnees = CTRL_AfficheVersion(self)
-        self.ctrl_donnees.SetMinSize((250, -1))
+        self.box_affiche_staticbox = wx.StaticBox(self, -1,"Description des versions :")
+        self.ctrl_affiche = CTRL_AfficheVersion(self)
+        self.ctrl_affiche.SetMinSize((250, -1))
 
         self.__set_properties()
         self.__do_layout()
@@ -452,8 +473,8 @@ class Dialog(wx.Dialog):
         grid_sizer_base = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
         
-        box_donnees = wx.StaticBoxSizer(self.box_donnees_staticbox, wx.VERTICAL)
-        box_donnees.Add(self.ctrl_donnees, 1, wx.ALL|wx.EXPAND, 10)
+        box_donnees = wx.StaticBoxSizer(self.box_affiche_staticbox, wx.VERTICAL)
+        box_donnees.Add(self.ctrl_affiche, 1, wx.ALL|wx.EXPAND, 10)
         grid_sizer_base.Add(box_donnees, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
 
         grid_sizer_bd = wx.FlexGridSizer(rows=1, cols=4, vgap=0, hgap=0)
@@ -492,7 +513,7 @@ class Dialog(wx.Dialog):
         self.choice_baseDonnees.Enable(not ok)
         self.bouton_versions.Enable(not ok)
         if hasattr(self,"ctrl_donnees"):
-            if not self.ctrl_donnees.nomFichier:
+            if not self.ctrl_affiche.nomFichier:
                 self.check_stocke.SetValue(False)
                 self.check_stocke.Enable(False)
         # porte dérobée pour dégriser l'accès aux autres versions
@@ -503,25 +524,26 @@ class Dialog(wx.Dialog):
 
     def OnCheck(self, event):
         # MAJ de l'affichage de la recherche par défaut
-        self.ctrl_donnees.MAJ(self.version_data)
+        self.ctrl_affiche.MAJ(self.version_data)
         return
 
     def OnChoiceBaseDonnees(self, event):
         # MAJ de l'affichage de la recherche par défaut
         ix = self.choice_baseDonnees.GetSelection()
         nomFichierDB = self.choice_baseDonnees.GetString(ix)
-        self.ctrl_donnees.SetParamConnexion(self.lstDicParamsDB[nomFichierDB])
+        ctrl = self.ctrl_affiche
+        ctrl.dbDoc, ctrl.dbData = ctrl.SetParamConnexion(self.lstDicParamsDB[nomFichierDB])
         # réinitialise la recherche de release
-        self.ctrl_donnees.zipFile = None
-        self.ctrl_donnees.MAJ(self.version_data)
+        ctrl.zipFile = None
+        ctrl.MAJ(self.version_data)
         return
 
     def OnBoutonVersions(self, event):
-        self.ctrl_donnees.ChoixVersion()
+        self.ctrl_affiche.ChoixVersion()
         return
 
     def OnBoutonFichier(self, event):
-        self.ctrl_donnees.GetFileByChoisir()
+        self.ctrl_affiche.GetFileByChoisir()
         return
 
     def OnBoutonAnnuler(self, event):
@@ -530,10 +552,24 @@ class Dialog(wx.Dialog):
     def OnBoutonOk(self, event):
         # stockage de la release dans la base pointée
         messStockage = "Pas de stockage"
-        if self.check_stocke.GetValue() and self.ctrl_donnees.nomFichier:
-            ret = self.ctrl_donnees.StockerInDocuments(self.tplVersionChoix)
+        if self.check_stocke.GetValue() and self.ctrl_affiche.nomFichier:
+            ret = self.ctrl_affiche.StockerInDocuments(self.tplVersionChoix)
             if ret == 'ok':
                 messStockage = "Version stockée pour être partagée aux stations"
+                # Mise à jour base de donnée
+                mess =  "Faut-il mettre à jour les données"
+                dlg = wx.MessageDialog(self, mess, "Confirmation",
+                                       wx.YES_NO | wx.YES_DEFAULT | wx.ICON_WARNING)
+                reponse = dlg.ShowModal()
+                dlg.Destroy()
+                if reponse == wx.ID_YES:
+                    # Fait la conversion de la base par updateDB
+                    info = "Lancement de la conversion de la base"
+                    self.SetStatusText(info)
+                    print(info)
+                    ret = self.ctrl_affiche.UpgradeDB()
+                    if ret:
+                        messStockage += "\n\nBase à jour: %s" % self.ctrl_affiche.version_data
             else:
                 messStockage = "Echec Stockage: \n%s"%ret
                 
@@ -554,8 +590,8 @@ class Dialog(wx.Dialog):
         mess = "Mise à jour station NON FAITE !!"
         if self.check_maj.GetValue():
             mess = "MAJ Process interrompu !!"
-            if self.ctrl_donnees.zipFile:
-                self.ctrl_donnees.zipFile.extractall("%s"%pathRoot)
+            if self.ctrl_affiche.zipFile:
+                self.ctrl_affiche.zipFile.extractall("%s"%pathRoot)
                 mess = "Le processus de mise à jour est terminé."
                 self.majFaite = True
 
@@ -577,7 +613,8 @@ class Dialog(wx.Dialog):
         self.Quitter(IDfin)
 
     def Quitter(self, IDfin = wx.ID_CANCEL):
-        self.ctrl_donnees.dbDoc.Close()
+        self.ctrl_affiche.dbDoc.Close()
+        self.ctrl_affiche.dbData.Close()
         self.EndModal(IDfin)
 
 if __name__ == "__main__":
