@@ -87,6 +87,13 @@ class DB():
         self.cfgParams = None
         self.erreur = "__init__"
 
+        # éviter la redondance suffixe quand reprise du nom précédent
+        lstMotsFichier = nomFichier.split('_')
+        suff = lstMotsFichier[-1]
+        if len(lstMotsFichier) > 0  and suff in ("DATA", "DOCUMENT", "PHOTO"):
+            suffixe = suff
+            nomFichier = '_'.join(lstMotsFichier[:-1])
+
         """ Utiliser GestionDB.DB(nomFichier=Chemins.GetStaticPath("Databases/Geographie.dat"), suffixe=None) pour ouvrir un autre type de fichier """
         self.nomFichier = nomFichier
         self.modeCreation = modeCreation

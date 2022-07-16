@@ -121,7 +121,14 @@ def Parametres(mode="get", categorie="", nom="", valeur=None, nomFichier=""):
     
     # Si aucun fichier n'est chargé, on renvoie la valeur par défaut :
     if DB.echec == 1 :
-        return valeur
+        erreur = DB.erreur
+        DB.Close()
+        if mode == "get":
+            return valeur
+        else:
+            mess= "Echec d'accès à la base: %s\n\nErr: %s" % (nomFichier,erreur)
+            wx.MessageBox(mess,"Erreur base",style=wx.ICON_STOP)
+            return erreur
 
     req = """SELECT IDparametre, parametre FROM parametres WHERE categorie="%s" AND nom="%s" ;""" % (categorie, nom)
     DB.ExecuterReq(req,MsgBox="ExecuterReq")

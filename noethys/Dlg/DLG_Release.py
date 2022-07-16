@@ -376,7 +376,8 @@ class CTRL_AfficheVersion(wx.TextCtrl):
 
 class Dialog(wx.Dialog):
     def __init__(self, parent,version_data=None,version_logiciel_date=None):
-        wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
+        wx.Dialog.__init__(self, parent, -1,
+                           style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
         self.parent = parent
         self.majFaite = False
         if not version_data or not version_logiciel_date:
@@ -569,7 +570,7 @@ class Dialog(wx.Dialog):
                     print(info)
                     ret = self.ctrl_affiche.UpgradeDB()
                     if ret:
-                        messStockage += "\n\nBase à jour: %s" % self.ctrl_affiche.version_data
+                        messStockage += "\n\nBase à jour: %s" % self.ctrl_affiche.version_choix
             else:
                 messStockage = "Echec Stockage: \n%s"%ret
                 

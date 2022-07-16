@@ -887,7 +887,6 @@ class Dialog(wx.Dialog):
         if event.GetId() == 210 :
             FonctionsPerso.EnvoyerMail(adresses=listeAdresses, sujet="", message="")
 
-
     def AfficheMessagesOuverture(self):
         """ Affiche les messages à l'ouverture de la fiche famille """
         listeMessages = self.notebook.GetPageAvecCode("informations").GetListeMessages()
