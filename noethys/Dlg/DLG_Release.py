@@ -360,7 +360,7 @@ class CTRL_AfficheVersion(wx.TextCtrl):
 
     def UpgradeDB(self):
         # mise à jour de la base de donnée
-        resultat = self.dbData.UpdateDB(self, self.version_choix)
+        resultat = self.dbData.UpdateDB(self, self.parent.tplVersionChoix)
         nomFichier = self.dbData.nomFichier
         if resultat == True:
             # Mémorisation de la nouvelle version du fichier
@@ -370,7 +370,6 @@ class CTRL_AfficheVersion(wx.TextCtrl):
                 nom="version",
                 valeur=self.version_choix,
                 nomFichier=nomFichier)
-            print(self.mess)
             return resultat
         else:
             raise Exception(resultat)
@@ -565,7 +564,8 @@ class Dialog(wx.Dialog):
                 if reponse == wx.ID_YES:
                     # Fait la conversion de la base par updateDB
                     info = "Lancement de la conversion de la base"
-                    self.SetStatusText(info)
+                    if self.parent:
+                        self.parent.SetStatusText(info)
                     print(info)
                     ret = self.ctrl_affiche.UpgradeDB()
                     if ret:

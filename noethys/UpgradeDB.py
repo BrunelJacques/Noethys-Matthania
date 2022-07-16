@@ -718,6 +718,8 @@ def ConversionReseauLocal(nomFichier="", nouveauFichier="", fenetreParente=None)
     print("  > Conversion reseau->local terminee avec succes.")
     return (True, "  > Conversion reseau->local terminee avec succes.")
 
+def Decod(valeur):
+    return GestionDB.Decod(valeur)
 # ----------- Outils d'adaptation des bases ------------------------------
 
 def GetChamps_DATA_Tables(nomTable=""):

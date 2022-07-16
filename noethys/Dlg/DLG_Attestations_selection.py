@@ -13,7 +13,6 @@ from UTILS_Traduction import _
 import wx
 import CTRL_Bouton_image
 import datetime
-import os
 import sys
 import traceback
 import GestionDB
@@ -26,10 +25,6 @@ import UTILS_Impression_facture
 import CTRL_Attestations_options
 
 import wx.lib.agw.hyperlink as Hyperlink
-import wx.lib.agw.pybusyinfo as PBI
-
-
-
 
 def DateEngFr(textDate):
     text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
@@ -54,7 +49,6 @@ def Supprime_accent(texte):
         texte = texte.replace(a, b)
         texte = texte.replace(a.upper(), b.upper())
     return texte
-
 
 # ----------------------------------------------------------------------------------------------------------------------------------
 
@@ -145,8 +139,6 @@ class Hyperlien(Hyperlink.HyperLinkCtrl):
         if self.URL == "tout" : self.parent.CocheTout() 
         if self.URL == "rien" : self.parent.DecocheTout() 
         self.UpdateLink()
-        
-
 
 class Dialog(wx.Dialog):
     def __init__(self, parent, date_debut=None, date_fin=None, dateNaiss=None, listeActivites=[], listePrestations=[]):
@@ -318,8 +310,8 @@ class Dialog(wx.Dialog):
         # Création des PDF à l'unité
         repertoire = dictOptions["repertoire_copie"]
         if repertoire not in (None, "") :
-            dlgAttente = PBI.PyBusyInfo(_("Génération des attestations à l'unité au format PDF..."), parent=None, title=_("Veuillez patienter..."), icon=wx.Bitmap("Images/16x16/Logo.png"), wx.BITMAP_TYPE_ANY))
-            wx.Yield() 
+            dlgAttente = wx.BusyInfo(_(u"Génération des attestations à l'unité au format PDF..."), None)
+            wx.Yield()
             try :
                 index = 0
                 for IDcompte_payeur, dictCompte in dictComptes.items() :
@@ -342,9 +334,9 @@ class Dialog(wx.Dialog):
                 return False
 
         # Fabrication du PDF global
-        dlgAttente = PBI.PyBusyInfo(_("Génération du lot d'attestations au format PDF..."), parent=None, title=_("Veuillez patienter..."), icon=wx.Bitmap("Images/16x16/Logo.png"), wx.BITMAP_TYPE_ANY))
-        wx.Yield() 
-        self.EcritStatusbar(_("Génération du lot d'attestations de rappel en cours... veuillez patienter..."))
+        dlgAttente = wx.BusyInfo(_(u"Génération du lot d'attestations au format PDF..."), None)
+        wx.Yield()
+        self.EcritStatusbar(_(u"Génération du lot d'attestations de rappel en cours... veuillez patienter..."))
         try :
             UTILS_Impression_facture.Impression(dictComptes, dictOptions, IDmodele=dictOptions["IDmodele"], mode="attestation")
             self.EcritStatusbar("")
@@ -363,14 +355,15 @@ class Dialog(wx.Dialog):
     def Sauvegarder(self):
         """ Sauvegarde des attestations """
         # Demande la confirmation de sauvegarde
-        dlg = wx.MessageDialog(self, _("Souhaitez-vous mémoriser les attestations ?\n\n(Cliquez NON si c'était juste un test sinon cliquez OUI)"), _("Sauvegarde"), wx.YES_NO|wx.YES_DEFAULT|wx.CANCEL|wx.ICON_INFORMATION)
+        dlg = wx.MessageDialog(self, _("Souhaitez-vous mémoriser les attestations ?\n\n(Cliquez NON si c'était juste un test sinon cliquez OUI)"),
+                               _("Sauvegarde"), wx.YES_NO|wx.YES_DEFAULT|wx.CANCEL|wx.ICON_INFORMATION)
         reponse = dlg.ShowModal() 
         dlg.Destroy()
         if reponse != wx.ID_YES :
             return
 
-        dlgAttente = PBI.PyBusyInfo(_("Sauvegarde des attestations en cours..."), parent=None, title=_("Veuillez patienter..."), icon=wx.Bitmap("Images/16x16/Logo.png"), wx.BITMAP_TYPE_ANY))
-        wx.Yield() 
+        dlgAttente = wx.BusyInfo(_(u"Sauvegarde des attestations en cours..."), None)
+        wx.Yield()
 
         DB = GestionDB.DB()
         
