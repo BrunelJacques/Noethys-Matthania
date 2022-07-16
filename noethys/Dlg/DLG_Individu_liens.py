@@ -323,7 +323,7 @@ class Choice_liens(wx.Choice):
         self.dictChoix = {}
         for IDtypeLien, valeurs in DICT_TYPES_LIENS.items() :
             if self.typeIndividu in valeurs["public"] :
-                if self.sexeIndividu != None :
+                if self.sexeIndividu != None and len(self.sexeIndividu) > 0 :
                     texte = valeurs["texte"][self.sexeIndividu]
 ##                    typeLien = valeurs[self.sexeIndividu]
 ##                    if self.sexeIndividu == "M" :
@@ -384,7 +384,7 @@ class Choice_autorisations(BitmapComboBox):
         listeChoix = []
         self.dictChoix = {}
         for IDautorisation, valeurs in DICT_AUTORISATIONS.items() :
-            if self.sexeIndividu == None : 
+            if self.sexeIndividu == None or len(self.sexeIndividu) == 0  :
                 texte = valeurs["M"] # Si c'est un organisme
             else:
                 texte = valeurs[self.sexeIndividu]
@@ -444,7 +444,7 @@ class Choice_autorisations_archive(wx.Choice):
         listeChoix = []
         self.dictChoix = {}
         for IDautorisation, valeurs in DICT_AUTORISATIONS.items() :
-            if self.sexeIndividu == None : 
+            if self.sexeIndividu == None or len(self.sexeIndividu) == 0:
                 texte = valeurs["M"] # Si c'est un organisme
             else:
                 texte = valeurs[self.sexeIndividu]
