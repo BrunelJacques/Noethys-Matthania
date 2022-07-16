@@ -277,7 +277,9 @@ def GetFamillesEtiq(listeIDfamille=[]):
         dictFamilles[cle] = dict
     return dictFamilles
 
-def GetTitulaires(listeIDfamille=[]):
+def GetTitulaires(listeIDfamille=[], mode_adresse_facturation=False,
+                  inclure_telephones=True, inclure_archives=False,
+                  afficher_tag_archive=False):
     """ si listeIDfamille == [] alors renvoie toutes les familles """
     dictFamilles = {}
     # Condition
