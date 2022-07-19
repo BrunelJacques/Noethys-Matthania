@@ -1,3 +1,6 @@
+version 1.3.1.25 (19/07/2022):
+- Lettrage parrainage : correction bug
+
 version 1.3.1.24 (16/07/2022 16:00):
 - Attestation présence: normalisation avec les autres options noethys original
 - Attestation présence: année en cours mise par défaut

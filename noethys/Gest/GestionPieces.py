@@ -250,7 +250,7 @@ class Forfaits():
                 if lettre in lstLettragesNew:
                     lstLettragesNew.remove(lettre)
                 else:
-                    self.DissocieParrainage(DB,IDinscription, IDnumLigne)
+                    self.DissocieParrainage(DB,IDnumLigne)
             # Ajout des parrainages associés par lettrage
             for IDinscription, IDnumLigne, affecte in lstLettragesNew :
                 self.AssocieParrainage(DB,IDinscription, IDnumLigne, affecte)

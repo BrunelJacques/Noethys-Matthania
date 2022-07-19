@@ -25,6 +25,9 @@ from Utils import UTILS_Config
 def GetVersionsFromZipFile(releaseZip=None, nomFichier="???"):
     # Cherche le fichier versions dans le fichier zip, retourne le fichier
     if not releaseZip: return
+    if not releaseZip.fp:
+        nomFichier = releaseZip.filename
+        releaseZip = UTILS_Fichiers.GetZipFile(nomFichier)
     lstFichiers = UTILS_Fichiers.GetListeFichiersZip(releaseZip)
     lstVersions = [x for x in lstFichiers if "versions" in x.lower()]
     if len(lstVersions) == 0:
@@ -34,7 +37,8 @@ def GetVersionsFromZipFile(releaseZip=None, nomFichier="???"):
     pathNameVersions = lstVersions[0]
     versions = None
     try:
-        versions = UTILS_Fichiers.GetOneFileInZip(releaseZip, pathNameVersions)
+        with releaseZip as zip:
+            versions = UTILS_Fichiers.GetOneFileInZip(zip, pathNameVersions)
         versions = UpgradeDB.Decod(versions)
     except Exception as err:
         if isinstance(err, UnicodeDecodeError):
