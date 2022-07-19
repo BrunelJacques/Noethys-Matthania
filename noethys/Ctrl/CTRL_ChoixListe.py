@@ -564,9 +564,10 @@ class DLGventilations(wx.Dialog):
             if lettreA == lettreB:
                 return lettreA
             # cas des associations homonatures
-            llet = lettreA.split("_")
-            leftA = llet[0]
-            rightA = ""
+            if lettreA:
+                llet = lettreA.split("_")
+                leftA = llet[0]
+                rightA = ""
             if len(llet) >1:
                 rightA  = "".join(llet[1:])
             llet = lettreB.split("_")
@@ -599,7 +600,8 @@ class DLGventilations(wx.Dialog):
                     # cumule la ventilation avec la précédente pour le même couple
                     ix = self.llVentilations.index(dVentil[(IDdeb, IDcre)])
                     self.llVentilations[ix][2] += mttVent
-                    self.llVentilations[ix][3] = fusionLettres(self.llVentilations[ix][3],lettre)
+                    if self.llVentilations[ix][3]:
+                        self.llVentilations[ix][3] = fusionLettres(self.llVentilations[ix][3],lettre)
                     llSupprime.append(ventil)
             for ventil in llSupprime:
                 self.llVentilations.remove(ventil)
