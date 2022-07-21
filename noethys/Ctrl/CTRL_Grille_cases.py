@@ -451,9 +451,6 @@ class CaseTransports():
         return _("Double-cliquez sur la case 'Transports' pour ajouter, modifier ou supprimer un transport")
 
 
-
-
-
 class Case():
     def __init__(self, ligne, grid, numLigne=None, numColonne=None, IDindividu=None, IDfamille=None, date=None, IDunite=None, IDactivite=None, verrouillage=0):
         self.typeCase = "consommation"
@@ -509,6 +506,8 @@ class Case():
         return dictInfosInscriptions
 
     def MAJ_facturation(self, modeSilencieux=False, evenement=None, action="saisie"):
+        return # JB
+
         # Vérifie la période de gestion
         if self.grid.gestion.Verification("consommations", self.date) == False : return False
 
@@ -1082,10 +1081,6 @@ class Case():
             case.MAJ_facturation()
                                             
         self.MAJremplissage()
-
-                        
-
-
 
 
 class CaseStandard(Case):

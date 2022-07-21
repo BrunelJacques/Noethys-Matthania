@@ -14,7 +14,7 @@ from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 """
 IMPORTANT :
-J'ai rajoute la ligne 101 de gridlabelrenderer.py dans wxPython mixins :
+rajout de la ligne 101 de gridlabelrenderer.py dans wxPython mixins :
 if rows == [-1] : return
 """
 
@@ -712,9 +712,7 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
         self.dictForfaits = {}
         self.dict_transports_prog = {}
         self.dict_transports = {}
-        
-                        
-        
+
     def SetModeIndividu(self, listeActivites=[], listeSelectionIndividus=[], listeIndividusFamille=[], listePeriodes=[], modeSilencieux=False):
         if modeSilencieux == False :
             attente = wx.BusyInfo(_("Recherche des données..."), self)
@@ -847,7 +845,6 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
                                 self.dictConsoUnites = UTILS_Divers.DictionnaireImbrique(dictionnaire=self.dictConsoUnites, cles=[conso.IDunite, conso.IDgroupe], valeur=0)
                                 self.dictConsoUnites[conso.IDunite][conso.IDgroupe] += quantite
 
-
     def GetInfosColonnesMultihoraires(self):
         dictColonnesMultihoraires = {}
         
@@ -873,7 +870,6 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
                                         dictColonnesMultihoraires[IDunite]["max"] = HeureStrEnTime(conso.heure_fin)
 
         return dictColonnesMultihoraires
-        
 
     def InitGrid(self):
         # ----------------- Création des colonnes -------------------------
@@ -1027,7 +1023,6 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
                 ligne = Ligne(self, numLigne=numLigne, IDindividu=IDindividu, date=self.date)
                 self.dictLignes[numLigne] = ligne
                 numLigne += 1
-            
 
 ####IMPORTATION DONNEES
 
@@ -2030,17 +2025,7 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
             dictQuotientsFamiliaux[IDfamille].append((date_debut, date_fin, quotient))
         return dictQuotientsFamiliaux
 
-
-
-
-
-
-
-
-
-
 ####CLAVIER ET SOURIS
-
 
     def OnLeftClick(self, event):
         x, y = self.CalcUnscrolledPosition(event.GetPosition())
@@ -2080,8 +2065,6 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
         except :
             pass
 
-
-
     def OnLeftDoubleClick(self, event):
         x, y = self.CalcUnscrolledPosition(event.GetPosition())
         numLigne = self.YToRow(y)
@@ -2103,8 +2086,7 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
         
         if case.GetTypeUnite() == "memo" :
             case.OnDoubleClick() 
-        
-        
+
     def OnCellRightClick(self, event):
         numLigne = event.GetRow()
         numColonne = event.GetCol()
@@ -2194,7 +2176,6 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
 
         # StatusBar
         self.EcritStatusbar(case, x, y)
-        
 
     def OnLeftUp(self, event):
         if self.barreMoving !=None :
@@ -2227,9 +2208,6 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
             self.SetCursor(cursor(wx.CURSOR_SIZING))
         else :
             self.SetCursor(cursor(wx.CURSOR_ARROW))
-
-
-
 
 ####TOOLTIP
 
@@ -2321,11 +2299,6 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
                     self.tip.case = None
             self.CacheTooltip() 
             self.caseSurvolee = None
-
-
-
-
-
 
 ####FACTURATION
 
@@ -2740,10 +2713,7 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
                     self.listeActivites,
                     self.listePeriodes,
                     )
-    
-    
-    
-    
+
     def MAJ_facturation(self):
         if self.GetGrandParent().GetName() == "test" or self.mode == "date" : return
         
@@ -2827,8 +2797,7 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
         # Ecrit dans la fenêtre AUI
         try : self.GetGrandParent().panel_facturation.SetValue(texte)
         except : pass
-        
-        
+
     def RechercheCombinaisonDict(self, dictUnitesUtilisees={}, combinaison=[], dictTarif={}):
         """ Recherche une combinaison donnée dans une ligne de la grille """
         for IDunite_combi in combinaison :
@@ -2933,8 +2902,6 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
             return listeCouleurs[index]
         else :
             return (random.randint(0, 250), random.randint(0, 250), random.randint(0, 250))
-
-
 
     def MemorisePrestation(self, IDcompte_payeur, date, IDactivite, IDtarif, nom_tarif, montant_initial, montant_final, IDfamille, IDindividu, categorie="consommation", listeDeductions=[], 
                                                 temps_facture=None, IDcategorie_tarif=None, forfait_date_debut=None, forfait_date_fin=None, code_compta=None, tva=None):
@@ -3861,8 +3828,7 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
         montant_tarif = float(FloatToDecimal(montant_tarif, plusProche=True))
 
         return montant_tarif, nom_tarif, temps_facture
-                            
-                        
+
     def TriTarifs(self, dictTarif1, dictTarif2, key="nbre_max_unites_combi") :
         """ Effectue un tri DECROISSANT des tarifs en fonction du nbre_max_unites_combi """
         if dictTarif1[key] < dictTarif2[key] : return 1
@@ -3908,7 +3874,6 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
             pass
     
 
-    
     def Imprimer(self):
         """ Impression des consommations """
         self.CreationPDF() 
@@ -4850,51 +4815,49 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
         listeSuppressions = []
         listeChamps = []
         dictHistorique = {}
-        try :
-            for IDindividu, dictDates in self.dictConsoIndividus.items() :
-                for date, dictUnites in dictDates.items() :
-                    for IDunite, listeConso in dictUnites.items() :
-                        for conso in listeConso :
+        for IDindividu, dictDates in self.dictConsoIndividus.items() :
+            for date, dictUnites in dictDates.items() :
+                for IDunite, listeConso in dictUnites.items() :
+                    for conso in listeConso :
+                        # Recherche s'il y a une prestation
+                        IDprestation = conso.IDprestation
+                        if (IDprestation == None or IDprestation < 0) and (IDprestation in dictNewIDprestation) == True :
+                            IDprestation = dictNewIDprestation[IDprestation]
 
-                            # Recherche s'il y a une prestation
-                            IDprestation = conso.IDprestation
-                            if (IDprestation == None or IDprestation < 0) and (IDprestation in dictNewIDprestation) == True :
-                                IDprestation = dictNewIDprestation[IDprestation]
+                        # Récupération des données
+                        listeDonnees = [
+                            ("IDindividu", IDindividu),
+                            ("IDinscription", conso.IDinscription),
+                            ("IDactivite", conso.IDactivite),
+                            ("date", str(date)),
+                            ("IDunite", IDunite),
+                            ("IDgroupe", conso.IDgroupe),
+                            ("heure_debut", conso.heure_debut),
+                            ("heure_fin", conso.heure_fin),
+                            ("etat", conso.etat),
+                            ("verrouillage", 0), #dictValeurs["verrouillage"]),
+                            ("date_saisie", str(datetime.date.today())),
+                            ("IDutilisateur", self.IDutilisateur),
+                            ("IDcategorie_tarif", conso.IDcategorie_tarif),
+                            ("IDcompte_payeur", conso.IDcompte_payeur),
+                            ("IDprestation", IDprestation),
+                            ("quantite", conso.quantite),
+                            ("etiquettes", ConvertListeToStr(conso.etiquettes)),
+                            ]
 
-                            # Récupération des données
-                            listeDonnees = [
-                                ("IDindividu", IDindividu),
-                                ("IDinscription", conso.IDinscription),
-                                ("IDactivite", conso.IDactivite),
-                                ("date", str(date)),
-                                ("IDunite", IDunite),
-                                ("IDgroupe", conso.IDgroupe),
-                                ("heure_debut", conso.heure_debut),
-                                ("heure_fin", conso.heure_fin),
-                                ("etat", conso.etat),
-                                ("verrouillage", 0), #dictValeurs["verrouillage"]),
-                                ("date_saisie", str(conso.date_saisie)),
-                                ("IDutilisateur", conso.IDutilisateur),
-                                ("IDcategorie_tarif", conso.IDcategorie_tarif),
-                                ("IDcompte_payeur", conso.IDcompte_payeur),
-                                ("IDprestation", IDprestation),
-                                ("quantite", conso.quantite),
-                                ("etiquettes", ConvertListeToStr(conso.etiquettes)),
-                                ]
+                        # Pour version optimisée :
+                        listeValeurs = []
+                        for key, valeur in listeDonnees :
+                            if key not in listeChamps :
+                                listeChamps.append(key)
+                            listeValeurs.append(valeur)
 
-                            # Pour version optimisée :
-                            listeValeurs = []
-                            for key, valeur in listeDonnees :
-                                if key not in listeChamps :
-                                    listeChamps.append(key)
-                                listeValeurs.append(valeur)
-
-                            # Préparation pour historique
-                            IDfamille = conso.IDfamille
-                            if (IDfamille in dictHistorique) == False :
-                                dictHistorique[IDfamille] = {}
-                            if (IDindividu in dictHistorique[IDfamille]) == False :
-                                dictHistorique[IDfamille][IDindividu] = { "suppr" : {}, "modif" : {}, "ajout" : {} }
+                        # Préparation pour historique
+                        IDfamille = conso.IDfamille
+                        if (IDfamille in dictHistorique) == False :
+                            dictHistorique[IDfamille] = {}
+                        if (IDindividu in dictHistorique[IDfamille]) == False :
+                            dictHistorique[IDfamille][IDindividu] = { "suppr" : {}, "modif" : {}, "ajout" : {} }
 
                         # Recherche de l'abrégé de l'unité
                         if IDunite in self.dictUnites :
@@ -4912,7 +4875,7 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
                             dictHistorique[IDfamille][IDindividu]["ajout"][date].append(abregeUnite)
 
                         # Modification
-                        if conso.statut == "modification" :
+                        elif conso.statut == "modification" and conso.etat != "suppression" :
 
                             # Version optimisée
                             listeValeursTemp = listeValeurs
@@ -4924,7 +4887,7 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
                             dictHistorique[IDfamille][IDindividu]["modif"][date].append(abregeUnite)
 
                         # Suppression
-                        if conso.statut == "suppression" :
+                        elif conso.statut == "suppression"  or ((conso.etat in("suppression",None)) and conso.IDconso != None):
 
                             # Version optimisée
                             listeSuppressions.append(conso.IDconso)
@@ -4933,10 +4896,7 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
                                 dictHistorique[IDfamille][IDindividu]["suppr"][date] = []
                             dictHistorique[IDfamille][IDindividu]["suppr"][date].append(abregeUnite)
 
-        except:
-            type, value, tb = sys.exc_info()
-            print((type, value, tb))
-            traceback.print_exc()
+
 
             # Suppression des consommations multihoraires
         for conso in self.listeConsoSupprimees :

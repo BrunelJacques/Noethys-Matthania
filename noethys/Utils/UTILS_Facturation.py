@@ -637,8 +637,10 @@ class Facturation():
                                                               MONNAIE_DIVISION).strip().capitalize()
 
         # Fusion pour textes personnalisés
-        dictToPage["texte_introduction"] = self.RemplaceMotsCles(dictOptions["texte_introduction"], dictToPage)
-        dictToPage["texte_conclusion"] = self.RemplaceMotsCles(dictOptions["texte_conclusion"], dictToPage)
+        if len(dictOptions["texte_introduction"]) > 0:
+            dictToPage["texte_introduction"] = self.RemplaceMotsCles(dictOptions["texte_introduction"], dictToPage)
+        if len(dictOptions["texte_conclusion"]) >0:
+            dictToPage["texte_conclusion"] = self.RemplaceMotsCles(dictOptions["texte_conclusion"], dictToPage)
 
         # fin Ajout totaux
 

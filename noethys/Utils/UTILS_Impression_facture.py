@@ -9,21 +9,16 @@
 # Adaptation sur les tri des blocs, sur les noms au lieu des textes
 #------------------------------------------------------------------------
 
-
 from Utils.UTILS_Traduction import _
 import wx
 import Chemins
 import os
-import datetime
 import decimal
 import FonctionsPerso
 from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
 from Utils import UTILS_Fichiers
 from Dlg import DLG_Noedoc
-
 from Utils import UTILS_Config
-SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
-
 from reportlab.platypus.doctemplate import PageTemplate, BaseDocTemplate, NextPageTemplate
 from reportlab.platypus import Paragraph, Spacer, Table, TableStyle, PageBreak
 from reportlab.platypus.flowables import Image
@@ -35,6 +30,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.graphics.barcode import code39, qr
 from reportlab.platypus.flowables import DocAssign, Flowable
 
+SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 TAILLE_PAGE = A4
 LARGEUR_PAGE = TAILLE_PAGE[0]
 HAUTEUR_PAGE = TAILLE_PAGE[1]

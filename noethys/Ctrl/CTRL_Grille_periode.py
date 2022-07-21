@@ -17,10 +17,7 @@ from Ctrl import CTRL_Bouton_image
 import datetime
 import calendar
 import GestionDB
-if 'phoenix' in wx.PlatformInfo:
-    from wx.adv import DatePickerCtrl, DP_DROPDOWN, EVT_DATE_CHANGED
-else :
-    from wx import DatePickerCtrl, DP_DROPDOWN, EVT_DATE_CHANGED
+from wx.adv import DatePickerCtrl, DP_DROPDOWN, EVT_DATE_CHANGED
 
 
 

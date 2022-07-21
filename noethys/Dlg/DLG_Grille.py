@@ -89,8 +89,7 @@ class Commandes(wx.Panel):
         self.parent.panel_grille.grille.SauvegardeTransports()
         self.parent.MemoriseParametres()
         # Fermeture de la fenêtre
-        if 'phoenix' in wx.PlatformInfo:
-            self.parent._mgr.UnInit()
+        self.parent._mgr.UnInit()
         try :
             self.parent.EndModal(wx.ID_OK)
         except :
@@ -226,27 +225,7 @@ class PanelGrille(wx.Panel):
         grid_sizer_base.AddGrowableRow(0)
         self.SetSizer(grid_sizer_base)
         self.Layout()
-    
-    def MAJ_titre(self):
-        dictIndividus = self.grille.dictIndividus
-        listeIndividus = []
-        nbreIndividus = 0
-        for IDindividu in self.listeSelectionIndividus :
-            if dictIndividu["titulaire"] == 1 :
-                nom = dictIndividu["nom"]
-                prenom = dictIndividu["prenom"]
-                listeTitulaires.append(u"%s %s" % (nom, prenom))
-                nbreTitulaires += 1
-        if nbreTitulaires == 1 : return listeTitulaires[0]
-        if nbreTitulaires == 2 : return _("%s et %s") % (listeTitulaires[0], listeTitulaires[1])
-        if nbreTitulaires > 2 :
-            texteNoms = ""
-            for nomTitulaire in listeTitulaires[:-2] :
-                texteNoms += "%s, " % nom
-            texteNoms += listeTitulaires[-1]
-            return texteNoms
-        return ""
-        
+
     def MAJ_grille(self):
         # Recherche des individus de la famille ayant des inscriptions
         self.listeIndividusFamille = []
@@ -352,8 +331,8 @@ class Dialog(wx.Dialog):
                         
         # Création des panels amovibles
         self.panel_periode = CTRL_Grille_periode.CTRL(self)
-        dictDonnees = UTILS_Config.GetParametre("dict_selection_periodes_activites")
-        self.panel_periode.SetDictDonnees(dictDonnees)
+        #dictDonnees = UTILS_Config.GetParametre("dict_selection_periodes_activites")
+        #self.panel_periode.SetDictDonnees(dictDonnees)
         self._mgr.AddPane(self.panel_periode, aui.AuiPaneInfo().
                           Name("periode").Caption(_("Sélection de la période")).
                           Top().Layer(1).BestSize(wx.Size(230,144)).Position(1).CloseButton(False).Fixed().MaximizeButton(False))
@@ -668,7 +647,7 @@ class Dialog(wx.Dialog):
         self.perspective_active = None
 
     def On_affichage_perspective_perso(self, event):
-        index = event.GetId() - ID_PREMIERE_PERSPECTIVE
+        index = event.GetId() - 500 # JB
         self._mgr.LoadPerspective(self.perspectives[index]["perspective"])
         self.perspective_active = index
 
