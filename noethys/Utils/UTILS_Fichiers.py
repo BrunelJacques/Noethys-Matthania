@@ -239,6 +239,13 @@ def GetOneFileInZip(myZipFile,oneFile):
     with myZipFile.open(oneFile) as myFile:
         return myFile.read()
 
+def ExtractAll(file,path):
+    if isinstance(file,(str,bytes)):
+        fileName = file
+    else:
+        fileName = file.filename
+    with zipfile.ZipFile(fileName) as myzip:
+        myzip.extractall(path)
 
 if __name__ == "__main__":
     # Teste les déplacements de fichiers

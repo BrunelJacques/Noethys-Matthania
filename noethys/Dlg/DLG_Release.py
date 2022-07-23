@@ -596,7 +596,7 @@ class Dialog(wx.Dialog):
         if self.check_maj.GetValue():
             mess = "MAJ Process interrompu !!"
             if self.ctrl_affiche.zipFile:
-                self.ctrl_affiche.zipFile.extractall("%s"%pathRoot)
+                UTILS_Fichiers.ExtractAll(self.ctrl_affiche.zipFile,pathRoot)
                 mess = "Le processus de mise à jour est terminé."
                 self.majFaite = True
 
