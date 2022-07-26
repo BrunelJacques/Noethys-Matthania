@@ -7,7 +7,6 @@
 # Auteur:          Ivan LUCAS, Jacques Brunel
 # Traitement des inscriptions derrière la tarification
 # -----------------------------------------------------------
-from Dlg import DLG_FacturationPieces
 from Utils.UTILS_Traduction import _
 import wx
 import datetime

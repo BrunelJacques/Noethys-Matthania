@@ -10,20 +10,21 @@
 
 from Utils.UTILS_Traduction import _
 import wx
-import copy
 import datetime
-from Ctrl import CTRL_Saisie_euros
 from Dlg import DLG_Inscription
 from Utils import UTILS_Utilisateurs
 from Gest import GestionArticle
 import GestionDB
 from Gest import GestionInscription
 from Dlg import DLG_PrixActivite
-from Dlg import DLG_ValidationPiece
 from Dlg import DLG_InscriptionComplements
 from Dlg import DLG_PrixFamille
 from Dlg import DLG_InscriptionModif
 
+def Nz(valeur):
+    if valeur == None:
+        valeur = 0
+    return valeur
 
 def Decod(valeur):
     return GestionDB.Decod(valeur)
@@ -62,7 +63,36 @@ class DlgMenu(wx.Dialog):
             if droitCreation: self.Supprimer()
             else: GestionDB.MessageBox(self, "Vous ne disposez pas de droits pour créer des individus_inscriptions")
 
+        if len(selection) >0:
+            self.VerifTransports()
         self.DB.Close()
+
+    def VerifTransports(self):
+        # Checkpoint pour tracker des pertes d'info constatées, à des fins de débug
+        IDinscription = self.selection[0].IDinscription
+        req = """
+            SELECT matPieces.pieIDtranspAller, matPieces.pieIDtranspRetour, 
+                    matPieces.piePrixTranspAller, matPieces.piePrixTranspRetour, 
+                    transports.IDtransport, trsp_1.IDtransport
+            FROM (matPieces 
+                LEFT JOIN transports ON matPieces.pieIDtranspAller = transports.IDtransport) 
+                LEFT JOIN transports AS trsp_1 ON matPieces.pieIDtranspRetour = trsp_1.IDtransport
+            WHERE (((matPieces.pieIDinscription)=%d));
+            """ % IDinscription
+        retour = self.DB.ExecuterReq(req, MsgBox="DLG_InscriptionMenu.VerifieTransports")
+        if retour == "ok":
+            recordset = self.DB.ResultatReq()
+            mess = ""
+            for IDpieAller,IDpieRetour,prixAller,prixRetour,IDtrspAller,IDtrspRetour in recordset:
+                if Nz(IDpieAller) > 0 and Nz(IDtrspAller) == 0:
+                    mess += "Un transport Aller a été envisagé pour %6.2f¤, mais son détail a disparu!\n" % float(Nz(prixAller))
+                if Nz(IDpieRetour) > 0 and Nz(IDtrspRetour) == 0:
+                    mess += "Un transport Retour a été envisagé pour %6.2f¤, mais son détail a disparu!\n" % float(Nz(prixAller))
+            if len(mess) > 0:
+                mess1 = "Perte d'info constatée\n\n" + mess
+                mess1 += "\nMémorisez votre action et décrivez-là dans le rapport de bug que nous allons provoquer"
+                ret = wx.MessageBox(mess1,"Erreur provoquée",style=wx.ICON_ERROR)
+                raise Exception("IDinscription %d, IDtransport dans pièce non trouvé dans table transports" % IDinscription)
 
     def ChoixInscription(self):
         # Choix de la famille si multi (ajouté pour forcer un choix si plusieurs possibles)
