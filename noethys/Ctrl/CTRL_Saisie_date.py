@@ -104,13 +104,10 @@ class Date(masked.TextCtrl):
 
     def SetDate(self, date):
         """ Importe une date string ou datetime """
-        if date == None or date == "" : 
+        if (not date) or date == "" :
             return
         try :
             # Quelque soit le format, le change en datetime
-            if type(date) == datetime.date :
-                # Si c'est un datetime
-                dateDD = date
             if type(date) == str or type(date) == six.text_type :
                 if date[2] == "/" :
                     # Si c'est une date française
@@ -118,6 +115,10 @@ class Date(masked.TextCtrl):
                 else:
                     # Si c'est une date anglaise
                     dateDD = datetime.date(year=int(date[:4]), month=int(date[5:7]), day=int(date[8:10]))
+            else:
+                # Si c'est un datetime entre autre
+                dateDD = date
+
             # Transformation en date française
             dateFR = self.DateEngFr(str(dateDD))
             self.SetValue(dateFR)
@@ -130,11 +131,11 @@ class Date(masked.TextCtrl):
         if dateFR == "  /  /    " or dateFR == "" :
             return None
         validation = ValideDate(dateFR, self.date_min, self.date_max, avecMessages=False, mask=self.mask_date)
-        if validation == False : 
+        if not validation :
             return None
         dateDD = datetime.date(year=int(dateFR[6:10]), month=int(dateFR[3:5]), day=int(dateFR[:2]))
         dateFR = self.DateEngFr(str(dateDD))
-        if FR == True :
+        if FR:
             return dateFR
         else:
             return dateDD
@@ -442,11 +443,8 @@ class Date2(wx.Panel):
 
     def OnChoixDate(self):
         # Envoi un signal de changement de date au panel parent
-        if self.activeCallback == True :
-            try :
-                self.parent.OnChoixDate()
-            except Exception as err:
-                print(err)
+        if self.activeCallback == True and hasattr(self.parent,"OnChoixDate"):
+            self.parent.OnChoixDate()
 
     def SetDate(self, date):
         if type(date) == datetime.datetime or (type(date) in (str, six.text_type) and ":" in date):
