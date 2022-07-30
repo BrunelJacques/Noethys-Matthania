@@ -1489,7 +1489,7 @@ class CTRL_Categorie(BitmapComboBox):
 # -----------------------------------------------------------------------------------------------------------------------
 
 class CTRL(wx.Panel):
-    def __init__(self, parent, IDtransport=None, IDindividu=None, dictDonnees={}, verrouilleBoutons=False, ar=None):
+    def __init__(self, parent, IDtransport=0, IDindividu=None, dictDonnees={}, verrouilleBoutons=False, ar=None):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
         self.parent = parent
         if not ar:
@@ -1510,6 +1510,8 @@ class CTRL(wx.Panel):
         else: ar = ar.upper()
 
         self.allerRetour = ar
+
+        if not IDtransport: IDtransport = 0
         self.IDtransport = IDtransport
         self.IDindividu = IDindividu
         self.dictDonnees = dictDonnees
@@ -1552,7 +1554,7 @@ class CTRL(wx.Panel):
         self.OnChoixCategorie(None)
         
         # Importation
-        if self.IDtransport != None :
+        if self.IDtransport != 0 :
             self.Importation()
 
     def CreationControles(self, rubrique="generalites", label=_("Généralités")):
@@ -1728,7 +1730,7 @@ class CTRL(wx.Panel):
             listeDonnees.append((key, valeur))
 
         # Sauvegarde
-        if self.IDtransport == None :
+        if self.IDtransport == 0 :
             self.IDtransport = DB.ReqInsert("transports", listeDonnees,MsgBox="CTRL_Saisietransport.Sauvegarde.insert")
         else:
             retour = DB.ReqMAJ("transports", listeDonnees, "IDtransport", self.IDtransport)

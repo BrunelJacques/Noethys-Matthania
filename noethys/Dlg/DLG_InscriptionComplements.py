@@ -85,23 +85,32 @@ class DlgTransports(wx.Dialog):
         DB = GestionDB.DB()
         self.IDtranspAller = 0
         self.IDtranspRetour = 0
+        self.prixTranspAller = 0.0
+        self.prixTranspRetour = 0.0
+        if not "IDtranspAller" in self.dictDonnees:
+            self.dictDonnees["IDtranspAller"] = None
+        if not "IDtranspRetour" in self.dictDonnees:
+            self.dictDonnees["IDtranspRetour"] = None
         if not self.modeVirtuel:
             #Vérif double transport
             IDactivite = self.dictDonnees["IDactivite"]
             IDindividu = self.dictDonnees["IDindividu"]
             IDnumPiece = self.dictDonnees["IDnumPiece"]
-            req = """SELECT pieIDnumPiece,pieIDtranspAller, piePrixTranspAller, pieIDtranspRetour, piePrixTranspRetour
-                        FROM matPieces
-                        WHERE pieIDactivite = %d AND pieIDindividu = %d AND pieIDnumPiece <> %d;""" % (IDactivite, IDindividu, IDnumPiece)
+            req = """
+                SELECT pieIDnumPiece,pieIDtranspAller, piePrixTranspAller, pieIDtranspRetour, piePrixTranspRetour
+                FROM matPieces
+                WHERE pieIDactivite = %d AND pieIDindividu = %d AND pieIDnumPiece <> %d;""" % (IDactivite, IDindividu, IDnumPiece)
             DB.ExecuterReq(req,MsgBox="ExecuterReq")
             recordset = DB.ResultatReq()
             nbre = 0
             prix = 0.00
             if len(recordset)>0:
                 for IDnumPiece,IDtranspAller, prixTranspAller, IDtranspRetour, prixTranspRetour in recordset:
-                    if IDtranspAller != None and IDtranspAller > 0:
+                    if not IDtranspAller: IDtranspAller = 0
+                    if not IDtranspRetour: IDtranspRetour = 0
+                    if IDtranspAller > 0:
                         nbre += 1
-                    if IDtranspRetour != None and IDtranspRetour > 0:
+                    if IDtranspRetour > 0:
                         nbre += 1
                     if prixTranspAller != None :
                         prix += prixTranspAller
@@ -110,42 +119,66 @@ class DlgTransports(wx.Dialog):
             if nbre != 0 or prix != 0.00:
                 GestionDB.Messages().Box(titre = "Non Bloquant !",message = "Cet individu est déjà inscrit à %d transports pour cette activité pour un montant de %d ¤\n tenez en compte dans la nouvelle saisie ils s'ajouteront"%(nbre,prix))
 
+            # Récup d'un éventuel transport perdu
+            req = """
+                SELECT transports.IDtransport
+                FROM (transports 
+                    LEFT JOIN matPieces ON transports.IDtransport = matPieces.pieIDtranspAller) 
+                    LEFT JOIN matPieces AS matPieces_1 ON transports.IDtransport = matPieces_1.pieIDtranspRetour
+                WHERE ((matPieces.pieIDtranspAller Is Null) 
+                        AND (matPieces_1.pieIDtranspRetour Is Null) 
+                        AND (transports.IDindividu) = %d);
+                """ % (IDindividu)
+            DB.ExecuterReq(req,MsgBox="ExecuterReq")
+            recordset = DB.ResultatReq()
+            if len(recordset) > 0 :
+                if not (self.dictDonnees["IDtranspAller"] > 0):
+                    mess = "Un transport orphelin d'une inscription vient d'être rattaché à l'aller, vérifiez si c'est juste"
+                    self.dictDonnees["IDtranspAller"] = recordset[0][0]
+                elif not (self.dictDonnees["IDtranspRetour"] > 0):
+                    mess = "Un transport orphelin d'une inscription vient d'être rattaché au retour, vérifiez si c'est juste"
+                    self.dictDonnees["IDtranspRetour"] = recordset[0][0]
+                else:
+                    mess = "Il y a des transports orphelins d'une inscription pour cet individu\n"
+                    mess += "Supprimez les transports visibles, validez puis revenez pour rattacher les orphelins"
+                wx.MessageBox(mess,"Anomalie",style=wx.ICON_EXCLAMATION)
+
+
         self.existAller = False
-        if "IDtranspAller" in self.dictDonnees:
-            if self.dictDonnees["IDtranspAller"]!= None:
-                if self.dictDonnees["IDtranspAller"]!= 0:
-                    self.IDtranspAller = self.dictDonnees["IDtranspAller"]
-                    self.prixTranspAller = self.dictDonnees["prixTranspAller"]
-                    req = """SELECT depart_DATE, arrivee_DATE
-                                FROM transports
-                                WHERE IDtransport=%d;""" % (self.IDtranspAller)
-                    DB.ExecuterReq(req,MsgBox="ExecuterReq")
-                    result = DB.ResultatReq()
-                    if len(result)>0:
-                        if len(result[0])> 0 :
-                            allerDepartDate, allerArriveeDate = result[0]
-                            self.existAller = True
+        self.prixTranspAller = self.dictDonnees["prixTranspAller"]
+        if self.dictDonnees["IDtranspAller"]!= None:
+            if self.dictDonnees["IDtranspAller"]!= 0:
+                self.IDtranspAller = self.dictDonnees["IDtranspAller"]
+                req = """SELECT depart_DATE, arrivee_DATE
+                            FROM transports
+                            WHERE IDtransport=%d;""" % (self.IDtranspAller)
+                DB.ExecuterReq(req,MsgBox="ExecuterReq")
+                result = DB.ResultatReq()
+                if len(result)>0:
+                    if len(result[0])> 0 :
+                        allerDepartDate, allerArriveeDate = result[0]
+                        self.existAller = True
         self.existRetour = False
-        if "IDtranspRetour" in self.dictDonnees:
-            if self.dictDonnees["IDtranspRetour"]!= None:
-                if self.dictDonnees["IDtranspRetour"]!= 0:
-                    self.IDtranspRetour = self.dictDonnees["IDtranspRetour"]
-                    self.prixTranspRetour = self.dictDonnees["prixTranspRetour"]
-                    req = """SELECT depart_DATE, arrivee_DATE
-                                FROM transports
-                                WHERE IDtransport=%d;""" % (self.IDtranspRetour)
-                    DB.ExecuterReq(req,MsgBox="ExecuterReq")
-                    result = DB.ResultatReq()
-                    if len(result)>0:
-                        if len(result[0])> 0 :
-                            retourDepartDate, retourArriveeDate = result[0]
-                            self.existRetour = True
+        self.prixTranspRetour = self.dictDonnees["prixTranspRetour"]
+        if self.dictDonnees["IDtranspRetour"]!= None:
+            if self.dictDonnees["IDtranspRetour"]!= 0:
+                self.IDtranspRetour = self.dictDonnees["IDtranspRetour"]
+                req = """SELECT depart_DATE, arrivee_DATE
+                            FROM transports
+                            WHERE IDtransport=%d;""" % (self.IDtranspRetour)
+                DB.ExecuterReq(req,MsgBox="ExecuterReq")
+                result = DB.ResultatReq()
+                if len(result)>0:
+                    if len(result[0])> 0 :
+                        retourDepartDate, retourArriveeDate = result[0]
+                        self.existRetour = True
+
         #recherche des dates d'activité pour alimenter les dates de transport
         IDactivite = self.dictDonnees["IDactivite"]
         IDgroupe = self.dictDonnees["IDgroupe"]
         date_debut_activite = GestionArticle.DebutOuvertures(DB,IDactivite,IDgroupe)
         date_fin_activite = GestionArticle.FinOuvertures(DB,IDactivite,IDgroupe)
-        if self.existAller :
+        if Nz(self.IDtranspAller) > 0 and self.existAller:
             #vérif de cohérence de date
             if date_debut_activite != DateEngEnDateDD(allerDepartDate) :
                 text1 = "Changer la date du transport pour correspondre à l'activité"
@@ -154,30 +187,16 @@ class DlgTransports(wx.Dialog):
                 if rep[0] == 1 :
                     listeDonnees = [("depart_date",date_debut_activite),("arrivee_date",date_debut_activite),]
                     ret = DB.ReqMAJ("transports", listeDonnees,"IDtransport",self.IDtranspAller , MsgBox="Transport modif date")
-                    if self.existRetour:
+                    if Nz(Nz(self.IDtranspRetour) ):
                         listeDonnees = [("depart_date",date_fin_activite),("arrivee_date",date_fin_activite),]
                         DB.ReqMAJ("transports", listeDonnees,"IDtransport",self.IDtranspRetour , MsgBox="Transport modif date")
                         retourDepartDate = str(date_fin_activite)
-        else:
-            # création d'un enregistrement transport
-            listeDonnees = [("depart_date",date_debut_activite),("arrivee_date",date_debut_activite),]
-            if not self.modeVirtuel:
-                DB.ReqInsert("transports", listeDonnees, retourID=True, MsgBox="Transort init")
-                self.IDtranspAller = DB.newID
-                self.dictDonnees["IDtranspAller"] = self.IDtranspAller
-            self.prixTranspAller = 0.0
 
-        if self.existRetour :
+        if Nz(self.IDtranspRetour) and self.existRetour:
             #vérif de cohérence de date
             if date_fin_activite != DateEngEnDateDD(retourArriveeDate) :
                 GestionDB.Messages().Box("Vérif nécessaire",message = "Les dates retour ne sont pas la fin de l'activité!")
-        else:
-            listeDonnees = [("depart_date",date_fin_activite),("arrivee_date",date_fin_activite),]
-            if not self.modeVirtuel:
-                DB.ReqInsert("transports", listeDonnees, retourID=True, MsgBox="Transport init")
-                self.IDtranspRetour = DB.newID
-                self.dictDonnees["IDtranspRetour"] = self.IDtranspRetour
-            self.prixTranspRetour = 0.0
+
         if self.prixTranspAller == None: self.prixTranspAller= 0.0
         if self.prixTranspRetour == None: self.prixTranspRetour= 0.0
         DB.Close()
@@ -294,6 +313,7 @@ class DlgTransports(wx.Dialog):
             fGest.SupprimeTransport(self.IDtranspAller)
             if self.existAller:
                 DB.ReqMAJ("matPieces", [("pieIDtranspAller",0),],"pieIDtranspAller",self.IDtranspAller , MsgBox="Transport raz matPieces")
+
             self.ctrl_saisie_aller.IDtransport = 0
         else:
             resultat = self.ctrl_saisie_aller.Sauvegarde(mode="unique", )
@@ -319,12 +339,10 @@ class DlgTransports(wx.Dialog):
             self.EndModal(wx.ID_CANCEL)
 
     def OnBoutonAnnuler(self, event):
-        DB = GestionDB.DB()
-        if not self.existAller:
-            DB.ReqDEL("transports","IDtransport",self.IDtranspAller, commit = True)
-        if not self.existRetour:
-            DB.ReqDEL("transports","IDtransport",self.IDtranspRetour,commit = True)
-        DB.Close()
+        if self.Validation() == False :
+            mess = "L'anomalie reste en l'état\n\n"
+            mess += "Il vous faudra corriger l'erreur sur transport puis valider votre saisie"
+            wx.MessageBox(mess,"Incohérence",style=wx.ICON_ERROR)
         self.EndModal(wx.ID_CANCEL)
 
     def GetDictDonnees(self,dictDonnees):
@@ -347,6 +365,20 @@ class DlgTransports(wx.Dialog):
         resultatAller = self.ctrl_saisie_aller.Validation()
         resultatRetour = self.ctrl_saisie_retour.Validation()
         resultat = resultatAller and resultatRetour
+        dd = self.GetDictDonnees(self.dictDonnees)
+        noAller = self.ctrl_saisie_aller.categorie == "noTransport"
+        noRetour = self.ctrl_saisie_retour.categorie == "noTransport"
+        if dd["prixTranspAller"] > 0.0 and noAller:
+            wx.MessageBox("Facturer un aller, sans le définir est impossible!")
+            resultat = False
+        if dd["prixTranspRetour"] > 0.0 and noRetour:
+            wx.MessageBox("Facturer un retour, sans le définir est impossible!")
+            resultat = False
+
+        if noAller and self.IDtranspAller > 0:
+            wx.MessageBox("La trace d'un ancien aller disparaîtra par la validation")
+        if noRetour and self.IDtranspRetour > 0:
+            wx.MessageBox("La trace d'un ancien retour disparaîtra par la validation")
         return resultat
 
 if __name__ == "__main__":

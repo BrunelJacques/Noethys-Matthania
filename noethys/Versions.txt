@@ -1,3 +1,6 @@
+version 1.3.1.29 (29/07/2022):
+- Amélioration d'un piège à bug sur transports disparus
+
 version 1.3.1.28 (26/07/2022):
 - Pose d'un piège à bug sur transports disparus
 

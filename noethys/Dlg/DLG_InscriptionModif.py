@@ -627,24 +627,10 @@ class Dialog(wx.Dialog):
         transports = fTransp.ShowModal()
         self.dictDonnees = fTransp.GetDictDonnees(self.dictDonnees)
         if transports != wx.ID_OK:
-           # Demande d'annulation des transports
-            dlg = wx.MessageDialog(self, _("Souhaitez-vous supprimer les transports?\nSinon ils resteront en l'état"), _("Confirmation de suppression"), wx.YES_NO|wx.NO_DEFAULT|wx.CANCEL|wx.ICON_INFORMATION)
-            rep = dlg.ShowModal()
-            if rep == wx.ID_YES :
-                fGest = GestionInscription.Forfaits(self)
-                self.dictDonnees["prixTranspAller"] = None
-                self.dictDonnees["prixTranspRetour"] = None
-                fGest.SupprimeTransport(self.dictDonnees["IDtranspAller"])
-                fGest.SupprimeTransport(self.dictDonnees["IDtranspRetour"])
-                self.dictDonnees["IDtranspAller"] = None
-                self.dictDonnees["IDtranspRetour"] = None
-                fGest.DB.Close()
-                del fGest
-            else:
-                GestionDB.MessageBox(self, "Vous n'avez pas géré les transports !\nIls restent en l'état antérieur")
-                self.dictDonnees["prixTranspAller"] = self.dictDonneesOrigine["prixTranspAller"]
-                self.dictDonnees["prixTranspRetour"] = self.dictDonneesOrigine["prixTranspRetour"]
-            dlg.Destroy()
+            self.dictDonnees["IDtranspAller"] = self.dictDonneesOrigine["IDtranspAller"]
+            self.dictDonnees["IDtranspRetour"] = self.dictDonneesOrigine["IDtranspRetour"]
+            self.dictDonnees["prixTranspAller"] = self.dictDonneesOrigine["prixTranspAller"]
+            self.dictDonnees["prixTranspRetour"] = self.dictDonneesOrigine["prixTranspRetour"]
         fTransp.Destroy()
         if (self.dictDonnees["prixTranspAller"],self.dictDonnees["prixTranspRetour"]) != (self.dictDonneesOrigine["prixTranspAller"],self.dictDonneesOrigine["prixTranspRetour"]):
             self.modifPrestations = True
