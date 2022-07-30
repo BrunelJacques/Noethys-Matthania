@@ -1009,6 +1009,10 @@ class CTRL_DateHeure(wx.Panel):
             ctrl = self.parent.GetControle(code="date_heure", rubrique="arrivee")
             if ctrl.GetDate() == None :
                 ctrl.SetDate(self.GetDate())
+        # Vérification si possible versus dates d'activité
+        if hasattr(self.parent.parent,"VerifDatesActivite"):
+            self.parent.parent.VerifDatesActivite()
+
     
     def SetDateTime(self, datedt=None):
         """ Remplit les contrôles à partir d'un datetime date + heure """
@@ -1074,7 +1078,6 @@ class CTRL_Date(wx.Panel):
         self.parent = parent
 
         self.ctrl_date = CTRL_Saisie_date.Date2(self)
-
         grid_sizer_base = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_base.Add( (5, 5), 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 0)
         grid_sizer_base.Add(self.ctrl_date, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 0)
@@ -1088,10 +1091,14 @@ class CTRL_Date(wx.Panel):
         self.ctrl_date.Show(etat)
 
     def OnChoixDate(self):
+        # étend la date départ à la date d'arrivée si elle n'est pas renseignée
         if self.GetDate() != None and self.rubrique == "depart" :
             ctrl = self.parent.GetControle(code="date", rubrique="arrivee")
-            if ctrl.GetDate() == None :
+            if ctrl and ctrl.GetDate() == None :
                 ctrl.SetDate(self.GetDate())
+        # Vérification si possible versus dates d'activité
+        if hasattr(self.parent.parent,"VerifDatesActivite"):
+            self.parent.parent.VerifDatesActivite()
 
     def SetDateTime(self, datedt=None):
         """ Remplit les contrôles à partir d'un datetime date + heure """
@@ -1709,6 +1716,8 @@ class CTRL(wx.Panel):
         # Ajout de la catégorie et IDindividu
         dictDonnees["categorie"] = self.categorie
         dictDonnees["IDindividu"] = self.IDindividu
+        if not "depart_date" in dictDonnees: dictDonnees["depart_date"] = None
+        if not "arrivee_date" in dictDonnees: dictDonnees["arrivee_date"] = None
         if not dictDonnees["depart_date"]: dictDonnees["depart_date"] = dictDonnees["arrivee_date"]
         if not dictDonnees["arrivee_date"]: dictDonnees["arrivee_date"] = dictDonnees["depart_date"]
         return dictDonnees

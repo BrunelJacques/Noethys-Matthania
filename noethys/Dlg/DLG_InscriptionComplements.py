@@ -21,6 +21,7 @@ import GestionDB
 import datetime
 
 def DateEngEnDateDD(dateEng):
+    if isinstance(dateEng,datetime.date): return dateEng
     if dateEng == None:
         dateEng = '1900-01-01'
     return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
@@ -79,6 +80,7 @@ class DlgTransports(wx.Dialog):
             self.bouton_swap.Enable(False)
 
         self.__set_properties()
+        self.VerifDatesActivite()
         self.__do_layout()
 
     def __setData(self):
@@ -176,30 +178,34 @@ class DlgTransports(wx.Dialog):
         #recherche des dates d'activité pour alimenter les dates de transport
         IDactivite = self.dictDonnees["IDactivite"]
         IDgroupe = self.dictDonnees["IDgroupe"]
-        date_debut_activite = GestionArticle.DebutOuvertures(DB,IDactivite,IDgroupe)
-        date_fin_activite = GestionArticle.FinOuvertures(DB,IDactivite,IDgroupe)
-        if Nz(self.IDtranspAller) > 0 and self.existAller:
-            #vérif de cohérence de date
-            if date_debut_activite != DateEngEnDateDD(allerDepartDate) :
-                text1 = "Changer la date du transport pour correspondre à l'activité"
-                text2 = "Conserver une arrivée le %s pour une activité commençant le %s" %(allerDepartDate,date_debut_activite)
-                rep = GestionDB.Messages().Choix(listeTuples=[(1,text1),(2,text2),], titre = ("Les dates de transports ne correspondent pas à l'activité"), intro = "Choix nécessaire")
-                if rep[0] == 1 :
-                    listeDonnees = [("depart_date",date_debut_activite),("arrivee_date",date_debut_activite),]
-                    ret = DB.ReqMAJ("transports", listeDonnees,"IDtransport",self.IDtranspAller , MsgBox="Transport modif date")
-                    if Nz(Nz(self.IDtranspRetour) ):
-                        listeDonnees = [("depart_date",date_fin_activite),("arrivee_date",date_fin_activite),]
-                        DB.ReqMAJ("transports", listeDonnees,"IDtransport",self.IDtranspRetour , MsgBox="Transport modif date")
-                        retourDepartDate = str(date_fin_activite)
-
-        if Nz(self.IDtranspRetour) and self.existRetour:
-            #vérif de cohérence de date
-            if date_fin_activite != DateEngEnDateDD(retourArriveeDate) :
-                GestionDB.Messages().Box("Vérif nécessaire",message = "Les dates retour ne sont pas la fin de l'activité!")
-
+        self.date_debut_activite = GestionArticle.DebutOuvertures(DB,IDactivite,IDgroupe)
+        self.date_fin_activite = GestionArticle.FinOuvertures(DB,IDactivite,IDgroupe)
         if self.prixTranspAller == None: self.prixTranspAller= 0.0
         if self.prixTranspRetour == None: self.prixTranspRetour= 0.0
         DB.Close()
+
+    def VerifDatesActivite(self):
+        dicAller = self.ctrl_saisie_aller.GetDictDonnees()
+        allerDepartDate = dicAller["depart_date"]
+        dicRetour = self.ctrl_saisie_retour.GetDictDonnees()
+        retourDepartDate = dicRetour["depart_date"]
+        #vérif de cohérence de date
+        if allerDepartDate and self.date_debut_activite != DateEngEnDateDD(allerDepartDate) :
+            text1 = "Changer la date du transport pour correspondre à l'activité"
+            text2 = "Conserver une arrivée le %s pour une activité commençant le %s" %(allerDepartDate,self.date_debut_activite)
+            rep = GestionDB.Messages().Choix(listeTuples=[(1,text1),(2,text2),], titre = ("Les dates de transports ne correspondent pas à l'activité"), intro = "Choix nécessaire")
+            if rep[0] == 1 :
+                dicAller["depart_date"] = self.date_debut_activite
+                dicRetour["depart_date"] = self.date_fin_activite
+                listeDonnees = [("depart_date",self.date_debut_activite),
+                                ("arrivee_date",self.date_debut_activite)]
+                self.ctrl_saisie_aller.RemplitChamps(listeDonnees)
+                listeDonnees = [("depart_date",self.date_fin_activite),
+                                ("arrivee_date",self.date_fin_activite)]
+                self.ctrl_saisie_retour.RemplitChamps(listeDonnees)
+        #vérif de cohérence de date
+        if retourDepartDate and self.date_fin_activite != DateEngEnDateDD(retourDepartDate) :
+            GestionDB.Messages().Box("Vérif nécessaire",message = "La date retour n'est pas la fin de l'activité!")
 
     def __set_properties(self):
         self.bouton_aide.SetToolTip(_("Cliquez ici pour obtenir de l'aide"))
@@ -283,7 +289,9 @@ class DlgTransports(wx.Dialog):
         self.SwapDictAller('depart_IDarret','arrivee_IDarret')
         self.SwapDictAller('depart_IDlieu','arrivee_IDlieu')
         self.SwapDictAller('depart_localisation','arrivee_localisation')
-        listeChamps = ['mode','categorie','IDcompagnie','IDligne','depart_IDarret','depart_IDlieu','depart_localisation','arrivee_IDarret','arrivee_IDlieu','arrivee_localisation',]
+        listeChamps = ['mode','categorie','IDcompagnie','IDligne','depart_IDarret',
+                       'depart_IDlieu','depart_localisation','arrivee_IDarret',
+                       'arrivee_IDlieu','arrivee_localisation',]
         listeDonnees=[]
         for key in listeChamps:
             if key in self.dictAller:

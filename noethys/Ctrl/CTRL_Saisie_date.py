@@ -445,8 +445,8 @@ class Date2(wx.Panel):
         if self.activeCallback == True :
             try :
                 self.parent.OnChoixDate()
-            except :
-                pass
+            except Exception as err:
+                print(err)
 
     def SetDate(self, date):
         if type(date) == datetime.datetime or (type(date) in (str, six.text_type) and ":" in date):
