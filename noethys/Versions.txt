@@ -1,3 +1,6 @@
+version 1.3.1.31 ( ND 03/08/2022):
+- Libelle manquant devient 'Pour prestation' au lieu de 'Pour ensemble famille'
+
 version 1.3.1.30 (03/08/2022):
 - Correction bug sur nouveau transport
 
