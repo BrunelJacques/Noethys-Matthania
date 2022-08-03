@@ -91,8 +91,10 @@ class DlgTransports(wx.Dialog):
         self.prixTranspRetour = 0.0
         if not "IDtranspAller" in self.dictDonnees:
             self.dictDonnees["IDtranspAller"] = None
+            self.dictDonnees["prixTranspAller"] = 0.0
         if not "IDtranspRetour" in self.dictDonnees:
             self.dictDonnees["IDtranspRetour"] = None
+            self.dictDonnees["prixTranspRetour"] = 0.0
         if not self.modeVirtuel:
             #Vérif double transport
             IDactivite = self.dictDonnees["IDactivite"]

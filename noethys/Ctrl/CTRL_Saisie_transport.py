@@ -1007,7 +1007,7 @@ class CTRL_DateHeure(wx.Panel):
     def OnChoixDate(self):
         if self.GetDate() != None and self.rubrique == "depart" :
             ctrl = self.parent.GetControle(code="date_heure", rubrique="arrivee")
-            if ctrl.GetDate() == None :
+            if ctrl and ctrl.GetDate() == None :
                 ctrl.SetDate(self.GetDate())
         # Vérification si possible versus dates d'activité
         if hasattr(self.parent.parent,"VerifDatesActivite"):
