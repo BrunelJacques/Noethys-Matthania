@@ -462,7 +462,7 @@ class Impression():
 
                                 # Affiche le Label de la prestation
                                 if label == None:
-                                    label = "Pour l'ensemble de la famille"
+                                    label = "Pour prestation"
                                 listeIntitules.append(Paragraph(label, paraStyle))
 
                                 # TVA
