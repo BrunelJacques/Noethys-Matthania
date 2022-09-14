@@ -97,11 +97,9 @@ class MainFrame(wx.Frame):
 
         # Ecrit la date et l'heure dans le journal.log
         dateDuJour = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        systeme = "%s %s %s %s " % (
-        sys.platform, platform.system(), platform.release(), platform.machine())
+        systeme = "%s %s %s %s " % (sys.platform, platform.system(), platform.release(), platform.machine())
         version_python = "3"
-        print("-------- %s | %s | Python %s | wxPython %s | %s --------" % (
-        dateDuJour, VERSION_LOGICIEL, version_python, wx.version(), systeme))
+        print("-------- %s | %s | Python %s | wxPython %s | %s --------" % (dateDuJour, VERSION_LOGICIEL, version_python, wx.version(), systeme))
 
         # Diminution de la taille de la police sous linux
         from Utils import UTILS_Linux
@@ -122,9 +120,6 @@ class MainFrame(wx.Frame):
         self.listeUtilisateurs = []
         self.dictUtilisateur = None
 
-        # self.langue = UTILS_Config.GetParametre("langue_interface", None)
-        # self.ChargeTraduction()
-
         # Récupération du nom du dernier fichier chargé
         self.nomDernierFichier = ""
         if "nomFichier" in self.userConfig:
@@ -141,16 +136,6 @@ class MainFrame(wx.Frame):
 
         # Recherche si une mise à jour internet existe
         self.MAJexiste = False
-        """
-        self.versionMAJ = None
-        if sys.executable.endswith("python.exe") == True :
-            self.MAJexiste = False
-        else:
-            self.MAJexiste = self.RechercheMAJinternet()
-
-        if UTILS_Config.GetParametre("propose_maj", defaut=True) == False :
-            self.MAJexiste = False
-        """
 
         # Récupération des perspectives de la page d'accueil
         if ("perspectives" in self.userConfig) == True:
@@ -1998,8 +1983,8 @@ class MyApp(wx.App):
         if CUSTOMIZE.GetValeur("utilisateur", "pass", "") == "":
             nom_fichier_splash = "Logo_splash_2019.png"
             bmp = wx.Bitmap(Chemins.GetStaticPath(
-                "Images/Interface/%s/%s" % (theme, nom_fichier_splash)),
-                            wx.BITMAP_TYPE_PNG)
+                        "Images/Interface/%s/%s" % (theme, nom_fichier_splash)),
+                         wx.BITMAP_TYPE_PNG)
             frame = AS.AdvancedSplash(None, bitmap=bmp, timeout=500,
                                       agwStyle=AS.AS_TIMEOUT | AS.AS_CENTER_ON_SCREEN)
             anneeActuelle = str(datetime.date.today().year)
