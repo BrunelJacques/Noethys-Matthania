@@ -20,7 +20,6 @@ import pickle
 import base64
 import six
 
-
 class CypherText:
 	def __init__(self):
 		self.__CypherText = ''

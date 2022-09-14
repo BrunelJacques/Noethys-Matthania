@@ -10,18 +10,13 @@
 
 
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
 import wx.aui
 import wx.lib.agw.hypertreelist as HTL
 import wx.lib.agw.hyperlink as Hyperlink
-if 'phoenix' in wx.PlatformInfo:
-    from wx.adv import BitmapComboBox
-else :
-    from wx.combo import BitmapComboBox
-
+from wx.adv import BitmapComboBox
 from Ctrl import CTRL_Bandeau
 
 from Data import DATA_Civilites as Civilites
@@ -300,7 +295,9 @@ class Hyperlien_LiensFamille(Hyperlink.HyperLinkCtrl):
         self.UpdateLink()
         
 class Choice_liens(wx.Choice):
-    def __init__(self, parent, id=-1, IDfamille=None, IDindividu_objet=None, IDcategorie=None, IDindividu_sujet=None, nomIndividu="", typeIndividu="" , sexeIndividu="", IDtypeLien=None, infobulle="" ):
+    def __init__(self, parent, id=-1, IDfamille=None, IDindividu_objet=None,
+                 IDcategorie=None, IDindividu_sujet=None, nomIndividu="", typeIndividu="",
+                 sexeIndividu="", IDtypeLien=None, infobulle="" ):
         """ typeIndividu = "A" ou "E" (adulte ou enfant) """
         """ sexeIndividu = "M" ou "F" (masculin ou féminin) """
         """ Lien = ID type lien par défaut """
@@ -312,6 +309,9 @@ class Choice_liens(wx.Choice):
         self.IDindividu_sujet = IDindividu_sujet
         self.typeIndividu = typeIndividu
         self.sexeIndividu = sexeIndividu
+        # les 'enfants' d'une famille devenus adultes, ne se marient pas dans leur famille
+        if (IDcategorie,typeIndividu) == (2,"A"):
+            self.typeIndividu = "E" # redevient enfant dans cette famille seulement
         choices=self.GetListeTypesLiens()
         self.SetItems(choices)
         self.SetToolTip(wx.ToolTip(infobulle))
@@ -325,11 +325,6 @@ class Choice_liens(wx.Choice):
             if self.typeIndividu in valeurs["public"] :
                 if self.sexeIndividu != None and len(self.sexeIndividu) > 0 :
                     texte = valeurs["texte"][self.sexeIndividu]
-##                    typeLien = valeurs[self.sexeIndividu]
-##                    if self.sexeIndividu == "M" :
-##                        texte = _("est son %s") % typeLien
-##                    else:
-##                        texte = _("est sa %s") % typeLien
                     listeChoix.append((texte, IDtypeLien))
         listeChoix.sort()
         # Création de la liste de choix pour le wx.choice après le tri
