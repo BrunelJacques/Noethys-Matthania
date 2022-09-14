@@ -1,5 +1,9 @@
+version 1.3.1.32 (14/09/2022):
+- les enfants par catégorie devenus adultes par civilité gardent leur lien de filiation (fils, fille)
+- les adultes d'une famille restés en catégorie enfant ne se marient pas dans leur famille
+
 version 1.3.1.31 ( ND 03/08/2022):
-- Libelle manquant devient 'Pour prestation' au lieu de 'Pour ensemble famille'
+- Libelle transport manquant devient 'Pour prestation' au lieu de 'Pour ensemble famille'
 
 version 1.3.1.30 (03/08/2022):
 - Correction bug sur nouveau transport
