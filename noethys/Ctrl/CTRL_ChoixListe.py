@@ -55,7 +55,7 @@ def GetColonnesVentil():
                    isSpaceFilling=False, stringConverter=FormateMontant),
         ColumnDefn("A ventiler", 'right', 80, 'mttVentiler_aff', typeDonnee='montant',
                    isSpaceFilling=False, stringConverter=FormateMontant),
-        ColumnDefn("Let", 'right', 30, 'lettreID', typeDonnee='texte',
+        ColumnDefn("Let", 'right', 60, 'lettreID', typeDonnee='texte',
                    isSpaceFilling=False),
         ColumnDefn("Lettrage", 'left', 240, 'lettres', typeDonnee='texte',
                    isSpaceFilling=True),
@@ -84,9 +84,7 @@ def LettreSuivante(lettre=''):
     dicPlage = {"9":"1", "Z":"A", "z":"a"}
     if lastcar in ("9","Z","z"):
         # limite atteinte: lastcar recule en début de plage et incrementation precars
-        if len(precars) > 0 \
-                and (precars[-1] <= lastcar) \
-                and (precars[-1] > dicPlage[lastcar]):
+        if len(precars) > 0 and (precars[-1] <= lastcar) and (precars[-1] >= dicPlage[lastcar]):
             # le caractère précédent est de même casse, on l'incrémente
             precars = LettreSuivante(precars)
         else:
@@ -101,6 +99,8 @@ def LettreSuivante(lettre=''):
     else:
         # incrémentation simple dans la casse
         new = precars + chr(ord(lastcar) + 1)
+    if len(lettre) >2:
+        print(lettre,new)
     return new
 
 def LettresMax(lstLignes, pos):
@@ -184,6 +184,84 @@ class ListView(FastObjectListView):
             'style'] = wx.LC_REPORT | wx.SUNKEN_BORDER | wx.LC_SINGLE_SEL | wx.LC_HRULES | wx.LC_VRULES
         FastObjectListView.__init__(self, *args, **kwds)
         self.rowFormatter = rowFormatter
+        self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
+
+    def OnContextMenu(self, event):
+        """Ouverture du menu contextuel """
+        menuPop = wx.Menu()
+
+        if hasattr(self.GrandParent.ctrl_outils,'bouton_cocher'):
+            # Item Tout cocher
+            item = wx.MenuItem(menuPop, 70, "Tout cocher")
+            item.SetBitmap(
+                wx.Bitmap("Static/Images/16x16/Cocher.png", wx.BITMAP_TYPE_PNG))
+            menuPop.Append(item)
+            self.Bind(wx.EVT_MENU, self.CocheListeTout, id=70)
+
+            # Item Tout décocher
+            item = wx.MenuItem(menuPop, 80, "Tout décocher")
+            item.SetBitmap(
+                wx.Bitmap("Static/Images/16x16/Decocher.png", wx.BITMAP_TYPE_PNG))
+            menuPop.Append(item)
+            self.Bind(wx.EVT_MENU, self.CocheListeRien, id=80)
+
+            menuPop.AppendSeparator()
+
+        # Item Apercu avant impression
+        item = wx.MenuItem(menuPop, 40, "Aperçu avant impression")
+        bmp = wx.Bitmap("Static/Images/16x16/Apercu.png", wx.BITMAP_TYPE_PNG)
+        item.SetBitmap(bmp)
+        menuPop.Append(item)
+        self.Bind(wx.EVT_MENU, self.Apercu, id=40)
+
+        # Item Imprimer
+        item = wx.MenuItem(menuPop, 50, "Imprimer")
+        bmp = wx.Bitmap("Static/Images/16x16/Imprimante.png", wx.BITMAP_TYPE_PNG)
+        item.SetBitmap(bmp)
+        menuPop.Append(item)
+        self.Bind(wx.EVT_MENU, self.Imprimer, id=50)
+
+        menuPop.AppendSeparator()
+
+        # Item Export Texte
+        item = wx.MenuItem(menuPop, 600, "Exporter au format Texte")
+        bmp = wx.Bitmap("Static/Images/16x16/Texte2.png", wx.BITMAP_TYPE_PNG)
+        item.SetBitmap(bmp)
+        menuPop.Append(item)
+        self.Bind(wx.EVT_MENU, self.ExportTexte, id=600)
+
+        # Item Export Excel
+        item = wx.MenuItem(menuPop, 700, "Exporter au format Excel")
+        bmp = wx.Bitmap("Static/Images/16x16/Excel.png", wx.BITMAP_TYPE_PNG)
+        item.SetBitmap(bmp)
+        menuPop.Append(item)
+        self.Bind(wx.EVT_MENU, self.ExportExcel, id=700)
+
+        self.PopupMenu(menuPop)
+        menuPop.Destroy()
+
+    def Selection(self):
+        return self.GetSelectedObjects()
+
+    def Apercu(self, event=None):
+        from Utils import UTILS_Printer
+        txtIntro, txtTotal = self.GetTextesImpression()
+        prt = UTILS_Printer.ObjectListViewPrinter(self, titre="Liste des factures", intro=txtIntro, total=txtTotal, format="A", orientation=wx.PORTRAIT)
+        prt.Preview()
+
+    def Imprimer(self, event=None):
+        from Utils import UTILS_Printer
+        txtIntro, txtTotal = self.GetTextesImpression()
+        prt = UTILS_Printer.ObjectListViewPrinter(self, titre="Liste des factures", intro=txtIntro, total=txtTotal, format="A", orientation=wx.PORTRAIT)
+        prt.Print()
+
+    def ExportTexte(self, event=None):
+        from Utils import UTILS_Export
+        UTILS_Export.ExportTexte(self, titre="Liste des factures")
+
+    def ExportExcel(self, event=None):
+        from Utils import UTILS_Export
+        UTILS_Export.ExportExcel(self, titre="Liste des factures")
 
 class ListviewAvecFooter(PanelAvecFooter):
     def __init__(self, parent, dictFooter={}, kwargs={}):
@@ -754,12 +832,20 @@ class DLGventilations(wx.Dialog):
     def OnClicLettrer(self, event):
         choix = self.listview.GetCheckedObjects()
         if len(choix) == 0:
-            mess = "Pas de choix = 'Tous'\n\n"
-            mess += "Sans ligne cochée nous les prenons toutes pour les lettrer sans délettrage préalable..."
-            ret = wx.MessageBox(mess, "Confirmez", style=wx.YES_NO | wx.ICON_INFORMATION)
-            if ret != wx.YES:
+            mess = "Pas de choix = 'Toutes les lignes'\n\n"
+            mess += "Sans ligne cochée nous allons lettrer l'ensemble avec deux possibilités:\n\n"
+            mess += "- OUI: avec un délettrage préalable (conseillé pour initialiser)\n"
+            mess += "- NON: seules les lignes avec montant à ventiler seront traitées\n"
+            ret = wx.MessageBox(mess, "Confirmez", style=wx.YES_NO | wx.CANCEL)
+            if ret == wx.YES:
+                # extension du choix à toutes les lignes
+                choix = self.listview.GetObjects()
+                self.ClearLetters(choix)
+                self.MAJ()
+                choix = self.listview.GetObjects()
+            elif ret != wx.NO:
+                # ni oui ni non c'est l'abandon
                 return
-            choix = self.listview.GetObjects()
 
         lstIxChoix = [self.listview.modelObjects.index(x) for x in choix]
 
@@ -815,7 +901,6 @@ class DLGventilations(wx.Dialog):
         self.EndModal(wx.ID_CANCEL)
 
     def OnClicOk(self, event):
-
         self.EndModal(wx.ID_OK)
 
     def GetVentilSuppr(self):
@@ -839,7 +924,7 @@ class DialogLettrage(wx.Dialog):
         columnSort = kwds.pop('columnSort',2)
         LargeurCode = kwds.pop('LargeurCode',80)
         LargeurLib = kwds.pop('LargeurLib',100)
-        width,height  = kwds.pop('minSize',(450, 350))
+        width,height  = kwds.pop('minSize',(550, 350))
 
         if not 'style' in list(kwds.keys()):
             kwds['style'] = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX
@@ -1408,6 +1493,8 @@ class Dialog(wx.Dialog):
         return self.choix
 
 if __name__ == "__main__":
+    import os
+    os.chdir("..")
     app = wx.App(0)
     ddDebits = {
         12456: {"designations": ["pièce réglée 1", datetime.date.today()+datetime.timedelta(1)],

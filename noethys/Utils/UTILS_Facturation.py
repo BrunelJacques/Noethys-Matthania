@@ -403,7 +403,7 @@ class Facturation():
             "date_debut" : date_debut,
             "date_fin" : date_fin,
             "date_edition" : date_edition,
-            "date_echeance": dictDonPage["date_echeance"],
+            "date_echeance": date_echeance,
             "individus" : {},
             "IDfamille" : IDfamille,
             "montant" : FloatToDecimal(0.0),
@@ -449,7 +449,6 @@ class Facturation():
             kw["IDindividu"] = IDindividu
             kw["dictDonIndividu"] = dictDonPage[IDindividu]
             dictToPage["individus"][IDindividu] = self.GetIndividu(**kw)
-
 
         # Ajoute les réponses des questionnaires
         for dictReponse in self.Questionnaires.GetDonnees(IDfamille) :
@@ -538,13 +537,27 @@ class Facturation():
                         period = "AutresDus"
                         dictToPage["reports"][period] = {"Deb":mtt}
                     dictToPage["total_reports"] -= mtt
+            duReel = self.dictSoldes[IDfamille]['prestations']
+            duReel -= self.dictSoldes[IDfamille]['reglements']
+            duPage = dictToPage["montant"] - dictToPage["ventilation"]
+            duPage -= dictToPage["total_reports"]
+            mtt = duPage - FloatToDecimal(duReel)
+            if abs(mtt) >= 0.1:
+                period = "Reprise"
+                if mtt > 0:
+                    dictToPage["reports"][period] = {"Crédit": mtt}
+                else:
+                    dictToPage["reports"][period] = {"Débit": mtt}
+                dictToPage["total_reports"] -= mtt
 
             if abs(dictToPage["total_reports"]) < FloatToDecimal(0.1) : dictToPage["total_reports"] = FloatToDecimal(0)
+
             return
             #fin defReportImpayes
+
         defReportImpayes()
 
-        #inversion éventuelle de la nature de la pièce
+        # inversion éventuelle de la nature de la pièce
         negatif = (dictToPage["montant"] < 0)
         if dictOptions["inversion_solde"] and negatif :
             dictToPage["montant"] = -dictToPage["montant"]
@@ -562,12 +575,13 @@ class Facturation():
         dictToPage["solde"] = dictToPage["montant"] - dictToPage["ventilation"]
         dictToPage["solde_du"] = dictToPage["montant"] - dictToPage["ventilation"] + dictToPage["total_reports"]
 
+
         dictToPage["{DATE_EDITION_COURT}"] = UTILS_Dates.DateEngFr(dictToPage["date_edition"])
 
         for IDindividu, dictIndividu in dictToPage["individus"].items() :
             dictIndividu["select"] = True
 
-        # recherche des prélèvements, désactivée
+        # recherche des prélèvements (désactivée)
         """# Recherche de prélèvements
         dictPrelevements = self.GetPrelevements(dictDonPage["IDfacture"]
         if dictPrelevements.has_key(IDpage) :
@@ -669,93 +683,7 @@ class Facturation():
         return dictToPdf
         #fin GetDonnees
 
-    #-------------------- Fin de la construction de dictToPdf ----------------------------------------------------------
-
-    # Récupération des prélèvements sur une facture
-    def zzzGetPrelevements(self, IDfacture):
-        if len(IDfactures) > 0 :
-            condition = "WHERE factures.numero IN %s" % (str(tuple(IDfactures))[:-2]+")")
-        else : condition = ""
-        req = """
-            SELECT prelevements.IDprelevement, prelevements.prelevement_numero, prelevements.prelevement_iban,
-                prelevements.IDfacture, prelevements.montant, prelevements.statut, 
-                comptes_payeurs.IDcompte_payeur, lots_prelevements.date,
-                prelevement_reference_mandat, comptes_bancaires.code_ics
-            FROM prelevements
-            LEFT JOIN lots_prelevements ON lots_prelevements.IDlot = prelevements.IDlot
-            LEFT JOIN comptes_payeurs ON comptes_payeurs.IDfamille = prelevements.IDfamille
-            LEFT JOIN comptes_bancaires ON comptes_bancaires.IDcompte = lots_prelevements.IDcompte
-            LEFT JOIN factures ON factures.IDfacture = prelevements.IDfacture
-            %s ;""" % condition
-        retour = self.DB.ExecuterReq(req,MsgBox="ExecuterReq")
-        if retour != "ok" :
-            msg = GestionDB.Messages()
-            msg.Box("Problème sql", retour)
-            del dlgAttente
-            return False
-        listePrelevements = self.DB.ResultatReq()
-        dictPrelevements = {}
-        for IDprelevement, numero_compte, iban, IDfacture, montant, statut, IDcompte_payeur, datePrelevement, rum, code_ics in listePrelevements :
-            datePrelevement = UTILS_Dates.DateEngEnDateDD(datePrelevement)
-            dictPrelevements[IDfacture] = {
-                "IDprelevement" : IDprelevement, "numero_compte" : numero_compte, "montant" : montant,
-                "statut" : statut, "IDcompte_payeur" : IDcompte_payeur, "datePrelevement" : datePrelevement,
-                "iban" : iban, "rum" : rum, "code_ics" : code_ics,
-            }
-        return dictPrelevements
-        # fin GetPrelevements
-
-    # affecte le reliquat de règlements positifs non affecté sur les impayés hors page, puis sur la page
-    def zzzImputeReglLibres(self):
-        # fonction filtrage des seuls réglements positifs
-        def filtre(reglementsLibres):
-            reglements = {}
-            for IDreglement, dictRegl in reglementsLibres:
-                if dictRegl["montant"] <= 0:
-                    continue
-                if not dictReglement["ventilation"] : dictReglement["ventilation"] = FloatToDecimal(0.0)
-                affectable = dictReglement["montant"] - dictReglement["ventilation"]
-                if round(affectable,0) < 0: continue
-                reglements[IDreglement] = dictRegl
-            return reglements
-
-        # Action d'imputation de réglements positifs sur une prestation impayée
-        def imputeSurImpaye(dPrest, reglementsLibres):
-            reglements = filtre(reglementsLibres)
-            if len(reglements) == 0: return
-            lstSupprime = []
-            for IDreglement, dictReglement in reglements.items():
-                affectable = dictReglement["montant"] - dictReglement["ventilation"]
-                for IDprestation, dPrest in dictVentFamille["prestations"].items():
-                    impute = min(affectable, dPrest["montant"] - dPrest["regle"])
-                    if impute == 0: continue
-                    dPrest["regle"] += impute
-                    dictReglement["ventilation"] += impute
-                    if not IDreglement in dPrest["reglAffectes"]:
-                        dPrest["reglAffectes"][IDreglement] = dictReglement
-                    else:
-                        dPrest["reglAffectes"][IDreglement]["ventilation"] += impute
-                # il reste moins de 0.10¤ à ventiler on le supprime
-                if round(dictReglement["montant"] - dictReglement["ventilation"],1) == 0:
-                    lstSupprime.append(IDreglement)
-            # purge les règlements libres entièrement ventilés
-            for IDreglement in lstSupprime:
-                del reglementsLibres[IDreglement]
-            return # fin de imputeSurImpaye
-
-        # appelle chaque prestation étrangère  chaque page
-        for IDfamille in list(self.dictDonnees.keys()):
-            for noPage, dictDonPage in self.dictDonnees[IDfamille].items():
-                dictVentFamille = self.dictVentilations[IDfamille]
-                prestations = dictVentFamille["prestations"]
-
-                for IDprestation, dPrest in prestations.items():
-                    # écarte les prestation de la pièce pour ne traiter que les autres
-                    if IDprestation in dictDonPage["lstIDprestations"]:
-                        continue
-                    if dPrest["montant"] - dPrest["regle"] == 0:
-                        continue
-                    imputeSurImpaye(dPrest,dictVentFamille["reglementsLibres"])
+    #-------------------- Fin de la construction de dictToPdf ----------------------------
 
     # Récupère les éléments libres d'affectation à une prestation
     def GetReglementsLibres(self):
@@ -880,8 +808,8 @@ class Facturation():
         lstChampsRegl = ["IDreglement", "mode", "numero", "emetteur",
                        "payeur", "ventilation", "montant", "IDprestation", "IDfamille"]
 
-        for IDreglement, date_reglement, differe, mode, noCheque, emetteur, payeur, ventile, surMontant, \
-            IDprestation, IDfamille in recordset :
+        for IDreglement, date_reglement, differe, mode, noCheque, emetteur, payeur, \
+               ventile, surMontant, IDprestation, IDfamille in recordset :
             # test cohérence
             if not IDfamille in self.dictVentilations:
                 mess = "Problème avec le règlements %d de la famille %d\n"%(IDreglement, IDfamille)
@@ -922,7 +850,6 @@ class Facturation():
 
     # Prestations impayées : self.dictVentialations[IDfamille]["impayes"][IDprestation][periode][nature] = montantImpaye
     def GetImpayes(self):
-
         #appel de toutes les prestations pour toutes les familles du lot
         condition = " WHERE prestations.IDfamille in ( %s ) "% str(self.lstIDfamilles)[1:-1]
         req = """
@@ -932,7 +859,6 @@ class Facturation():
             WHERE prestations.IDfamille IN (%s)
             GROUP BY prestations.IDprestation, prestations.montant
             ;""" % str(self.lstIDfamilles)[1:-1]
-        
         retour = self.DB.ExecuterReq(req, MsgBox="UTILS_Facturation.GetImpayes_1")
         recordset = self.DB.ResultatReq()
         lstIDprest = []
@@ -1068,8 +994,6 @@ class Facturation():
             self.GetReglementsAffectes()
         self.GetImpayes()
         self.GetReglementsLibres()
-        #self.ImputeReglLibres()
-        return
         #fin GetVentilations
 
     # Infos connexes necessaires à toutes les pages
@@ -1384,6 +1308,25 @@ class Facturation():
         return
         #fin GetPieces
 
+    def GetSoldes(self):
+        # Recherche les soldes_du de chaque famille, retourne un dictionnaire
+        for famille in self.lstIDfamilles:
+            self.dictSoldes[famille] = {'prestations':0.0,'reglements':0.0}
+        for table in ('prestations','reglements'):
+            req = """
+                SELECT IDcompte_payeur, SUM(montant)
+                FROM %s
+                WHERE (IDcompte_payeur In ( %s ))
+                GROUP BY IDcompte_payeur
+                ;""" % (table, str(self.lstIDfamilles)[1:-1])
+            retour = self.DB.ExecuterReq(req,MsgBox="UTILS_Facturation.GetSoldes_%s"%table)
+            if retour != "ok" :
+                return
+            recordset = self.DB.ResultatReq()
+            for IDfamille, montant in recordset:
+                self.dictSoldes[IDfamille][table] = montant
+        return self.dictSoldes
+
     # doc ----------------------------- Structure de dictDonnees -------------------------------------------------------
     """
     [IDfamille]
@@ -1437,6 +1380,7 @@ class Facturation():
         self.dictPieces = {}
         self.dictVentilations = {}
         self.dictIndividus = {}
+        self.dictSoldes = {}
         self.lstIDindividus = []
         self.lstIDactivites = []
         self.lstIDpieces = []
@@ -1681,6 +1625,7 @@ class Facturation():
         self.GetPieces()
         self.GetInfos()
         self.GetVentilations()
+        self.GetSoldes()
         del dlgAttente
 
         # Récupération des données

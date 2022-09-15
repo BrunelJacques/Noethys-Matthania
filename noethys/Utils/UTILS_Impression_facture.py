@@ -39,6 +39,10 @@ CADRE_CONTENU = (5*cm, 5*cm, 14*cm, 17*cm)
 DICT_VALEURS = {}
 DICT_OPTIONS = {} 
 
+def TakeFirst(lst):
+    # fonction pour tri sur premier élément de liste ou tuple
+    return lst[0]
+
 def DateEngFr(textDate):
     if textDate == None: return ""
     textDate = str(textDate)
@@ -617,7 +621,10 @@ class Impression():
                     dictReglements = dictValeur["reglements"]
                     if len(dictReglements) > 0 :
                         listeTextesReglements = []
-                        for IDreglement, dictTemp in dictReglements.items() :
+                        lstReglements = [(dictReglements[x]['dateReglement'],
+                                          dictReglements[x]) for x in dictReglements.keys()]
+                        lstReglements.sort(key=TakeFirst)
+                        for dte,dictTemp in lstReglements:
                             if dictTemp["emetteur"] not in ("", None) :
                                 emetteur = " (%s) " % dictTemp["emetteur"]
                             else :
@@ -641,7 +648,6 @@ class Impression():
                             texte = "%s/%s %s%s de %s (%s)" % (mois,an,dictTemp["mode"][:3],  emetteur,
                                                                   dictTemp["payeur"], texteMontant)
                             listeTextesReglements.append(texte)
-                        listeTextesReglements.sort()
 
                         if dictValeur["solde"] > FloatToDecimal(0.0) :
                             intro = "Partiellement réglé"

@@ -1,3 +1,10 @@
+version 1.3.1.34 (15/09/2022):
+- Impression facture, le reste dû est forcé pour correspondre au réel (terme 'reprise')
+- Impression facture trie les règlements par année-mois et non plus par mois-année
+- Suivi des ventilations: Le relettrage complet propose avec ou sans délettrage préalable
+- Ajout d'un export excel sur les ventilations pour mieux analyser ce qu'il en est
+- Les lettres s'incrémentent correctement après 19 -> 20 et non 110
+
 version 1.3.1.33 (14/09/2022 22h):
 - sortie réorganisée pour éviter plantage après release
 

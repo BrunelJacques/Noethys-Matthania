@@ -113,6 +113,8 @@ class Lettrage(object):
     # -----------------------------------------------------------------------------------------------------
 
 if __name__ == "__main__":
+    import os
+    os.chdir("..")
     app = wx.App(0)
-    Lettrage(IDfamille = 7271)
+    Lettrage(IDfamille = 9)
     app.MainLoop()

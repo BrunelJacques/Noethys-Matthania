@@ -81,7 +81,7 @@ def GetValeursGrid(grid=None):
 
 def ExportTexte(listview=None, grid=None, titre="", listeColonnes=None, listeValeurs=None, autoriseSelections=True):
     """ Export de la liste au format texte """
-    if (listview != None and len(listview.donnees) == 0) or (grid != None and (grid.GetNumberRows() == 0 or grid.GetNumberCols() == 0)):
+    if (listview != None and len(listview.innerList) == 0) or (grid != None and (grid.GetNumberRows() == 0 or grid.GetNumberCols() == 0)):
         dlg = wx.MessageDialog(None, _("Il n'y a aucune donnée dans la liste !"), "Erreur", wx.OK | wx.ICON_ERROR)
         dlg.ShowModal()
         dlg.Destroy()
@@ -182,7 +182,7 @@ def ExportExcel(listview=None, grid=None, titre=_("Liste"), listeColonnes=None, 
     # Plus de sélection pour éviter les bugs !!!!
     autoriseSelections = False 
     if listview:
-        nbLignes = len(listview.donnees)
+        nbLignes = len(listview.innerList)
     else: nbLignes = 0
 
     if onlyCheck :
