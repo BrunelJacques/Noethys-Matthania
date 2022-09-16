@@ -540,7 +540,7 @@ class Facturation():
             duReel = self.dictSoldes[IDfamille]['prestations']
             duReel -= self.dictSoldes[IDfamille]['reglements']
             duPage = dictToPage["montant"] - dictToPage["ventilation"]
-            duPage -= dictToPage["total_reports"]
+            duPage += dictToPage["total_reports"]
             mtt = duPage - FloatToDecimal(duReel)
             if abs(mtt) >= 0.1:
                 period = "Reprise"
