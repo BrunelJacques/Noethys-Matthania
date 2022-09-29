@@ -198,7 +198,7 @@ class CTRL_Donnees(wx.Panel):
                                                 style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         self.listview.SetMinSize((600, 400))
         self.barre_recherche = OL_Etiquettes.CTRL_Outils(self, listview=self.listview, afficherCocher=True)
-        self.listview.MAJ()
+        #self.listview.MAJ()
         # Layout
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.listview, 1, wx.EXPAND | wx.BOTTOM, 5)

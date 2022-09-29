@@ -419,7 +419,7 @@ class TrackFamille(object):
         # un individu titulaire emporte la famille
         for IDdiffusion in list(self.listview.dictDiffusions.keys()) :
             exec("self.diffusion_%d = None" % (IDdiffusion))
-            for IDindividu in donnees["listeMembres"]:
+            for IDindividu in donnees["IDtitulaires"]:
                 if (IDindividu,) in self.listview.dictDiffusions[IDdiffusion]["tplIDs"] :
                     exec("self.diffusion_%d = 'x'" % (IDdiffusion))
 
@@ -479,11 +479,75 @@ def GetListeFamilles(listview=None, IDfamille=None, refusPub=False, actif=None):
     # Formatage des données
     listeListeView = []
     titulaires = UTILS_Titulaires.GetFamillesEtiq(listeFamilles)
+    """
+    # version ancienne remaniée
+    for IDfamille, dictFamille in titulaires.items() :
+        if IDfamille in listeFamilles:
+            # pour détecter ensuiteles familles sans titulaires
+            listeFamilles.remove(IDfamille)
+        ID = IDfamille
+        IDcivilite = ""
+        nom = ""
+        prenom = ""
+        designation = ""
+        rue_resid = ""
+        cp = ""
+        ville = ""
+        ville_resid = ""
+        pays = ""
+        mails = ""
+        telephones = ""
+        listeMembres = []
+        nomTitulaires = ""
+        refus_pub = 0
+        refus_mel = 0
+        if "titulaires" in dictFamille and not "nom" in dictFamille:
+            nomTitulaires = _(u"Un titulaire de la famille %d est aussi titulaire par ailleurs"%(IDfamille))
+
+        elif IDfamille != None  and "nom" in dictFamille:
+            IDcivilite = str(dictFamille["IDcivilite"])
+            nomTitulaires = dictFamille["titulairesSansCivilite"]
+            nom = dictFamille["nom"]
+            prenom = dictFamille["prenom"]
+            designation = dictFamille["designation_famille"]
+            rue_resid = dictFamille["adresse"]["rue"]
+            cp = dictFamille["adresse"]["cp"]
+            ville_resid = dictFamille["adresse"]["ville"]
+            lstville = dictFamille["adresse"]["ville"].split(u"\n")
+            if len(lstville)>0 : ville = lstville[0]
+            else: ville = ""
+            if len(lstville)>1:
+                pays = lstville[1]
+            else: pays = ""
+            if not "mails" in dictFamille.keys():
+                if "mail" in dictFamille.keys():
+                    dictFamille["mails"] = dictFamille["mail"]
+                else: dictFamille["mails"] = ""
+            if not "telephones" in dictFamille.keys():
+                if "telephone" in dictFamille.keys():
+                    dictFamille["telephones"] = dictFamille["telephone"]
+                else: dictFamille["telephones"] = ""
+            telephones = dictFamille["telephones"]
+            listeMembres = dictFamille["IDtitulaires"]
+            ID = dictFamille["IDfamille"]
+            refus_pub = dictFamille["refus_pub"]
+            refus_mel = dictFamille["refus_mel"]
+        else: wx.MessageBox("A voir la famille %d"%IDfamille)
+        dictTemp = {
+            "IDcivilite":IDcivilite,"IDfamille":ID, "titulaires":nomTitulaires,"nom":nom, "prenom":prenom,"designation":designation,
+            "rue_resid":rue_resid, "cp" : cp, "ville_resid":ville_resid, "ville":ville, "pays":pays, "mails" : mails,"telephones" : telephones,
+            "listeMembres" : listeMembres,"refus_pub":refus_pub,"refus_mel": refus_mel
+            }        
+        # Formatage sous forme de TRACK
+        track = TrackFamille(listview, dictTemp, refusPub)
+    """    
     for IDfamille, dictFamille in titulaires.items() :
         # Formatage sous forme de TRACK
+
         track = TrackFamille(listview, dictFamille, refusPub)
         if track.valide:
             listeListeView.append(track)
+
 
     return listeListeView
 
