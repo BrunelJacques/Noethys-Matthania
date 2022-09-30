@@ -386,7 +386,7 @@ class Saisie(wx.Dialog):
         self.ctrl_prix = wx.TextCtrl(self, -1, "")
         if prix !=None :
             self.ctrl_prix.SetValue(str(prix))
-        self.ctrl_cumul = wx.CheckBox(self, -1, "Tarif exclu des cumuls")
+        self.ctrl_cumul = wx.CheckBox(self, -1, "Sans réduction cumul et ministère")
         if cumul == 1 :
             self.ctrl_cumul.SetValue(True)
 
@@ -401,7 +401,9 @@ class Saisie(wx.Dialog):
         infoPrix = _("Ce prix de base >0 se substituera au 'prixParam1' des articles de typeLigne 'Séjour'")
         self.label_prix.SetToolTip(infoPrix)
         self.ctrl_prix.SetToolTip(infoPrix)
-        self.ctrl_cumul.SetToolTip("Cette case excluera les inscriptions à ce tarif de la réduction cumul")
+        mess = "Cette case excluera les inscriptions à ce tarif de la réduction cumul\n"
+        mess += " et la réduction ministère ne sera pas proposée"
+        self.ctrl_cumul.SetToolTip(mess)
 
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
         grid_sizer_base.Add(self.text_info, 0, 0, 0)
