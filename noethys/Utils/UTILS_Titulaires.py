@@ -186,14 +186,10 @@ def GetFamillesEtiq(listeIDfamille=[]):
             dictFamilles[IDfamille]["IDtitulaires"] += lstIDtitulaires
 
     # Reprise pour détermination des adresses principales et secondaires
-    lstCorrespondants = []
     dictBis = {}
     for IDfamille in list(dictFamilles.keys()):
-        if IDfamille == 709:
-            print()
         # recherche des coordonnées du correspondant de la famille
         dictFamille = dictFamilles[IDfamille]
-        designation_famille = dictFamille["designation_famille"]
         correspondant = dictFamille["correspondant"]
         if (not correspondant) or (not correspondant in dictFamille["IDtitulaires"]):
             # pas de correspondant dans la famille on prend le premier titulaire sinon on passe
@@ -212,13 +208,7 @@ def GetFamillesEtiq(listeIDfamille=[]):
                     dictFamille["nom"],
                     dictFamille["prenom"])
 
-        lstCorrespondants.append(IDindividu)
-        dictFamille["titulaires"] = [(x,y,z) for (x,y,z) in dictFamille["titulaires"] if x != correspondant]
-        dictFamille["IDtitulaires"].remove(correspondant)
-
-        if IDindividu in list(dictBis.keys()):
-            # ce titulaire a fait l'objet d'une fiche en tant que non correspondant, on la supprime
-            del dictBis["I" + str(IDindividu)]
+        dictFamille["titulaires"] = [(x,y,z) for (x,y,z) in dictFamille["titulaires"]]
 
         # traitement des titulaires non correspondants.
         for IDindividu, IDfamilleTmp, IDcategorie, in dictFamille["titulaires"]:
@@ -250,7 +240,8 @@ def GetFamillesEtiq(listeIDfamille=[]):
                 dictFamille["titulairesSansCivilite"] = "%s %s" % (dictFamille["nom"], dictFamille["prenom"])
                 dictFamille["titulairesAvecCivilite"] = "%s %s %s" % (dictFamille["civilite"], dictFamille["nom"],
                                                                       dictFamille["prenom"])
-                dictFamille["IDtitulaires"].append(IDindividu)
+                if not IDindividu in dictFamille["IDtitulaires"]:
+                    dictFamille["IDtitulaires"].append(IDindividu)
                 AjoutContacts(dictFamille, dictIndividu) # ajoute les telephones et mail de l'individu
 
             # le nouveau titulaire à une adresse différente on crée une occurence de type I

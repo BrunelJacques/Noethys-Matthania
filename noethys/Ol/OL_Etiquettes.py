@@ -417,7 +417,7 @@ class TrackFamille(object):
 
         # Récupération des appartenances aux listes de diffusion
         # un individu titulaire emporte la famille
-        for IDdiffusion in list(self.listview.dictDiffusions.keys()) :
+        for IDdiffusion in list(self.listview.dictDiffusions.keys()):
             exec("self.diffusion_%d = None" % (IDdiffusion))
             for IDindividu in donnees["IDtitulaires"]:
                 if (IDindividu,) in self.listview.dictDiffusions[IDdiffusion]["tplIDs"] :
@@ -543,12 +543,9 @@ def GetListeFamilles(listview=None, IDfamille=None, refusPub=False, actif=None):
     """    
     for IDfamille, dictFamille in titulaires.items() :
         # Formatage sous forme de TRACK
-
         track = TrackFamille(listview, dictFamille, refusPub)
         if track.valide:
             listeListeView.append(track)
-
-
     return listeListeView
 
 #-----------LISTVIEW-----------
