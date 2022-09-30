@@ -746,6 +746,23 @@ def CondMinistere(dictDonnees,codeArticle) :
         retour = DB.ResultatReq()
         if retour[0][0]>0:
             ret = True
+    # ajout d'une condition sur la nature du tarif utilisé
+    if ret:
+        # on appliquera la réduc ministère sur les seuls camps entrant dans les cumuls
+        tplcond = (dictDonnees['IDactivite'],
+                   dictDonnees['IDgroupe'],
+                   dictDonnees['IDcategorie_tarif'])
+        req = """
+            SELECT matTarifs.trfCumul
+            FROM matTarifs
+            WHERE ((matTarifs.trfIDactivite = %d) 
+                    AND (matTarifs.trfIDgroupe = %d) 
+                    AND (matTarifs.trfIDcategorie_tarif = %d))
+            ;""" % tplcond
+        DB.ExecuterReq(req,MsgBox = "GestionArticle.CondMinistere_2")
+        retour = DB.ResultatReq()
+        if retour[0][0] and retour[0][0] > 0:
+            ret = False
     return ret
 
 def CondParrain(dictDonnees,codeArticle) :
@@ -806,32 +823,6 @@ def PiecesAnneeCivile(DB, annee, IDfamille, IDindividu):
     listeIDnumPieces = []
     for record in recordset:
         listeIDnumPieces.append(record[0])
-    return listeIDnumPieces
-
-def zzzPiecesExercice(DB,exercice,IDfamille,IDindividu):
-    listeIDnumPieces = []
-    try:
-        # retourne la liste des pièces de l'année pour l'individu ou la famille
-        if IDindividu == None or IDindividu == 0:
-            # cas de recherche niveau famille l'IDindividu est 0, l'année dans l'IDinscription
-            annee = int(str(exercice[1])[:4])
-            req = """SELECT matPieces.pieIDnumPiece
-                    FROM matPieces
-                    WHERE matPieces.pieIDinscription = %d AND pieIDfamille =  %d
-                    ;""" % (annee,IDfamille)
-        else:
-            # cas de recherche niveau activite
-            datDeb = exercice[0]
-            datFin = exercice[1]
-            req = """SELECT matPieces.pieIDnumPiece
-                    FROM matPieces INNER JOIN activites ON matPieces.pieIDactivite = activites.IDactivite
-                    WHERE activites.date_debut >= '%s' AND activites.date_debut <= '%s' AND pieIDindividu =  %d
-                    ;""" % (datDeb,datFin,IDindividu)
-        ret = DB.ExecuterReq(req,MsgBox = "GestionArticle.PiecesAnneeCivile")
-        recordset = DB.ResultatReq()
-        for record in recordset:
-            listeIDnumPieces.append(record[0])
-    except: pass
     return listeIDnumPieces
 
 def PiecesAnneeAcademique(DB,annee,IDfamille,IDindividu):

@@ -200,7 +200,9 @@ class OLVtarification(FastObjectListView):
     def AjoutArticles_x(self,listeOLV):
             DB = self.dictDonnees['db']
             # Ajout des articles communs prfixés '$'
-            req = """SELECT matArticles.artCodeArticle, matArticles.artLibelle, matArticles.artPrix1, matArticles.artPrix1, matArticles.artPrix2, matArticles.artCodeBlocFacture, matArticles.artConditions, matArticles.artModeCalcul, 'O' as foorce
+            req = """SELECT matArticles.artCodeArticle, matArticles.artLibelle, matArticles.artPrix1, 
+                matArticles.artPrix1, matArticles.artPrix2, matArticles.artCodeBlocFacture, 
+                matArticles.artConditions, matArticles.artModeCalcul, 'O' as foorce
                     FROM matArticles
                     WHERE (matArticles.artCodeArticle LIKE '$%%') AND matArticles.artNiveauActivite = 1;
                     """

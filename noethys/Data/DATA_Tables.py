@@ -1586,7 +1586,7 @@ DB_DATA = {
         ("trfIDcategorie_tarif", "INTEGER", "noethys.categorie_tarifs.IDcategorie_tarif"),
         ("trfCodeTarif", "VARCHAR(16)", "matTarifsNoms.trnCodeTarif"),
         ("trfPrix", "FLOAT", "Prix de base pour calcul du montant"),
-        ("trfCumul","INTEGER" , "Exclu la réduction cumul"),
+        ("trfCumul","INTEGER" , "Exclu de la réduction cumul car prix faible"),
     ],  # fin de matTarifs, affectations des tarifs
     "matTarifsNoms":    [
         ("trnCodeTarif", "VARCHAR(16)", "matTarifs.trfCodeTarif"),
