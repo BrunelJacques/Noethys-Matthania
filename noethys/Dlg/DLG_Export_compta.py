@@ -64,7 +64,7 @@ def FormateDate(dateDD=None, format="%d/%m/%y") :
     else :
         return dateDD.strftime(format)
     
-def FormateLibelle(texte="", valeurs=[]):
+def zzzFormateLibelle(texte="", valeurs=[]):
     for motcle, valeur in valeurs :
         texte = texte.replace(motcle, valeur)
     return texte
@@ -1384,6 +1384,8 @@ class Donnees():
             IDmode, modeReglement,comptaMode,comptaDepot,comptaBanque,nomFamille, prenomFamille,IDreglement,\
             group,IDemetteur, nomEmetteur, nomPayeur in listeDonnees :
             if nomFamille == None : nomFamille = " "
+            if nomEmetteur == None: nomEmetteur = ""
+            if nomPayeur == None: nomPayeur = ""
             if prenomFamille == None : prenomFamille = " "
             listeIDreglements.append(IDreglement)
             if nomPayeur == None:
@@ -1418,7 +1420,6 @@ class Donnees():
                 ref = "Bq:%s" %nomBanque[:7]
             elif group == 'bancaf':
                 cle = (IDdepot,IDemetteur)
-                if nomEmetteur == None: nomEmetteur = ""
                 label = "%s-%s-%s" % (modeReglement[:3],nomBanque[:3],nomEmetteur)
                 ref = "Dep:%s" %nomDepot[:7]
             elif group == 'regreg':
@@ -1426,14 +1427,13 @@ class Donnees():
                 #dateLib = dateDepot
                 modeLib = 'Dep'
                 cle = (IDreglement,0)
-                if nomEmetteur == None: emetteur = ""
-                else : emetteur = nomEmetteur[:5]+' '
-                label = "%s%s %s" % (modeReglement[:3]+emetteur,modeLib+FormateDate(DateEngEnDateDD(dateLib))[:5],
-                                       nomPayeur)
-                ref = "%s" % nomPayeur
+                if len(nomEmetteur) == 0:
+                    nomEmetteur = nomPayeur
+                label = "%s%s %s" % (modeReglement[:3],modeLib+FormateDate(DateEngEnDateDD(dateLib))[:5],
+                                       nomEmetteur)
+                ref = "%s" % nomEmetteur
             else :
                 cle = (IDreglement,0)
-                if nomEmetteur == None: nomEmetteur = ""
                 label = "%s %s %s" % (modeReglement[:3]+nomEmetteur[:5],
                                        FormateDate(DateEngEnDateDD(dateLib))[:5],nomPayeur)
                 ref = "%s" %nomPayeur
