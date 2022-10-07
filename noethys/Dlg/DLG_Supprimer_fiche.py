@@ -216,7 +216,7 @@ class Dialog(wx.Dialog):
                     dlg = wx.MessageDialog(self, _("Vous ne pouvez pas supprimer la fiche famille car il y a déjà %d règlement(s) enregistré(s) dans cette fiche.") % len(listeDonnees), _("Détachement impossible"), wx.OK | wx.ICON_ERROR)
                     dlg.ShowModal()
                     dlg.Destroy()
-                    DB.Close
+                    DB.Close()
                     return False
 
                 # Suppression de la fiche famille
@@ -233,16 +233,16 @@ class Dialog(wx.Dialog):
             reponse = dlg.ShowModal()
             dlg.Destroy()
             if reponse !=  wx.ID_YES :
-                DB.Close
+                DB.Close()
                 return False
         else:
-            # détachement et création famille et rattachement à une nouvelle famille après proposition
-            dlg = wx.MessageDialog(self, _("Cet individu va être détaché de toute famille\n\nConfirmez!"), _("Confirmation"),
+            # détachement avant proposition création d'une nouvelle famille plus loin
+            dlg = wx.MessageDialog(self, _("Cet individu va être détaché de cette famille\n\nConfirmez!"), _("Confirmation"),
                                    wx.YES_NO|wx.NO_DEFAULT|wx.CANCEL|wx.ICON_QUESTION)
             reponse = dlg.ShowModal()
             dlg.Destroy()
             if reponse !=  wx.ID_YES :
-                DB.Close
+                DB.Close()
                 return False
 
 
@@ -281,14 +281,27 @@ class Dialog(wx.Dialog):
                 IDfamilleNew = self.dlgFamille.IDfamille
                 # composition désignation
                 dicIndividu = UTILS_Titulaires.GetIndividus([self.IDindividu,])[self.IDindividu]
-                designation = "%s %s]"%(dicIndividu["civiliteAbrege"],dicIndividu["nom_complet"])
+                designation = "%s %s"%(dicIndividu["civiliteAbrege"],dicIndividu["nom_complet"])
                 correspondant = self.IDindividu
-                lstDonnees = [('correspondant',correspondant), ('designation',designation)]
-                DB.ReqMAJ("familles", lstDonnees, "IDfamille", IDfamilleNew)
+                lstDonnees = [('adresse_individu',correspondant), ('adresse_intitule',designation)]
+                ret = DB.ReqMAJ("familles", lstDonnees, "IDfamille", IDfamilleNew,MsgBox = "DLG_Supprimer_fiche.Detacher newfamille")
+                if ret == 'ok':
+                    self.NewRattachement(DB,IDfamilleNew,self.IDindividu)
 
         DB.Close()
         # Fermeture de la fiche famille
         return True
+
+    def NewRattachement(self,DB,IDfamille, IDindividu):
+        """ Rattacher un individu suite à un détachement il devient titulaire"""
+        listeDonnees = [
+            ("IDindividu", IDindividu),
+            ("IDfamille", IDfamille),
+            ("IDcategorie", 1),
+            ("titulaire", 1),
+            ]
+        IDrattachement = DB.ReqInsert("rattachements", listeDonnees ,
+                            MsgBox = "DLG_Supprimer_fiche.Detacher newRattachement")
 
     def AjouteMemo(self,DB):
         # ajoute dans le memo de la fiche client

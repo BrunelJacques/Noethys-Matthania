@@ -238,8 +238,6 @@ class Dialog(wx.Dialog):
 
         self.__set_properties()
         self.__do_layout()
-        
-        self.Bind(wx.EVT_BUTTON, self.OnBoutonAjouterIndividu, self.bouton_ajouter)
 
         self.Bind(wx.EVT_BUTTON, self.OnBoutonOutils, self.bouton_outils)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonLiens, self.bouton_liens_famille)
@@ -779,7 +777,6 @@ class Dialog(wx.Dialog):
     def CreateIDfamille(self,DB=None):
         """ Crée la fiche famille dans la base de données afin d'obtenir un IDfamille et un IDcompte_payeur """
         self.IDfamille = CreateIDfamille(DB)
-        IDcompte_payeur = self.GetIDcomptePayeur()
         # Mémorise l'action dans l'historique
         UTILS_Historique.InsertActions([{
                 "IDfamille" : self.IDfamille,
@@ -830,20 +827,6 @@ class Dialog(wx.Dialog):
 
     def SupprimerFicheFamille(self,IDfamille=None):
             self.SupprimerFamille(IDfamille) # et affiche la suppression
-
-    def OnBoutonAjouterIndividu(self, event):
-        """ Créer ou rattacher un individu """
-        IDindividu = 5
-        IDcategorie = 2
-        titulaire = 0
-        # Enregistrement du rattachement
-        listeDonnees = [
-            ("IDindividu", IDindividu),
-            ("IDfamille", self.IDfamille),
-            ("IDcategorie", IDcategorie),
-            ("titulaire", titulaire),
-            ]
-        IDrattachement = self.DB.ReqInsert("rattachements", listeDonnees)
 
     def MenuEditionEtiquettes(self, event):
         from Dlg import DLG_Impression_etiquettes
@@ -922,7 +905,7 @@ if __name__ == "__main__":
     heure_debut = time.time()
     # ramel 567; perez marc 1724; bartoOliv 1861; branco 4499;  bourrel 6191
     #7735 parrainage; 8107 multifactures; 709 Brunel jacques
-    dialog_1 = Dialog(None, IDfamille= 3993)
+    dialog_1 = Dialog(None, IDfamille= 9019)
     print("Temps de chargement fiche famille =", time.time() - heure_debut)
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()
