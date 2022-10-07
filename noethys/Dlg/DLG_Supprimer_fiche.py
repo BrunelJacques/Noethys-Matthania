@@ -147,12 +147,10 @@ class Dialog(wx.Dialog):
         existRattach = False
         newFamille = None
         if len(listeDonnees) > 0 :
-            dlg = wx.MessageDialog(self, _("Vous ne pouvez pas détacher cette fiche car %d message(s) ont déjà été enregistré(s) pour cet individu sur cette fiche famille !") % len(listeDonnees), _("Détachement impossible"), wx.OK | wx.ICON_ERROR)
-            dlg.ShowModal()
-            dlg.Destroy()
-            DB.Close()
-            return False
-        
+            existRattach = True
+            newFamille = listeDonnees[0][0]
+
+
         # Compte le nbre d'individus présents dans la fiche
         req = """
         SELECT IDrattachement, IDindividu
