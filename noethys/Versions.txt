@@ -1,4 +1,4 @@
-version 1.3.1.42 (15/10/2022):
+version 1.3.2.1 (15/10/2022):
 - Saisie transports propose la date de l'activité
 
 version 1.3.1.41 (07/10/2022 12:45):
