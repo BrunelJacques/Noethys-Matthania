@@ -1563,6 +1563,8 @@ class CTRL(wx.Panel):
         # Importation
         if self.IDtransport != 0 :
             self.Importation()
+        else:
+            self.ImportationVirtuelle()
 
     def CreationControles(self, rubrique="generalites", label=_("Généralités")):
         # Crée tous les contrôles possibles, seuls ceux du
@@ -1595,10 +1597,16 @@ class CTRL(wx.Panel):
         self.listeSizers.append(boxSizer)
         self.listeSizers.append(grid_sizer)
 
-    def OnChoixCategorie(self, event): 
+    def OnChoixCategorie(self, event):
+        if event:
+            self.dictDonnees.update(self.GetDictDonnees())
         self.categorie = self.ctrl_categorie.GetCategorie()
         self.MAJaffichage()
-    
+        if event:
+            self.dictDonnees["categorie"] = self.categorie
+            self.dictDonnees.update(self.dictDonnees)
+            self.ImportationVirtuelle()
+
     def SelectCategorie(self, categorie="avion"):
         self.categorie = categorie
         self.ctrl_categorie.SetCategorie(self.categorie)

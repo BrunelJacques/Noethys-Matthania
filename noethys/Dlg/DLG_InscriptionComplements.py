@@ -39,7 +39,6 @@ class DlgTransports(wx.Dialog):
         wx.Dialog.__init__(self, None, -1, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
         self.titre = ("Gestion des compléments à l'inscription : Transports puis cotisation/réductions")
         self.SetTitle("DLG_InscriptionComplements")
-        self.dictDonnees = dictDonnees
         self.modeVirtuel = modeVirtuel
         droitCreation = UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_inscriptions", "creer")
         if not droitCreation : self.modeVirtuel = True
@@ -49,22 +48,34 @@ class DlgTransports(wx.Dialog):
         self.IDgroupe = dictDonnees["IDgroupe"]
         self.codeNature = None
         self.IDcategorieTarif = dictDonnees["IDcategorie_tarif"]
+        self.allerDepartDate = None
+        self.allerArriveeDate = None
+        self.retourDepartDate = None
+        self.retourArriveeDate = None
+
         ligneInfo = "Activité: " + dictDonnees["nom_activite"] + " | Groupe: " + dictDonnees["nom_groupe"]+ " | Tarif: " + dictDonnees["nom_categorie_tarif"]
         soustitreFenetre = "Campeur : " + dictDonnees["nom_individu"] + " | Famille : " + dictDonnees["nom_famille"]
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=ligneInfo, texte=soustitreFenetre, hauteurHtml=10,nomImage="Images/22x22/Smiley_nul.png")
 
         # Contenu
+        self.dictDonnees = dictDonnees
         self.__setData()
         self.staticbox_aller = wx.StaticBox(self, -1, _("Transport    ALLER"))
         self.staticbox_retour = wx.StaticBox(self, -1, _("Transport    RETOUR"))
+        self.dictDonnees.update({"depart_date":self.allerDepartDate,
+                                "arrivee_date": self.allerArriveeDate})
         self.ctrl_saisie_aller = CTRL_Saisie_transport.CTRL(self, IDtransport=self.IDtranspAller, IDindividu=self.IDindividu,
-                                                             dictDonnees={},verrouilleBoutons=self.modeVirtuel,ar="aller")
+                                                             dictDonnees=self.dictDonnees,verrouilleBoutons=self.modeVirtuel,ar="aller")
+        self.dictDonnees.update({"depart_date":self.retourDepartDate,
+                                "arrivee_date": self.retourArriveeDate})
         self.ctrl_saisie_retour = CTRL_Saisie_transport.CTRL(self, IDtransport=self.IDtranspRetour,IDindividu=self.IDindividu,
-                                                              dictDonnees={}, verrouilleBoutons=self.modeVirtuel,ar="retour")
+                                                              dictDonnees=self.dictDonnees, verrouilleBoutons=self.modeVirtuel,ar="retour")
         self.label_prixAller = wx.StaticText(self, -1, _("Prix du transport ALLER:"))
         self.ctrl_prixAller = CTRL_Saisie_nombre.CTRL(self, verif=False)
         self.label_prixRetour = wx.StaticText(self, -1, _("Prix du transport RETOUR:"))
         self.ctrl_prixRetour = CTRL_Saisie_nombre.CTRL(self,verif=False)
+        self.ctrl_prixAller.SetValue(str(self.prixTranspAller))
+        self.ctrl_prixRetour.SetValue(str(self.prixTranspRetour))
         self.ctrl_prixAller.SetValue(str(self.prixTranspAller))
         self.ctrl_prixRetour.SetValue(str(self.prixTranspRetour))
 
@@ -89,6 +100,17 @@ class DlgTransports(wx.Dialog):
         self.IDtranspRetour = 0
         self.prixTranspAller = 0.0
         self.prixTranspRetour = 0.0
+
+        #recherche des dates d'activité pour alimenter les dates de transport
+        IDactivite = self.dictDonnees["IDactivite"]
+        IDgroupe = self.dictDonnees["IDgroupe"]
+        self.date_debut_activite = GestionArticle.DebutOuvertures(DB,IDactivite,IDgroupe)
+        self.date_fin_activite = GestionArticle.FinOuvertures(DB,IDactivite,IDgroupe)
+        self.allerDepartDate = self.date_debut_activite
+        self.allerArriveeDate = self.date_debut_activite
+        self.retourDepartDate = self.date_fin_activite
+        self.retourArriveeDate = self.date_fin_activite
+
         if not "IDtranspAller" in self.dictDonnees:
             self.dictDonnees["IDtranspAller"] = None
             self.dictDonnees["prixTranspAller"] = 0.0
@@ -160,7 +182,7 @@ class DlgTransports(wx.Dialog):
                 result = DB.ResultatReq()
                 if len(result)>0:
                     if len(result[0])> 0 :
-                        allerDepartDate, allerArriveeDate = result[0]
+                        self.allerDepartDate, self.allerArriveeDate = result[0]
                         self.existAller = True
         self.existRetour = False
         self.prixTranspRetour = self.dictDonnees["prixTranspRetour"]
@@ -174,14 +196,9 @@ class DlgTransports(wx.Dialog):
                 result = DB.ResultatReq()
                 if len(result)>0:
                     if len(result[0])> 0 :
-                        retourDepartDate, retourArriveeDate = result[0]
+                        self.retourDepartDate, self.retourArriveeDate = result[0]
                         self.existRetour = True
 
-        #recherche des dates d'activité pour alimenter les dates de transport
-        IDactivite = self.dictDonnees["IDactivite"]
-        IDgroupe = self.dictDonnees["IDgroupe"]
-        self.date_debut_activite = GestionArticle.DebutOuvertures(DB,IDactivite,IDgroupe)
-        self.date_fin_activite = GestionArticle.FinOuvertures(DB,IDactivite,IDgroupe)
         if self.prixTranspAller == None: self.prixTranspAller= 0.0
         if self.prixTranspRetour == None: self.prixTranspRetour= 0.0
         DB.Close()
@@ -355,7 +372,7 @@ class DlgTransports(wx.Dialog):
             wx.MessageBox(mess,"Incohérence",style=wx.ICON_ERROR)
         self.EndModal(wx.ID_CANCEL)
 
-    def GetDictDonnees(self,dictDonnees):
+    def CompleteDictDonnees(self, dictDonnees):
         dictDonnees["IDtranspAller"] = self.ctrl_saisie_aller.GetIDtransport()
         prix = self.ctrl_prixAller.GetValue()
         prix = prix.replace(' ','')
@@ -375,7 +392,7 @@ class DlgTransports(wx.Dialog):
         resultatAller = self.ctrl_saisie_aller.Validation()
         resultatRetour = self.ctrl_saisie_retour.Validation()
         resultat = resultatAller and resultatRetour
-        dd = self.GetDictDonnees(self.dictDonnees)
+        dd = self.CompleteDictDonnees(self.dictDonnees)
         noAller = self.ctrl_saisie_aller.categorie == "noTransport"
         noRetour = self.ctrl_saisie_retour.categorie == "noTransport"
         if dd["prixTranspAller"] > 0.0 and noAller:

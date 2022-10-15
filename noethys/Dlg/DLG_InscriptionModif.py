@@ -625,7 +625,7 @@ class Dialog(wx.Dialog):
         # Gestion des compléments de facturation
         fTransp = DLG_InscriptionComplements.DlgTransports(self.dictDonnees)
         transports = fTransp.ShowModal()
-        self.dictDonnees = fTransp.GetDictDonnees(self.dictDonnees)
+        self.dictDonnees = fTransp.CompleteDictDonnees(self.dictDonnees)
         if transports != wx.ID_OK:
             self.dictDonnees["IDtranspAller"] = self.dictDonneesOrigine["IDtranspAller"]
             self.dictDonnees["IDtranspRetour"] = self.dictDonneesOrigine["IDtranspRetour"]

@@ -223,7 +223,7 @@ class DlgMenu(wx.Dialog):
             # Gestion des compléments transport cotisation et reduction famille
             fTransp = DLG_InscriptionComplements.DlgTransports(self.dictDonnees)
             transports =fTransp.ShowModal()
-            self.dictDonnees = fTransp.GetDictDonnees(self.dictDonnees)
+            self.dictDonnees = fTransp.CompleteDictDonnees(self.dictDonnees)
             if transports != wx.ID_OK:
                 self.dictDonnees["prixTranspAller"] = None
                 self.dictDonnees["prixTranspRetour"] = None
