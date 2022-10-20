@@ -45,6 +45,7 @@ class ObjectListView(OLV.ObjectListView):
         self.impression_intro = ""
         self.impression_total = ""
         self.orientation = wx.PORTRAIT
+        self.filtrerAndNotOr = True
 
         OLV.ObjectListView.__init__(self, *args, **kwargs)
 
@@ -396,7 +397,7 @@ class ObjectListView(OLV.ObjectListView):
         listeFiltres = []
         
         # Filtre barre de recherche
-        if texteRecherche != None :
+        if texteRecherche != None and len(texteRecherche) > 0:
             filtre = Filter.TextSearch(self, self.columns[0:self.GetColumnCount()])
             filtre.SetText(texteRecherche)
             listeFiltres.append(filtre)
@@ -408,11 +409,14 @@ class ObjectListView(OLV.ObjectListView):
 
         filtres_colonnes = self.formatageFiltres(self.listeFiltresColonnes)
         if len(filtres_colonnes) > 0:
-            texteFiltre = " and ".join(filtres_colonnes)
+            if self.filtrerAndNotOr:
+                andor = " and "
+            else: andor = " or "
+            texteFiltre = andor.join(filtres_colonnes)
             filtre = Filter.Predicate(lambda track: eval(texteFiltre))
             listeFiltres.append(filtre)
 
-        self.SetFilter(Filter.Chain(*listeFiltres))
+        self.SetFilter(Filter.Chain(self.filtrerAndNotOr,*listeFiltres))
         self.RepopulateList()
         self.Refresh() 
         self.OnCheck(None) 
@@ -963,6 +967,7 @@ class BarreRecherche(wx.SearchCtrl):
                                style=wx.TE_PROCESS_ENTER)
         self.parent = parent
         self.listview = listview
+        self.oldTxt = ''
 
         # Assigne cette barre de recherche au listview
         self.listview.SetBarreRecherche(self)
@@ -1012,8 +1017,10 @@ class BarreRecherche(wx.SearchCtrl):
         if self.timer.IsRunning():
             self.timer.Stop()
         txtSearch = self.GetValue()
-        self.ShowCancelButton(len(txtSearch))
-        self.listview.Filtrer(txtSearch)
+        if txtSearch != self.oldTxt:
+            self.ShowCancelButton(len(txtSearch))
+            self.listview.Filtrer(txtSearch)
+            self.oldTxt = txtSearch
 
 class CTRL_Regroupement(wx.Choice):
     def __init__(self, parent):

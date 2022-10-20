@@ -93,15 +93,25 @@ class TextSearch(object):
         else:
             cols = [self.objectListView.columns[0]]
 
-        textToFind = self.text.lower()
+        textToFind = self.EnleveAccents(self.text).lower()
 
         def _containsText(modelObject):
             for col in cols:
-                if textToFind in col.GetStringValue(modelObject).lower():
+                valeur = col.GetStringValue(modelObject)
+                if valeur == None : valeur = ""
+                textInListe = self.EnleveAccents(valeur).lower()
+                # Recherche de la chaine
+                if textToFind in textInListe :
                     return True
             return False
 
         return [x for x in modelObjects if _containsText(x)]
+
+    def EnleveAccents(self, texte):
+        try :
+            return texte.decode("iso-8859-15")
+        except : return texte
+
 
     def SetText(self, text):
         """
@@ -112,28 +122,27 @@ class TextSearch(object):
 
 class Chain(object):
 
-    """
-    Return only model objects that match all of the given filters.
-
-    Example::
-        # Show at most 100 people whose salary is over 50,000
-        salaryFilter = Filter.Predicate(lambda person: person.GetSalary() > 50000)
-        self.olv.SetFilter(Filter.Chain(salaryFilter, Filter.Tail(100)))
-        self.olv.RepopulateList()
-    """
-
-    def __init__(self, *filters):
+    def __init__(self,filterAndNotOr, *filters):
         """
         Create a filter that performs all the given filters.
 
         The order of the filters is important.
         """
         self.filters = filters
+        self.filterAndNotOr = filterAndNotOr
 
     def __call__(self, modelObjects):
-        """
-        Return the model objects that match all of our filters
-        """
-        for filter in self.filters:
-            modelObjects = filter(modelObjects)
-        return modelObjects
+        if self.filterAndNotOr:
+            #Return the model objects that match all of our filters
+            for filter in self.filters:
+                modelObjects = filter(modelObjects)
+            return modelObjects
+        else:
+            #Return la fusion des sous ensembles filtrés
+            modelcumul = []
+            for filter in self.filters:
+                model = filter(modelObjects)
+                for ligne in model:
+                    if not ligne in modelcumul:
+                        modelcumul.append(ligne)
+            return modelcumul

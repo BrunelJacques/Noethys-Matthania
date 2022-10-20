@@ -43,7 +43,6 @@ LISTE_CATEGORIES = [
     ("benevole_actif", _("Bénévoles actifs")),
 ]
 
-
 class CTRL_Categorie(wx.Choice):
     def __init__(self, parent):
         wx.Choice.__init__(self, parent, -1, size=(-1, -1)) 
@@ -183,11 +182,10 @@ class CTRL_Apercu(wx.Panel):
                 x += (self.largeurEtiquette + self.espaceHorizontal)
             y -= (self.hauteurEtiquette + self.espaceVertical)
 
-        
 # ---------------------------------------------------------------------------------------------------------------------------------
 
 class CTRL_Donnees(wx.Panel):
-    def __init__(self, parent, categorie="individus", IDindividu=None, IDfamille=None):
+    def __init__(self, parent, categorie="", IDindividu=None, IDfamille=None):
         wx.Panel.__init__(self, parent, id=-1)
         # Contrôles
         self.parent = parent
@@ -227,13 +225,13 @@ class Panel_Donnees(wx.Panel):
                     self.listePages.append((categ, page))
         else:
             # Page Individus
-            page =  CTRL_Donnees(self, categorie="individus", IDindividu=IDindividu)
+            page =  CTRL_Donnees(self, categorie="individu", IDindividu=IDindividu)
             sizer.Add(page, 1, wx.EXPAND, 0)
             page.Show(False)
             self.listePages.append(("individu", page))
 
             # Page Familles
-            page =  CTRL_Donnees(self, categorie="familles", IDfamille=IDfamille)
+            page =  CTRL_Donnees(self, categorie="famille", IDfamille=IDfamille)
             sizer.Add(page, 1, wx.EXPAND, 0)
             page.Show(False)
             self.listePages.append(("famille", page))
@@ -270,7 +268,7 @@ class Panel_Donnees(wx.Panel):
 # ---------------------------------------------------------------------------------------------------------------------------------
 
 class Dialog(wx.Dialog):
-    def __init__(self, parent, categorie="individu", IDindividu=None, IDfamille=None):
+    def __init__(self, parent, categorie=[], IDindividu=None, IDfamille=None):
         wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
         self.parent = parent
         # Si on vient d'une fiche famille ou d'une fiche individuelle, force la catégorie
@@ -396,6 +394,8 @@ class Dialog(wx.Dialog):
         questions = UTILS_Config.GetParametre("impression_etiquettes_questions", defaut=0)
         diffusions = UTILS_Config.GetParametre("impression_etiquettes_diffusions", defaut=0)
         forcerPub = UTILS_Config.GetParametre("impression_etiquettes_refusPub", defaut=1)
+        self.categorie_liste = UTILS_Config.GetParametre("impression_etiquettes_categorie", defaut=categorie)
+
 
         self.ctrl_questions.SetValue(questions)
         self.ctrl_diffusions.SetValue(diffusions)
@@ -415,6 +415,7 @@ class Dialog(wx.Dialog):
         self.ctrl_memoriser.SetValue(memoriser)
         
         self.ctrl_categorie.SetCategorie(self.categorie_liste)
+        self.OnChoixCategorie(None)
         self.ctrl_actif.SetValue(str(datetime.date.today().year))
 
         # Init Aperçu
@@ -689,6 +690,7 @@ class Dialog(wx.Dialog):
             UTILS_Config.SetParametre("impression_etiquettes_questions", self.ctrl_questions.GetValue())
             UTILS_Config.SetParametre("impression_etiquettes_diffusions", self.ctrl_diffusions.GetValue())
             UTILS_Config.SetParametre("impression_etiquettes_refusPub", self.ctrl_forcerPub.GetValue())
+            UTILS_Config.SetParametre("impression_etiquettes_categorie", self.ctrl_categorie.GetCategorie())
 
     def Validation(self):
         # Récupère les paramètres,

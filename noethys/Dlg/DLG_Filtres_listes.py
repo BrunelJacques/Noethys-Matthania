@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-15 -*-
 #------------------------------------------------------------------------
-# Application :    Noethys, gestion multi-activités
+# Application :    Noethys branche Matthania
 # Site internet :  www.noethys.com
-# Auteur:           Ivan LUCAS
-# Copyright:       (c) 2010-11 Ivan LUCAS
+# Auteur:           Ivan LUCAS, JB
+# Copyright:       (c) 2010-11 Ivan LUCAS, JB
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
@@ -16,7 +16,6 @@ import wx
 from Ctrl import CTRL_Bouton_image
 from Ctrl import CTRL_Bandeau
 from Ctrl import CTRL_Profil
-from Ol import OL_Utilisateurs
 from Ol import OL_Filtres_listes
 import datetime
 
@@ -58,7 +57,9 @@ class Dialog(wx.Dialog):
         wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
         self.parent = parent
         self.ctrl_listview = ctrl_listview
-        
+        self.filtrerAndNotOr = True
+        if self.parent and hasattr(self.parent,'filtrerAndNotOr'):
+            self.filtrerAndNotOr = self.parent.filtrerAndNotOr
         intro = _("Cliquez sur le bouton Ajouter situé à droite de la liste pour saisir de nouveaux filtres. Si le profil de configuration est disponible, utilisez-le pour mémoriser vos filtres préférés.")
         titre = _("Filtrer")
         self.SetTitle(titre)
@@ -86,7 +87,8 @@ class Dialog(wx.Dialog):
             self.staticbox_profil_staticbox.Show(False)
             self.ctrl_profil.Show(False)
 
-        self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
+        self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte="Aide", cheminImage="Images/32x32/Aide.png")
+        self.check_filtrer = wx.CheckBox(self, -1, "Filtres 'AND', sinon 'OR'")
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"), cheminImage="Images/32x32/Valider.png")
         self.bouton_fermer = CTRL_Bouton_image.CTRL(self, id=wx.ID_CANCEL, texte=_("Annuler"), cheminImage="Images/32x32/Annuler.png")
 
@@ -98,6 +100,7 @@ class Dialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.ctrl_filtres.Supprimer, self.bouton_supprimer)
         self.Bind(wx.EVT_BUTTON, self.ctrl_filtres.ToutSupprimer, self.bouton_tout_supprimer)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAide, self.bouton_aide)
+        self.Bind(wx.EVT_CHECKBOX, self.OnFiltrer, self.check_filtrer)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonOk, self.bouton_ok)
 
     def __set_properties(self):
@@ -106,9 +109,13 @@ class Dialog(wx.Dialog):
         self.bouton_supprimer.SetToolTip(wx.ToolTip(_("Cliquez ici pour supprimer le filtre sélectionné dans la liste")))
         self.bouton_tout_supprimer.SetToolTip(wx.ToolTip(_("Cliquez ici pour supprimer TOUS les filtres de cette liste")))
         self.bouton_aide.SetToolTip(wx.ToolTip(_("Cliquez ici pour obtenir de l'aide")))
+        self.check_filtrer.SetToolTip(wx.ToolTip("Avec la case cochée, les filtres s'associent par 'et', sinon par 'ou'"))
         self.bouton_ok.SetToolTip(wx.ToolTip(_("Cliquez ici pour valider")))
         self.bouton_fermer.SetToolTip(wx.ToolTip(_("Cliquez ici pour fermer")))
         self.SetMinSize((600, 430))
+        self.check_filtrer.SetValue(self.filtrerAndNotOr)
+        if self.ctrl_listview:
+            self.ctrl_listview.filtrerAndNotOr = self.filtrerAndNotOr
 
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
@@ -148,6 +155,7 @@ class Dialog(wx.Dialog):
         grid_sizer_boutons = wx.FlexGridSizer(rows=1, cols=5, vgap=10, hgap=10)
         grid_sizer_boutons.Add(self.bouton_aide, 0, 0, 0)
         grid_sizer_boutons.Add((20, 20), 0, wx.EXPAND, 0)
+        grid_sizer_boutons.Add(self.check_filtrer, 0, 0, 0)
         grid_sizer_boutons.Add(self.bouton_ok, 0, 0, 0)
         grid_sizer_boutons.Add(self.bouton_fermer, 0, 0, 0)
         grid_sizer_boutons.AddGrowableCol(1)
@@ -167,6 +175,12 @@ class Dialog(wx.Dialog):
     def OnBoutonOk(self, event):
         # Fermeture de la fenêtre
         self.EndModal(wx.ID_OK)
+
+    def OnFiltrer(self,event):
+        self.ctrl_listview.filtrerAndNotOr = self.check_filtrer.Value
+        self.filtrerAndNotOr = self.check_filtrer.Value
+        if self.parent:
+            self.parent.filtrerAndNotOr = self.check_filtrer.Value
 
     def GetDonnees(self):
         return self.ctrl_filtres.GetDonnees()

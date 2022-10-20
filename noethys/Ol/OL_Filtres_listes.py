@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-15 -*-
 #------------------------------------------------------------------------
-# Application :    Noethys, gestion multi-activités
+# Application :    Noethys branche Matthania
 # Site internet :  www.noethys.com
-# Auteur:           Ivan LUCAS
-# Copyright:       (c) 2010-14 Ivan LUCAS
+# Auteur:           Ivan LUCAS, JB
+# Copyright:       (c) 2010-14 Ivan LUCAS, JB
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
@@ -36,6 +36,8 @@ def GetCondition(titre="", typeDonnee="", choix="", criteres=""):
         if choix == "DIFFERENT" : description = _("'%s' est différent de '%s'") % (titre, criteres)
         if choix == "CONTIENT" : description = _("'%s' contient '%s'") % (titre, criteres)
         if choix == "CONTIENTPAS" : description = _("'%s' ne contient pas '%s'") % (titre, criteres)
+        if choix == "COMMENCE" : description = _("'%s' commence par '%s'") % (titre, criteres)
+        if choix == "DANS" : description = _("'%s' parmi '%s'") % (titre, criteres)
         if choix == "VIDE" : description = _("'%s' est vide") % titre
         if choix == "PASVIDE" : description = _("'%s' n'est pas vide") % titre
 
@@ -104,7 +106,12 @@ class Track(object):
         self.typeDonnee = donnees["typeDonnee"]
         self.choix = donnees["choix"]
         self.criteres = donnees["criteres"]
-        self.titre = donnees["titre"]
+        if self.typeDonnee != "libre":
+            self.code = donnees["code"]
+            self.choix = donnees["choix"]
+            self.titre = donnees["titre"]
+        else:
+            self.code, self.choix, self.titre = "","",""
         self.index = index
         
         # Création de la description
@@ -150,11 +157,11 @@ class ListView(FastObjectListView):
         dictColonnes = {}
         if self.ctrl_listview != None :
             for colonne in self.ctrl_listview.listeColonnes :
-                if hasattr(colonne, "typeDonnee"):
-                    typeDonnee = colonne.typeDonnee
-                else :
-                    typeDonnee = None
-                dictColonnes[colonne.valueGetter] = {"typeDonnee" : typeDonnee, "titre" : colonne.title}
+                if not hasattr(colonne,"typeDonnee"):
+                    colonne.typeDonnee = ""
+                if not hasattr(colonne,"titre"):
+                    colonne.title = ""
+                dictColonnes[colonne.valueGetter] = {"typeDonnee" : colonne.typeDonnee, "titre" : colonne.title}
             
         # Lecture de la liste des filtres
         self.dictTracks = {}
@@ -174,7 +181,7 @@ class ListView(FastObjectListView):
         self.useExpansionColumn = True
         
         liste_Colonnes = [
-            ColumnDefn(u"", "left", 0, ""),
+            ColumnDefn("", "left", 0, ""),
             ColumnDefn(_("Condition"), 'left', 165, "condition", isSpaceFilling=True),
             ]
         
@@ -323,7 +330,6 @@ class BarreRecherche(wx.SearchCtrl):
         self.ShowCancelButton(len(txtSearch))
         self.listView.GetFilter().SetText(txtSearch)
         self.listView.RepopulateList()
-
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 

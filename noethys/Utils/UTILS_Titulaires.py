@@ -22,10 +22,9 @@ def Ajout(part1, part2, sep="; "):
     # ajour d'un séparateur si part1 non vide
     if part1 and (len(part1.strip()) > 0):
         final = part1.strip()
-        if part2 and len(part2.strip()) > 0:
-            final += sep
     if part2 and (len(part2.strip()) > 0):
-        final += part2.strip()
+        if not part2.strip() in final:
+            final += (sep + part2.strip())
     return final
 
 def AjoutContacts(dFamille, dIndividu):
@@ -220,16 +219,17 @@ def GetFamillesEtiq(listeIDfamille=[]):
             # cas d'une adresse commune on enrichit les données de la famille par cumuls des noms,civilité,mel,téléphone
             if dictAdresse["rue"] + dictAdresse["cp"] == dictIndividu["rue"] + dictIndividu["cp"]:
                 IDcivilite2 = dictIndividu["IDcivilite"]
-                dictFamille["IDcivilite"] += " " + str(IDcivilite2)
-                if IDcivilite2 != None:
+                lstCivilites = dictFamille["IDcivilite"].split(' ')
+                if IDcivilite2 and (not str(IDcivilite2) in lstCivilites):
+                    lstCivilites.append(str(IDcivilite2))
+                    dictFamille["IDcivilite"] = ' '.join(sorted(lstCivilites))
                     nomCivilite2 = (" %s" % DICT_CIVILITES[int(IDcivilite2)]["civiliteAbrege"]).strip()
-                else:
-                    nomCivilite2 = ""
-                dictFamille["civilite"] += nomCivilite2
+                    dictFamille["civilite"] += nomCivilite2
                 nom, prenom = dictIndividu["nom"], dictIndividu["prenom"]
                 if dictFamille["nom"] == nom:
                     # même nom pour le nouveau titulaire
-                    dictFamille["prenom"] += " et " + prenom
+                    if not prenom in dictFamille['prenom']:
+                        dictFamille["prenom"] += " et " + prenom
                 else:
                     # nom différent pour le nouveau titulaire
                     nomprenom1 = dictFamille["nom"] + ' ' + dictFamille["prenom"]
@@ -844,7 +844,5 @@ def GetCorrespondant(IDfamille=None, IDindividu=None):
 
 if __name__ == '__main__':
     #print GetCorrespondant(IDindividu=16672)
-    dic = GetTitulaires(listeIDfamille=[])
-    for k in list(dic.keys()):
-        if len(dic[k]["titulairesCivilite"])>0:
-            print((dic[k]["titulairesCivilite"],'   >>  ',dic[k]['titulairesSansCivilite']))
+    dic = GetFamillesEtiq(listeIDfamille=[7673,])
+    print(dic)

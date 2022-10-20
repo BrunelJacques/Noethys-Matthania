@@ -106,7 +106,7 @@ class CTRL_Page_texte(wx.Panel):
 
     def OnParmi(self,event):
         try:
-            lstValues = self.parent.parent.parent.GetValuesColonne(self.code)
+            lstValues = self.parent.parent.Parent.GetValuesColonne(self.code)
         except: lstValues = ["Echec de recherche valeurs de '%s'"%self.code]
         dlg = CTRL_ChoixListe.DialogCoches(self,listeOriginale=lstValues, columnSort=1)
         ret = dlg.ShowModal()
@@ -1683,9 +1683,9 @@ class Dialog(wx.Dialog):
         return self.ctrl_champs.GetTitre() 
 
     def GetValuesColonne(self,code):
-        innerList = self.ctrl_listview.innerList
+        modelObjects = self.ctrl_listview.modelObjects
         lstValues = []
-        for track in innerList:
+        for track in modelObjects:
             value = ValueTrack(track,code)
             if not value in lstValues:
                 lstValues.append(value)

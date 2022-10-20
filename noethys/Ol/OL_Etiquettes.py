@@ -18,7 +18,7 @@ from Utils import UTILS_Utilisateurs
 from Utils import UTILS_Titulaires
 from Utils import UTILS_Questionnaires
 from Data import DATA_Civilites as Civilites
-from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, CTRL_Outils, PanelAvecFooter
+from Ctrl.CTRL_ObjectListView import ObjectListView, ColumnDefn, Filter, CTRL_Outils, PanelAvecFooter
 
 def DateEngEnDateDD(dateEng):
     if dateEng and not isinstance(dateEng,str): dateEng = str(dateEng)
@@ -550,7 +550,7 @@ def GetListeFamilles(listview=None, IDfamille=None, refusPub=False, actif=None):
 
 #-----------LISTVIEW-----------
 
-class ListView(FastObjectListView):
+class ListView(ObjectListView):
     def __init__(self, *args, **kwds):
         # Récupération des paramètres perso
         self.categorie = kwds.pop("categorie", "individus")
@@ -565,7 +565,7 @@ class ListView(FastObjectListView):
         self.LISTE_QUESTIONS = []
         self.LISTE_QUESTIONNAIRES = []
         # Initialisation du listCtrl
-        FastObjectListView.__init__(self, *args, **kwds)
+        ObjectListView.__init__(self, *args, **kwds)
         # Binds perso
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OuvrirFicheFamille)
         self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
@@ -711,12 +711,6 @@ class ListView(FastObjectListView):
         self.SetSortColumn(self.columns[3])
         self.SetObjects(self.donnees)
         self.rowFormatter = rowFormatter
-        nbcoches = 0
-        nblignes = len(self.GetObjects())
-        try:
-            dlg = self.GrandParent.parent
-            dlg.box_donnees_staticbox.SetLabel("Lignes %ss : (%d), cochées %d" % (self.categorie,nblignes,nbcoches))
-        except : pass
 
     def MAJ(self, categorie=None, questions=False, diffusions=False, refusPub=False, actif=None):
         self.questions = questions
@@ -727,6 +721,14 @@ class ListView(FastObjectListView):
             self.categorie = categorie
         self.InitModel()
         self.InitObjectListView()
+        self.MajCompteurs()
+
+    def MajCompteurs(self):
+        nbcoches = len(self.GetCheckedObjects())
+        nblignes = len(self.innerList)
+        dlg = self.GrandParent.parent
+        dlg.box_donnees_staticbox.SetLabel("Lignes %ss : (%d), cochées %d" % (self.categorie,nblignes,nbcoches))
+
 
     def GetReponse(self, IDquestion=None, ID=None):
         if IDquestion in self.DICT_QUESTIONNAIRES :
@@ -760,10 +762,7 @@ class ListView(FastObjectListView):
                 self.RefreshObject(track)
     
     def OnCheck(self, track=None):
-        try :
-            self.GetParent().OnCheck(track)
-        except :
-            pass
+        self.MajCompteurs()
 
     def OnContextMenu(self, event):
         """Ouverture du menu contextuel """            
