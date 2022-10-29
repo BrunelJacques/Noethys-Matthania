@@ -844,5 +844,5 @@ def GetCorrespondant(IDfamille=None, IDindividu=None):
 
 if __name__ == '__main__':
     #print GetCorrespondant(IDindividu=16672)
-    dic = GetFamillesEtiq(listeIDfamille=[7673,])
+    dic = GetFamillesEtiq(listeIDfamille=[6990,])
     print(dic)

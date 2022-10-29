@@ -379,7 +379,7 @@ class TrackFamille(object):
         # gestion des sauts de lignes dans la rue
         lstville = donnees["adresse"]["ville"].split("\n")
         if len(lstville) > 0:
-            ville = lstville[0]
+            ville = donnees["adresse"]["ville"]
         else:
             ville = ""
         if len(lstville) > 1:

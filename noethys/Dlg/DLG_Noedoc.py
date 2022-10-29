@@ -57,8 +57,7 @@ from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.pdfgen.canvas import Canvas as CanvasPDF
 from reportlab.graphics.shapes import Drawing
-from reportlab.graphics import renderPDF
-from reportlab.platypus import Paragraph 
+from reportlab.platypus import Paragraph
 
 from reportlab.graphics.barcode.common import Codabar, Code11, I2of5, MSI
 from reportlab.graphics.barcode.code128 import Code128
