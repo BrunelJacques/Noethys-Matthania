@@ -223,7 +223,7 @@ class ListView(FastObjectListView):
                 dictTransferts[labels]["reglements"] += montant
         dictTransferts[(99,"")] = copy.deepcopy(dictVide)
 
-        """     REPRISE SUR RUTPTURES PUIS PAR DATE TRANSFERTS     """
+        """     REPRISE SUR RUPTURES PUIS PAR DATE TRANSFERTS     """
 
         #calcul ID et génération lignes et calcul des cumuls
         listeListeView = []
@@ -231,10 +231,9 @@ class ListView(FastObjectListView):
         noLigne = 1
         oldRupture = 0
         dictAnterieur = copy.deepcopy(dictVide)
-        #dictAnteNoTrans = copy.deepcopy(dictVide)
-        # boucle de reprise du dictionnaire constitué
-        lstKeys = [x for x in sorted(dictTransferts.keys())]
-        for (rupture,transfert) in lstKeys:
+
+        lstKeys = [x for x in dictTransferts.keys()]
+        for (rupture,transfert) in sorted(lstKeys):
             if rupture == 0:
                 if transfert == "":
                     # pour l'antérieur on ne cumule que le transféré
@@ -264,7 +263,7 @@ class ListView(FastObjectListView):
                 if dictNoTrans["mvt"] != 0.0:
                     dictNoTrans["transfert"] = "Non transféré %s"%oldTransfert
                     dictNoTrans["noLigne"] = noLigne
-                    cumul += dictNoTrans["mvt"]
+                    #cumul += dictNoTrans["mvt"]
                     dictNoTrans["cumul"] = cumul
                     listeListeView.append(Track(dictNoTrans))
                     noLigne += 1
@@ -333,13 +332,13 @@ class ListView(FastObjectListView):
             ColumnDefn(_("Prestations"), 'right', 90, "prestations", typeDonnee="montant", stringConverter=FormateMontant,),
             ColumnDefn(_("Règlements"), 'right', 90, "reglements", typeDonnee="montant", stringConverter=FormateMontant),
             ColumnDefn(_("Mvt Clients"), "right", 90, "mvt", typeDonnee="montant", stringConverter=FormateMontant),
-            ColumnDefn(_("Cumul clients"), "right", 120, "cumul", typeDonnee="montant", stringConverter=FormateMontant),
+            ColumnDefn(_("Transféré"), "right", 120, "cumul", typeDonnee="montant", stringConverter=FormateMontant),
             ]
 
         self.SetColumns(liste_Colonnes)
         self.SetEmptyListMsg(_("Aucun transfert"))
         self.SetEmptyListMsgFont(wx.FFont(11, wx.DEFAULT, faceName="Tekton"))
-        #self.SetSortColumn(self.columns[0])
+        self.SetSortColumn(self.columns[0])
         self.SetObjects(self.donnees)
        
     def MAJ(self, track=None):
