@@ -1,3 +1,6 @@
+version 1.3.2.4 (7/11/2022):
+- Récap transferts en compta: Modification de la présentation
+
 version 1.3.2.3 (29/10/2022):
 - Etiquettes : Reprise du pays dans la ville comme avant
 - Calage: page 215x300 Marge haut:4 bas:0 gauche:5 droite:0 vertical:0 horizon:2
