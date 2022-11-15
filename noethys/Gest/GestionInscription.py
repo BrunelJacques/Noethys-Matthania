@@ -500,8 +500,8 @@ class Forfaits():
         return dictDonnees
         # fin AjoutPiece999
 
-    def AjoutConsommations(self,parent,dictDonnees) :
-        if ("nature" in dictDonnees) and dictDonnees["nature"] in ("DEV","AVO"):
+    def AjoutConsommations(self,parent,dictDonnees,force=False) :
+        if not force and ("nature" in dictDonnees) and dictDonnees["nature"] in ("DEV","AVO"):
             # pas de consommations à ajouter dans les avoirs ou les devis
             return True
         IDinscription = dictDonnees["IDinscription"]

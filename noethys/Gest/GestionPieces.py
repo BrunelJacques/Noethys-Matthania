@@ -600,17 +600,116 @@ class Forfaits():
         #fin DestroyFacture
 
     def CreeFacture(self,IDcomptePayeur,lstIDpieces,IDuser,preExiste = False, retourID = False):
-        DB = GestionDB.DB()
         # Création d'une facture avec toutes les pièces de la liste
+
+        DB = GestionDB.DB()
         listDictDon = []
+        datesFacture = []
+        # Champs de la table facture
+        activites = []
+        inscriptions = []
+        individus = []
+        date_debut = "2999-01-01"
+        date_fin =  "1900-01-01"
+        total = 0.00
+        regle = 0.00
+        echeance = None
+        lstSuppr = []
+        lstSupprID = []
+        dateFacturation = wx.ID_ABORT
+        retour = False
+
+        # analyse préalable
         for IDpiece in lstIDpieces:
             self.fGest.GetPieceModif(self,None,None,IDnumPiece=IDpiece)
             dictDonnees = self.fGest.dictPiece
             # constitution de la liste des données sous forme dictionnaire
             listDictDon.append(dictDonnees)
+            ligne = OL_FacturationPieces.Track(dictDonnees)
+            if ligne.IDactivite > 0:
+                activite = ligne.IDactivite
+                inscription = 0
+                dd = GestionArticle.DebutOuvertures(DB, ligne.IDactivite, ligne.IDgroupe)
+                if echeance == None:
+                    echeance = dd
+                else:
+                    if echeance > dd: echeance = dd
+            else:
+                inscription = ligne.IDinscription
+                activite = 0
+            date, exercice = DB.GetDateFacture(inscription, activite,
+                                               datetime.date.today(), alertes=False,
+                                               retourExercice=True)
+            if exercice == (None, None):
+                # l'exercice n'est pas encore ouvert pour cette ligne
+                GestionDB.Messages().Box(titre="Exercices comptables",
+                                         message="Présence d'une pièce se rapportant à un exercice non ouvert\nSa facturation n'est pas possible")
+                lstSuppr.append(dictDonnees)
+                lstSupprID.append(IDpiece)
+                continue
+            inscriptions.append(inscription)
+            activites.append(activite)
+            if not (date in datesFacture):
+                datesFacture.append(date)
+            if ligne.IDindividu > 0: individus.append(ligne.IDindividu)
+            if ligne.dateModif < date_debut:
+                date_debut = ligne.dateModif
+            if ligne.dateModif > date_fin:
+                date_fin = ligne.dateModif
+            if ligne.total != None: total += ligne.total
+            total += Transport((ligne.prixTranspAller, ligne.prixTranspRetour))
+            ligne.mttRegle = 0
+
+        if len(lstSuppr) > 0:
+            for dic in lstSuppr:
+                listDictDon.remove(dic)
+            for IDpiece in lstSupprID:
+                lstIDpieces.remove(IDpiece)
+
+        if len(datesFacture) != 1 or datesFacture[0] == None:
+            # plusieurs dates de facturation sont possibles
+            echeance = None
+            ix = 2
+            listeChoix = [(1, "Date du jour   : " + str(datetime.date.today()))]
+            listeDates = [datetime.date.today()]
+            if len(datesFacture) == 0:
+                retour = False
+            for date in datesFacture:
+                if date != datetime.date.today() and date != None:
+                    listeChoix.append((ix, "Date d'activité : " + str(date)))
+                    listeDates.append(date)
+                    ix += 1
+            retour = GestionDB.Messages().Choix(listeChoix,
+                                                "Cet ensemble de pièces, est censé être facturé à des dates différentes\nQuel est votre choix?")
+            if retour[0] == None:
+                retour = False
+            else:
+                dateFacturation = listeDates[retour[0] - 1]
+                retour = True
+                if DB.GetExercice(dateFacturation, alertes=True) == (None, None):
+                    # l'exercice n'est pas ouvert pour la date choisie
+                    GestionDB.Messages().Box(titre="Exercices comptables",
+                                             message="Pas d'exercice ouvert pour la date choisie\nLa facture n'est pas possible")
+                    retour = False
+        else:
+            dateFacturation = datesFacture[0]
+            retour = True
+
+        if dateFacturation == wx.ID_ABORT:
+            # abandon lors du choix de dates
+            retour = False
+
+        # sortie sur echec
+        if not retour or not dateFacturation:
+            DB.Close()
+            return False
+
+        # début des modifs
+        for IDpiece in lstIDpieces:
+            dictDonnees = listDictDon[lstIDpieces.index(IDpiece)]
             #les devis n'avaient pas enregistré les consommations
             if dictDonnees["nature"] == "DEV" and dictDonnees["IDactivite"] > 0 :
-                self.fGest.AjoutConsommations(self.parent,dictDonnees)
+                self.fGest.AjoutConsommations(self.parent,dictDonnees,force=True)
             # ajout des prestations non encore enregistrées
             if dictDonnees["nature"] in ("RES","DEV"):
                 dictDonnees["exnature"] = dictDonnees["nature"]
@@ -621,78 +720,7 @@ class Forfaits():
                     self.fGest.ModifiePieceCree(self.parent,dictDonnees)
                     self.fGest.ModifieConsoCree(self.parent,dictDonnees)
                     dictDonnees["IDprestation"] = IDprestation
-        # Calcul des champs de la table facture
-        activites = []
-        inscriptions = []
-        individus = []
-        datesFacture = []
-        date_debut = "2999-01-01"
-        date_fin =  "1900-01-01"
-        total = 0.00
-        regle = 0.00
-        echeance = None
-        lstSuppr = []
-        for dictDonnees in listDictDon:
-            ligne = OL_FacturationPieces.Track(dictDonnees)
-            if ligne.IDactivite > 0:
-                activite = ligne.IDactivite
-                inscription = 0
-                dd = GestionArticle.DebutOuvertures(DB,ligne.IDactivite,ligne.IDgroupe)
-                if echeance == None:
-                    echeance = dd
-                else:
-                    if echeance > dd : echeance = dd
-            else:
-                inscription = ligne.IDinscription
-                activite = 0
-            date, exercice = DB.GetDateFacture(inscription,activite,datetime.date.today(),alertes = False, retourExercice= True)
-            if exercice == (None, None):
-                # l'exercice n'est pas encore ouvert pour cette ligne
-                GestionDB.Messages().Box(titre = "Exercices comptables",message = "Présence d'une pièce se rapportant à un exercice non ouvert\nSa facturation n'est pas possible" )
-                lstSuppr.append(dictDonnees)
-                continue
-            inscriptions.append(inscription)
-            activites.append(activite)
-            if not (date in datesFacture):
-                datesFacture.append(date)
-            if ligne.IDindividu > 0:individus.append(ligne.IDindividu)
-            if ligne.dateModif < date_debut:
-                date_debut = ligne.dateModif
-            if ligne.dateModif > date_fin:
-                date_fin = ligne.dateModif
-            if ligne.total != None: total += ligne.total
-            total += Transport((ligne.prixTranspAller,ligne.prixTranspRetour))
-            ligne.mttRegle = 0
-        if len(lstSuppr)>0:
-            for dic in lstSuppr:
-                listDictDon.remove(dic)
-        if len(datesFacture)!=1 or datesFacture[0] == None :
-            # plusieurs dates de facturation sont possibles
-            echeance = None
-            ix = 2
-            listeChoix = [(1,"Date du jour   : "+str(datetime.date.today()))]
-            listeDates = [datetime.date.today()]
-            if len(datesFacture) == 0 :
-                return False
-            for date in datesFacture :
-                if date != datetime.date.today() and date != None:
-                    listeChoix.append((ix,"Date d'activité : "+str(date)))
-                    listeDates.append(date)
-                    ix += 1
-            retour = GestionDB.Messages().Choix(listeChoix,
-                "Cet ensemble de pièces, est censé être facturé à des dates différentes\nQuel est votre choix?")
-            if retour[0] == None:
-                return False
-            dateFacturation = listeDates[retour[0]-1]
-            if DB.GetExercice(dateFacturation, alertes = True) == (None,None):
-                # l'exercice n'est pas ouvert pour la date choisie
-                GestionDB.Messages().Box(titre = "Exercices comptables",message = "Pas d'exercice ouvert pour la date choisie\nLa facture n'est pas possible" )
-                return False
-        else:
-            dateFacturation = datesFacture[0]
-        if dateFacturation == wx.ID_ABORT:
-            #abandon lors du choix de dates
-            return False
+
         if echeance == None:
             echeance = dateFacturation + datetime.timedelta(days=30)
         else:
@@ -709,6 +737,7 @@ class Forfaits():
             numero = dictDonnees["noFacture"]
         else:
             numero, date = GestionInscription.GetNoFactureMin()
+
         # test des ventilations de réglement sur les prestations
         # Composition de l'enregistrement facture
         listeDonnees = [
@@ -731,8 +760,8 @@ class Forfaits():
         retour = DB.ReqInsert("factures", listeDonnees, retourID=False)
         if retour != "ok" :
             GestionDB.MessageBox(self.parent,retour)
-            return None
-        if preExiste:
+            retour = False
+        elif preExiste:
             retour = True
         else:
             IDfacture = DB.newID
@@ -740,11 +769,12 @@ class Forfaits():
             for dictDonnees in listDictDon:
                 retour = self.MajNoFact(self.parent,dictDonnees,listeDonnees,IDfacture)
         DB.Close()
-
-        if retourID:
+        if not retour:
+            return False
+        elif retourID:
             return IDfacture
         else:
-            return retour
+            return True
         #fin CreeFacture
 
     def ReparAvoir(self,IDcomptePayeur,lstIDpieces,IDuser):

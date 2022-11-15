@@ -414,7 +414,9 @@ class  Dialog(wx.Dialog):
             lstIDpieces.append(dictDonnees['IDnumPiece'])
         if len(lstIDpieces) > 0:
             pGest = GestionPieces.Forfaits(self)
-            pGest.CreeFacture(IDpayeur,lstIDpieces,self.IDuser)
+            ret = pGest.CreeFacture(IDpayeur,lstIDpieces,self.IDuser)
+            if not ret:
+                wx.MessageBox("Abandon de la facturation","Echec")
 
     def OnBoutonOK(self,event):
         objects = self.olv_piecesFiltrees.GetCheckedObjects()
