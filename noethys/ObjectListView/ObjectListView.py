@@ -1321,9 +1321,6 @@ class ObjectListView(wx.ListCtrl):
         The rect returned takes scroll position into account, so negative x and y are
         possible.
         """
-        # print "GetSubItemRect(self, %d, %d, %d):" % (rowIndex, subItemIndex,
-        # flag)
-
         # Linux doesn't handle wx.LIST_RECT_LABEL flag. So we always get
         # the whole bounds then par it down to the cell we want
         rect = self.GetItemRect(rowIndex, wx.LIST_RECT_BOUNDS)
@@ -1354,7 +1351,6 @@ class ObjectListView(wx.ListCtrl):
                     rect[0] += imageWidth
                     rect[2] -= imageWidth
 
-        # print "rect=%s" % rect
         return rect
 
     def HitTestSubItem(self, pt):
@@ -1670,7 +1666,6 @@ class ObjectListView(wx.ListCtrl):
             self.sortAscending = not self.sortAscending
         else:
             self.sortAscending = True
-
         self.SortBy(evt.GetColumn(), self.sortAscending)
 
     def _HandleColumnDragging(self, evt):
@@ -1878,6 +1873,7 @@ class ObjectListView(wx.ListCtrl):
 
         # set the row background colour
         self._FormatAllRows()
+
 
     def _SortItemsNow(self):
         """
@@ -2361,7 +2357,6 @@ class AbstractVirtualObjectListView(ObjectListView):
         self.listItemAttr = None
         #self.cacheHit = 0
         #self.cacheMiss = 0
-        print(1)
         self.SetObjectGetter(kwargs.pop("getter", None))
 
         # We have to set the item count after the list has been created
@@ -2501,12 +2496,6 @@ class AbstractVirtualObjectListView(ObjectListView):
         # ensure/assume that objectGetter is never None
         if self.objectGetter is None:
             return None
-
-        # if index == self.lastGetObjectIndex:
-        #    self.cacheHit += 1
-        # else:
-        #    self.cacheMiss += 1
-        # print "hit: %d / miss: %d" % (self.cacheHit, self.cacheMiss)
 
         # Cache the last result (the hit rate is normally good: 5-10 hits to 1
         # miss)
@@ -2699,9 +2688,12 @@ class FastObjectListView(AbstractVirtualObjectListView):
 
         FastObjectListView don't sort the items, they sort the model objects themselves.
         """
-        selection = self.GetSelectedObjects()
-        self._SortObjects()
+        if self.checkStateColumn:
+            selection = self.GetCheckedObjects()
+        else:
+            selection = self.GetSelectedObjects()
 
+        self._SortObjects()
         self.SelectObjects(selection)
         self.RefreshObjects()
 

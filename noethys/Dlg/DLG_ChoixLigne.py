@@ -167,8 +167,6 @@ class DlgChoixFamille(wx.Dialog):
         self.EndModal(wx.ID_OK)
 
 
-
-
 # ----Choix d'un article -------------------------------------------------------------------
 class Track(object):
     def __init__(self, track):
