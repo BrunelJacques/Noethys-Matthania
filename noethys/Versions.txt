@@ -1,3 +1,8 @@
+version 1.3.2.7 (19/11/2022):
+- Bug de tri sur l'âge avec condition > ou < (lié aux âges à blanc)
+- Tri possible après une liste filtrée
+- Tests de combinaison possible de plusieurs critères
+
 version 1.3.2.6 (16/11/2022):
 - le coche mise par défaut par simple sélection ne s'applique plus en cas de tri.
 

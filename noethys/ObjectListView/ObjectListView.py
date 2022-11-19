@@ -2646,7 +2646,6 @@ class FastObjectListView(AbstractVirtualObjectListView):
             wx.ListCtrl.DeleteAllItems(self)
             self.SetItemCount(len(self.innerList))
             self.RefreshObjects()
-
             # Auto-resize once all the data has been added
             self.AutoSizeColumns()
         finally:
@@ -2692,7 +2691,6 @@ class FastObjectListView(AbstractVirtualObjectListView):
             selection = self.GetCheckedObjects()
         else:
             selection = self.GetSelectedObjects()
-
         self._SortObjects()
         self.SelectObjects(selection)
         self.RefreshObjects()

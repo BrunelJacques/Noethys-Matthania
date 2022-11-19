@@ -22,6 +22,11 @@ import Filter, OLVEvent, CellEditor
 
 from ObjectListView import AbstractVirtualObjectListView as Abstract
 
+def Nz(valeur):
+    if not valeur:
+        valeur = 0
+    return valeur
+
 class Track():
     def __init__(self, dictTotaux):
         for nomColonne, total in dictTotaux.items() :
@@ -36,7 +41,7 @@ class ReportFormat(LCP.ReportFormat):
 class ObjectListView(OLV.ObjectListView):
     def __init__(self, *args, **kwargs):
         # Variables spéciales
-        self.listeColonnes = [] 
+        self.listeColonnes = []
         self.listeFiltresColonnes = []
         self.nomListe = None
         self.ctrl_footer = None
@@ -48,9 +53,9 @@ class ObjectListView(OLV.ObjectListView):
         self.filtrerAndNotOr = True
 
         OLV.ObjectListView.__init__(self, *args, **kwargs)
-
         self.Bind(wx.EVT_LIST_COL_DRAGGING, self._HandleColumnDragging)
         self.GetMainWindow().Bind(wx.EVT_SCROLLWIN, self.OnScroll)
+
 
     def Activation(self, etat=True):
         """ Active ou desactive l'etat du controle """
@@ -76,7 +81,8 @@ class ObjectListView(OLV.ObjectListView):
                 else:
                     self.AddColumnDefn(ColumnDefn(*x))
         # Try to preserve the column column
-        self.SetSortColumn(sortCol)
+        if sortCol:
+            self.SetSortColumn(sortCol)
         if repopulate:
             self.RepopulateList()
 
@@ -123,6 +129,7 @@ class ObjectListView(OLV.ObjectListView):
 
         if hasattr(self, "OnClickColonne") :
             self.OnClickColonne(indexColonne=evt.GetColumn(), ascendant=self.sortAscending)
+        self.RepopulateList()
 
     def _HandleColumnDragging(self, evt):
         self.MAJ_footer()
@@ -166,8 +173,7 @@ class ObjectListView(OLV.ObjectListView):
             self.stEmptyListMsg.SetDimensions(0, sz.GetHeight() / proportion, sz.GetWidth(), sz.GetHeight())  # J'ai mis 2 a la place de 3
 
         # Masque le texte "Aucun" si version phoenix (à cause des colonnes bleues)
-        if 'phoenix' in wx.PlatformInfo:
-            self.stEmptyListMsg.Hide()
+        self.stEmptyListMsg.Hide()
 
         # Pour un centrage du texte
         # self.stEmptyListMsg.SetPosition((sz.GetWidth() / 2 - self.stEmptyListMsg.GetSize()[0]/2, sz.GetHeight() / proportion))
@@ -236,7 +242,6 @@ class ObjectListView(OLV.ObjectListView):
                 return (primary, secondary)
             else:
                 return primary
-
         modelObjects.sort(key=_getSortValue, reverse=(not self.sortAscending))
 
         # Sorting invalidates our object map
@@ -346,10 +351,8 @@ class ObjectListView(OLV.ObjectListView):
     def AjouteLigneTotal(self, listeNomsColonnes=[]):
         return
         for (iCol, col) in enumerate(self.columns):
-            print(col, col.__dict__)
             colWidth = self.GetColumnWidth(iCol)
             boundedWidth = col.CalcBoundedWidth(colWidth)
-            print(colWidth, boundedWidth)
 
 
         # Récupération des totaux des colonnes souhaitées
@@ -487,15 +490,15 @@ class ObjectListView(OLV.ObjectListView):
                 if choix == "DIFFERENT" :
                     filtre = "track.%s != %s" % (code, criteres)
                 if choix == "SUP" :
-                    filtre = "track.%s > %s" % (code, criteres)
+                    filtre = "Nz(track.%s) > %s" % (code, criteres)
                 if choix == "SUPEGAL" :
-                    filtre = "track.%s >= %s" % (code, criteres)
+                    filtre = "Nz(track.%s) >= %s" % (code, criteres)
                 if choix == "INF" :
-                    filtre = "track.%s < %s" % (code, criteres)
+                    filtre = "Nz(track.%s) < %s" % (code, criteres)
                 if choix == "INFEGAL" :
-                    filtre = "track.%s <= %s" % (code, criteres)
+                    filtre = "Nz(track.%s) <= %s" % (code, criteres)
                 if choix == "COMPRIS" :
-                    filtre = "track.%s >= %s and track.%s <= %s" % (code, min, code, max)
+                    filtre = "Nz(track.%s) >= %s and Nz(track.%s) <= %s" % (code, min, code, max)
 
             # Date
             if typeDonnee in ("date", "dateheure") :
