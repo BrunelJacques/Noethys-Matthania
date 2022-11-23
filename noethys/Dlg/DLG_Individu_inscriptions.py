@@ -208,7 +208,7 @@ class Panel(wx.Panel):
             print("pas de IDindividu !")
             return
         self.ctrl_inscriptions.MAJ()
-        self.ctrl_contrats.MAJ()
+        #self.ctrl_contrats.MAJ() JB 23/11/2022
 
     def Sauvegarde(self):
         pass
