@@ -421,7 +421,6 @@ class CTRL_Groupes_activites(ACheckListBox):
     def Importation(self):
         dateDeb = DateEngSQL(self.parent.ctrl_date_debut.Value)
         dateFin = DateEngSQL(self.parent.ctrl_date_fin.Value)
-        dateFin = DateEngSQL(self.parent.ctrl_date_fin.Value)
         if self.parent.check_avecConsos.Value:
             condDates = " consommations.date  >= '%s' And consommations.date <= '%s'" %(dateDeb,dateFin)
             table = "consommations"
@@ -437,24 +436,26 @@ class CTRL_Groupes_activites(ACheckListBox):
                 WHERE (%s)
                 ORDER BY IDactivite;
                 """ %(table, condDates)
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req,MsgBox="CTRL_ParamListeInscription1")
         recordset = DB.ResultatReq()
         self.listeActivites = []
         for record in recordset:
             self.listeActivites.append(record[0])
-        lstAct= str(self.listeActivites)[1:-1]
-        # appel des groupes d'activites représentés dans la liste d'activités
-        req= """
-                SELECT types_groupes_activites.IDtype_groupe_activite, types_groupes_activites.nom, groupes_activites.IDactivite
-                FROM (activites
-
-                      INNER JOIN groupes_activites ON activites.IDactivite = groupes_activites.IDactivite)
-                INNER JOIN types_groupes_activites ON groupes_activites.IDtype_groupe_activite = types_groupes_activites.IDtype_groupe_activite
-                WHERE activites.IDactivite In ( %s )
-                ORDER BY types_groupes_activites.nom;
-                """ % lstAct
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
-        recordset = DB.ResultatReq()
+        recordset = []
+        if len(self.listeActivites) > 0:
+            lstAct= str(self.listeActivites)[1:-1]
+            # appel des groupes d'activites représentés dans la liste d'activités
+            req= """
+                    SELECT types_groupes_activites.IDtype_groupe_activite, types_groupes_activites.nom, groupes_activites.IDactivite
+                    FROM (activites
+    
+                          INNER JOIN groupes_activites ON activites.IDactivite = groupes_activites.IDactivite)
+                    INNER JOIN types_groupes_activites ON groupes_activites.IDtype_groupe_activite = types_groupes_activites.IDtype_groupe_activite
+                    WHERE activites.IDactivite In ( %s )
+                    ORDER BY types_groupes_activites.nom;
+                    """ % lstAct
+            DB.ExecuterReq(req,MsgBox="CTRL_ParamListeInscription.importation1")
+            recordset = DB.ResultatReq()
         DB.Close()
         self.StockDonnees(recordset)
         return
@@ -491,7 +492,7 @@ class CTRL_Activites(ACheckListBox):
                 WHERE activites.IDactivite IN ( %s )
                 ORDER BY activites.nom;
                 """ % lstIDact
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req,MsgBox="CTRL_ParamListeInscription.importation2")
         recordset = DB.ResultatReq()
         DB.Close()
         self.StockDonnees(recordset)
@@ -528,7 +529,7 @@ class CTRL_Groupes(ACheckListBox):
                 WHERE IDgroupe IN ( %s )
                 ORDER BY abrege;
                 """ % lstID
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req,MsgBox="CTRL_ParamListeInscription.importation3")
         recordset = DB.ResultatReq()
         DB.Close()
         self.StockDonnees(recordset)
@@ -565,7 +566,7 @@ class CTRL_Categories(ACheckListBox):
                 WHERE IDactivite IN ( %s )
                 ORDER BY nom;
                 """ % lstID
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req,MsgBox="CTRL_ParamListeInscription.importation4")
         recordset = DB.ResultatReq()
         self.StockDonnees(recordset)
         DB.Close()
@@ -1167,7 +1168,7 @@ class Parametres(wx.Panel):
         DB = GestionDB.DB()
         req = """SELECT date_debut, date_fin
                 FROM compta_exercices """
-        retour = DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        retour = DB.ExecuterReq(req,MsgBox="CTRL_ParamListeInscription.GetExercice")
         if retour != "ok" :
             wx.MessageBox(str(retour))
         recordset = DB.ResultatReq()

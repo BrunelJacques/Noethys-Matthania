@@ -1,3 +1,6 @@
+version 1.3.2.9 (24/11/2022):
+- Liste Inscriptions: Ne lance plus une recherche si aucune activité sélectionnée
+
 version 1.3.2.8 (23/11/2022):
 - Fiche famille: Désactivation de ce qui reste de la gestion des contrats
 
