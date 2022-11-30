@@ -1203,7 +1203,6 @@ class ObjectListView(wx.ListCtrl):
                 break
         return model
 
-
     def GetSelectedObjects(self):
         # Vérifie la présence de case cochées qui ont priorité
         if self.checkStateColumn:

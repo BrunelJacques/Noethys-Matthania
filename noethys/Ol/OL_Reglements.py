@@ -493,7 +493,8 @@ class ListView(FastObjectListView):
         dlg = DLG_Saisie_reglement.Dialog(self, IDcompte_payeur=self.IDcompte_payeur, IDreglement=IDreglement)
         if dlg.ShowModal() == wx.ID_OK:
             self.MAJ(IDreglement)
-        dlg.Destroy() 
+        dlg.Destroy()
+        self.MAJ(IDreglement)
 
     def Supprimer(self, event):
         if self.IDcompte_payeur != None and UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_reglements", "supprimer") == False : return
@@ -581,7 +582,6 @@ class ListView(FastObjectListView):
 
     def Dupliquer(self, event):
         if self.IDcompte_payeur != None and UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_reglements", "dupliquer") == False : return
-
         if len(self.Selection()) == 0 :
             dlg = wx.MessageDialog(self, _("Vous n'avez sélectionné aucun règlement à dupliquer dans la liste !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
             dlg.ShowModal()
@@ -623,13 +623,22 @@ class ListView(FastObjectListView):
                     if lstChamps[i] == "IDutilisateur": valeur = UTILS_Identification.GetIDutilisateur()
                     lstDonnees.append((lstChamps[i],valeur))
                 i += 1
-        ret = DB.ReqInsert("reglements",lstDonnees,commit = True,retourID=True,MsgBox = "Insertion de règlement par dupliquer")
+        newID = DB.ReqInsert("reglements",lstDonnees,commit = True,retourID=True,MsgBox = "Insertion de règlement par dupliquer")
         DB.Close()
         # MAJ de l'affichage
         self.MAJ()
+        selection = [x for x in self.innerList if x.IDreglement == newID]
+        # vérification de la modification de dates
+        if len(selection) >=1:
+            self.SelectObjects(selection)
+            dates = (selection[0].date,selection[0].date_differe)
+            self.Modifier(None)
+            obj = self.Selection()[0]
+            if dates == (obj.date,obj.date_differe):
+                mess = "Risque de doublon!\n\n"
+                mess += "La duplication n'a pas été suivie d'une modification de dates."
+                wx.MessageBox(mess,"Remarque non bloquante")
         #fin Dupliquer
-
-
 
     def VentilationAuto(self, event):
         if self.IDcompte_payeur != None and UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_reglements", "modifier") == False : return

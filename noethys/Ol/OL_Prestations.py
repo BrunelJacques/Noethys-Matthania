@@ -574,6 +574,60 @@ class ListView(ObjectListView):
             self.MAJ(track.IDprestation)
         dlg.Destroy()
 
+    def Dupliquer(self, event):
+        if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_prestations", "dupliquer") == False : return
+        if len(self.Selection()) == 0 :
+            dlg = wx.MessageDialog(self, _("Vous n'avez sélectionné aucune prestation à dupliquer dans la liste !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
+        IDprestation = self.Selection()[0].IDprestation
+        if self.Selection()[0].categorie.lower().startswith("conso"):
+            mess = "A gérer par la facturation\n\n"
+            mess += "Les consommations gérées par les inscriptions ou la famille ne sont pas duplicables"
+            wx.MessageBox(mess,"Duplication impossible")
+            return
+        # Charge les noms des champs
+        from Data import DATA_Tables
+        dicoDB = DATA_Tables.DB_DATA
+        lstChamps = []
+        for descr in dicoDB["prestations"]:
+            lstChamps.append(descr[0])
+        # rappelle le prestation pour avoir toute les données dans l'ordre des champs
+        DB = GestionDB.DB()
+        req = """SELECT * FROM prestations
+        WHERE IDprestation=%d;
+        """ % IDprestation
+        DB.ExecuterReq(req)
+        recordset = DB.ResultatReq()
+        # reprise des valeurs mais pas tous les champs
+        for record in recordset:
+            lstDonnees = []
+            i = 0
+            for valeur in record :
+                if i != 0:
+                    if lstChamps[i] == "IDfacture": valeur = None
+                    if lstChamps[i] == "compta": valeur = None
+                    if lstChamps[i] == "date": valeur = str(datetime.date.today())
+                    lstDonnees.append((lstChamps[i],valeur))
+                i += 1
+        newID = DB.ReqInsert("prestations",lstDonnees,commit = True,retourID=True,MsgBox = "Insertion de prestation par dupliquer")
+        DB.Close()
+        # MAJ de l'affichage
+        self.MAJ()
+        selection = [x for x in self.innerList if x.IDprestation == newID]
+        # Chaîne sur une modif et vérifie un changement
+        if len(selection) >=1:
+            self.SelectObjects(selection)
+            flag = (selection[0].label,selection[0].date)
+            self.Modifier(None)
+            obj = self.Selection()[0]
+            if flag == (obj.label,obj.date):
+                mess = "Risque de doublon!\n\n"
+                mess += "La duplication n'a pas été suivie d'une modification de date ou d'intitulé."
+                wx.MessageBox(mess,"Remarque non bloquante")
+        #fin Dupliquer
+
     def Supprimer(self, event):
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_prestations", "supprimer") == False : return
         if len(self.Selection()) > 0 and len(self.GetTracksCoches()) == 0:
@@ -765,8 +819,7 @@ class ListView(ObjectListView):
             self.MAJ()
 
         DB.Close() 
-
-        
+ 
     def CocheTout(self, event=None):
         if self.GetFilter() != None :
             listeObjets = self.GetFilteredObjects()

@@ -175,8 +175,6 @@ class CTRL_Depot(wx.Panel):
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
-
 class Panel(wx.Panel):
     def __init__(self, parent, IDfamille=None):
         wx.Panel.__init__(self, parent, id=-1, name="panel_reglements", style=wx.TAB_TRAVERSAL)
@@ -390,9 +388,6 @@ class Panel(wx.Panel):
     
     def Sauvegarde(self):
         pass
-        
-        
-
 
 class MyFrame(wx.Frame):
     def __init__(self, *args, **kwds):

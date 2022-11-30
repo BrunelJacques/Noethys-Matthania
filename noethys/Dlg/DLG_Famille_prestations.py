@@ -209,12 +209,15 @@ class Panel(wx.Panel):
         self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
         self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
         self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_dupliquer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Dupliquer.png"), wx.BITMAP_TYPE_ANY))
+
         self.bouton_imprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
 
         # Binds
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAjouter, self.bouton_ajouter)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonModifier, self.bouton_modifier)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonSupprimer, self.bouton_supprimer)
+        self.Bind(wx.EVT_BUTTON, self.OnBoutonDupliquer, self.bouton_dupliquer)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonImprimer, self.bouton_imprimer)
         self.olv.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnActivated)
         self.olv.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnActivated)
@@ -226,6 +229,8 @@ class Panel(wx.Panel):
         self.bouton_ajouter.SetToolTip(_("Cliquez ici pour saisir une prestation"))
         self.bouton_modifier.SetToolTip(_("Cliquez ici pour modifier la prestation sélectionnée"))
         self.bouton_supprimer.SetToolTip(_("Cliquez ici pour supprimer la prestation sélectionnée"))
+        self.bouton_dupliquer.SetToolTip(_("Dupliquer la prestation sélectionnée"))
+
 
         # Layout
         grid_sizer_base = wx.FlexGridSizer(rows=1, cols=1, vgap=5, hgap=5)
@@ -234,10 +239,12 @@ class Panel(wx.Panel):
         
         grid_sizer_prestations.Add(self.listviewAvecFooter, 1, wx.EXPAND, 0)
         
-        grid_sizer_boutons = wx.FlexGridSizer(rows=5, cols=1, vgap=5, hgap=5)
+        grid_sizer_boutons = wx.FlexGridSizer(rows=7, cols=1, vgap=5, hgap=5)
         grid_sizer_boutons.Add(self.bouton_ajouter, 0, wx.ALL, 0)
         grid_sizer_boutons.Add(self.bouton_modifier, 0, wx.ALL, 0)
         grid_sizer_boutons.Add(self.bouton_supprimer, 0, wx.ALL, 0)
+        grid_sizer_boutons.Add( (2, 2), 0, wx.ALL, 0)
+        grid_sizer_boutons.Add(self.bouton_dupliquer, 0, wx.ALL, 0)
         grid_sizer_boutons.Add( (10, 10), 0, wx.ALL, 0)
         grid_sizer_boutons.Add(self.bouton_imprimer, 0, wx.ALL, 0)
         grid_sizer_prestations.Add(grid_sizer_boutons, 1, wx.ALL, 0)
@@ -285,6 +292,10 @@ class Panel(wx.Panel):
 
     def OnBoutonSupprimer(self, event):
         self.ctrl_prestations.Supprimer(None)
+
+    def OnBoutonDupliquer(self, event):
+        self.ctrl_prestations.Dupliquer(None)
+
 
     def OnBoutonImprimer(self, event):
         self.ctrl_prestations.Imprimer(None)
