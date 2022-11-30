@@ -1,3 +1,6 @@
+version 1.3.2.11 (30/11/2022):
+- Fiche Famille: Suppression d'onglets inutilisés (Quotient, Caisses, Divers, Cotisation)
+
 version 1.3.2.10 (27/11/2022):
 - Gestion activités: Gestion des convois à nouveau en première page
 

@@ -8,7 +8,6 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
 from Utils.UTILS_Traduction import _
 import Chemins
 import wx
@@ -28,11 +27,11 @@ from Ctrl import CTRL_Composition
 from Dlg import DLG_Famille_informations
 from Dlg import DLG_Famille_prestations
 from Dlg import DLG_Famille_reglements
-from Dlg import DLG_Famille_quotients
-from Dlg import DLG_Famille_caisse
+#from Dlg import DLG_Famille_quotients
+#from Dlg import DLG_Famille_caisse
 from Dlg import DLG_Famille_pieces
-from Dlg import DLG_Famille_cotisations
-from Dlg import DLG_Famille_divers
+#from Dlg import DLG_Famille_cotisations
+#from Dlg import DLG_Famille_divers
 from Dlg import DLG_Famille_factures
 from Dlg import DLG_Famille_questionnaire
 from Dlg import DLG_LettrageVentil
@@ -71,13 +70,13 @@ class Notebook(wx.Notebook):
             ("informations", _("Informations"), "DLG_Famille_informations.Panel(self, IDfamille=IDfamille)", "Information.png"),
             ("questionnaire", _("Questionnaire"), "DLG_Famille_questionnaire.Panel(self, IDfamille=IDfamille)", "Questionnaire.png"),
             ("pieces", _("Pièces"), "DLG_Famille_pieces.Panel(self, IDfamille=IDfamille)", "Dupliquer.png"),
-            ("cotisations", _("Cotisations"), "DLG_Famille_cotisations.Panel(self, IDfamille=IDfamille)", "Cotisation.png"),
-            ("caisse", _("Caisse"), "DLG_Famille_caisse.Panel(self, IDfamille=IDfamille)", "Mecanisme.png"),
-            ("quotients", _("Quotients familiaux"), "DLG_Famille_quotients.Panel(self, IDfamille=IDfamille)", "Calculatrice.png"),
+            #("cotisations", _("Cotisations"), "DLG_Famille_cotisations.Panel(self, IDfamille=IDfamille)", "Cotisation.png"),
+            #("caisse", _("Caisse"), "DLG_Famille_caisse.Panel(self, IDfamille=IDfamille)", "Mecanisme.png"),
+            #("quotients", _("Quotients familiaux"), "DLG_Famille_quotients.Panel(self, IDfamille=IDfamille)", "Calculatrice.png"),
             ("prestations", _("Prestations"), "DLG_Famille_prestations.Panel(self, IDfamille=IDfamille)", "Etiquette.png"),
             ("factures", _("Factures"), "DLG_Famille_factures.Panel(self, IDfamille=IDfamille)", "Facture.png"),
             ("reglements", _("Règlements"), "DLG_Famille_reglements.Panel(self, IDfamille=IDfamille)", "Reglement.png"),
-            ("divers", _("Divers"), "DLG_Famille_divers.Panel(self, IDfamille=IDfamille)", "Planete.png"),
+            #("divers", _("Divers"), "DLG_Famille_divers.Panel(self, IDfamille=IDfamille)", "Planete.png"),
             ]
             
         # ImageList pour le NoteBook
@@ -734,7 +733,8 @@ class Dialog(wx.Dialog):
 
     def Sauvegarde(self):
         # Validation des données avant sauvegarde
-        listePages = ("questionnaire", "caisse", "divers")
+        #listePages = ("questionnaire", "caisse", "divers")
+        listePages = ("questionnaire",)
         for codePage in listePages :
             page = self.notebook.GetPageAvecCode(codePage)
             if page.majEffectuee == True and page.ValidationData() == False : 
@@ -907,7 +907,7 @@ if __name__ == "__main__":
     heure_debut = time.time()
     # ramel 567; perez marc 1724; bartoOliv 1861; branco 4499;  bourrel 6191
     #7735 parrainage; 8107 multifactures; 709 Brunel jacques
-    dialog_1 = Dialog(None, IDfamille= 9)
+    dialog_1 = Dialog(None, IDfamille= 623)
     print("Temps de chargement fiche famille =", time.time() - heure_debut)
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()
