@@ -1425,8 +1425,6 @@ class CTRL_Graphique(wx.ScrolledWindow):
     def MAJnotebook(self):
         """ MAJ la page active du notebook de la fenêtre famille """
         self.parent.MAJpageActive()
-        self.parent.MAJpage("caisse")
-        self.parent.MAJpage("divers")
 
 # --------------------------------------------------------------------------------------------------------------------------
 
@@ -1844,8 +1842,8 @@ class CTRL_Liste(HTL.HyperTreeList):
     def MAJnotebook(self):
         """ MAJ la page active du notebook de la fenêtre """
         self.parent.MAJpageActive()
-        self.parent.MAJpage("caisse")
-        self.parent.MAJpage("divers")
+        #self.parent.MAJpage("caisse")
+        #self.parent.MAJpage("divers")
 
     def OnMotion(self, event):
         item = self.HitTest(event.GetPosition())[0]

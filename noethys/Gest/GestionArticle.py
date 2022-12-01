@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-15 -*-
-#-----------------------------------------------------------
+#----------------------------------------------------------
 # Application :    Matthania
 # Auteur:          Jacques BRUNEL
 # Licence:         Licence GNU GPL

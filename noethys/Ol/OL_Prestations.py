@@ -106,9 +106,7 @@ class ListView(ObjectListView):
         self.dictFiltres = {}
         self.pointe = None
         # Binds perso
-        self.Bind(wx.EVT_COMMAND_LEFT_CLICK, self.OnSwapCheck)
         self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
-        #self.SetShowGroups(False)
 
     def InitModel(self):
         self.donnees = self.GetTracks()
@@ -470,22 +468,6 @@ class ListView(ObjectListView):
 
         self.PopupMenu(menuPop)
         menuPop.Destroy()
-
-    def OnSwapCheck(self,event):
-        if self.IsChecked(self.GetSelectedObject()):
-            self.SetCheckState(self.GetSelectedObject(),False)
-            if len(self.GetCheckedObjects()) > 0 :
-                self.donnees = self.GetObjects()
-                sel = None
-                for obj in self.donnees:
-                    if self.IsChecked(obj) and sel == None:
-                        sel = 1
-                        self.pointe = obj
-                        self.SetObjects(self.donnees)
-                        self.SelectObject(self.pointe, deselectOthers=True, ensureVisible=True)
-        else:
-            self.SetCheckState(self.GetSelectedObject(),True)
-        self.Refresh()
 
     def Apercu(self, event):
         from Utils import UTILS_Printer

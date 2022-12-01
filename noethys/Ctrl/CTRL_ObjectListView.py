@@ -217,7 +217,9 @@ class ObjectListView(OLV.ObjectListView):
             # pour des tris numériques on garde le type d'origine de primary
             isNum = isinstance(primary,(float,decimal.Decimal,int,bool))
             if hasattr(sortColumn,'typeDonnee'):
-                if sortColumn.typeDonnee in ("montant", "entier","bool" ):
+                if sortColumn.typeDonnee in ("texte",):
+                    isNum = False
+                elif sortColumn.typeDonnee in ("montant", "entier","bool" ):
                     isNum = True
             if isNum:
                 if not isinstance(primary,(float,int,decimal.Decimal)):
