@@ -1,7 +1,11 @@
-version 1.3.2.12 (01/12/2022):
+version 1.3.2.13 (02/12/2022):
+- Modif d'ergonomie: après traitement une ligne grisée ne se coche plus
+
+-version 1.3.2.12 (01/12/2022):
 - Fiche famille: suppression d'appels résiduels aux onglets supprimés ('caisse et divers')
 - Facturation: le tri sur colonne activité plantait
 - Prestations: La ligne cochée ne bouge plus après le clic.
+- redifusion du calcul des articles.
 
 
 version 1.3.2.11 (30/11/2022):

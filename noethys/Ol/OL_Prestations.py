@@ -553,7 +553,7 @@ class ListView(ObjectListView):
         from Dlg import DLG_Saisie_prestation
         dlg = DLG_Saisie_prestation.Dialog(self, IDprestation=track.IDprestation, IDfamille=track.IDfamille, mode=mode)
         if dlg.ShowModal() == wx.ID_OK:
-            self.MAJ(track.IDprestation)
+            self.MAJ()
         dlg.Destroy()
 
     def Dupliquer(self, event):

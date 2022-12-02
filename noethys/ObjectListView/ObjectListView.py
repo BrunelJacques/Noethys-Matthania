@@ -1212,10 +1212,7 @@ class ObjectListView(wx.ListCtrl):
             if len(choixChecked) > 0:
                 return choixChecked
             else:
-                # pas de ligne checkée, priorité à la sélection, on coche
-                for item in choixSelected:
-                    self.Check(item)
-                self.RefreshObjects(choixSelected)
+                # pas de ligne checkée, priorité à la sélection
                 return choixSelected
         else:
             # pas de colonne check priorité à la sélection
