@@ -19,7 +19,6 @@ from Ol import OL_Lignes
 try: import psyco; psyco.full()
 except: pass
 
-
 DICT_CATEGORIES = {
     "bus" : {"singulier":_("ligne de bus"), "pluriel":_("lignes de bus"), "image":"Bus"},
     "car" : {"singulier":_("ligne de cars"), "pluriel":_("lignes de cars"), "image":"Car"},
@@ -29,10 +28,8 @@ DICT_CATEGORIES = {
     "pedibus" : {"singulier":_("ligne de pédibus"), "pluriel":_("lignes de pédibus"), "image":"Pedibus"},
     }
 
-
-
 class Dialog(wx.Dialog):
-    def __init__(self, parent, categorie="bus", mode="gestion"):
+    def __init__(self, parent, categorie="navette", mode="gestion"):
         wx.Dialog.__init__(self, parent, -1, name="DLG_Lignes", style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
         self.parent = parent
         self.mode = mode

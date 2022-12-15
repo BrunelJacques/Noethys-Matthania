@@ -184,21 +184,40 @@ class ListView(FastObjectListView):
 
     def Imprimer(self, event):
         from Utils import UTILS_Printer
-        prt = UTILS_Printer.ObjectListViewPrinter(self, titre=_("Liste des %s") % self.categoriePluriel, format="A", orientation=wx.PORTRAIT)
+        prt = UTILS_Printer.ObjectListViewPrinter(self,
+                        titre=_("Liste des %s") % self.categoriePluriel, format="A",
+                                                  orientation=wx.PORTRAIT)
         prt.Print()
 
+    def VerifSaisie(self,texte):
+        err = True
+        if len(texte) == 0:
+            mess = "Il faut saisir au moins un caractère."
+        elif texte.count('<') > 0 or texte.count('>') > 0:
+            if texte.count('<') != texte.count('>'):
+                mess = "'<' et '>' doivent être utilisés ensemble ex: '<->'"
+            elif texte.find('>') < texte.find('<'):
+                mess = "'<' doit précéder '>' ex: '<->'"
+            else:
+                err = False
+        else:
+            err = False
+
+        if err:
+            dlg = wx.MessageDialog(self, mess,
+                                   _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            texte = None
+        return texte
 
     def Ajouter(self, event):
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("parametrage_lignes", "creer") == False : return
         dlg = wx.TextEntryDialog(self, _("Saisissez le nom de la nouvelle %s :") % self.categorieSingulier, _("Saisie d'une nouvelle %s") % self.categorieSingulier, "")
-        if dlg.ShowModal() == wx.ID_OK:
-            nom = dlg.GetValue()
-            if nom == "":
-                dlg = wx.MessageDialog(self, _("Le nom que vous avez saisi n'est pas valide."), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
-                dlg.ShowModal()
-                dlg.Destroy()
-                return
-            else:
+        nom = None
+        while nom == None and dlg.ShowModal() == wx.ID_OK:
+            nom = self.VerifSaisie(dlg.GetValue())
+            if nom:
                 DB = GestionDB.DB()
                 listeDonnees = [ ("categorie", self.categorie), ("nom", nom) ]
                 IDligne = DB.ReqInsert("transports_lignes", listeDonnees)
@@ -216,14 +235,11 @@ class ListView(FastObjectListView):
         IDligne = self.Selection()[0].IDligne
         nom = self.Selection()[0].nom
         dlg = wx.TextEntryDialog(self, _("Modifiez le nom de la %s :") % self.categorieSingulier, _("Modification d'une %s") % self.categorieSingulier, nom)
-        if dlg.ShowModal() == wx.ID_OK:
-            nom = dlg.GetValue()
-            if nom == "":
-                dlg = wx.MessageDialog(self, _("Le nom que vous avez saisi n'est pas valide."), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
-                dlg.ShowModal()
-                dlg.Destroy()
-                return
-            else:
+
+        nom = None
+        while nom == None and dlg.ShowModal() == wx.ID_OK:
+            nom = self.VerifSaisie(dlg.GetValue())
+            if nom:
                 DB = GestionDB.DB()
                 listeDonnees = [ ("nom", nom), ]
                 DB.ReqMAJ("transports_lignes", listeDonnees, "IDligne", IDligne)

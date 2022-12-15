@@ -185,6 +185,16 @@ class Bookmark(Flowable):
         # step 2: put an entry in the bookmark outline
         self.canv.addOutlineEntry(self.title, self.key, 0, 0)
 
+def GetParagraph(texte, paraStyle):
+    try:
+        return Paragraph(texte,paraStyle)
+    except:
+        message = "Erreur d'impression\n\n"
+        message += "Le texte ci-dessous contient des caractères mal gérés:\n"
+        message += "%s"%texte
+        wx.MessageBox(message,"Texte remplacé",wx.CANCEL)
+        return Paragraph("xxxxxxxxxxxxxxxxxxxxx",paraStyle)
+        
 class Impression():
     def __init__(self, dictValeurs={}, dictOptions={}, IDmodele=None, mode="_", ouverture=True, nomFichier=None, titre=None):
         """ Impression """
@@ -297,7 +307,7 @@ class Impression():
                     if dictOptions["style_texte_introduction"] == 1 : texte = "<para><i>%s</i></para>" % texte
                     if dictOptions["style_texte_introduction"] == 2 : texte = "<para><b>%s</b></para>" % texte
                     if dictOptions["style_texte_introduction"] == 3 : texte = "<para><i><b>%s</b></i></para>" % texte
-                    story.append(Paragraph(texte, paraStyle))
+                    story.append(GetParagraph(texte, paraStyle))
                     story.append(Spacer(0,20))
 
                 couleurFond = ConvertCouleurWXpourPDF(dictOptions["couleur_fond_1"]) # (0.8, 0.8, 1)
@@ -348,7 +358,7 @@ class Impression():
                                           spaceBefore=0,
                                           spaceafter=0,
                                         )
-                    texteIndividu = Paragraph(dictIndividus["texte"], paraStyle)
+                    texteIndividu = GetParagraph(dictIndividus["texte"], paraStyle)
                     dataTableau = []
                     dataTableau.append([texteIndividu,])
                     tableau = Table(dataTableau, [CADRE_CONTENU[2],])
@@ -419,11 +429,11 @@ class Impression():
 
                         if activeTVA == True :
                             dataTableau.append([
-                                Paragraph(_("<para align='center'>Date</para>"), paraLabelsColonnes),
-                                Paragraph(_("<para align='center'>Prestation</para>"), paraLabelsColonnes),
-                                Paragraph(_("<para align='center'>Montant HT</para>"), paraLabelsColonnes),
-                                Paragraph(_("<para align='center'>Taux TVA</para>"), paraLabelsColonnes),
-                                Paragraph(_("<para align='center'>Montant TTC</para>"), paraLabelsColonnes),
+                                GetParagraph(_("<para align='center'>Date</para>"), paraLabelsColonnes),
+                                GetParagraph(_("<para align='center'>Prestation</para>"), paraLabelsColonnes),
+                                GetParagraph(_("<para align='center'>Montant HT</para>"), paraLabelsColonnes),
+                                GetParagraph(_("<para align='center'>Taux TVA</para>"), paraLabelsColonnes),
+                                GetParagraph(_("<para align='center'>Montant TTC</para>"), paraLabelsColonnes),
                                 ])
 
                         for date in listeDates :
@@ -448,13 +458,14 @@ class Impression():
                             #listeDictLignes.sort()
 
                             for labelTemp, dictLigne in listeDictLignes :
+
                                 label = dictLigne["label"]
                                 montant = dictLigne["montant"]
                                 deductions = dictLigne["deductions"]
                                 tva = dictLigne["tva"]
 
                                 # Date
-                                #texteDate = Paragraph("<para align='center'>%s</para>" % date, paraStyle)
+                                #texteDate = GetParagraph("<para align='center'>%s</para>" % date, paraStyle)
                                 texteDate = " "
 
                                 # recherche d'un commentaire
@@ -467,14 +478,14 @@ class Impression():
                                 # Affiche le Label de la prestation
                                 if label == None:
                                     label = "Pour prestation"
-                                listeIntitules.append(Paragraph(label, paraStyle))
+                                listeIntitules.append(GetParagraph(label, paraStyle))
 
                                 # TVA
                                 if activeTVA == True :
                                     if tva == None : tva = 0.0
                                     montantHT = (100.0 * float(montant)) / (100 + float(tva)) #montant - montant * 1.0 * float(tva) / 100
-                                    listeMontantsHT.append(Paragraph("<para align='center'>%.02f %s</para>" % (montantHT, SYMBOLE), paraStyle))
-                                    listeTVA.append(Paragraph("<para align='center'>%.02f %%</para>" % tva, paraStyle))
+                                    listeMontantsHT.append(GetParagraph("<para align='center'>%.02f %s</para>" % (montantHT, SYMBOLE), paraStyle))
+                                    listeTVA.append(GetParagraph("<para align='center'>%.02f %%</para>" % tva, paraStyle))
                                 else :
                                     listeMontantsHT.append("")
                                     listeTVA.append("")
@@ -484,17 +495,17 @@ class Impression():
                                     listeMontantsTTC.append(Spacer(10,dictOptions["taille_texte_prestation"]))
                                 else:
                                     param = "<para align='right'>%.02f %s</para>" % (montant, SYMBOLE)
-                                    listeMontantsTTC.append(Paragraph(param, paraStyle))
+                                    listeMontantsTTC.append(GetParagraph(param, paraStyle))
 
                                 # Déductions
                                 if len(deductions) > 0 :
                                     for dictDeduction in deductions :
-                                        listeIntitules.append(Paragraph("<para align='left'><font size=5 color='#939393'>- %.02f %s : %s</font></para>" % (dictDeduction["montant"], SYMBOLE, dictDeduction["label"]), paraStyle))
-                                        #listeIntitules.append(Paragraph(u"<para align='left'><font size=5 color='#939393'>%s</font></para>" % dictDeduction["label"], paraStyle))
-                                        listeMontantsHT.append(Paragraph("&nbsp;", paraStyle))
-                                        listeTVA.append(Paragraph("&nbsp;", paraStyle))
-                                        listeMontantsTTC.append(Paragraph("&nbsp;", paraStyle))
-                                        #listeMontantsTTC.append(Paragraph(u"<para align='center'><font size=5 color='#939393'>- %.02f %s</font></para>" % (dictDeduction["montant"], SYMBOLE), paraStyle))
+                                        listeIntitules.append(GetParagraph("<para align='left'><font size=5 color='#939393'>- %.02f %s : %s</font></para>" % (dictDeduction["montant"], SYMBOLE, dictDeduction["label"]), paraStyle))
+                                        #listeIntitules.append(GetParagraph(u"<para align='left'><font size=5 color='#939393'>%s</font></para>" % dictDeduction["label"], paraStyle))
+                                        listeMontantsHT.append(GetParagraph("&nbsp;", paraStyle))
+                                        listeTVA.append(GetParagraph("&nbsp;", paraStyle))
+                                        listeMontantsTTC.append(GetParagraph("&nbsp;", paraStyle))
+                                        #listeMontantsTTC.append(GetParagraph(u"<para align='center'><font size=5 color='#939393'>- %.02f %s</font></para>" % (dictDeduction["montant"], SYMBOLE), paraStyle))
 
                             if len(listeIntitules) == 1 :
                                 texteIntitules = listeIntitules[0]
@@ -529,12 +540,12 @@ class Impression():
                     # Insertion des totaux
                     dataTableau = []
                     if activeTVA == True and detail == 0 :
-                        dataTableau.append(["", "", "", "", Paragraph("<para align='center'>%.02f %s</para>" % (dictIndividus["montant"], SYMBOLE) , paraStyle)])
+                        dataTableau.append(["", "", "", "", GetParagraph("<para align='center'>%.02f %s</para>" % (dictIndividus["montant"], SYMBOLE) , paraStyle)])
                     else :
                         if detail != 0 :
-                            dataTableau.append(["", "", "", Paragraph("<para align='center'>%.02f %s</para>" % (dictIndividus["montant"], SYMBOLE) , paraStyle)])
+                            dataTableau.append(["", "", "", GetParagraph("<para align='center'>%.02f %s</para>" % (dictIndividus["montant"], SYMBOLE) , paraStyle)])
                         else :
-                            dataTableau.append(["", "", Paragraph("<para align='center'>%.02f %s</para>" % (dictIndividus["montant"], SYMBOLE) , paraStyle)])
+                            dataTableau.append(["", "", GetParagraph("<para align='center'>%.02f %s</para>" % (dictIndividus["montant"], SYMBOLE) , paraStyle)])
 
                     listeStyles = [
                             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
@@ -564,7 +575,7 @@ class Impression():
                 
                 # Date d'échéance
 ##                if dictOptions["echeance"] != None :
-##                    listeMessages.append(Paragraph(dictOptions["echeance"], paraStyle))
+##                    listeMessages.append(GetParagraph(dictOptions["echeance"], paraStyle))
 
                # QF aux dates de facture
                 if "afficher_qf_dates" in dictOptions and dictOptions["afficher_qf_dates"] == True :
@@ -576,7 +587,7 @@ class Impression():
                             qf = dictQfdates[dates]
 ##                            texteQf = _("--- Votre QF %s : <b>%s</b> ---") % (dates, qf)
                             texteQf = _("<b>Votre quotient familial : </b>Votre QF est de %s sur la période %s.") % (qf, dates)
-                            listeMessages.append(Paragraph(texteQf, paraStyle))
+                            listeMessages.append(GetParagraph(texteQf, paraStyle))
 
                 # Reports
 
@@ -611,11 +622,11 @@ class Impression():
                                 texteReport += txt
                             else:
                                 texteAffecter += txt
-                        listeMessages.append(Paragraph(texteTitre, paraStyle))
+                        listeMessages.append(GetParagraph(texteTitre, paraStyle))
                         for txt in (texteReport, texteAffecter):
                             if txt != "":
                                 txt = txt[:-2]+ "."
-                                listeMessages.append(Paragraph(txt, paraStyle))
+                                listeMessages.append(GetParagraph(txt, paraStyle))
                 # Règlements
                 if ("afficher_reglements" in dictOptions) and dictOptions["afficher_reglements"] :
                     dictReglements = dictValeur["reglements"]
@@ -655,24 +666,24 @@ class Impression():
                             intro = "Réglé en intégralité"
                             
                         texteReglements = _("<b>Règlements : </b> %s") % (intro)
-                        listeMessages.append(Paragraph(texteReglements, paraStyle))
+                        listeMessages.append(GetParagraph(texteReglements, paraStyle))
                         for ligne in listeTextesReglements:
-                            listeMessages.append(Paragraph(ligne, paraStyle))
+                            listeMessages.append(GetParagraph(ligne, paraStyle))
 
                 # Messages
                 if ("afficher_messages" in dictOptions) and dictOptions["afficher_messages"] == True :
                     for message in dictOptions["messages"] :
-                        listeMessages.append(Paragraph(message, paraStyle))
+                        listeMessages.append(GetParagraph(message, paraStyle))
 
                     for message_familial in dictValeur["messages_familiaux"] :
                         texte = message_familial["texte"]
                         if len(texte) > 0 and texte[-1] not in ".!?" :
                             texte = texte + "."
                         texte = _("<b>Message : </b>%s") % texte
-                        listeMessages.append(Paragraph(texte, paraStyle))
+                        listeMessages.append(GetParagraph(texte, paraStyle))
 
                 if len(listeMessages) > 0 :
-                    listeMessages.insert(0, Paragraph(_("<u>Informations :</u>"), paraStyle))
+                    listeMessages.insert(0, GetParagraph(_("<u>Informations :</u>"), paraStyle))
                 
                 # ------------------ CADRE TOTAUX ------------------------
                 dataTableau = []
@@ -741,7 +752,7 @@ class Impression():
                               backColor=couleurFondActivite,
                             )
                         story.append(Spacer(0,20))
-                        story.append(Paragraph("<para align='center'><i>%s</i></para>" % dictValeur["prelevement"], paraStyle))
+                        story.append(GetParagraph("<para align='center'><i>%s</i></para>" % dictValeur["prelevement"], paraStyle))
                 
                 # Texte conclusion
                 if dictOptions["texte_conclusion"] != "" :
@@ -766,7 +777,7 @@ class Impression():
                     if dictOptions["style_texte_conclusion"] == 1 : texte = "<para><i>%s</i></para>" % texte
                     if dictOptions["style_texte_conclusion"] == 2 : texte = "<para><b>%s</b></para>" % texte
                     if dictOptions["style_texte_conclusion"] == 3 : texte = "<para><i><b>%s</b></i></para>" % texte
-                    story.append(Paragraph(texte, paraStyle))
+                    story.append(GetParagraph(texte, paraStyle))
                     
                 # Image signature
                 if dictOptions["image_signature"] != "" :
