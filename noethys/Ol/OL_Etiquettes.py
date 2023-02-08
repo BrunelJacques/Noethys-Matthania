@@ -105,7 +105,11 @@ class TrackIndividu(object):
         self.listview = listview
         self.IDindividu = donnees["individus.IDindividu"]
         self.IDfamille = donnees["MIN(rattachements.IDfamille)"]
-        if self.IDfamille == None : self.IDfamille = 0
+        if donnees["COUNT(rattachements.IDfamille)"] != 1:
+            if donnees["COUNT(rattachements.IDfamille)"] > 1:
+                self.IDfamille = "%d familles"%donnees["COUNT(rattachements.IDfamille)"]
+            else:
+                self.IDfamille = "Néant"
         if donnees["individus.IDcivilite"]:
             self.IDcivilite = str(donnees["individus.IDcivilite"])
         else: self.IDcivilite = ""
@@ -255,23 +259,35 @@ class TrackIndividu(object):
 
         return dictTemp
 
-def GetListeIndividus(listview, IDindividu=None, isoles = None, refusPub=False, actif=None):
-
+def GetListeIndividus(listview, IDindividu=None, isoles = None, refusPub=False,
+                      actif=None, pur=None):
+    joinActifs = ""
+    parentheses = ""
     # Condition Individu donné
     if IDindividu != None :
         conditionIndividus = "WHERE individus.IDindividu=%d" % IDindividu
     elif actif:
         # benevoles actifs caractérisés par le tarif contenant le radical de Bénévolat et la participation à une activité
         conditionIndividus = "WHERE Left(activites.date_fin,4) >= '%s' AND  (categories_tarifs.nom Like '%%énévol%%')" % actif
+        parentheses = "((("
+        joinActifs = """)
+            LEFT JOIN inscriptions ON individus.IDindividu = inscriptions.IDindividu) 
+            LEFT JOIN activites ON inscriptions.IDactivite = activites.IDactivite) 
+            LEFT JOIN categories_tarifs ON inscriptions.IDcategorie_tarif = categories_tarifs.IDcategorie_tarif
+            """
     elif isoles :
         conditionIndividus = "WHERE ( rattachements.IDfamille IS NULL) "
+    elif pur:
+        conditionIndividus = ""
     else:
         conditionIndividus = ""
 
 
     # Récupération des individus
     listeChamps = (
-        "individus.IDindividu", "MIN(rattachements.IDfamille)", "individus.IDcivilite", "individus.nom", "individus.prenom", "individus.date_naiss",
+        "individus.IDindividu", "MIN(rattachements.IDfamille)", "COUNT(rattachements.IDfamille)",
+        "MIN(rattachements.IDcategorie)","MAX(rattachements.IDcategorie)",
+        "individus.IDcivilite", "individus.nom", "individus.prenom", "individus.date_naiss",
         "individus.adresse_auto", "individus.rue_resid", "individus.cp_resid", "individus.ville_resid",
         "individus.travail_tel", "individus.travail_fax", "individus.travail_mail",
         "individus.tel_domicile", "individus.tel_mobile", "individus.tel_fax", "individus.mail",
@@ -289,15 +305,13 @@ def GetListeIndividus(listview, IDindividu=None, isoles = None, refusPub=False, 
     DB = GestionDB.DB()
     req = """
     SELECT %s
-    FROM ((((individus 
+    FROM %s(individus 
             LEFT JOIN rattachements ON individus.IDindividu = rattachements.IDindividu) 
-            LEFT JOIN individus AS individus_1 ON individus.adresse_auto = individus_1.IDindividu) 
-            LEFT JOIN inscriptions ON individus.IDindividu = inscriptions.IDindividu) 
-            LEFT JOIN activites ON inscriptions.IDactivite = activites.IDactivite) 
-            LEFT JOIN categories_tarifs ON inscriptions.IDcategorie_tarif = categories_tarifs.IDcategorie_tarif
+            LEFT JOIN individus AS individus_1 ON individus.adresse_auto = individus_1.IDindividu
+            %s
     %s
     GROUP BY %s
-    ;""" % (",".join(listeChamps), conditionIndividus,",".join(listeChampsGroupBy))
+    ;""" % (",".join(listeChamps),parentheses,joinActifs,conditionIndividus,",".join(listeChampsGroupBy))
 
     DB.ExecuterReq(req,MsgBox="OL_Etiquettes GetListeIndividus")
     listeDonnees = DB.ResultatReq()
@@ -328,6 +342,15 @@ def GetListeIndividus(listview, IDindividu=None, isoles = None, refusPub=False, 
                 dictTemp[nomChamp] = compacte(valeurs[index])
             else:
                 dictTemp[nomChamp] = valeurs[index]
+        # Gestion des purs enfants et purs prospects
+        if pur:
+            if "enfant" in pur:
+                if dictTemp["MIN(rattachements.IDcategorie)"] != 2:
+                    continue
+            elif "prospect" in pur:
+                if dictTemp["MIN(rattachements.IDcategorie)"] != 3:
+                    continue
+
         # Infos sur la civilité
         if dictTemp["individus.IDcivilite"] == None or dictTemp["individus.IDcivilite"] == "" :
             IDcivilite = 1
@@ -338,6 +361,7 @@ def GetListeIndividus(listview, IDindividu=None, isoles = None, refusPub=False, 
         dictTemp["civiliteLong"]  = dictCivilites[IDcivilite]["civiliteLong"]
         dictTemp["civiliteAbrege"] = dictCivilites[IDcivilite]["civiliteAbrege"]
         dictTemp["nomImage"] = dictCivilites[IDcivilite]["nomImage"]
+
 
         if dictTemp["individus.date_naiss"] == None :
             dictTemp["age"] = None
@@ -588,6 +612,10 @@ class ListView(ObjectListView):
         # Récupération des tracks
         if self.categorie in ("individu","individus","benevole_actif" ):
             self.donnees = GetListeIndividus(self, self.IDindividu, refusPub=self.refusPub, actif=self.actif)
+        elif "pur" in self.categorie:
+            # pur doit contenir "enfants" ou "prospects" pour individus non rattachés en représentant sur autre famille
+            pur= self.categorie.split("_")[1]
+            self.donnees = GetListeIndividus(self, self.IDindividu, refusPub=self.refusPub, actif=self.actif, pur=pur)
         elif self.categorie in ("famille","familles", "famille_actif"):
             self.donnees = GetListeFamilles(self, self.IDfamille, refusPub=self.refusPub,  actif = self.actif)
         elif self.categorie == "isole":

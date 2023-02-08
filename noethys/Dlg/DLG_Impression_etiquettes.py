@@ -37,6 +37,8 @@ COULEUR_FOND_ETIQUETTE = (200, 200, 200)
 LISTE_CATEGORIES = [
     ("", _(" ")),
     ("individu", _("Individus")),
+    ("pur_enfant", _("Ind. pur enfants")),
+    ("pur_prospect", _("Ind. pur prospects")),
     ("famille", _("Familles")),
     ("isole", _("Ajouter les sans famille")),
     ("famille_actif", _("Familles actives")),
@@ -427,13 +429,13 @@ class Dialog(wx.Dialog):
         self.ctrl_apercu.SetEspaceVertical(espaceV)
         self.ctrl_apercu.SetEspaceHorizontal(espaceH)
         self.ctrl_apercu.SetModele(self.ctrl_modele.GetID())
-        self.ctrl_apercu.MAJ() 
+        self.ctrl_apercu.MAJ()
         
         if IDindividu != None or IDfamille != None :
             self.ctrl_categorie.Enable(False)
         self.ctrl_actif.Enable(False)
         self.label_actif.Enable(False)
-        self.ctrl_donnees.SetSelection(categorie=self.categorie_liste)
+        #self.ctrl_donnees.SetSelection(categorie=self.categorie_liste)
 
     def __set_properties(self):
         self.ctrl_categorie.SetToolTip(_("Sélectionnez ici une catégorie de liste"))
@@ -588,7 +590,9 @@ class Dialog(wx.Dialog):
         self.categorie_doc = self.categorie_liste
         if self.categorie_doc == "isole" : self.categorie_doc = "famille"
         if "benevole" in self.categorie_liste : self.categorie_doc = "individu"
-        if "famille" in self.categorie_liste : self.categorie_doc = "famille"
+        elif "pur" in self.categorie_liste:
+            self.categorie_doc = "individu"
+        elif "famille" in self.categorie_liste : self.categorie_doc = "famille"
         if self.oldCategorie and self.categorie_liste == "isole":
             if self.oldCategorie != "famille":
                 self.oldCategorie = None

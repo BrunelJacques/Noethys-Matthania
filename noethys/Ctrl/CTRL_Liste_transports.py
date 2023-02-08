@@ -315,6 +315,8 @@ class CTRL(HTL.HyperTreeList):
             # Heures
             listeheures = []
             for heure, dictHeure in dictDonnees.items() :
+                if not heure:
+                    heure = ""
                 listeheures.append((heure, dictHeure))
             listeheures.sort() 
             
