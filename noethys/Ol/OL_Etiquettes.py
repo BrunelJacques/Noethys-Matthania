@@ -98,7 +98,7 @@ class DictDiffusion(object):
             self.dictDiffusions[IDdiffusion]["tplIDs"]= tupleIDabonne
         DB.Close()
 
-#-----------INDIVIDUS-----------
+#-----------INDIVIDUS----------
 
 class TrackIndividu(object):
     def __init__(self, listview, donnees,refusPub):

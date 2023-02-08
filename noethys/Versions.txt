@@ -1,5 +1,7 @@
 version 1.3.2.13 (08/02/2023):
 - Listes étiquettes: ajout de la notion pur_enfants et pur_prospect pour élargir la com
+- Suppression de l'appel de la première liste automatique=> rafraichir obligé
+- si plusieurs familles, nombre de familles
 
 version 1.3.2.15 (03/02/2023):
 - Récap transport: bug absence de l'heure mal gérée
@@ -15,7 +17,6 @@ version 1.3.2.13 (02/12/2022):
 - Facturation: le tri sur colonne activité plantait
 - Prestations: La ligne cochée ne bouge plus après le clic.
 - redifusion du calcul des articles.
-
 
 version 1.3.2.11 (30/11/2022):
 - Fiche Famille: Duplication possible des prestations non liées à une inscription

@@ -435,7 +435,7 @@ class Dialog(wx.Dialog):
             self.ctrl_categorie.Enable(False)
         self.ctrl_actif.Enable(False)
         self.label_actif.Enable(False)
-        #self.ctrl_donnees.SetSelection(categorie=self.categorie_liste)
+        #02-2023 self.ctrl_donnees.SetSelection(categorie=self.categorie_liste)
 
     def __set_properties(self):
         self.ctrl_categorie.SetToolTip(_("Sélectionnez ici une catégorie de liste"))
