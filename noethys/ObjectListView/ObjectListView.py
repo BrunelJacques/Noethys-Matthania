@@ -819,7 +819,6 @@ class ObjectListView(wx.ListCtrl):
             for (index, model) in enumerate(self.innerList):
                 item.Clear()
                 self._InsertUpdateItem(item, index, model, True)
-
             # Auto-resize once all the data has been added
             self.AutoSizeColumns()
         finally:

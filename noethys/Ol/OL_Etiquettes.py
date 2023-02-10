@@ -104,7 +104,10 @@ class TrackIndividu(object):
     def __init__(self, listview, donnees,refusPub):
         self.listview = listview
         self.IDindividu = donnees["individus.IDindividu"]
-        self.IDfamille = donnees["MIN(rattachements.IDfamille)"]
+        try:
+            self.IDfamille = "A%06d" %donnees["MIN(rattachements.IDfamille)"]
+        except:
+            self.IDfamille = ""
         if donnees["COUNT(rattachements.IDfamille)"] != 1:
             if donnees["COUNT(rattachements.IDfamille)"] > 1:
                 self.IDfamille = "%d familles"%donnees["COUNT(rattachements.IDfamille)"]
@@ -225,7 +228,7 @@ class TrackIndividu(object):
 
         dictTemp = {
             "{IDINDIVIDU}" : str(self.IDindividu),
-            "{IDFAMILLE}" : str(self.IDfamille),
+            "{IDFAMILLE}" : self.IDfamille,
             "{CODEBARRES_ID_INDIVIDU}" : "I%06d" % self.IDindividu,
             "{INDIVIDU_CIVILITE_LONG}" : FormateStr(self.civiliteLong),
             "{INDIVIDU_CIVILITE_COURT}" : FormateStr(self.civiliteAbrege),
@@ -242,7 +245,7 @@ class TrackIndividu(object):
             "{INDIVIDU_DPT}" : FormateStr(self.dpt),
             "{INDIVIDU_EMAILS}" : FormateStr(self.mails),
             "{INDIVIDU_TELEPHONES}" : FormateStr(self.telephones),
-            "{CODEBARRES_ID_FAMILLE}" : "A%06d" % self.IDfamille,
+            "{CODEBARRES_ID_FAMILLE}" : self.IDfamille,
             "{FAMILLE_NOM}": FormateStr(self.designation),
             "{FAMILLE_RUE}" : FormateStr(self.rue_resid),
             "{FAMILLE_CP}" : FormateStr(self.cp),
@@ -681,7 +684,7 @@ class ListView(ObjectListView):
             # Ajout des listes de diffusion
             for IDdiffusion in self.dictDiffusions :
                 nom = self.dictDiffusions[IDdiffusion]["nom"]
-                liste_Colonnes.append(ColumnDefn( nom, "left", 100, "diffusion_%d" % IDdiffusion, typeDonnee="texte"))
+                liste_Colonnes.append(ColumnDefn( nom, "left", 100, "%s (%d)" % (nom,IDdiffusion), typeDonnee="texte"))
 
         else:
             # FAMILLES ou isole
@@ -705,7 +708,7 @@ class ListView(ObjectListView):
             # Ajout des listes de diffusion
             for IDdiffusion in self.dictDiffusions :
                 nom = self.dictDiffusions[IDdiffusion]["nom"]
-                liste_Colonnes.append(ColumnDefn( nom, "left", 100, "diffusion_%d" % IDdiffusion, typeDonnee="texte"))
+                liste_Colonnes.append(ColumnDefn( nom, "left", 100, "%s (%d)" % (nom,IDdiffusion), typeDonnee="texte"))
 
         # Ajout des questions des questionnaires
         for dictQuestion in self.LISTE_QUESTIONS :

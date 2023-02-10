@@ -470,7 +470,13 @@ class ObjectListView(OLV.ObjectListView):
                         serie += "'%s'"%x.lower().strip() + ","
                     serie += "]"
                     filtre = "track.%s != None and track.%s.lower() in %s" % (code, code, serie)
-
+                if choix == "NONDANS" :
+                    lst = criteres.split(";")
+                    serie = "["
+                    for x in lst:
+                        serie += "'%s'"%x.lower().strip() + ","
+                    serie += "]"
+                    filtre = "not(track.%s.lower() in %s)" % (code, serie)
             # Bool
             if typeDonnee == "bool" :
                 if choix == "TRUE" :

@@ -43,6 +43,9 @@ class CTRL_Page_texte(wx.Panel):
         self.radio_dans = wx.RadioButton(self, -1, _("Parmi la suite"))
         self.ctrl_dans = wx.TextCtrl(self, -1, "", size=(200, -1))
         self.btn_dans = wx.Button(self,-1,"...",size=(25,-1))
+        self.radio_nondans = wx.RadioButton(self, -1, _("Non Parmi la suite"))
+        self.ctrl_nondans = wx.TextCtrl(self, -1, "", size=(200, -1))
+        self.btn_nondans = wx.Button(self,-1,"...",size=(25,-1))
         self.radio_vide = wx.RadioButton(self, -1, _("Est vide"),size=(110, -1))
         self.radio_pasvide = wx.RadioButton(self, -1, _("N'est pas vide"),size=(110, -1))
         
@@ -55,16 +58,20 @@ class CTRL_Page_texte(wx.Panel):
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_commence)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_vide)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_dans)
-        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_pasvide)
         self.Bind(wx.EVT_BUTTON, self.OnParmi, self.btn_dans)
-
         self.btn_dans.SetToolTip(_("Composition d'une série par cases à cocher"))
         self.ctrl_dans.SetToolTip(_("Séparez les valeurs de la série par ';'\nVous pouvez gérer la série des possibles par le bouton '...'"))
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_pasvide)
+
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_nondans)
+        self.Bind(wx.EVT_BUTTON, self.OnNonParmi, self.btn_nondans)
+        self.btn_nondans.SetToolTip(_("Composition d'une série par cases à cocher"))
+        self.ctrl_nondans.SetToolTip(_("Séparez les valeurs de la série par ';'\nVous pouvez gérer la série des possibles par le bouton '...'"))
 
         self.OnRadio(None) 
         
     def __do_layout(self):
-        grid_sizer_base = wx.FlexGridSizer(rows=8, cols=1, vgap=10, hgap=10)
+        grid_sizer_base = wx.FlexGridSizer(rows=9, cols=1, vgap=10, hgap=10)
         grid_sizer_egal = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_egal.Add(self.radio_egal, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_egal.Add(self.ctrl_egal, 0, 0, 0)
@@ -87,13 +94,21 @@ class CTRL_Page_texte(wx.Panel):
         grid_sizer_base.Add(grid_sizer_commence, 1, wx.EXPAND, 0)
         grid_sizer_dans = wx.FlexGridSizer(rows=1, cols=3, vgap=5, hgap=5)
         grid_sizer_dans.Add(self.radio_dans, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer_dans.Add(self.ctrl_dans, 0, 0, 0)
+        grid_sizer_dans.Add(self.ctrl_dans, 1, wx.EXPAND, 0)
         grid_sizer_dans.Add(self.btn_dans, 0, 0, 0)
+        grid_sizer_dans.AddGrowableCol(1)
         grid_sizer_base.Add(grid_sizer_dans, 1, wx.EXPAND, 0)
+        grid_sizer_nondans = wx.FlexGridSizer(rows=1, cols=3, vgap=5, hgap=5)
+        grid_sizer_nondans.Add(self.radio_nondans, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer_nondans.Add(self.ctrl_nondans, 1, wx.EXPAND, 0)
+        grid_sizer_nondans.Add(self.btn_nondans, 0, 0, 0)
+        grid_sizer_nondans.AddGrowableCol(1)
+        grid_sizer_base.Add(grid_sizer_nondans, 1, wx.EXPAND, 0)
         grid_sizer_base.Add(self.radio_vide, 1, wx.EXPAND, 0)
         grid_sizer_base.Add(self.radio_pasvide, 1, wx.EXPAND, 0)
+        grid_sizer_base.AddGrowableCol(0)
         self.SetSizer(grid_sizer_base)
-        grid_sizer_base.Fit(self)
+        #grid_sizer_base.Fit(self)
 
     def OnRadio(self, event): 
         self.ctrl_egal.Enable(self.radio_egal.GetValue())
@@ -103,6 +118,8 @@ class CTRL_Page_texte(wx.Panel):
         self.ctrl_commence.Enable(self.radio_commence.GetValue())
         self.ctrl_dans.Enable(self.radio_dans.GetValue())
         self.btn_dans.Enable(self.radio_dans.GetValue())
+        self.ctrl_nondans.Enable(self.radio_nondans.GetValue())
+        self.btn_nondans.Enable(self.radio_nondans.GetValue())
 
     def OnParmi(self,event):
         try:
@@ -115,6 +132,19 @@ class CTRL_Page_texte(wx.Panel):
             for item in dlg.choix:
                 texte += item+" ; "
             self.ctrl_dans.SetValue(texte)
+        del dlg
+
+    def OnNonParmi(self,event):
+        try:
+            lstValues = self.parent.parent.Parent.GetValuesColonne(self.code)
+        except: lstValues = ["Echec de recherche valeurs de '%s'"%self.code]
+        dlg = CTRL_ChoixListe.DialogCoches(self,listeOriginale=lstValues, columnSort=1)
+        ret = dlg.ShowModal()
+        if ret == wx.ID_OK:
+            texte = ""
+            for item in dlg.choix:
+                texte += item+" ; "
+            self.ctrl_nondans.SetValue(texte)
         del dlg
 
     def SetValeur(self, choix=None, criteres=None):
@@ -133,9 +163,12 @@ class CTRL_Page_texte(wx.Panel):
         if choix == "COMMENCE" :
             self.radio_commence.SetValue(True)
             self.ctrl_commence.SetValue(criteres)
-        if choix == "DANS" :
+        if choix == "DANS":
             self.radio_dans.SetValue(True)
             self.ctrl_dans.SetValue(criteres)
+        if choix == "NONDANS":
+            self.radio_nondans.SetValue(True)
+            self.ctrl_nondans.SetValue(criteres)
         if choix == "VIDE" :
             self.radio_vide.SetValue(True)
         if choix == "PASVIDE" : 
@@ -162,6 +195,9 @@ class CTRL_Page_texte(wx.Panel):
         if self.radio_dans.GetValue() == True :
             choix = "DANS"
             criteres = self.ctrl_dans.GetValue()
+        if self.radio_nondans.GetValue() == True :
+            choix = "NONDANS"
+            criteres = self.ctrl_nondans.GetValue()
         if self.radio_vide.GetValue() == True :
             choix = "VIDE"
         if self.radio_pasvide.GetValue() == True :
@@ -186,6 +222,9 @@ class CTRL_Page_texte(wx.Panel):
         self.ctrl_contientpas.SetValue("")
         self.ctrl_commence.SetValue("")
         self.ctrl_dans.SetValue("")
+        self.ctrl_nondans.SetValue("")
+
+
 # -------------------------------------------------------------------------------------------------------------------------------
 
 class CTRL_Page_bool(wx.Panel):

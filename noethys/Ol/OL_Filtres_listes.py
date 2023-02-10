@@ -38,6 +38,7 @@ def GetCondition(titre="", typeDonnee="", choix="", criteres=""):
         if choix == "CONTIENTPAS" : description = _("'%s' ne contient pas '%s'") % (titre, criteres)
         if choix == "COMMENCE" : description = _("'%s' commence par '%s'") % (titre, criteres)
         if choix == "DANS" : description = _("'%s' parmi '%s'") % (titre, criteres)
+        if choix == "NONDANS" : description = _("'%s' pas parmi '%s'") % (titre, criteres)
         if choix == "VIDE" : description = _("'%s' est vide") % titre
         if choix == "PASVIDE" : description = _("'%s' n'est pas vide") % titre
 
