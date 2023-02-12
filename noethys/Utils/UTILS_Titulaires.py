@@ -89,12 +89,12 @@ def GetFamillesEtiq(listeIDfamille=[]):
     # Composition du where sur les rattachements
     """ si listeIDfamille == [] alors renvoie toutes les familles avec titulaires"""
     if len(listeIDfamille) == 0:
-        conditionFamilles = "WHERE (rattachements.titulaire = 1  OR familles.adresse_individu = rattachements.IDindividu)"
+        conditionFamilles = "WHERE (rattachements.IDcategorie = 1  OR familles.adresse_individu = rattachements.IDindividu)"
     elif len(listeIDfamille) == 1:
-        conditionFamilles = "WHERE (rattachements.titulaire = 1  OR familles.adresse_individu = rattachements.IDindividu) AND rattachements.IDfamille=%d" % \
+        conditionFamilles = "WHERE (rattachements.IDcategorie = 1  OR familles.adresse_individu = rattachements.IDindividu) AND rattachements.IDfamille=%d" % \
                             listeIDfamille[0]
     else:
-        conditionFamilles = "WHERE  (rattachements.titulaire = 1  OR familles.adresse_individu = rattachements.IDindividu) AND rattachements.IDfamille IN %s" % str(
+        conditionFamilles = "WHERE  (rattachements.IDcategorie = 1  OR familles.adresse_individu = rattachements.IDindividu) AND rattachements.IDfamille IN %s" % str(
             tuple(listeIDfamille))
 
     DB = GestionDB.DB()
@@ -104,7 +104,7 @@ def GetFamillesEtiq(listeIDfamille=[]):
     SELECT rattachements.IDfamille,rattachements.IDindividu, rattachements.IDcategorie, 
             individus.IDcivilite, individus.nom, individus.prenom, individus.date_naiss, individus.adresse_auto, 
             individus.rue_resid, individus.cp_resid, individus.ville_resid,individus.adresse_normee, individus.refus_pub,
-            individus.refus_mel,individus.mail, individus.travail_mail, 
+            individus.refus_mel,individus.mail, individus.travail_mail,individus_1.mail,
             individus.tel_domicile, individus.tel_mobile,individus.tel_fax, 
             individus.travail_tel, familles.adresse_intitule, familles.refus_pub, familles.refus_mel, familles.adresse_individu,
             individus_1.rue_resid, individus_1.cp_resid, individus_1.ville_resid, individus_1.adresse_normee
@@ -134,7 +134,7 @@ def GetFamillesEtiq(listeIDfamille=[]):
 
     # Constitution de deux dictionnaires famille et individu
     for IDfamille, IDindividu, IDcategorie, IDcivilite, nom, prenom, date_naiss, adresse_auto, rue_resid, cp_resid, ville_resid, \
-        adresse_normee, refus_pub_ind, refus_mel_ind, mail, travail_mail, tel_domicile, tel_mobile, tel_mobile2, travail_tel, \
+        adresse_normee, refus_pub_ind, refus_mel_ind, mail, travail_mail,mail_adresse, tel_domicile, tel_mobile, tel_mobile2, travail_tel, \
         designation_famille, refus_pub_fam, refus_mel_fam, correspondant, rue_resid_1, cp_resid_1, ville_resid_1, adresse_normee_1 \
             in ltplIndividus:
         if adresse_auto:
@@ -153,6 +153,8 @@ def GetFamillesEtiq(listeIDfamille=[]):
             refus_mel_ind = refus_mel_fam
         rue_resid = compacte(rue_resid)
         ville_resid = compacte(ville_resid)
+        if not "@" in mail:
+            mail = mail_adresse
         dictIndividus[IDindividu] = {
             "IDindividu":IDindividu,
             "IDcivilite": str(IDcivilite), "nom": nom, "prenom": prenom, "date_naiss": date_naiss,
@@ -844,5 +846,5 @@ def GetCorrespondant(IDfamille=None, IDindividu=None):
 
 if __name__ == '__main__':
     #print GetCorrespondant(IDindividu=16672)
-    dic = GetFamillesEtiq(listeIDfamille=[6990,])
+    dic = GetFamillesEtiq(listeIDfamille=[5979,])
     print(dic)

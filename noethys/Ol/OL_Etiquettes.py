@@ -14,6 +14,7 @@ import Chemins
 import wx
 import GestionDB
 import datetime
+import FonctionsPerso as fp
 from Utils import UTILS_Utilisateurs
 from Utils import UTILS_Titulaires
 from Utils import UTILS_Questionnaires
@@ -112,7 +113,7 @@ class TrackIndividu(object):
             if donnees["COUNT(rattachements.IDfamille)"] > 1:
                 self.IDfamille = "%d familles"%donnees["COUNT(rattachements.IDfamille)"]
             else:
-                self.IDfamille = "Néant"
+                self.IDfamille = "I_%s"%str(self.IDindividu)
         if donnees["individus.IDcivilite"]:
             self.IDcivilite = str(donnees["individus.IDcivilite"])
         else: self.IDcivilite = ""
@@ -154,6 +155,8 @@ class TrackIndividu(object):
                 self.pays = lstville[1]
             else: self.pays = ""
         if not self.cp: self.cp = ""
+        self.cp_ville = "%s %s"%(self.cp,self.ville)
+        self.cp_ville = self.cp_ville.strip()
         # gestion des sauts de lignes dans la rue
         if donnees["individus.rue_resid"] == None: donnees["individus.rue_resid"]=""
         if not self.rue_resid : self.rue_resid = ""
@@ -183,8 +186,10 @@ class TrackIndividu(object):
         self.rue3 = lstRue[2]
         self.rue4 = lstRue[3]
         self.dpt = None
-        if len(str(self.cp))>2 and ((not self.pays) or len(self.pays)>0):
-            self.dpt = str(self.cp)[:2]
+
+        if self.cp != None :
+            if len(self.cp) > 1 and ((not self.pays) or len(self.pays)==0):
+                self.dpt = str(self.cp)[:2]
         self.valide = True
         if refusPub:
             if len(self.cp) == 0: self.valide = False
@@ -198,6 +203,9 @@ class TrackIndividu(object):
             self.mails = donnees["individus.mail"] + "; "
         if donnees["individus.travail_mail"] != None :
             self.mails += donnees["individus.travail_mail"]
+        if donnees["individus_1.mail"] != None :
+            self.mails += donnees["individus_1.mail"]
+
 
         # Ajout des téléphones des titulaires
         self.telephones = ""
@@ -219,10 +227,16 @@ class TrackIndividu(object):
             exec("self.question_%d = self.listview.GetReponse(%d, %s)" % (dictQuestion["IDquestion"], dictQuestion["IDquestion"], self.IDindividu))
 
         # Récupération des appartenances aux listes de diffusion
+
         for IDdiffusion in list(self.listview.dictDiffusions.keys()) :
+            nom = self.listview.dictDiffusions[IDdiffusion]["nom"]
+            nom = fp.NoPunctuation(nom).replace(" ", "_")
+            nom = fp.Supprime_accent(nom).replace("-", "_")
             if (self.IDindividu,) in self.listview.dictDiffusions[IDdiffusion]["tplIDs"] :
-                exec("self.diffusion_%d = 'x'" % (IDdiffusion))
-            else: exec("self.diffusion_%d = None" % (IDdiffusion))
+                action = "self.%s = 'x'" % nom
+            else:
+                action = "self.%s = None" % nom
+            exec(action)
 
     def GetDict(self):
 
@@ -263,15 +277,20 @@ class TrackIndividu(object):
         return dictTemp
 
 def GetListeIndividus(listview, IDindividu=None, isoles = None, refusPub=False,
-                      actif=None, pur=None):
+                      actif=None, categorie=None):
+    pur = False
+    if "pur" in categorie:
+        pur = True
     joinActifs = ""
     parentheses = ""
     # Condition Individu donné
     if IDindividu != None :
         conditionIndividus = "WHERE individus.IDindividu=%d" % IDindividu
     elif actif:
-        # benevoles actifs caractérisés par le tarif contenant le radical de Bénévolat et la participation à une activité
-        conditionIndividus = "WHERE Left(activites.date_fin,4) >= '%s' AND  (categories_tarifs.nom Like '%%énévol%%')" % actif
+        conditionIndividus = "WHERE Left(activites.date_fin,4) >= '%s'" % actif
+        if "benevole" in categorie:
+            # benevoles actifs caractérisés par le tarif contenant le radical de Bénévolat et la participation à une activité
+            conditionIndividus = "WHERE Left(activites.date_fin,4) >= '%s' AND  (categories_tarifs.nom Like '%%énévol%%')" % actif
         parentheses = "((("
         joinActifs = """)
             LEFT JOIN inscriptions ON individus.IDindividu = inscriptions.IDindividu) 
@@ -293,7 +312,8 @@ def GetListeIndividus(listview, IDindividu=None, isoles = None, refusPub=False,
         "individus.IDcivilite", "individus.nom", "individus.prenom", "individus.date_naiss",
         "individus.adresse_auto", "individus.rue_resid", "individus.cp_resid", "individus.ville_resid",
         "individus.travail_tel", "individus.travail_fax", "individus.travail_mail",
-        "individus.tel_domicile", "individus.tel_mobile", "individus.tel_fax", "individus.mail",
+        "individus.mail","individus.tel_domicile", "individus.tel_mobile", "individus.tel_fax",
+        "individus_1.mail",
         "individus_1.rue_resid","individus_1.cp_resid","individus_1.ville_resid",
         "individus.adresse_normee","individus.refus_pub",'individus.refus_mel'
     )
@@ -301,7 +321,7 @@ def GetListeIndividus(listview, IDindividu=None, isoles = None, refusPub=False,
         "individus.IDindividu", "individus.IDcivilite", "individus.nom", "individus.prenom", "individus.date_naiss",
         "individus.adresse_auto", "individus.rue_resid", "individus.cp_resid", "individus.ville_resid",
         "individus.travail_tel", "individus.travail_fax", "individus.travail_mail",
-        "individus.tel_domicile", "individus.tel_mobile", "individus.tel_fax", "individus.mail",
+        "individus.tel_domicile", "individus.tel_mobile", "individus.tel_fax", "individus.mail", "individus_1.mail",
         "individus_1.rue_resid","individus_1.cp_resid","individus_1.ville_resid",
         "individus.adresse_normee", "individus.refus_pub", 'individus.refus_mel'
     )
@@ -367,11 +387,13 @@ def GetListeIndividus(listview, IDindividu=None, isoles = None, refusPub=False,
 
 
         if dictTemp["individus.date_naiss"] == None :
-            dictTemp["age"] = None
+            dictTemp["age"] = 123
         else:
             datenaissDD = datetime.date(year=int(dictTemp["individus.date_naiss"][:4]), month=int(dictTemp["individus.date_naiss"][5:7]), day=int(dictTemp["individus.date_naiss"][8:10]))
             datedujour = datetime.date.today()
             age = (datedujour.year - datenaissDD.year) - int((datedujour.month, datedujour.day) < (datenaissDD.month, datenaissDD.day))
+            if age > 120: age = 123
+            if age < 1: age = 0
             dictTemp["age"] = age
 
         # Formatage sous forme de TRACK
@@ -431,6 +453,9 @@ class TrackFamille(object):
             if len(self.cp) > 1 and ((not self.pays) or len(self.pays)==0):
                 self.dpt = str(self.cp)[:2]
 
+        self.cp_ville = "%s %s"%(self.cp,self.ville)
+        self.cp_ville = self.cp_ville.strip()
+
         # Ajout des adresses Emails des titulaires
         self.mail = donnees["mail_famille"]
         self.mails = donnees["mails"]
@@ -445,10 +470,15 @@ class TrackFamille(object):
         # Récupération des appartenances aux listes de diffusion
         # un individu titulaire emporte la famille
         for IDdiffusion in list(self.listview.dictDiffusions.keys()):
-            exec("self.diffusion_%d = None" % (IDdiffusion))
+            nom = self.listview.dictDiffusions[IDdiffusion]["nom"]
+            nom = fp.NoPunctuation(nom).replace(" ", "_")
+            nom = fp.Supprime_accent(nom).replace("-", "_")
+            action = "self.%s = None"%nom
             for IDindividu in donnees["IDtitulaires"]:
                 if (IDindividu,) in self.listview.dictDiffusions[IDdiffusion]["tplIDs"] :
-                    exec("self.diffusion_%d = 'x'" % (IDdiffusion))
+                    action ="self.%s = 'x'"%nom
+            exec(action)
+
 
     def GetDict(self):
         dictTemp = {
@@ -506,68 +536,7 @@ def GetListeFamilles(listview=None, IDfamille=None, refusPub=False, actif=None):
     # Formatage des données
     listeListeView = []
     titulaires = UTILS_Titulaires.GetFamillesEtiq(listeFamilles)
-    """
-    # version ancienne remaniée
-    for IDfamille, dictFamille in titulaires.items() :
-        if IDfamille in listeFamilles:
-            # pour détecter ensuiteles familles sans titulaires
-            listeFamilles.remove(IDfamille)
-        ID = IDfamille
-        IDcivilite = ""
-        nom = ""
-        prenom = ""
-        designation = ""
-        rue_resid = ""
-        cp = ""
-        ville = ""
-        ville_resid = ""
-        pays = ""
-        mails = ""
-        telephones = ""
-        listeMembres = []
-        nomTitulaires = ""
-        refus_pub = 0
-        refus_mel = 0
-        if "titulaires" in dictFamille and not "nom" in dictFamille:
-            nomTitulaires = _(u"Un titulaire de la famille %d est aussi titulaire par ailleurs"%(IDfamille))
 
-        elif IDfamille != None  and "nom" in dictFamille:
-            IDcivilite = str(dictFamille["IDcivilite"])
-            nomTitulaires = dictFamille["titulairesSansCivilite"]
-            nom = dictFamille["nom"]
-            prenom = dictFamille["prenom"]
-            designation = dictFamille["designation_famille"]
-            rue_resid = dictFamille["adresse"]["rue"]
-            cp = dictFamille["adresse"]["cp"]
-            ville_resid = dictFamille["adresse"]["ville"]
-            lstville = dictFamille["adresse"]["ville"].split(u"\n")
-            if len(lstville)>0 : ville = lstville[0]
-            else: ville = ""
-            if len(lstville)>1:
-                pays = lstville[1]
-            else: pays = ""
-            if not "mails" in dictFamille.keys():
-                if "mail" in dictFamille.keys():
-                    dictFamille["mails"] = dictFamille["mail"]
-                else: dictFamille["mails"] = ""
-            if not "telephones" in dictFamille.keys():
-                if "telephone" in dictFamille.keys():
-                    dictFamille["telephones"] = dictFamille["telephone"]
-                else: dictFamille["telephones"] = ""
-            telephones = dictFamille["telephones"]
-            listeMembres = dictFamille["IDtitulaires"]
-            ID = dictFamille["IDfamille"]
-            refus_pub = dictFamille["refus_pub"]
-            refus_mel = dictFamille["refus_mel"]
-        else: wx.MessageBox("A voir la famille %d"%IDfamille)
-        dictTemp = {
-            "IDcivilite":IDcivilite,"IDfamille":ID, "titulaires":nomTitulaires,"nom":nom, "prenom":prenom,"designation":designation,
-            "rue_resid":rue_resid, "cp" : cp, "ville_resid":ville_resid, "ville":ville, "pays":pays, "mails" : mails,"telephones" : telephones,
-            "listeMembres" : listeMembres,"refus_pub":refus_pub,"refus_mel": refus_mel
-            }        
-        # Formatage sous forme de TRACK
-        track = TrackFamille(listview, dictTemp, refusPub)
-    """    
     for IDfamille, dictFamille in titulaires.items() :
         # Formatage sous forme de TRACK
         track = TrackFamille(listview, dictFamille, refusPub)
@@ -613,14 +582,17 @@ class ListView(ObjectListView):
                 self.dictDiffusions = ddf.dictDiffusions
 
         # Récupération des tracks
-        if self.categorie in ("individu","individus","benevole_actif" ):
-            self.donnees = GetListeIndividus(self, self.IDindividu, refusPub=self.refusPub, actif=self.actif)
+        if self.categorie in ("individu","individu_actif","benevole_actif" ):
+            self.donnees = GetListeIndividus(self, self.IDindividu, refusPub=self.refusPub,
+                                             actif=self.actif,categorie=self.categorie)
         elif "pur" in self.categorie:
             # pur doit contenir "enfants" ou "prospects" pour individus non rattachés en représentant sur autre famille
             pur= self.categorie.split("_")[1]
-            self.donnees = GetListeIndividus(self, self.IDindividu, refusPub=self.refusPub, actif=self.actif, pur=pur)
+            self.donnees = GetListeIndividus(self, self.IDindividu, refusPub=self.refusPub,
+                                             actif=self.actif,categorie=self.categorie)
         elif self.categorie in ("famille","familles", "famille_actif"):
-            self.donnees = GetListeFamilles(self, self.IDfamille, refusPub=self.refusPub,  actif = self.actif)
+            self.donnees = GetListeFamilles(self, self.IDfamille, refusPub=self.refusPub,
+                                            actif = self.actif)
         elif self.categorie == "isole":
             if (not hasattr(self,"donnees")):
                 self.donnees = []
@@ -628,7 +600,8 @@ class ListView(ObjectListView):
                 wx.MessageBox("Vous avez choisi d'ajouter les 'individus sans famille' à une liste vide\n" +
                               "Si vous lancez une autre liste, elle ne s'ajoutera pas à celle-ci!\n"+
                               "Vous pouviez lancer 'Familles' avant, pour y ajouter ensuite les 'sans famille'")
-            self.donnees += GetListeIndividus(self, refusPub=self.refusPub, isoles = True)
+            self.donnees += GetListeIndividus(self, refusPub=self.refusPub, isoles = True,
+                                              categorie=self.categorie)
         else: self.donnees = []
 
     def InitObjectListView(self):
@@ -656,20 +629,21 @@ class ListView(ObjectListView):
         self.useExpansionColumn = True
 
         # Définition des colonnes
-        if self.categorie in ["individu","benevole_actif"] :
+        if self.categorie =="benevole_actif" or "individu" in self.categorie:
             # INDIVIDUS
             liste_Colonnes = [
-                ColumnDefn(_("Civilité"), "left", 20, "IDcivilite", typeDonnee="texte"),
-                ColumnDefn(_("IDfamille"), "left", 50, "IDfamille", typeDonnee="entier"),
+                ColumnDefn(_("Civilité"), "left", 40, "IDcivilite", typeDonnee="texte", imageGetter=GetImageCivilite),
                 ColumnDefn(_("Désignation"), 'left', 100, "designation", typeDonnee="texte"),
                 ColumnDefn(_("Rue1"), "left", 120, "rue1", typeDonnee="texte"),
                 ColumnDefn(_("Rue2"), "left", 120, "rue2", typeDonnee="texte"),
                 ColumnDefn(_("Rue3"), "left", 80, "rue3", typeDonnee="texte"),
                 ColumnDefn(_("Rue4"), "left", 60, "rue4", typeDonnee="texte"),
-                ColumnDefn(_("C.P."), "left", 50, "cp", typeDonnee="texte"),
-                ColumnDefn(_("Ville"), "left", 120, "ville", typeDonnee="texte"),
+                ColumnDefn(_("CpVille"), "left", 120, "cp_ville", typeDonnee="texte"),
+                ColumnDefn("IDind", "left", 60, "IDindividu", typeDonnee="entier"),
                 ColumnDefn(_("Pays"), "left", 80, "pays", typeDonnee="texte"),
+                ColumnDefn(_("C.P."), "left", 50, "cp", typeDonnee="texte"),
                 ColumnDefn(_("dpt"), "left", 30, "dpt", typeDonnee="texte"),
+                #ColumnDefn(_("Ville"), "left", 120, "ville", typeDonnee="texte"),
                 ColumnDefn(_("Emails"), "left", 100, "mails", typeDonnee="texte"),
                 ColumnDefn(_("Teléphones"), "left", 100, "telephones", typeDonnee="texte"),
                 ColumnDefn(_("koPub"), "left", 50, "refus_pub", typeDonnee="entier"),
@@ -677,39 +651,35 @@ class ListView(ObjectListView):
                 ColumnDefn(_("Civilité"), 'left', 50, "civiliteAbrege", typeDonnee="texte"),
                 ColumnDefn(_("Nom"), 'left', 100, "nom", typeDonnee="texte"),
                 ColumnDefn(_("Prénom"), "left", 80, "prenom", typeDonnee="texte"),
-                ColumnDefn("IDind", "left", 60, "IDindividu", typeDonnee="entier", imageGetter=GetImageCivilite),
                 ColumnDefn(_("Date naiss."), "left", 72, "date_naiss", typeDonnee="date", stringConverter=FormateDate),
                 ColumnDefn(_("Age"), "left", 50, "age", typeDonnee="entier", stringConverter=FormateAge),
                 ]
-            # Ajout des listes de diffusion
-            for IDdiffusion in self.dictDiffusions :
-                nom = self.dictDiffusions[IDdiffusion]["nom"]
-                liste_Colonnes.append(ColumnDefn( nom, "left", 100, "%s (%d)" % (nom,IDdiffusion), typeDonnee="texte"))
-
         else:
             # FAMILLES ou isole
             liste_Colonnes = [
                 ColumnDefn(_("Civilités"), "left", 40, "IDcivilite", typeDonnee="texte"),
-                ColumnDefn(_("Famille"), "left", 40, "IDfamille", typeDonnee="entier"),
                 ColumnDefn(_("Désignation"), "left", 200, "designation", typeDonnee="texte"),
                 ColumnDefn(_("Rue1"), "left", 120, "rue1", typeDonnee="texte"),
                 ColumnDefn(_("Rue2"), "left", 120, "rue2", typeDonnee="texte"),
                 ColumnDefn(_("Rue3"), "left", 80, "rue3", typeDonnee="texte"),
                 ColumnDefn(_("Rue4"), "left", 80, "rue4", typeDonnee="texte"),
-                ColumnDefn(_("C.P."), "left", 50, "cp", typeDonnee="texte"),
-                ColumnDefn(_("Ville"), "left", 120, "ville", typeDonnee="texte"),
+                ColumnDefn(_("CpVille"), "left", 120, "cp_ville", typeDonnee="texte"),
+                ColumnDefn(_("Famille"), "left", 40, "IDfamille", typeDonnee="entier"),
                 ColumnDefn(_("Pays"), "left", 80, "pays", typeDonnee="texte"),
+                ColumnDefn(_("C.P."), "left", 50, "cp", typeDonnee="texte"),
                 ColumnDefn(_("dpt"), "left", 30, "dpt", typeDonnee="texte"),
+                #ColumnDefn(_("Ville"), "left", 120, "ville", typeDonnee="texte"),
                 ColumnDefn(_("Email"), "left", 100, "mail", typeDonnee="texte"),
                 ColumnDefn(_("Teléphones"), "left", 100, "telephones", typeDonnee="texte"),
                 ColumnDefn(_("koPub"), "left", 50, "refus_pub", typeDonnee="entier"),
                 ColumnDefn(_("koMel"), "left", 50, "refus_mel", typeDonnee="entier"),
             ]
-            # Ajout des listes de diffusion
-            for IDdiffusion in self.dictDiffusions :
-                nom = self.dictDiffusions[IDdiffusion]["nom"]
-                liste_Colonnes.append(ColumnDefn( nom, "left", 100, "%s (%d)" % (nom,IDdiffusion), typeDonnee="texte"))
-
+        # Ajout des listes de diffusion
+        for IDdiffusion in self.dictDiffusions:
+            nom = self.dictDiffusions[IDdiffusion]["nom"]
+            nom = fp.NoPunctuation(nom).replace(" ", "_")
+            nom = fp.Supprime_accent(nom).replace("-", "_")
+            liste_Colonnes.append(ColumnDefn(nom, "left", 100, nom, typeDonnee="texte"))
         # Ajout des questions des questionnaires
         for dictQuestion in self.LISTE_QUESTIONS :
             #nomChamp = "question_%d" % dictQuestion["IDquestion"]
@@ -748,8 +718,7 @@ class ListView(ObjectListView):
         self.diffusions = diffusions
         self.refusPub = refusPub
         self.actif = actif
-        if categorie != None :
-            self.categorie = categorie
+        self.categorie = categorie
         self.InitModel()
         self.InitObjectListView()
         self.MajCompteurs()

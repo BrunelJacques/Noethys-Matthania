@@ -37,11 +37,12 @@ COULEUR_FOND_ETIQUETTE = (200, 200, 200)
 LISTE_CATEGORIES = [
     ("", _(" ")),
     ("individu", _("Individus")),
+    ("individu_actif", _("Individus actifs")),
     ("pur_enfant", _("Ind. pur enfants")),
     ("pur_prospect", _("Ind. pur prospects")),
     ("famille", _("Familles")),
-    ("isole", _("Ajouter les sans famille")),
     ("famille_actif", _("Familles actives")),
+    ("isole", _("Ajouter les sans famille")),
     ("benevole_actif", _("Bénévoles actifs")),
 ]
 
@@ -589,10 +590,11 @@ class Dialog(wx.Dialog):
         self.categorie_liste = self.ctrl_categorie.GetCategorie()
         self.categorie_doc = self.categorie_liste
         if self.categorie_doc == "isole" : self.categorie_doc = "famille"
+        elif "famille" in self.categorie_liste : self.categorie_doc = "famille"
+        elif "individu" in self.categorie_liste : self.categorie_doc = "individu"
         if "benevole" in self.categorie_liste : self.categorie_doc = "individu"
         elif "pur" in self.categorie_liste:
             self.categorie_doc = "individu"
-        elif "famille" in self.categorie_liste : self.categorie_doc = "famille"
         if self.oldCategorie and self.categorie_liste == "isole":
             if self.oldCategorie != "famille":
                 self.oldCategorie = None

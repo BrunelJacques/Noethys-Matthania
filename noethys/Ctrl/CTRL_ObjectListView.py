@@ -460,7 +460,7 @@ class ObjectListView(OLV.ObjectListView):
                 if choix == "CONTIENTPAS" :
                     filtre = "track.%s != None and '%s'.lower() not in track.%s.lower()" % (code, criteres, code)
                 if choix == "VIDE" :
-                    filtre = "track.%s == '' or track.%s == None" % (code, code)
+                    filtre = "(track.%s == '' or track.%s == None)" % (code, code)
                 if choix == "PASVIDE" :
                     filtre = "track.%s != '' and track.%s != None" % (code, code)
                 if choix == "DANS" :
@@ -498,21 +498,21 @@ class ObjectListView(OLV.ObjectListView):
                 if choix == "DIFFERENT" :
                     filtre = "track.%s != %s" % (code, criteres)
                 if choix == "SUP" :
-                    filtre = "Nz(track.%s) > %s" % (code, criteres)
+                    filtre = "track.%s > %s" % (code, criteres)
                 if choix == "SUPEGAL" :
-                    filtre = "Nz(track.%s) >= %s" % (code, criteres)
+                    filtre = "track.%s >= %s" % (code, criteres)
                 if choix == "INF" :
-                    filtre = "Nz(track.%s) < %s" % (code, criteres)
+                    filtre = "track.%s < %s" % (code, criteres)
                 if choix == "INFEGAL" :
-                    filtre = "Nz(track.%s) <= %s" % (code, criteres)
+                    filtre = "track.%s <= %s" % (code, criteres)
                 if choix == "COMPRIS" :
-                    filtre = "Nz(track.%s) >= %s and Nz(track.%s) <= %s" % (code, min, code, max)
+                    filtre = "track.%s) >= %s and track.%s <= %s" % (code, min, code, max)
 
             # Date
             if typeDonnee in ("date", "dateheure") :
                 if choix == "EGAL" :
                     if criteres == None:
-                        filtre = "track.%s == None or track.%s == ''" % (
+                        filtre = "(track.%s == None or track.%s == '')" % (
                         code, code)
                     else:
                         filtre = "track.%s != None and str(track.%s) == '%s'" % (
@@ -537,7 +537,7 @@ class ObjectListView(OLV.ObjectListView):
                     code, code, criteres)
                 if choix == "INFEGAL":
                     if criteres == None:
-                        filtre = "track.%s == None or track.%s == ''" % (
+                        filtre = "(track.%s == None or track.%s <= '')" % (
                         code, code)
                     else:
                         filtre = "track.%s != None and str(track.%s) <= '%s'" % (
@@ -545,7 +545,7 @@ class ObjectListView(OLV.ObjectListView):
                 if choix == "COMPRIS":
                     if criteres.split(";")[0] == 'None':
                         max = criteres.split(";")[1]
-                        filtre = "track.%s == None or str(track.%s) <= '%s'" % (
+                        filtre = "(track.%s == None or str(track.%s) <= '%s')" % (
                         code, code, max)
                     else:
                         min = criteres.split(";")[0]
