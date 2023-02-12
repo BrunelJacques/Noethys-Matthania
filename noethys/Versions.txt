@@ -1,3 +1,7 @@
+version 1.3.2.18 (12/02/2023):
+- Listes étiquettes: amélioration des filtres
+- Individus le mail de l'adresse est ajouté quand l'individu n'a pas d'adresse propre
+
 version 1.3.2.17 (09/02/2023):
 - Listes étiquettes: ajout de la notion pur_enfants et pur_prospect pour élargir la com
 - Suppression de l'appel de la première liste automatique=> rafraichir obligé
