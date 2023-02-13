@@ -86,7 +86,6 @@ class ObjectListView(OLV.ObjectListView):
         if repopulate:
             self.RepopulateList()
 
-
     def AddColumnDefn(self, defn):
         # Enlève l'espace gauche sur tous les headers du listctrl sous Phoenix en ajoutant une image transparente
         # if 'phoenix' in wx.PlatformInfo:
@@ -418,9 +417,9 @@ class ObjectListView(OLV.ObjectListView):
                 andor = " and "
             else: andor = " or "
             texteFiltre = andor.join(filtres_colonnes)
+            # Pour débug voir plus haut paramétrages => def formatageFiltres(
             filtre = Filter.Predicate(lambda track: eval(texteFiltre))
             listeFiltres.append(filtre)
-
         self.SetFilter(Filter.Chain(self.filtrerAndNotOr,*listeFiltres))
         self.RepopulateList()
         self.Refresh() 
@@ -476,7 +475,7 @@ class ObjectListView(OLV.ObjectListView):
                     for x in lst:
                         serie += "'%s'"%x.lower().strip() + ","
                     serie += "]"
-                    filtre = "not(track.%s.lower() in %s)" % (code, serie)
+                    filtre = "((track.%s == None) or not(track.%s.lower() in %s))" % (code, code, serie)
             # Bool
             if typeDonnee == "bool" :
                 if choix == "TRUE" :
