@@ -153,7 +153,7 @@ def GetFamillesEtiq(listeIDfamille=[]):
             refus_mel_ind = refus_mel_fam
         rue_resid = compacte(rue_resid)
         ville_resid = compacte(ville_resid)
-        if not "@" in mail:
+        if mail == None or (not "@" in mail):
             mail = mail_adresse
         dictIndividus[IDindividu] = {
             "IDindividu":IDindividu,
