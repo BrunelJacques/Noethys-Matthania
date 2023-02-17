@@ -367,10 +367,10 @@ def GetListeIndividus(listview, IDindividu=None, isoles = None, refusPub=False,
                 dictTemp[nomChamp] = valeurs[index]
         # Gestion des purs enfants et purs prospects
         if pur:
-            if "enfant" in pur:
+            if "enfant" in categorie:
                 if dictTemp["MIN(rattachements.IDcategorie)"] != 2:
                     continue
-            elif "prospect" in pur:
+            elif "prospect" in categorie:
                 if dictTemp["MIN(rattachements.IDcategorie)"] != 3:
                     continue
 
@@ -629,7 +629,9 @@ class ListView(ObjectListView):
         self.useExpansionColumn = True
 
         # Définition des colonnes
-        if self.categorie =="benevole_actif" or "individu" in self.categorie:
+        if self.categorie =="benevole_actif"\
+                or "individu" in self.categorie\
+                or "pur" in self.categorie:
             # INDIVIDUS
             liste_Colonnes = [
                 ColumnDefn(_("Civilité"), "left", 40, "IDcivilite", typeDonnee="texte", imageGetter=GetImageCivilite),

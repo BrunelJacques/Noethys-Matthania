@@ -418,8 +418,8 @@ class Dialog(wx.Dialog):
         self.ctrl_memoriser.SetValue(memoriser)
         
         self.ctrl_categorie.SetCategorie(self.categorie_liste)
-        self.OnChoixCategorie(None)
         self.ctrl_actif.SetValue(str(datetime.date.today().year))
+        self.OnChoixCategorie(None)
 
         # Init Aperçu
         self.ctrl_apercu.SetTaillePage((largeurPage, hauteurPage))
