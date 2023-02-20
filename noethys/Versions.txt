@@ -1,3 +1,7 @@
+version 1.3.2.23 (20/02/2023):
+- Etiquettes: bug sur le filtre entre x et y
+- Etiquettes individus: le refus de pub papier sur le titulaire de l'adresse l'emporte sur l'individu sous son toit
+
 version 1.3.2.22 (20/02/2023):
 - Etiquettes individus: s'il est rattaché à plusieurs familles ou ouvre la fiche individu par double clic
 - Etiquettes : Ajout d'un champ IDadresse qui l'ID de l'individu qui donne l'adresse (à la famille ou à l'individu)

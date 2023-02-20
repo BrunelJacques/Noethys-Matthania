@@ -505,7 +505,7 @@ class ObjectListView(OLV.ObjectListView):
                 if choix == "INFEGAL" :
                     filtre = "track.%s <= %s" % (code, criteres)
                 if choix == "COMPRIS" :
-                    filtre = "track.%s) >= %s and track.%s <= %s" % (code, min, code, max)
+                    filtre = "(track.%s >= %s and track.%s <= %s)" % (code, min, code, max)
 
             # Date
             if typeDonnee in ("date", "dateheure") :

@@ -123,12 +123,16 @@ class TrackIndividu(object):
         self.age = donnees["age"]
         self.adresse_auto = donnees["individus.adresse_auto"]
         self.refus_pub = donnees["individus.refus_pub"]
+        if not self.refus_pub: self.refus_pub = 0
         self.refus_mel = donnees["individus.refus_mel"]
+        if not self.refus_mel: self.refus_mel = 0
 
         # Adresse auto ou manuelle
         self.IDadresse = self.IDindividu
         if self.adresse_auto != None :
             self.IDadresse = self.adresse_auto
+            if self.refus_pub < 1 and donnees["individus_1.refus_pub"]:
+                self.refus_pub = donnees["individus_1.refus_pub"]
             if not donnees["individus_1.ville_resid"]: donnees["individus_1.ville_resid"]=""
             self.rue_resid = donnees["individus_1.rue_resid"]
             self.ville_resid = donnees["individus_1.ville_resid"]
@@ -311,7 +315,8 @@ def GetListeIndividus(listview, IDindividu=None, isoles = None, refusPub=False,
         "individus.mail","individus.tel_domicile", "individus.tel_mobile", "individus.tel_fax",
         "individus_1.mail",
         "individus_1.rue_resid","individus_1.cp_resid","individus_1.ville_resid",
-        "individus.adresse_normee","individus.refus_pub",'individus.refus_mel'
+        "individus.refus_pub",'individus.refus_mel',
+        "individus_1.refus_pub"
     )
     listeChampsGroupBy = (
         "individus.IDindividu", "individus.IDcivilite", "individus.nom", "individus.prenom", "individus.date_naiss",
@@ -319,7 +324,8 @@ def GetListeIndividus(listview, IDindividu=None, isoles = None, refusPub=False,
         "individus.travail_tel", "individus.travail_fax", "individus.travail_mail",
         "individus.tel_domicile", "individus.tel_mobile", "individus.tel_fax", "individus.mail", "individus_1.mail",
         "individus_1.rue_resid","individus_1.cp_resid","individus_1.ville_resid",
-        "individus.adresse_normee", "individus.refus_pub", 'individus.refus_mel'
+        "individus.refus_pub", 'individus.refus_mel',
+        "individus_1.refus_pub"
     )
     DB = GestionDB.DB()
     req = """
