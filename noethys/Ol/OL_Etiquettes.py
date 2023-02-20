@@ -105,15 +105,9 @@ class TrackIndividu(object):
     def __init__(self, listview, donnees,refusPub):
         self.listview = listview
         self.IDindividu = donnees["individus.IDindividu"]
-        try:
-            self.IDfamille = "A%06d" %donnees["MIN(rattachements.IDfamille)"]
-        except:
-            self.IDfamille = ""
+        self.IDfamille = donnees["MIN(rattachements.IDfamille)"]
         if donnees["COUNT(rattachements.IDfamille)"] != 1:
-            if donnees["COUNT(rattachements.IDfamille)"] > 1:
-                self.IDfamille = "%d familles"%donnees["COUNT(rattachements.IDfamille)"]
-            else:
-                self.IDfamille = "I_%s"%str(self.IDindividu)
+            self.IDfamille = None
         if donnees["individus.IDcivilite"]:
             self.IDcivilite = str(donnees["individus.IDcivilite"])
         else: self.IDcivilite = ""
@@ -132,7 +126,9 @@ class TrackIndividu(object):
         self.refus_mel = donnees["individus.refus_mel"]
 
         # Adresse auto ou manuelle
+        self.IDadresse = self.IDindividu
         if self.adresse_auto != None :
+            self.IDadresse = self.adresse_auto
             if not donnees["individus_1.ville_resid"]: donnees["individus_1.ville_resid"]=""
             self.rue_resid = donnees["individus_1.rue_resid"]
             self.ville_resid = donnees["individus_1.ville_resid"]
@@ -455,6 +451,7 @@ class TrackFamille(object):
 
         self.cp_ville = "%s %s"%(self.cp,self.ville)
         self.cp_ville = self.cp_ville.strip()
+        self.IDadresse = donnees["adresse"]["IDadresse"]
 
         # Ajout des adresses Emails des titulaires
         self.mail = donnees["mail_famille"]
@@ -634,6 +631,7 @@ class ListView(ObjectListView):
                 or "pur" in self.categorie:
             # INDIVIDUS
             liste_Colonnes = [
+                ColumnDefn("IDind", "left", 45, "IDindividu", typeDonnee="entier"),
                 ColumnDefn(_("Civilité"), "left", 40, "IDcivilite", typeDonnee="texte", imageGetter=GetImageCivilite),
                 ColumnDefn(_("Désignation"), 'left', 100, "designation", typeDonnee="texte"),
                 ColumnDefn(_("Rue1"), "left", 120, "rue1", typeDonnee="texte"),
@@ -641,11 +639,10 @@ class ListView(ObjectListView):
                 ColumnDefn(_("Rue3"), "left", 80, "rue3", typeDonnee="texte"),
                 ColumnDefn(_("Rue4"), "left", 60, "rue4", typeDonnee="texte"),
                 ColumnDefn(_("CpVille"), "left", 120, "cp_ville", typeDonnee="texte"),
-                ColumnDefn("IDind", "left", 60, "IDindividu", typeDonnee="entier"),
+                ColumnDefn("IDadr", "left", 45, "IDadresse", typeDonnee="entier"),
                 ColumnDefn(_("Pays"), "left", 80, "pays", typeDonnee="texte"),
                 ColumnDefn(_("C.P."), "left", 50, "cp", typeDonnee="texte"),
                 ColumnDefn(_("dpt"), "left", 30, "dpt", typeDonnee="texte"),
-                #ColumnDefn(_("Ville"), "left", 120, "ville", typeDonnee="texte"),
                 ColumnDefn(_("Emails"), "left", 100, "mails", typeDonnee="texte"),
                 ColumnDefn(_("Teléphones"), "left", 100, "telephones", typeDonnee="texte"),
                 ColumnDefn(_("koPub"), "left", 50, "refus_pub", typeDonnee="entier"),
@@ -659,6 +656,7 @@ class ListView(ObjectListView):
         else:
             # FAMILLES ou isole
             liste_Colonnes = [
+                ColumnDefn(_("Famille"), "left", 40, "IDfamille", typeDonnee="entier"),
                 ColumnDefn(_("Civilités"), "left", 40, "IDcivilite", typeDonnee="texte"),
                 ColumnDefn(_("Désignation"), "left", 200, "designation", typeDonnee="texte"),
                 ColumnDefn(_("Rue1"), "left", 120, "rue1", typeDonnee="texte"),
@@ -666,11 +664,10 @@ class ListView(ObjectListView):
                 ColumnDefn(_("Rue3"), "left", 80, "rue3", typeDonnee="texte"),
                 ColumnDefn(_("Rue4"), "left", 80, "rue4", typeDonnee="texte"),
                 ColumnDefn(_("CpVille"), "left", 120, "cp_ville", typeDonnee="texte"),
-                ColumnDefn(_("Famille"), "left", 40, "IDfamille", typeDonnee="entier"),
+                ColumnDefn("IDadr", "left", 45, "IDadresse", typeDonnee="entier"),
                 ColumnDefn(_("Pays"), "left", 80, "pays", typeDonnee="texte"),
                 ColumnDefn(_("C.P."), "left", 50, "cp", typeDonnee="texte"),
                 ColumnDefn(_("dpt"), "left", 30, "dpt", typeDonnee="texte"),
-                #ColumnDefn(_("Ville"), "left", 120, "ville", typeDonnee="texte"),
                 ColumnDefn(_("Email"), "left", 100, "mail", typeDonnee="texte"),
                 ColumnDefn(_("Teléphones"), "left", 100, "telephones", typeDonnee="texte"),
                 ColumnDefn(_("koPub"), "left", 50, "refus_pub", typeDonnee="entier"),
@@ -730,7 +727,6 @@ class ListView(ObjectListView):
         nblignes = len(self.innerList)
         dlg = self.GrandParent.parent
         dlg.box_donnees_staticbox.SetLabel("Lignes %ss : (%d), cochées %d" % (self.categorie,nblignes,nbcoches))
-
 
     def GetReponse(self, IDquestion=None, ID=None):
         if IDquestion in self.DICT_QUESTIONNAIRES :
@@ -837,15 +833,18 @@ class ListView(ObjectListView):
             dlg.ShowModal()
             dlg.Destroy()
             return
-        IDfamille = self.Selection()[0].IDfamille
+        track = self.Selection()[0]
+        IDfamille = track.IDfamille
         if (not IDfamille) or IDfamille == 0:
-            dlg = wx.MessageDialog(self, _("Il n'y a pas de famille associée !"),
+            if hasattr(track,"IDindividu"):
+                from Dlg import DLG_Individu
+                dlg = DLG_Individu.Dialog(self, track.IDindividu)
+            else:
+                dlg = wx.MessageDialog(self, _("Il n'y a pas de famille associée !"),
                                    _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
-            dlg.ShowModal()
-            dlg.Destroy()
-            return
-        from Dlg import DLG_Famille
-        dlg = DLG_Famille.Dialog(self, IDfamille)
+        else:
+            from Dlg import DLG_Famille
+            dlg = DLG_Famille.Dialog(self, IDfamille)
         dlg.ShowModal()
         dlg.Destroy()
 

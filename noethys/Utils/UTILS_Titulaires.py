@@ -77,13 +77,13 @@ def AjoutNomAdresse(dFamille, dIndividu):
     dictAdresse["rue"] = dIndividu["rue"]
     dictAdresse["cp"] = dIndividu["cp"]
     dictAdresse["ville"] = dIndividu["ville"]
+    dictAdresse["IDadresse"] = dIndividu["IDadresse"]
 
     dFamille["IDcivilite"] = strIDcivilite
     dFamille["civilite"] = nomCivilite
     dFamille["nom"] = dIndividu["nom"]
     dFamille["prenom"] = dIndividu["prenom"]
     dFamille["adresse"] = dictAdresse
-
 
 def GetFamillesEtiq(listeIDfamille=[]):
     # Composition du where sur les rattachements
@@ -137,7 +137,9 @@ def GetFamillesEtiq(listeIDfamille=[]):
         adresse_normee, refus_pub_ind, refus_mel_ind, mail, travail_mail,mail_adresse, tel_domicile, tel_mobile, tel_mobile2, travail_tel, \
         designation_famille, refus_pub_fam, refus_mel_fam, correspondant, rue_resid_1, cp_resid_1, ville_resid_1, adresse_normee_1 \
             in ltplIndividus:
+        IDadresse = IDindividu
         if adresse_auto:
+            IDadresse = adresse_auto
             rue_resid = rue_resid_1
             cp_resid = cp_resid_1
             ville_resid = ville_resid_1
@@ -159,6 +161,7 @@ def GetFamillesEtiq(listeIDfamille=[]):
             "IDindividu":IDindividu,
             "IDcivilite": str(IDcivilite), "nom": nom, "prenom": prenom, "date_naiss": date_naiss,
             "rue": rue_resid, "cp": cp_resid, "ville": ville_resid, "adresse_normee": adresse_normee,
+            "IDadresse": IDadresse,
             "mail": mail,
             "travail_mail": travail_mail,
             "tel_domicile": tel_domicile,

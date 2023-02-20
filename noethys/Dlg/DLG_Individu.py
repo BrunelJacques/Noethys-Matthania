@@ -621,7 +621,7 @@ if __name__ == "__main__":
     #wx.InitAllImageHandlers()
     import time
     heure_debut = time.time()
-    fiche_individu = Dialog(None, IDindividu=10571)
+    fiche_individu = Dialog(None, IDindividu=12436)
     app.SetTopWindow(fiche_individu)
     print("Temps de chargement fiche individuelle =", time.time() - heure_debut)
     fiche_individu.ShowModal()
