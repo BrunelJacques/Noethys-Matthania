@@ -28,7 +28,7 @@ from Dlg import DLG_Famille_informations
 from Dlg import DLG_Famille_prestations
 from Dlg import DLG_Famille_reglements
 #from Dlg import DLG_Famille_quotients
-#from Dlg import DLG_Famille_caisse
+from Dlg import DLG_Famille_caisse
 from Dlg import DLG_Famille_pieces
 #from Dlg import DLG_Famille_cotisations
 #from Dlg import DLG_Famille_divers
@@ -71,7 +71,7 @@ class Notebook(wx.Notebook):
             ("questionnaire", _("Questionnaire"), "DLG_Famille_questionnaire.Panel(self, IDfamille=IDfamille)", "Questionnaire.png"),
             ("pieces", _("Pièces"), "DLG_Famille_pieces.Panel(self, IDfamille=IDfamille)", "Dupliquer.png"),
             #("cotisations", _("Cotisations"), "DLG_Famille_cotisations.Panel(self, IDfamille=IDfamille)", "Cotisation.png"),
-            #("caisse", _("Caisse"), "DLG_Famille_caisse.Panel(self, IDfamille=IDfamille)", "Mecanisme.png"),
+            ("caisse", _("Caisse"), "DLG_Famille_caisse.Panel(self, IDfamille=IDfamille)", "Mecanisme.png"),
             #("quotients", _("Quotients familiaux"), "DLG_Famille_quotients.Panel(self, IDfamille=IDfamille)", "Calculatrice.png"),
             ("prestations", _("Prestations"), "DLG_Famille_prestations.Panel(self, IDfamille=IDfamille)", "Etiquette.png"),
             ("factures", _("Factures"), "DLG_Famille_factures.Panel(self, IDfamille=IDfamille)", "Facture.png"),
@@ -734,7 +734,7 @@ class Dialog(wx.Dialog):
     def Sauvegarde(self):
         # Validation des données avant sauvegarde
         #listePages = ("questionnaire", "caisse", "divers")
-        listePages = ("questionnaire",)
+        listePages = ("questionnaire", "caisse",)
         for codePage in listePages :
             page = self.notebook.GetPageAvecCode(codePage)
             if page.majEffectuee == True and page.ValidationData() == False : 
@@ -907,7 +907,7 @@ if __name__ == "__main__":
     heure_debut = time.time()
     # ramel 567; perez marc 1724; bartoOliv 1861; branco 4499;  bourrel 6191
     #7735 parrainage; 8107 multifactures; 709 Brunel jacques
-    dialog_1 = Dialog(None, IDfamille= 5120)
+    dialog_1 = Dialog(None, IDfamille= 5396)
     print("Temps de chargement fiche famille =", time.time() - heure_debut)
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()
