@@ -1510,8 +1510,8 @@ class CTRL_Liste(HTL.HyperTreeList):
             if IDcategorie == 1 : label = _("Représentants")
             if IDcategorie == 2 : label = _("Enfants")
             if IDcategorie == 3 : label = _("Contacts")
-            brancheCategorie = self.Append(self.root, label)
-            self.SetItemData(brancheCategorie, {"type" : "categorie", "IDcategorie" : IDcategorie} )
+            brancheCategorie = self.AppendItem(self.root, label)
+            self.SetPyData(brancheCategorie, {"type" : "categorie", "IDcategorie" : IDcategorie} )
             self.SetItemBold(brancheCategorie, True)
             self.SetItemBackgroundColour(brancheCategorie, wx.Colour(227, 227, 227))
 
@@ -1528,8 +1528,8 @@ class CTRL_Liste(HTL.HyperTreeList):
                     type = "A"
                 sexe = Civilites.GetDictCivilites()[IDcivilite]["sexe"]
 
-                brancheIndividu = self.Append(brancheCategorie, "%s %s" % (nom, prenom))
-                self.SetItemData(brancheIndividu, {"type" : "individu", "IDindividu" : IDindividu} )
+                brancheIndividu = self.AppendItem(brancheCategorie, u"%s %s" % (nom, prenom))
+                self.SetPyData(brancheIndividu, {"type" : "individu", "IDindividu" : IDindividu} )
 ##                if Civilites.GetDictCivilites()[dictIndividu["IDcivilite"]]["sexe"] == "M" :
 ##                    self.SetItemBackgroundColour(brancheIndividu, wx.Colour(217, 212, 251))
 ##                else :
