@@ -65,8 +65,8 @@ class Choix_categorie(wx.Choice):
             ("donsscerfa", _("Don sans Cerfa")),
             ("debour", _("Frais ou débour dû par client")),
             ("autre", _("Paye pour autre client (ou autre: compte à préciser)")),
-            ("consommation", _("Prestation liée à une inscription et gérée par elle ")),
-            ("consoavoir", _("Prestation annulée par un avoir)")),
+            #("consommation", _("Prestation liée à une inscription et gérée par elle ")),
+            #("consoavoir", _("Prestation annulée par un avoir)")),
             ("autre","Origine non déterminée"),
             ("","")
             ]
