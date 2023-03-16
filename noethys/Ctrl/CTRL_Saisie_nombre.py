@@ -11,8 +11,6 @@
 
 from Utils.UTILS_Traduction import _
 import wx
-from Ctrl import CTRL_Bouton_image
-
 
 class CTRL(wx.TextCtrl):
     def __init__(self, parent, format= "0.00", font= None, size=(-1, -1), style=wx.TE_RIGHT, verif=True):
@@ -30,7 +28,10 @@ class CTRL(wx.TextCtrl):
         if valide == False :
             wx.MessageBox(messageErreur, "Erreur de saisie")
         else:
-            montant = int(self.GetValue())
+            montantStr = self.GetValue()
+            if montantStr == "":
+                montantStr = "0"
+            montant = int(montantStr)
             self.SetValue(str(montant))
         if event != None : event.Skip() 
     

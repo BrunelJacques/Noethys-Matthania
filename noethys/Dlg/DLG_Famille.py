@@ -890,8 +890,11 @@ class Dialog(wx.Dialog):
         tb = Toaster.ToasterBox(wx.GetApp().GetTopWindow(), Toaster.TB_SIMPLE, Toaster.TB_DEFAULT_STYLE, Toaster.TB_ONTIME)  # TB_CAPTION
         tb.SetTitle(titre)
         tb.SetPopupSize((largeur, hauteur))
-        largeurEcran, hauteurEcran = wx.ScreenDC().GetSizeTuple()
-        tb.SetPopupPosition((largeurEcran - largeur - 10, hauteurEcran - hauteur - 50))
+        (x,y) = wx.GetMousePosition()
+        x -= largeur + 300
+        y -= hauteur + 200
+        (x,y) = (max(x,400),max(y,500))
+        tb.SetPopupPosition((x,y))
         tb.SetPopupPauseTime(3000)
         tb.SetPopupScrollSpeed(8)
         tb.SetPopupBackgroundColour(couleurFond)
@@ -907,7 +910,7 @@ if __name__ == "__main__":
     heure_debut = time.time()
     # ramel 567; perez marc 1724; bartoOliv 1861; branco 4499;  bourrel 6191
     #7735 parrainage; 8107 multifactures; 709 Brunel jacques
-    dialog_1 = Dialog(None, IDfamille= 7735)
+    dialog_1 = Dialog(None, IDfamille= 7372)
     print("Temps de chargement fiche famille =", time.time() - heure_debut)
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()
