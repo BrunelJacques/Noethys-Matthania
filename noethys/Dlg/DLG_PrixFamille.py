@@ -226,7 +226,8 @@ def FormateLignes(listeOLV,dictDonnees):
                 elif obj.origine == "lignart":
                     if hasattr(obj,'oldValue') and float(obj.montantCalcul) != float(obj.oldValue):
                         obj.couleur = wx.RED
-                    elif float(obj.montantCalcul) != float(obj.montantCalcul) and obj.montantCalcul != 0.0:
+                    elif hasattr(obj, 'oldValue') and float(obj.montantCalcul) != float(
+                            obj.montant):
                         obj.couleur = wx.RED
                     else: obj.couleur = wx.BLUE
                 else:
@@ -249,22 +250,28 @@ def InserArticles(listeOLV = [],articles=[],dictDonnees={}):
             # test dans les lignes d'une pièce préexistante et non encore facturée
             if not article.codeArticle in lstArticlesLignes:
                continue
-        # test de présence pour alimenter la liste à supprimer
         present = False
+        # test de présence antérieure pour alimenter la liste à supprimer
         for ligne in listeOLV:
             if ligne.origine != 'lignes': continue
-            # les articles parrainages ont pu être renumérotés
-            ok = False
+            if article.codeArticle[:6] != '$$PARR' \
+                    and ligne.codeArticle != article.codeArticle:
+                continue
+
             if float(ligne.montant) == 0.0:
                 ligne.montant = ligne.montantCalcul
-
+            # match article déja présent?
+            pres, suppr, brk = GestionArticle.ArticlePreExist(article,ligne,dictDonnees)
+            if suppr:
+                lstSupprimer.append(ligne)
+            if pres:
+                present = True
+            """# CAS 1 les articles parrainages ont pu être renumérotés
             if article.codeArticle[:6] == '$$PARR' and ligne.codeArticle[:6] == '$$PARR':
                 article.origine = "lignart"
                 # recherce dans le dicParr
                 dicParrainages = dictDonnees['dicParrainages']
                 for IDinscr, dicParr in list(dicParrainages.items()):
-                    if not hasattr(ligne,'IDnumLigne'):
-                        print("coucou")
                     if ligne.IDnumLigne and article.IDinscription:
                         if ligne.IDnumLigne == dicParr['IDligneParrain'] and article.IDinscription == IDinscr:
                             lstSupprimer.append(ligne)
@@ -275,20 +282,20 @@ def InserArticles(listeOLV = [],articles=[],dictDonnees={}):
                             ok = True
                             break
                 if ok : break
-            else:
-                if ligne.codeArticle == article.codeArticle:
-                    article.origine = "lignart"
-                    if ligne.montant == article.montantCalcul:
-                        present = True
-                        ligne.montantCalcul = article.montantCalcul
-                        ligne.oldValue = article.montantCalcul
-                        continue
-                    else:
-                        article.oldValue = article.montantCalcul
-                        ligne.montantCalcul = article.montantCalcul
-                        ligne.oldValue = article.montantCalcul
-                        article.force = "NON"
-                        continue
+            elif ligne.codeArticle == article.codeArticle:
+                article.origine = "lignart"
+                if ligne.montant == article.montantCalcul:
+                    present = True
+                    ligne.montantCalcul = article.montantCalcul
+                    ligne.oldValue = article.montantCalcul
+                    continue
+                else:
+                    article.oldValue = article.montantCalcul
+                    ligne.montantCalcul = article.montantCalcul
+                    ligne.oldValue = article.montantCalcul
+                    article.force = "NON"
+                    continue
+            """
 
         if article.typeLigne in list(dicTypesLignes.keys()):
             article.ordre = dicTypesLignes[article.typeLigne]

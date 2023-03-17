@@ -719,9 +719,14 @@ def CondCumul(dictDonnees,codeArticle):
     if len(retour) > 0:
         for nbReduc, mtReduc in retour:
             dicCumul['nbReduc'] += Nz(nbReduc)
-            dicCumul['mtReduc'] += Nz(mtReduc)
+            dicCumul['mtReduc'] -= Nz(mtReduc)
+    # Présence de lignes réduc déjà calculées
+    dicCumul['dontPresNonFacture'] = int(0)
+    for ligne in dictDonnees['lignes_piece']:
+        if ligne['codeArticle'] == codeArticle :
+            dicCumul['dontPresNonFacture'] += int(ligne['quantite'])
     dictDonnees['dicCumul'] = dicCumul
-    if (dicCumul['nbEligibles'] - dicCumul['nbReduc'] ) <= 1:
+    if (dicCumul['nbEligibles'] - dicCumul['nbReduc'] ) < 1:
         return False
     return True
 
@@ -1136,7 +1141,7 @@ def CalRedCumul(track, tracks, dictDonnees) :
             montant -= LISTEredCumul[ix]
     montant -= dictDonnees['dicCumul']['mtReduc']
     montant = round(montant,2)
-    if track.libelle[-1:] == "%": track.libelle = track.libelle[:-i]
+    #if track.libelle[-1:] == "%": track.libelle = track.libelle[:-i]
 
     # intègre le nombre d'inscriptions dans le lbellé de réduction
     track.libelle = track.libelleArticle.replace('{nbInscr}',txt)
@@ -1183,11 +1188,69 @@ def CalAbParrain(track, tracks, dictDonnees) :
     montant = track.prixUnit * qte
     return qte,montant
 
-def CalParrain(track, tracks, dictDonnees) :
+def CalParrain(track, *args) :
     # Les calculs ont été fait lors de la génération de la ligne; cf multiParrain
     qte,mtt = track.qte,track.montantCalcul
     return qte,mtt
     #fin CalParrain
+
+def ArticlePreExist(article, ligne, dictDonnees):
+    # test pour l'article candidat à l'insertion, pour chaque ligne présente.
+    brk = False # provoquera un break dans 'for ligne in listeOLV'
+    artPres = False
+    supprimer = False
+    article.origine = "lignart"
+
+    # CAS PARRAINAGE: les articles ont pu être renumérotés
+    if article.codeArticle[:6] == '$$PARR' and ligne.codeArticle[:6] == '$$PARR':
+        # recherce dans le dicParr
+        dicParrainages = dictDonnees['dicParrainages']
+        for IDinscr, dicParr in list(dicParrainages.items()):
+            if ligne.IDnumLigne and article.IDinscription:
+                if ligne.IDnumLigne == dicParr[
+                    'IDligneParrain'] and article.IDinscription == IDinscr:
+                    article.oldValue = ligne.montant
+                    article.IDnumLigne = ligne.IDnumLigne
+                    article.IDnumPiece = ligne.IDnumPiece
+                    article.force = "OUI"
+                    brk = True
+
+    # CAS réduction cumul
+    elif (ligne.codeArticle == "$RED-CUMUL") and (ligne.codeArticle == article.codeArticle):
+        if ligne.montant == article.montantCalcul:
+            artPres = True
+            ligne.montantCalcul = article.montantCalcul
+            ligne.oldValue = article.montantCalcul
+            ligne.force = "OUI"
+        else:
+            artPres = False
+            supprimer = True
+            article.oldValue = article.montantCalcul
+            if ligne.saisie :
+                article.montant = ligne.montant
+                if ligne.qte and ligne.qte !=0:
+                    article.qte = ligne.qte
+                article.libelle = ligne.libelle
+                brk = True
+            article.prixUnit = 1
+            if article.qte != 0:
+                article.prixUnit = article.oldValue / article.qte
+            article.force = "OUI"
+            article.saisie = True
+
+    # Autres cas
+    elif ligne.codeArticle == article.codeArticle:
+        if ligne.montant == article.montantCalcul:
+            artPres = True
+            ligne.montantCalcul = article.montantCalcul
+            ligne.oldValue = article.montantCalcul
+            ligne.force = "OUI"
+        else:
+            article.oldValue = article.montantCalcul
+            ligne.montantCalcul = article.montantCalcul
+            ligne.oldValue = article.montantCalcul
+            article.force = "NON"
+    return artPres, supprimer, brk
 
 class ActionsModeCalcul() :
         def __init__(self, dictDonnees={}):
@@ -1217,6 +1280,7 @@ class ActionsModeCalcul() :
                         qte,mtt = eval(fonction + '(track,tracks,self.dictDonnees)')
             return qte,mtt
             #fin ModeCalcul
+
 
 #--------------------------------------------
 class TestTrack(object):

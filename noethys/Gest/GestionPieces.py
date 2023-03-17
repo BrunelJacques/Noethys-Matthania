@@ -263,9 +263,11 @@ class Forfaits():
         lstDonnees = [('parIDinscription', IDinscription),
                       ('parIDligneParr', IDnumLigne),
                       ('parSolde', affecte ),]
-        ret = DB.ReqInsert('matParrainages', lstDonnees, retourID=False,MsgBox="=GestionPieces.AssocieParrainage")
+        ret = DB.ReqInsert('matParrainages', lstDonnees, retourID=False)
         if ret != "ok":
-            wx.MessageBox(message=ret)
+            mess = "Erreur d'écriture dans matParrainages!\n\n"
+            mess += str(ret)
+            wx.MessageBox(message=mess)
 
     def DissocieParrainage(self,DB,IDnumLigne=None):
         # suppression des associations propre à l'inscription

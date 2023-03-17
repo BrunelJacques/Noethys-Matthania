@@ -1,4 +1,9 @@
-version 1.3.2.27 (17/03/2023):
+version 1.3.2.28 (17/03/2023):
+- Réduction Cumul: refonte du calcul
+- Parrainage: gestion du duplicate key
+- Impression devis: prise en compte du devis dans le dû
+
+version 1.3.2.27 (16/03/2023):
 - Activités: nombre maxi on peut laisser à blanc sans saisir 0
 - Affichage d'un message à l'ouverture d'une fiche famille, si coché.
 

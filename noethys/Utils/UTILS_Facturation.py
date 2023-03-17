@@ -539,7 +539,9 @@ class Facturation():
                     dictToPage["total_reports"] -= mtt
             duReel = self.dictSoldes[IDfamille]['prestations']
             duReel -= self.dictSoldes[IDfamille]['reglements']
-            duPage = dictToPage["montant"] - dictToPage["ventilation"]
+            duPage = - dictToPage["ventilation"]
+            if dictToPage['nature'] in ['FAC', 'AVO', 'COM']:
+                duPage += dictToPage["montant"]
             duPage += dictToPage["total_reports"]
             mtt = duPage - FloatToDecimal(duReel)
             if abs(mtt) >= 0.1:
