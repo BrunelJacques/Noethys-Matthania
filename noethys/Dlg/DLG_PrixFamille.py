@@ -266,36 +266,6 @@ def InserArticles(listeOLV = [],articles=[],dictDonnees={}):
                 lstSupprimer.append(ligne)
             if pres:
                 present = True
-            """# CAS 1 les articles parrainages ont pu être renumérotés
-            if article.codeArticle[:6] == '$$PARR' and ligne.codeArticle[:6] == '$$PARR':
-                article.origine = "lignart"
-                # recherce dans le dicParr
-                dicParrainages = dictDonnees['dicParrainages']
-                for IDinscr, dicParr in list(dicParrainages.items()):
-                    if ligne.IDnumLigne and article.IDinscription:
-                        if ligne.IDnumLigne == dicParr['IDligneParrain'] and article.IDinscription == IDinscr:
-                            lstSupprimer.append(ligne)
-                            article.oldValue = ligne.montant
-                            article.IDnumLigne = ligne.IDnumLigne
-                            article.IDnumPiece = ligne.IDnumPiece
-                            article.force = "OUI"
-                            ok = True
-                            break
-                if ok : break
-            elif ligne.codeArticle == article.codeArticle:
-                article.origine = "lignart"
-                if ligne.montant == article.montantCalcul:
-                    present = True
-                    ligne.montantCalcul = article.montantCalcul
-                    ligne.oldValue = article.montantCalcul
-                    continue
-                else:
-                    article.oldValue = article.montantCalcul
-                    ligne.montantCalcul = article.montantCalcul
-                    ligne.oldValue = article.montantCalcul
-                    article.force = "NON"
-                    continue
-            """
 
         if article.typeLigne in list(dicTypesLignes.keys()):
             article.ordre = dicTypesLignes[article.typeLigne]
@@ -305,7 +275,8 @@ def InserArticles(listeOLV = [],articles=[],dictDonnees={}):
 
     # suppression des anciennes lignes
     for ligne in lstSupprimer:
-        listeOLV.remove(ligne)
+        if ligne in listeOLV:
+            listeOLV.remove(ligne)
     return
     #fin InserArticles
 

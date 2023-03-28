@@ -1203,6 +1203,10 @@ def ArticlePreExist(article, ligne, dictDonnees):
 
     # CAS PARRAINAGE: les articles ont pu être renumérotés
     if article.codeArticle[:6] == '$$PARR' and ligne.codeArticle[:6] == '$$PARR':
+        # Supprime les parrainages antérieurement choisis
+        for lignePiece in dictDonnees["lignes_piece"]:
+            if lignePiece["codeArticle"] == article.codeArticle:
+                supprimer = True
         # recherce dans le dicParr
         dicParrainages = dictDonnees['dicParrainages']
         for IDinscr, dicParr in list(dicParrainages.items()):
@@ -1213,7 +1217,7 @@ def ArticlePreExist(article, ligne, dictDonnees):
                     article.IDnumLigne = ligne.IDnumLigne
                     article.IDnumPiece = ligne.IDnumPiece
                     article.force = "OUI"
-                    brk = True
+                    brk = False
 
     # CAS réduction cumul
     elif (ligne.codeArticle == "$RED-CUMUL") and (ligne.codeArticle == article.codeArticle):
