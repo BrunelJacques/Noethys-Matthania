@@ -10,6 +10,7 @@ import Chemins
 import wx
 import GestionDB 
 import datetime
+from FonctionsPerso import Nz
 from Utils import UTILS_Config
 from Utils import UTILS_Utilisateurs
 from Dlg import DLG_Famille
@@ -60,7 +61,7 @@ class ListView(ObjectListView):
         self.parent = kwds["parent"].Parent
         self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
 
-    def GetDonnees(self, IDfamille=None, listeComptesPayeurs=[]):
+    def GetDonnees(self):
         DB = GestionDB.DB()
         
         # Filtres de l'utilisateur
@@ -218,19 +219,19 @@ class ListView(ObjectListView):
             (periode, IDparrain, IDfilleul) = key
             # ajout des ventilations de la prestation dans le réglé
             for IDprestation in dictP['lstIDprestations']:
-                dictP['regle'] += dictReglements[(IDfilleul, IDprestation)]
-
-            dictP['solde'] = round(dictP['caFilleuls'] - dictP['regle'],2)
-            if dictP['reduction']:
-                dictP['reduction'] = round(dictP['reduction'],2)
+                if (IDfilleul, IDprestation) in dictReglements:
+                    dictP['regle'] += dictReglements[(IDfilleul, IDprestation)]
+            dictP['solde'] = round(Nz(dictP['caFilleuls']) - Nz(dictP['regle']),2)
+            dictP['reduction'] = round(Nz(dictP['reduction']),2)
             if dictP['solde'] < 10: dictP['solde'] = 0.0
             if dictP['caFilleuls'] == 0: dictP['caFilleuls'] = 1.0
             dictP['ratio'] = round(100 * dictP['mttReduc'] / dictP['caFilleuls'] )
 
             # marqueur flag réduction perdue
-            if dictP['IDligneParr'] >0 and ((not dictP['reduction']) or dictP['reduction'] == 0):
+            if dictP['IDligneParr'] and ((not dictP['reduction']) or dictP['reduction'] == 0):
                 if dictP['flagOk'] & 2 == 0:
                     dictP['flagOk'] = 2 | dictP['flagOk']
+
             # marqueur flag parrain perdu
             if not dictP['libParrain'] or len(dictP['libParrain']) ==0:
                 if dictP['flagOk'] & 4 == 0:
@@ -324,7 +325,7 @@ class ListView(ObjectListView):
                 listItem.SetBackgroundColour(FondSaumon)
             elif track.flagOk & 4:
                 listItem.SetBackgroundColour(FondRose)
-            elif (track.solde > 0 and track.reduction < 0) or track.ratio > 10:
+            elif (track.solde and track.solde > 0 and track.reduction < 0) or track.ratio > 10:
                 listItem.SetBackgroundColour(FondAzur)
             #listItem.SetTextColour(wx.Colour(150, 150, 150))
 

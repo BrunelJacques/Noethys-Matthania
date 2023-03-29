@@ -20,6 +20,15 @@ from Utils import UTILS_Fichiers
 def GetPathRoot():
     return Chemins.GetMainPath("..")
 
+def Nz(valeur, type = "int"):
+    try:
+        valeur = float(valeur)
+    except:
+        valeur = 0.0
+    if type == 'int':
+        valeur = int(valeur)
+    return valeur
+
 def NoPunctuation(txt = ''):
     if not txt: return ''
     if txt.strip()== '': return ''
