@@ -867,27 +867,31 @@ def MultiParrain(codeArticle,dictDonnees,listeOLV):
           """ % (codeArticle[:-2])
     DB.ExecuterReq(req,MsgBox = "GestionArticle.MultiParrain.matArticle")
     retArticle = DB.ResultatReq()
+    # Vérifie qu'il n'y a qu'un seul article parrainage paramétré
     if len(retArticle) != 1:
         texte = "La recherche article %s ne retourne pas un seul article \n\nRetour : %s" %(codeArticle[:-2],str(retArticle))
         GestionDB.Messages().Box(("Incohérence à diagnostiquer "),texte)
         return
     (codeArticleModele, libelle) = retArticle[0]
     lgCodeArticle = len(codeArticleModele)
+
     i = 0
-    #stockage d'une ligne modèle et comptage des lignes à supprimer
+    #Récupère dans olv le modèle Parrain
     for ligne in listeOLV:
         if ligne.codeArticle[:lgCodeArticle] == codeArticleModele:
             i +=1
             if modele == None:
                 modele = copy.deepcopy(ligne)
     modele.codeArticle = codeArticleModele
-    # purge des lignes de parrainage déja dans la piece non facturée
+
+    # le modèle dans olv doit être supprimée car à personnaliser et dupliquer ensuite
     while i > 0 :
-        # la suppression dans listeOLV prend la boucle à contrepied d'où les itérations
+        # Problème si on essaie de faire un seul passage détection et suppression
         for ligne in listeOLV:
             if ligne.codeArticle[:lgCodeArticle] == codeArticleModele:
                 listeOLV.remove(ligne)
                 i-=1
+
     # constitution des lignes de parrainage
     # teste la presence de pièces pointant la famille comme parrain sans avoir abandonné son droit et non imputé
     IDpiece = 0
@@ -905,9 +909,8 @@ def MultiParrain(codeArticle,dictDonnees,listeOLV):
                         LEFT JOIN matPiecesLignes ON matParrainages.parIDligneParr = matPiecesLignes.ligIDnumLigne
                 WHERE 	(matPieces.pieParrainAbandon = 0) 
                         AND (matPieces.pieIDparrain = %d)
-                        AND ((matParrainages.parIDligneParr Is Null)
-                            OR ( matPiecesLignes.ligIDnumPiece = %d))
-                ; """ % (IDfamille, IDpiece)
+                        AND (matParrainages.parIDligneParr Is Null)
+                ; """ % (IDfamille)
 
         DB.ExecuterReq(req,MsgBox = "GestionArticle.MultiParrain")
         retPieces = DB.ResultatReq()
@@ -1200,13 +1203,16 @@ def ArticlePreExist(article, ligne, dictDonnees):
     artPres = False
     supprimer = False
     article.origine = "lignart"
+    article.force = "NON"
 
     # CAS PARRAINAGE: les articles ont pu être renumérotés
     if article.codeArticle[:6] == '$$PARR' and ligne.codeArticle[:6] == '$$PARR':
+        """
         # Supprime les parrainages antérieurement choisis
         for lignePiece in dictDonnees["lignes_piece"]:
             if lignePiece["codeArticle"] == article.codeArticle:
                 supprimer = True
+        """
         # recherce dans le dicParr
         dicParrainages = dictDonnees['dicParrainages']
         for IDinscr, dicParr in list(dicParrainages.items()):
@@ -1216,7 +1222,8 @@ def ArticlePreExist(article, ligne, dictDonnees):
                     article.oldValue = ligne.montant
                     article.IDnumLigne = ligne.IDnumLigne
                     article.IDnumPiece = ligne.IDnumPiece
-                    article.force = "OUI"
+                    if 'ok' in dicParr["ligneChoix"]:
+                        article.force = "OUI"
                     brk = False
 
     # CAS réduction cumul
@@ -1253,7 +1260,6 @@ def ArticlePreExist(article, ligne, dictDonnees):
             article.oldValue = article.montantCalcul
             ligne.montantCalcul = article.montantCalcul
             ligne.oldValue = article.montantCalcul
-            article.force = "NON"
     return artPres, supprimer, brk
 
 class ActionsModeCalcul() :
