@@ -1142,7 +1142,7 @@ def CalRedCumul(track, tracks, dictDonnees) :
         for i in range(int(qteElig)):
             ix = min(i,len(LISTEredCumul)-1)
             montant -= LISTEredCumul[ix]
-    montant -= dictDonnees['dicCumul']['mtReduc']
+    montant += dictDonnees['dicCumul']['mtReduc']
     montant = round(montant,2)
     #if track.libelle[-1:] == "%": track.libelle = track.libelle[:-i]
 
