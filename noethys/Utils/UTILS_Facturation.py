@@ -478,6 +478,20 @@ class Facturation():
                                 reglements[IDreglement]["ventilation"] += dictReglement["ventilation"]
                             else:
                                 reglements[IDreglement] = dictReglement
+                # Ajouts des affectations complémentaires des règlements
+                dictReglFinal = {}
+                for IDreglement, dictReglement in reglements.items():
+                    ix = 0
+                    if IDreglement == 33958:
+                        print()
+                    dictReglFinal["%09.f_%02.f"%(IDreglement,ix)] = dictReglement
+                    if IDreglement in self.dictAutresAffect[IDfamille] \
+                            and (round(dictReglement["ventilation"] - dictReglement["montant"],2)) != 0:
+                        for (label, ventile, surMontant, IDprestation, lettre) in self.dictAutresAffect[IDfamille][IDreglement]:
+                            ix += 1
+                            texte = "%9.2f%s /%s"%(ventile,SYMBOLE,label)
+                            dictReglFinal["%09.f_%02.f" % (IDreglement, ix)] = {"autreAffect":texte}
+
             # vérif du montant des pièces qui doit égaler les prestations
             mttPieces = dictToPage["montant"]
             # pour inversion du sens pour les avoirs
@@ -493,7 +507,8 @@ class Facturation():
 
             # Insert les montants pour le compte
             dictToPage["ventilation"] = ventilation
-            dictToPage["reglements"] = reglements
+            dictToPage["reglements"] = dictReglFinal
+
             return "ok"
         ret = cumuleDansPage()
         if not ret == "ok": return
@@ -789,19 +804,20 @@ class Facturation():
 
     # Récupération des règlements ventilés sur des prestations du lot
     def GetReglementsAffectes(self):
-        # appel des règlements affectés aux prestations
+        # appel des règlements des familles
         req = """
             SELECT  reglements.IDreglement,reglements.Date, reglements.date_differe, modes_reglements.label, 
                     reglements.numero_piece, emetteurs.nom, payeurs.nom, ventilation.montant, reglements.montant, 
-                    ventilation.IDprestation, reglements.IDcompte_payeur
-            FROM (((ventilation
-            INNER JOIN reglements ON ventilation.IDreglement = reglements.IDreglement)
-            LEFT JOIN emetteurs ON reglements.IDemetteur = emetteurs.IDemetteur)
-            LEFT JOIN modes_reglements ON reglements.IDmode = modes_reglements.IDmode)
-            LEFT JOIN payeurs ON reglements.IDpayeur = payeurs.IDpayeur
-            WHERE ventilation.IDprestation in ( %s )
+                    ventilation.IDprestation, reglements.IDcompte_payeur, 
+                    prestations.label, prestations.date, ventilation.lettrage
+            FROM ((((reglements LEFT JOIN emetteurs ON reglements.IDemetteur = emetteurs.IDemetteur) 
+            LEFT JOIN modes_reglements ON reglements.IDmode = modes_reglements.IDmode) 
+            LEFT JOIN payeurs ON reglements.IDpayeur = payeurs.IDpayeur) 
+            LEFT JOIN ventilation ON reglements.IDreglement = ventilation.IDreglement) 
+            LEFT JOIN prestations ON ventilation.IDprestation = prestations.IDprestation
+            WHERE (reglements.IDcompte_payeur in (%s) )
             ORDER BY reglements.Date
-            ;""" % str(self.lstIDprestations)[1:-1]
+            ;""" % str(self.lstIDfamilles)[1:-1]
 
         retour = self.DB.ExecuterReq(req, MsgBox="UTILS_Facturation.GetReglementsAffectes")
         recordset = self.DB.ResultatReq()
@@ -809,9 +825,9 @@ class Facturation():
         #pour chaque ventilation on crée un dictVentil stocké en self.dictVentilations
         lstChampsRegl = ["IDreglement", "mode", "numero", "emetteur",
                        "payeur", "ventilation", "montant", "IDprestation", "IDfamille"]
-
+        lstIDreglements = []
         for IDreglement, date_reglement, differe, mode, noCheque, emetteur, payeur, \
-               ventile, surMontant, IDprestation, IDfamille in recordset :
+               ventile, surMontant, IDprestation, IDfamille, lblPrest, dtePrest, lettre in recordset :
             # test cohérence
             if not IDfamille in self.dictVentilations:
                 mess = "Problème avec le règlements %d de la famille %d\n"%(IDreglement, IDfamille)
@@ -820,7 +836,25 @@ class Facturation():
                 wx.MessageBox(mess,"Anomalie dans les données")
                 continue
 
-            # pointeur de niveau IDprestation dans self.dictVentilations
+            # stockage des ventil non directement pour prestations de la page, mais...
+            if not IDfamille in self.dictAutresAffect:
+                self.dictAutresAffect[IDfamille] = {}
+            if not IDreglement in self.dictAutresAffect[IDfamille]:
+                self.dictAutresAffect[IDfamille][IDreglement] = []
+
+            # Traitement des règlements ne pointant pas une des prestations
+            if (IDprestation == 0) or IDprestation not in self.lstIDprestations:
+                # compose la ligne autre affectation
+                label = mode
+                if lblPrest:
+                    label = lblPrest
+                record = (label, ventile, surMontant, IDprestation, lettre)
+                self.dictAutresAffect[IDfamille][IDreglement].append(record)
+                continue
+
+            # Traitement des règlements des prestations
+            if not IDreglement in lstIDreglements:
+                lstIDreglements.append(IDreglement)
             dictPrestations = self.dictVentilations[IDfamille]["prestations"]
             emetteur, payeur = Tronque(emetteur,payeur)
             record = (IDreglement, mode, noCheque, emetteur,
@@ -847,8 +881,6 @@ class Facturation():
             #stocke la ventilation d'un reglement / IDprestation
             dictPrestations[IDprestation]["reglAffectes"][IDreglement] = dictRegl
             # doublon dictPrestations[IDprestation]["regle"] += FloatToDecimal(ventile)
-
-        #fin GetReglementsAffectes
 
     # Prestations impayées : self.dictVentialations[IDfamille]["impayes"][IDprestation][periode][nature] = montantImpaye
     def GetImpayes(self):
@@ -1381,6 +1413,7 @@ class Facturation():
         self.dictDonnees = {}
         self.dictPieces = {}
         self.dictVentilations = {}
+        self.dictAutresAffect = {}
         self.dictIndividus = {}
         self.dictSoldes = {}
         self.lstIDindividus = []

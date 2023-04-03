@@ -632,19 +632,9 @@ class Impression():
                     dictReglements = dictValeur["reglements"]
                     if len(dictReglements) > 0 :
                         listeTextesReglements = []
-                        lstReglements = [(dictReglements[x]['dateReglement'],
-                                          dictReglements[x]) for x in dictReglements.keys()]
+                        lstReglements = [(x,dictReglements[x]) for x in dictReglements.keys()]
                         lstReglements.sort(key=TakeFirst)
-                        for dte,dictTemp in lstReglements:
-                            if dictTemp["emetteur"] not in ("", None) :
-                                emetteur = " (%s) " % dictTemp["emetteur"]
-                            else :
-                                emetteur = ""
-                            if dictTemp["numero"] not in ("", None) :
-                                numero = " n°%s " % dictTemp["numero"]
-                            else :
-                                numero = ""
-                                
+                        for key,dictTemp in lstReglements:
                             montantReglement = "%.02f%s" % (dictTemp["montant"], SYMBOLE)
                             montantVentilation = "%.02f%s" % (dictTemp["ventilation"], SYMBOLE)
                             if dictTemp["ventilation"] != dictTemp["montant"] :
@@ -656,6 +646,10 @@ class Impression():
                             else: dat = "          "
                             an = dat[:4]
                             mois = dat[5:7]
+                            if dictTemp["emetteur"] not in ("", None) :
+                                emetteur = " (%s) " % dictTemp["emetteur"]
+                            else :
+                                emetteur = ""
                             texte = "%s/%s %s%s de %s (%s)" % (mois,an,dictTemp["mode"][:3],  emetteur,
                                                                   dictTemp["payeur"], texteMontant)
                             listeTextesReglements.append(texte)
