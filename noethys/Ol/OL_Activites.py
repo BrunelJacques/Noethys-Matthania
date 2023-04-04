@@ -65,19 +65,14 @@ class Exporter(UTILS_Export_tables.Exporter):
         self.ExporterTable("categories_tarifs_villes", self.FormateCondition("IDcategorie_tarif", self.dictID["categories_tarifs"]))
         self.ExporterTable("noms_tarifs", "IDactivite=%d" % ID)
         self.ExporterTable("tarifs", "IDactivite=%d" % ID, [
-                                                                                ("categories_tarifs", "IDcategorie_tarif", ";"),
-                                                                                ("groupes", "IDgroupe", ";"),
-                                                                                ])
+                                        ("categories_tarifs", "IDcategorie_tarif", ";"),
+                                        ("groupes", "IDgroupe", ";"),
+                                        ])
         self.ExporterTable("combi_tarifs", self.FormateCondition("IDtarif", self.dictID["tarifs"]))
         self.ExporterTable("combi_tarifs_unites", self.FormateCondition("IDtarif", self.dictID["tarifs"]))
         self.ExporterTable("tarifs_lignes", "IDactivite=%d" % ID)
         self.ExporterTable("questionnaire_filtres", self.FormateCondition("IDtarif", self.dictID["tarifs"]))
-        # Portail
-        #self.ExporterTable("portail_periodes", "IDactivite=%d" % ID)
-        #self.ExporterTable("portail_unites", "IDactivite=%d" % ID)
         self.ExporterTable("matTarifs", "trfIDactivite=%d" % ID)
-        # Evènements
-        #self.ExporterTable("evenements", "IDactivite=%d" % ID)
 
         # Correspondances spéciales
         self.correspondances_speciales.append({"table" : "etiquettes", "champ" : "parent", "champ_reference" : "IDetiquette"})
@@ -376,6 +371,14 @@ class ListView(FastObjectListView):
         if resultat == True :
             self.MAJ()
 
+    def RazPrixTarif(self,IDactivite):
+        db = GestionDB.DB()
+        req = "UPDATE matTarifs SET trfPrix = NULL WHERE trfIDactivite = %d ;"%IDactivite
+        db.ExecuterReq(req,MsgBox="OL_Activites.RazPrixTarif")
+        db.Close()
+
+        return
+
     def Dupliquer(self, event):
         """ Dupliquer un modèle """
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("parametrage_activites", "creer") == False : return
@@ -401,6 +404,7 @@ class ListView(FastObjectListView):
         importation = UTILS_Export_tables.Importer(contenu=contenu)
         importation.Ajouter(index=0)
         newIDactivite = importation.GetNewID("IDactivite", IDactivite)
+        self.RazPrixTarif(newIDactivite)
         # MAJ listView
         self.MAJ(newIDactivite)
         

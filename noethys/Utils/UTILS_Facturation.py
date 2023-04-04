@@ -156,6 +156,42 @@ def Tronque(emetteur,payeur, lgMax=35):
         payeur = TronqueMots(payeur,lgMax - len(emetteur))
     return emetteur,payeur
 
+def ContrepartieReglement(lettreOrigine,IDreglement,recordset):
+    # retourne le libellé de la contrepartie
+    lstMatch = []
+    def testLettre(letA,letB):
+        test = False
+        # la correspondance des lettres peut être inversée
+        lstParts = lettreOrigine
+        if "_" in lettreOrigine:
+            lstParts = letA.split("_")
+        # test soit 1e et dernière lettre soit les deux parties séparées par '_'
+        if (lstParts[0] in letB) and lstParts[-1] in letB:
+            test = True
+        return test
+
+    def extraitContrepartie(record):
+        (IDreglement, date_reglement, differe, mode, observations, emetteur, payeur, \
+        ventile, surMontant, IDprestation, IDfamille, lblPrest, dtePrest, lettre) = record
+        if lettre and testLettre(lettreOrigine,lettre):
+            if observations:
+                return "%s %s"%(observations,mode)
+            return mode
+        return None
+
+    # reprend la liste des champs du recordset cf requête originale
+    if lettreOrigine:
+        for record in recordset:
+            if record[0] == IDreglement:
+                continue
+            mode = extraitContrepartie(record)
+            if mode:
+                lstMatch.append(mode)
+    label = "autre affectation"
+    if len(lstMatch) >0:
+        label = lstMatch[0]
+    return label
+
 class Facturation():
     def __init__(self):
         #préparation des conteneurs d'initialisation
@@ -465,6 +501,7 @@ class Facturation():
             montant = FloatToDecimal(0.0)
             ventilation = FloatToDecimal(0.0)
             reglements = {}
+            dictReglFinal = {}
 
             # calcul du montant des prestations et des ventilations par règlements affectés
             if len(dictDonPage["lstIDprestations"]) > 0:
@@ -479,18 +516,20 @@ class Facturation():
                             else:
                                 reglements[IDreglement] = dictReglement
                 # Ajouts des affectations complémentaires des règlements
-                dictReglFinal = {}
                 for IDreglement, dictReglement in reglements.items():
                     ix = 0
-                    if IDreglement == 33958:
-                        print()
-                    dictReglFinal["%09.f_%02.f"%(IDreglement,ix)] = dictReglement
+                    # ligne du règlement proprement dit
+                    cle1 = "%s_%04.f"%(str(dictReglement["dateReglement"]),IDreglement)
+                    cle2 = "_%02.f"%(ix)
+                    dictReglFinal[cle1+cle2] = dictReglement
                     if IDreglement in self.dictAutresAffect[IDfamille] \
                             and (round(dictReglement["ventilation"] - dictReglement["montant"],2)) != 0:
+                        # lignes des autres affectations
                         for (label, ventile, surMontant, IDprestation, lettre) in self.dictAutresAffect[IDfamille][IDreglement]:
                             ix += 1
-                            texte = "%9.2f%s /%s"%(ventile,SYMBOLE,label)
-                            dictReglFinal["%09.f_%02.f" % (IDreglement, ix)] = {"autreAffect":texte}
+                            cle2 = "_%02.f" % (ix)
+                            texte = "______  (%9.2f%s sur %s)"%(ventile,SYMBOLE,label)
+                            dictReglFinal[cle1 + cle2] = {"autreAffect":texte}
 
             # vérif du montant des pièces qui doit égaler les prestations
             mttPieces = dictToPage["montant"]
@@ -723,7 +762,7 @@ class Facturation():
         # suite en appelant de l'info plus détaillée sur les présumés libres
         req = """
             SELECT  reglements.IDreglement,reglements.Date, reglements.date_differe, modes_reglements.label, 
-                    reglements.numero_piece, emetteurs.nom, payeurs.nom, reglements.montant, 
+                    reglements.observations, emetteurs.nom, payeurs.nom, reglements.montant, 
                     SUM(ventilation.montant), reglements.IDcompte_payeur
             FROM (((reglements
             LEFT JOIN ventilation   ON reglements.IDreglement = ventilation.IDreglement)
@@ -732,7 +771,7 @@ class Facturation():
             LEFT JOIN payeurs       ON reglements.IDpayeur = payeurs.IDpayeur
             WHERE reglements.IDreglement in ( %s ) 
             GROUP BY reglements.IDreglement,reglements.Date, reglements.date_differe, modes_reglements.label, 
-                    reglements.numero_piece, emetteurs.nom, payeurs.nom, reglements.montant, reglements.IDcompte_payeur
+                    reglements.observations, emetteurs.nom, payeurs.nom, reglements.montant, reglements.IDcompte_payeur
             ORDER BY reglements.IDcompte_payeur, reglements.Date
             ;""" % str(lstIDregl)[1:-1]
         retour = self.DB.ExecuterReq(req, MsgBox="UTILS_Facturation.GetReglementsLibres_3")
@@ -742,11 +781,11 @@ class Facturation():
         lstReglPositifs = []
         reglements = {}
         # champs de l'info dans dictReglement
-        lstChampsRegl = ["IDreglement", None, None, "mode", "numero", "emetteur",
+        lstChampsRegl = ["IDreglement", None, None, "mode", "observations", "emetteur",
                          "payeur", "montant", "ventilation", "IDfamille"]
         # Prépare l'Imputation des réglemnents négatifs ou sur ventilés sur les positifs
         ix = -1
-        for IDreglement,dateR,differe,mode,numero,emetteur,payeur,montant,ventilation,IDfamille in recordset:
+        for IDreglement,dateR,differe,mode,observations,emetteur,payeur,montant,ventilation,IDfamille in recordset:
             ix +=1
             if Nz(montant) - Nz(ventilation) < 0 :
                 lstReglNegatifs.append(IDreglement)
@@ -807,7 +846,7 @@ class Facturation():
         # appel des règlements des familles
         req = """
             SELECT  reglements.IDreglement,reglements.Date, reglements.date_differe, modes_reglements.label, 
-                    reglements.numero_piece, emetteurs.nom, payeurs.nom, ventilation.montant, reglements.montant, 
+                    reglements.observations, emetteurs.nom, payeurs.nom, ventilation.montant, reglements.montant, 
                     ventilation.IDprestation, reglements.IDcompte_payeur, 
                     prestations.label, prestations.date, ventilation.lettrage
             FROM ((((reglements LEFT JOIN emetteurs ON reglements.IDemetteur = emetteurs.IDemetteur) 
@@ -823,10 +862,10 @@ class Facturation():
         recordset = self.DB.ResultatReq()
 
         #pour chaque ventilation on crée un dictVentil stocké en self.dictVentilations
-        lstChampsRegl = ["IDreglement", "mode", "numero", "emetteur",
+        lstChampsRegl = ["IDreglement", "mode", "observations", "emetteur",
                        "payeur", "ventilation", "montant", "IDprestation", "IDfamille"]
         lstIDreglements = []
-        for IDreglement, date_reglement, differe, mode, noCheque, emetteur, payeur, \
+        for IDreglement, date_reglement, differe, mode, observations, emetteur, payeur, \
                ventile, surMontant, IDprestation, IDfamille, lblPrest, dtePrest, lettre in recordset :
             # test cohérence
             if not IDfamille in self.dictVentilations:
@@ -846,6 +885,10 @@ class Facturation():
             if (IDprestation == 0) or IDprestation not in self.lstIDprestations:
                 # compose la ligne autre affectation
                 label = mode
+                if observations and len(observations)>0:
+                    label = observations
+                if IDprestation == 0:
+                    label = ContrepartieReglement(lettre,IDreglement,recordset)
                 if lblPrest:
                     label = lblPrest
                 record = (label, ventile, surMontant, IDprestation, lettre)
@@ -857,7 +900,7 @@ class Facturation():
                 lstIDreglements.append(IDreglement)
             dictPrestations = self.dictVentilations[IDfamille]["prestations"]
             emetteur, payeur = Tronque(emetteur,payeur)
-            record = (IDreglement, mode, noCheque, emetteur,
+            record = (IDreglement, mode, observations, emetteur,
                       payeur, ventile, surMontant, IDprestation, IDfamille )
             if differe != None:
                 date_reglement = differe
@@ -909,7 +952,8 @@ class Facturation():
         #appel des prestations non soldées avec plus de détail
         condition = " WHERE prestations.IDprestation in ( %s ) "% str(lstIDprest)[1:-1]
         req = """
-            SELECT prestations.IDprestation, prestations.IDfamille, prestations.Date, prestations.montant, 
+            SELECT prestations.IDprestation, prestations.IDfamille, prestations.Date, 
+                    prestations.montant, prestations.label,
                     matPieces.pieNature, matPieces.pieDateFacturation, matPieces.pieDateAvoir
             FROM prestations
             LEFT JOIN matPieces ON prestations.IDcontrat = matPieces.pieIDnumPiece
@@ -920,27 +964,22 @@ class Facturation():
         recordset = self.DB.ResultatReq()
 
         # constitution des impayes dans dictVentilations
-        for IDprestation, IDfamille, date, montant,nature,dateFacture,dateAvoir in recordset :
+        for IDprestation, IDfamille, date, montant,label,nature,dateFacture,dateAvoir in recordset :
             if not IDprestation in self.dictVentilations[IDfamille]["impayes"]:
                 self.dictVentilations[IDfamille]["impayes"][IDprestation] = {}
             dictImpayes = self.dictVentilations[IDfamille]["impayes"][IDprestation]
             if nature == None : nature = 'VTE'
             if nature == 'FAC':
                 date = dateFacture
-                nat = nature
             elif nature == 'AVO':
                 if montant > 0.0:
-                    nat='FAC'
                     date = dateFacture
                 else:
-                    nat='AVO'
                     date = dateAvoir
-            else :
-                nat = nature
             date = UTILS_Dates.DateEngEnDateDD(date)
             mois = date.month
             annee = date.year
-            periode = (annee, mois)
+            periode = str((annee, mois))+ " " + label
             if periode not in dictImpayes :
                 dictImpayes[periode] = {}
                 dictImpayes[periode][nature] = FloatToDecimal(0.0)

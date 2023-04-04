@@ -1,3 +1,9 @@
+version 1.3.2.32 (04/04/2023):
+- Factures: Autres affectations des règlements mis en remarque
+- Date du jour au dessus des infos de règlements
+- Activités tarifs: affiche le prix de base de l'article s'il s'appliquera
+
+
 version 1.3.2.31 (30/03/2023):
 - Réduction cumul: Bug si antériorité
 

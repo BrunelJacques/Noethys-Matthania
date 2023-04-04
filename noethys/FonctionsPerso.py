@@ -20,6 +20,14 @@ from Utils import UTILS_Fichiers
 def GetPathRoot():
     return Chemins.GetMainPath("..")
 
+def dateJour(fmt='fr'):
+    dte = datetime.date.today()
+    if fmt == 'fr':
+        dte = '{:%d/%m/%Y}'.format(dte)
+    elif fmt == 'ansi':
+        dte = '{:%Y%m%d}'.format(dte)
+    return dte
+
 def Nz(valeur, type = "int"):
     try:
         valeur = float(valeur)

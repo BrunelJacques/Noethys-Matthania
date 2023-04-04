@@ -82,11 +82,11 @@ class Exporter():
         self.ExporterTable("categories_tarifs", "IDactivite=%d" % ID)
         self.ExporterTable("noms_tarifs", "IDactivite=%d" % ID)
         self.ExporterTable("tarifs", "IDactivite=%d" % ID, [
-                                                                                ("categories_tarifs", "IDcategorie_tarif", ";"),
-                                                                                ("groupes", "IDgroupe", ";"),
-                                                                                ("cotisations", None, ";"),
-                                                                                ("caisses", None, ";"),
-                                                                                ])
+                                        ("categories_tarifs", "IDcategorie_tarif", ";"),
+                                        ("groupes", "IDgroupe", ";"),
+                                        ("cotisations", None, ";"),
+                                        ("caisses", None, ";"),
+                                        ])
         self.ExporterTable("combi_tarifs", self.FormateCondition("IDtarif", self.dictID["tarifs"]))
         self.ExporterTable("combi_tarifs_unites", self.FormateCondition("IDtarif", self.dictID["tarifs"]))
         self.ExporterTable("tarifs_lignes", "IDactivite=%d" % ID)
@@ -257,7 +257,6 @@ class Importer():
                         if newIDligne != None and valeur_remplacement != None :
                             self.DB.ReqMAJ(table, [(champ, valeur_remplacement),], champCle, newIDligne)
 
-
     def ImporterTable(self, nomTable="", listeLignes=[], chainesListes=[]):
         if len(listeLignes) == 0 : return
         
@@ -274,14 +273,18 @@ class Importer():
         listeBlobs = []
 
         for ligne in listeLignes :
-
             # Récupération des valeurs
             dictDonnees = {}
             ancienID = None
             newID = prochainID
 
             for nomChamp, valeur in ligne.items() :
-                
+                champExt = nomChamp
+                if 'ID' in champExt:
+                    #enlève le préfixe table
+                    lstRad = nomChamp.split('ID')
+                    champExt = nomChamp[len(lstRad[0]):]
+
                 if nomChamp in dictTypesChamps :
 
                     if nomChamp == champCle :
@@ -292,10 +295,10 @@ class Importer():
                         listeBlobs.append({"table":nomTable, "champCle":champCle, "newID":newID, "valeur":valeur, "nomChamp":nomChamp})
                         valeur = None
                     
-                    # Remplacement des ID avec le dict des correspondances
-                    if nomChamp in self.dictID :
-                        if valeur in self.dictID[nomChamp] :
-                            valeur = self.dictID[nomChamp][valeur]
+                    # Remself.dictID = {dict: 15} {'IDactivite': {764: 779}, 'IDresponsable': {413: 428}, 'IDgroupe_activite': {790: 805}, 'IDgroupe': {2201: 2245, 2202: 2246}, 'IDagrement': {237: 265}, 'IDpiece_activite': {943: 1041, 944: 1042, 945: 1043, 946: 1044, 947: 1045, 948: 1046, 949: 1047}, 'IDr... Viewplacement des ID avec le dict des correspondances
+                    if champExt in self.dictID :
+                        if valeur in self.dictID[champExt] :
+                            valeur = self.dictID[champExt][valeur]
 
                     # Remplacement d'un champ 'parent' (Prévu pour les étiquettes dans les activités)
                     #if nomChamp == "parent" and valeur != None :
@@ -319,7 +322,7 @@ class Importer():
                                 valeur = separateur.join(listeTemp)
                             
                     # Mémorisation des valeurs
-                    if nomChamp != champCle :
+                    if nomChamp != champCle or not newID:
                         dictDonnees[nomChamp] = valeur
                         if nomChamp not in liste_champs :
                             liste_champs.append(nomChamp)
@@ -336,10 +339,11 @@ class Importer():
             # Mémorisation de L'ID dans la table des correspondances
             if (champCle in self.dictID) == False :
                 self.dictID[champCle] = {}
-            self.dictID[champCle][ancienID] = newID
+            if newID != None:
+                self.dictID[champCle][ancienID] = newID
 
-            if prochainID:
-                prochainID += 1
+                if prochainID:
+                    prochainID += 1
             index_ligne += 1
 
         # Executermany sur toute la table à importer
@@ -348,6 +352,7 @@ class Importer():
         for champ in liste_champs :
             listeInterrogations.append("?")
         texteInterrogations = ", ".join(listeInterrogations)
+
         self.DB.Executermany("INSERT INTO %s (%s) VALUES (%s)" % (nomTable, texteChampsTemp, texteInterrogations), liste_ajouts, commit=True)
 
         # Enregistrement des blobs à part

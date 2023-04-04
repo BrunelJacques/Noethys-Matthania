@@ -12,8 +12,8 @@
 from Utils.UTILS_Traduction import _
 import Chemins
 import wx
+from FonctionsPerso import Nz
 from Ctrl import CTRL_Bouton_image
-from Ctrl import CTRL_Saisie_nombre
 import GestionDB
 
 from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, CTRL_Outils
@@ -41,7 +41,9 @@ class Track(object):
         self.donnees = [x for x in donnees]
 
 class ListView(FastObjectListView):
+    # olv dans l'activité onglet tarifs en bas
     def __init__(self, parent,*args, **kwds):
+        self.donnees = []
         self.parent = parent
         # Récupération des paramètres perso
         self.champs = ["IDactivite","IDgroupe","IDcateg","nomCateg","nomGroupe","codeTarif","nomTarif","prix","cumul"]
@@ -63,6 +65,7 @@ class ListView(FastObjectListView):
 
     def GetTracks(self):
         tracksOLV = []
+        dictTarifs = {}
         ltCateg = [(x.IDcategorie_tarif,x.nom,x.campeur) for x in self.tracksCateg]
 
         # Récupération des groupes
@@ -77,22 +80,26 @@ class ListView(FastObjectListView):
         for IDgroupe, nomGroupe, campeur in listeDonnees :
             dictGroupes[IDgroupe] = {'nom':nomGroupe,'campeur':campeur}
 
-        # Récupération des matTarifs
+        # Récupération des matTarifs et prix article
         req = """
-                SELECT matTarifs.trfIDactivite, matTarifs.trfIDgroupe, matTarifs.trfIDcategorie_tarif, 
-                        matTarifs.trfCodeTarif, matTarifs.trfPrix, matTarifs.trfCumul, matTarifsNoms.trnLibelle
+                SELECT matTarifs.trfIDactivite, matTarifs.trfIDgroupe, 
+                    matTarifs.trfIDcategorie_tarif, matTarifs.trfCodeTarif, 
+                    matTarifs.trfPrix, matTarifs.trfCumul, matTarifsNoms.trnLibelle, 
+                    Max(If(matArticles.artCodeBlocFacture = 'Sejour', matArticles.artPrix1,0))
                 FROM ((matTarifs 
-                        INNER JOIN matTarifsLignes ON matTarifs.trfCodeTarif = matTarifsLignes.trlCodeTarif) 
-                        INNER JOIN matTarifsNoms ON matTarifs.trfCodeTarif = matTarifsNoms.trnCodeTarif) 
+                    LEFT JOIN matTarifsLignes ON matTarifs.trfCodeTarif = matTarifsLignes.trlCodeTarif) 
+                    INNER JOIN matTarifsNoms ON matTarifs.trfCodeTarif = matTarifsNoms.trnCodeTarif) 
+                    LEFT JOIN matArticles ON matTarifsLignes.trlCodeArticle = matArticles.artCodeArticle
                 WHERE (matTarifs.trfIDactivite = %s)
-                GROUP BY matTarifs.trfIDactivite, matTarifs.trfIDgroupe, matTarifs.trfIDcategorie_tarif, 
-                        matTarifs.trfCodeTarif, matTarifs.trfPrix, matTarifs.trfCumul, matTarifsNoms.trnLibelle
+                GROUP BY matTarifs.trfIDactivite, matTarifs.trfIDgroupe, 
+                    matTarifs.trfIDcategorie_tarif, matTarifs.trfCodeTarif, 
+                    matTarifs.trfPrix, matTarifs.trfCumul, matTarifsNoms.trnLibelle
                 ;""" % self.IDactivite
         db.ExecuterReq(req,MsgBox = True)
         lstMatTarifs = db.ResultatReq()
-        tracksOLV = []
-        dictTarifs = {}
-        for IDactivite,IDgroupe,IDcateg,codeTarif,prix,cumul,nomTarif in lstMatTarifs :
+        for IDactivite,IDgroupe,IDcateg,codeTarif,prix,cumul,nomTarif,pxArt in lstMatTarifs :
+            if Nz(prix) == 0:
+                prix = pxArt
             dictTarifs[(IDactivite,IDgroupe,IDcateg)] = (codeTarif,prix,cumul,nomTarif)
 
         # composition du produit cartésien des tarifs potentiels
@@ -246,41 +253,37 @@ class ListView(FastObjectListView):
         cumul = self.Selection()[0].cumul
 
         # DLG Saisie de nouvelles valeurs
-        dlg = Saisie(self, codeTarif,nomTarif,prix, cumul)
+        dlg = Saisie(self, codeTarif, prix, cumul)
         # stockage au retour
         if dlg.ShowModal() == wx.ID_OK:
             choix = dlg.GetChoix()
-            self.SauveSelection(*choix)
+            isPrixArticle = dlg.GetIsPrixArt()
+            self.SauveSelection(isPrixArticle,*choix)
         dlg.Destroy()
         #fin Modifier
 
-    def SauveSelection(self,codeTarif,nomTarif,prix,cumul,*args):
+    def SauveSelection(self,isPrixArticle,codeTarif,nomTarif,prix,cumul,*args):
         # Sauvegarde de l'info saisie
-        try:
-            valPrix = float(prix)
-        except: valPrix = None
-        if len(codeTarif) == 0:
-            nomTarif = ""
-            valPrix = None
         DB = GestionDB.DB()
         # modif dans olv et table matTarif
         for track in self.GetSelectedObjects():
             track.codeTarif = codeTarif
             track.nomTarif = nomTarif
-            track.prix = valPrix
             track.cumul = cumul
+            if isPrixArticle:
+                prix = None
 
             listeCles = [("trfIDactivite", track.IDactivite),
                          ("trfIDgroupe", track.IDgroupe),
                          ("trfIDcategorie_tarif", track.IDcateg), ]
             listeDonnees = [("trfCodeTarif", track.codeTarif),
-                            ("trfPrix", valPrix),
+                            ("trfPrix", prix),
                             ("trfCumul", cumul), ]
             oldCodeTarif = track.donnees[self.champs.index("codeTarif")]
             oldPrix = track.donnees[self.champs.index("prix")]
             oldCumul = track.donnees[self.champs.index("cumul")]
             # pas de changement, on passe
-            if (oldCodeTarif, oldPrix, oldCumul) == (codeTarif, valPrix, cumul):
+            if (oldCodeTarif, oldPrix, oldCumul) == (codeTarif, prix, cumul):
                 continue
             # nouveau tarif associé on insère ou modifie
             if track.codeTarif and len(track.codeTarif) > 0:
@@ -295,7 +298,7 @@ class ListView(FastObjectListView):
             # stockage interne pour prochaines
             track.donnees[self.champs.index("codeTarif")] = codeTarif
             track.donnees[self.champs.index("nomTarif")] = nomTarif
-            track.donnees[self.champs.index("prix")] = valPrix
+            track.donnees[self.champs.index("prix")] = prix
             track.donnees[self.champs.index("cumul")] = cumul
         DB.Close()
         self.Refresh()
@@ -324,7 +327,7 @@ class OlvTarifsNoms(FastObjectListView):
         # Initialisation du listCtrl
         FastObjectListView.__init__(self, parent, **kwds)
         # Binds perso
-        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.parent.GoPrix)
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnActivate)
         self.InitObjectListView()
 
     def InitObjectListView(self):
@@ -335,6 +338,7 @@ class OlvTarifsNoms(FastObjectListView):
         liste_Colonnes = [
             ColumnDefn(_("Code"), 'left', 120, "codeTarif", typeDonnee="texte", isSpaceFilling=True ),
             ColumnDefn(_("Nom Tarif"), 'left', 200, "nomTarif", typeDonnee="texte", isSpaceFilling=True),
+            ColumnDefn(_("Prix article"), 'left', 100, "prixArticle", typeDonnee="montant", stringConverter=FormateMontant),
             ColumnDefn(_("Last Usage"), 'left', 100, "annee", typeDonnee="entier", stringConverter=FormateEntier),
         ]
 
@@ -348,22 +352,32 @@ class OlvTarifsNoms(FastObjectListView):
         self.SetObjects(self.tracksOLV)
 
     def MAJ(self, ID=None):
-        if ID:
-            obj = self.parent.tracksTarifsNoms[ID]
         self.InitModel()
         # Sélection d'un item
-        if ID:
+        if ID != None:
+            obj = self.parent.tracksTarifsNoms[ID]
             self.SelectObject(obj, deselectOthers=True, ensureVisible=True)
         self._ResizeSpaceFillingColumns()
 
+    def OnActivate(self,evt):
+        prixArticle = self.GetSelectedObjects()[0].prixArticle
+        if not prixArticle:
+            prixArticle = 0.0
+        self.parent.prixArticle = prixArticle
+        self.parent.prix = prixArticle
+        self.parent.ctrl_prix.SetValue("{:6.2f}".format(prixArticle))
+        self.parent.ctrl_prix.SetFocus()
 
 class Saisie(wx.Dialog):
-    def __init__(self, parent, codeTarif="", nomTarif="", prix=None, cumul=None):
+    # écran du choix d'un tarif à appliquer
+    def __init__(self, parent, codeTarif="", prix=None, cumul=None):
         wx.Dialog.__init__(self, parent, -1,
                            size=(450,700),
                            style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
         self.parent = parent
-        self.champsNoms = ["codeTarif", "nomTarif","annee"]
+        self.prixArticle = None
+        self.prix = None
+        self.champsNoms = ["codeTarif","nomTarif","prixArticle","annee"]
         self.lstCodesNoms, self.tracksTarifsNoms = self.GetTarifsNoms()
         IDselect = None
         if codeTarif:
@@ -428,46 +442,50 @@ class Saisie(wx.Dialog):
         self.Layout()
         self.Bind(wx.EVT_BUTTON, self.OnBoutonOk, self.bouton_ok)
 
-    def GoPrix(self,*arg):
-        self.ctrl_prix.SetFocus()
-
     def GetChoix(self):
         selection = self.olvTarifsNoms.GetSelectedObject()
         codeTarif = selection.codeTarif
         nomTarif = selection.nomTarif
-        prix = self.ctrl_prix.GetValue()
+        prix = self.prix
         cumul = self.ctrl_cumul.GetValue()
         return (codeTarif,nomTarif,prix,cumul)
+    def GetIsPrixArt(self):
+        if self.prix == self.prixArticle:
+            return True
+        return False
 
     def GetTarifsNoms(self):
         # Récupération des noms de tous les Tarifs
         DB = GestionDB.DB()
         req = """
-            SELECT matTarifsNoms.trnCodeTarif, matTarifsNoms.trnLibelle, activites.date_fin
-            FROM ((matTarifsNoms 
-                    INNER JOIN matTarifsLignes ON matTarifsNoms.trnCodeTarif = matTarifsLignes.trlCodeTarif) 
-                    LEFT JOIN matTarifs ON matTarifsNoms.trnCodeTarif = matTarifs.trfCodeTarif) 
-                    LEFT JOIN activites ON matTarifs.trfIDactivite = activites.IDactivite
-            GROUP BY matTarifsNoms.trnCodeTarif, matTarifsNoms.trnLibelle, activites.date_fin
+            SELECT matTarifsNoms.trnCodeTarif, matTarifsNoms.trnLibelle, Max(activites.date_fin), 
+                    Max(If(matArticles.artCodeBlocFacture='Sejour',matArticles.artPrix1,0))
+            FROM (((matTarifsNoms 
+            INNER JOIN matTarifsLignes ON matTarifsNoms.trnCodeTarif = matTarifsLignes.trlCodeTarif) 
+            LEFT JOIN matTarifs ON matTarifsNoms.trnCodeTarif = matTarifs.trfCodeTarif) 
+            LEFT JOIN activites ON matTarifs.trfIDactivite = activites.IDactivite) 
+            LEFT JOIN matArticles ON matTarifsLignes.trlCodeArticle = matArticles.artCodeArticle
+            GROUP BY matTarifsNoms.trnCodeTarif, matTarifsNoms.trnLibelle
             ;"""
         DB.ExecuterReq(req,MsgBox = "OL_Tarifs.GetTarifsNoms")
         lstTarifs = DB.ResultatReq()
         # regroupements sur des clés 'codeTarif"
         ddTarifsNoms = {}
-        for codeTarif,nomTarif,date in lstTarifs :
+        for codeTarif,nomTarif,date,prix in lstTarifs :
             try:
                 dte = int(date[:4])
             except:
                 dte = 0
-            if not codeTarif in list(ddTarifsNoms.keys()):
-                ddTarifsNoms[codeTarif] = {"nom":nomTarif,"annee":dte}
-            elif ddTarifsNoms[codeTarif]["annee"] < dte:
-                ddTarifsNoms[codeTarif]["annee"] = dte
+            ddTarifsNoms[codeTarif] = {"nom":nomTarif,"annee":dte,"prixArticle":prix}
         # transposition en tracks
         tracksTarifsNoms = []
         lstCodesNoms = []
         for code in list(ddTarifsNoms.keys()):
-            donnees = [code,ddTarifsNoms[code]["nom"],ddTarifsNoms[code]["annee"]]
+            donnees = [
+                    code,
+                    ddTarifsNoms[code]["nom"],
+                    ddTarifsNoms[code]["prixArticle"],
+                    ddTarifsNoms[code]["annee"],]
             tracksTarifsNoms.append(Track(donnees,self.champsNoms))
             lstCodesNoms.append(code)
         DB.Close()
@@ -478,6 +496,16 @@ class Saisie(wx.Dialog):
             mess = "Vous n'avez pas choisi un tarif à appliquer"
             wx.MessageBox(mess,"Validation impossible", wx.OK | wx.ICON_ERROR)
             return
+        try:
+            valPrix = float(self.ctrl_prix.GetValue())
+        except:
+            valPrix = None
+            self.ctrl_prix.SetValue("")
+        if valPrix == None:
+            mess = "Vous n'avez pas saisi un nombre"
+            wx.MessageBox(mess,"Validation impossible", wx.OK | wx.ICON_ERROR)
+            return
+        self.prix = valPrix
         self.EndModal(wx.ID_OK)
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
@@ -485,7 +513,7 @@ class Saisie(wx.Dialog):
 class MyFrame(wx.Frame):
     def __init__(self, *args, **kwds):
         wx.Frame.__init__(self, *args, **kwds)
-        panel = wx.Panel(self, -1, name="test1")
+        panel = wx.Panel(self, -1, name="MyFrame")
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_1.Add(panel, 1, wx.ALL|wx.EXPAND)
         self.SetSizer(sizer_1)

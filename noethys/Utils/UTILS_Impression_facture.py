@@ -194,7 +194,34 @@ def GetParagraph(texte, paraStyle):
         message += "%s"%texte
         wx.MessageBox(message,"Texte remplacé",wx.CANCEL)
         return Paragraph("xxxxxxxxxxxxxxxxxxxxx",paraStyle)
-        
+
+def ComposeLigneReglement(key,dicRegl):
+    # key est la date augmentée d'un indice de sous ligne pour autres affect
+    if key[-2:] == "00":
+        # ligne du règlement proprement dit
+        montantReglement = "%.02f%s" % (dicRegl["montant"], SYMBOLE)
+        montantVentilation = "%.02f%s" % (dicRegl["ventilation"], SYMBOLE)
+        if dicRegl["ventilation"] != dicRegl["montant"]:
+            texteMontant = "%s sur %s" % (montantVentilation, montantReglement)
+        else:
+            texteMontant = montantReglement
+        if "dateReglement" in list(dicRegl.keys()):
+            dat = str(dicRegl["dateReglement"])
+        else:
+            dat = "          "
+        an = dat[:4]
+        mois = dat[5:7]
+        if dicRegl["emetteur"] not in ("", None):
+            emetteur = " (%s) " % dicRegl["emetteur"]
+        else:
+            emetteur = ""
+        texte = "%s/%s %s%s de %s (%s)" % (mois, an, dicRegl["mode"][:3], emetteur,
+                                           dicRegl["payeur"], texteMontant)
+    else:
+        # sous ligne des autres affectations du règlement
+        texte = "%s"%dicRegl["autreAffect"]
+    return texte
+
 class Impression():
     def __init__(self, dictValeurs={}, dictOptions={}, IDmodele=None, mode="_", ouverture=True, nomFichier=None, titre=None):
         """ Impression """
@@ -248,6 +275,7 @@ class Impression():
             listeNomsSansCivilite.append((dictValeur["nomSansCivilite"], IDcompte))
         listeNomsSansCivilite.sort()
 
+        # déroulé des pages (comptes)
         for nomSansCivilite, IDcompte in listeNomsSansCivilite :
             dictValeur = dictValeurs[IDcompte]
             if not "montant" in dictValeur:
@@ -633,25 +661,10 @@ class Impression():
                     if len(dictReglements) > 0 :
                         listeTextesReglements = []
                         lstReglements = [(x,dictReglements[x]) for x in dictReglements.keys()]
+                        # il faut forcer sur l'ordre des clé
                         lstReglements.sort(key=TakeFirst)
-                        for key,dictTemp in lstReglements:
-                            montantReglement = "%.02f%s" % (dictTemp["montant"], SYMBOLE)
-                            montantVentilation = "%.02f%s" % (dictTemp["ventilation"], SYMBOLE)
-                            if dictTemp["ventilation"] != dictTemp["montant"] :
-                                texteMontant = "%s sur %s" % (montantVentilation, montantReglement)
-                            else :
-                                texteMontant = montantReglement
-                            if "dateReglement" in list(dictTemp.keys()):
-                                dat = str(dictTemp["dateReglement"])
-                            else: dat = "          "
-                            an = dat[:4]
-                            mois = dat[5:7]
-                            if dictTemp["emetteur"] not in ("", None) :
-                                emetteur = " (%s) " % dictTemp["emetteur"]
-                            else :
-                                emetteur = ""
-                            texte = "%s/%s %s%s de %s (%s)" % (mois,an,dictTemp["mode"][:3],  emetteur,
-                                                                  dictTemp["payeur"], texteMontant)
+                        for key,dictReglement in lstReglements:
+                            texte = ComposeLigneReglement(key,dictReglement)
                             listeTextesReglements.append(texte)
 
                         if dictValeur["solde"] > FloatToDecimal(0.0) :
@@ -677,7 +690,8 @@ class Impression():
                         listeMessages.append(GetParagraph(texte, paraStyle))
 
                 if len(listeMessages) > 0 :
-                    listeMessages.insert(0, GetParagraph(_("<u>Informations :</u>"), paraStyle))
+                    date = FonctionsPerso.dateJour('fr')
+                    listeMessages.insert(0, GetParagraph(_("<u>Situation au %s</u>"%date), paraStyle))
                 
                 # ------------------ CADRE TOTAUX ------------------------
                 dataTableau = []
