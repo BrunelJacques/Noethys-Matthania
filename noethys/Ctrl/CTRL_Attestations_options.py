@@ -21,8 +21,7 @@ import wx.propgrid as wxpg
 import copy
 
 
-
-TEXTE_INTRO = _("Je soussigné{SIGNATAIRE_GENRE} {SIGNATAIRE_NOM}, {SIGNATAIRE_FONCTION}, atteste avoir accueilli {NOMS_INDIVIDUS} sur la période du {DATE_DEBUT} au {DATE_FIN} selon le détail suivant :")
+TEXTE_INTRO = _("Je soussigné{SIGNATAIRE_GENRE} {SIGNATAIRE_NOM}, {SIGNATAIRE_FONCTION}, atteste avoir accueilli {NOMS_INDIVIDUS}, pour une durée de {ACT_JOURS} jours {ACT_NUITS} nuits,, sur la période du {ACT_DEBUT} au {ACT_FIN}, selon le détail suivant :")
 
 
 def RemplaceMotsCles(texte="", dictValeurs={}):
@@ -39,20 +38,20 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL) :
         self.listeActivites = listeActivites
         self.dictDonnees = {}
         CTRL_Propertygrid.CTRL.__init__(self, parent)
-        
-    
+        self.SetColumnProportion(0,2)
+        self.SetColumnProportion(1, 3)
+
     def Remplissage(self):
         listeChamps = [
             "{SIGNATAIRE_GENRE}", "{SIGNATAIRE_NOM}", "{SIGNATAIRE_FONCTION}",
-            "{NUM_ATTESTATION}", "{DATE_DEBUT}", "{DATE_FIN}", "{DATE_EDITION}", "{LIEU_EDITION}", 
+            "{NUM_ATTESTATION}", "{DATE_DEBUT}", "{DATE_FIN}", "{DATE_EDITION}", "{LIEU_EDITION}",
+            "{ACT_DEBUT}", "{ACT_FIN}", "{ACT_JOURS}", "{ACT_NUITS}",
             "{NOMS_INDIVIDUS}", "{DESTINATAIRE_NOM}", "{DESTINATAIRE_RUE}", "{DESTINATAIRE_VILLE}", 
             "{TOTAL_PERIODE}", "{TOTAL_REGLE}", "{SOLDE_DU}", 
             "{ORGANISATEUR_NOM}", "{ORGANISATEUR_RUE}", "{ORGANISATEUR_CP}", "{ORGANISATEUR_VILLE}", "{ORGANISATEUR_TEL}", 
             "{ORGANISATEUR_FAX}", "{ORGANISATEUR_MAIL}", "{ORGANISATEUR_SITE}", "{ORGANISATEUR_AGREMENT}", "{ORGANISATEUR_SIRET}", 
             "{ORGANISATEUR_APE}", 
             ]
-
-
         # Catégorie 
         self.Append( wxpg.PropertyCategory(_("Modèle")) )
 
@@ -83,11 +82,8 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL) :
         self.Append(propriete)
 
         # Répertoire de sauvegarde
-        if 'phoenix' in wx.PlatformInfo:
-            propriete = wxpg.DirProperty(name=_("Répertoire pour copie unique"), label="repertoire_copie", value="")
-        else:
-            propriete = wxpg.DirProperty(label=_("Répertoire pour copie unique"), name="repertoire_copie", value="")
-        propriete.SetHelpString(_("Enregistrer une copie unique de chaque document dans le répertoire sélectionné. Sinon laissez vide ce champ.")) 
+        propriete = wxpg.DirProperty(name=_("Répertoire pour copie unique"), label="repertoire_copie", value="")
+        propriete.SetHelpString(_("Enregistrer une copie unique de chaque document dans le répertoire sélectionné. Sinon laissez vide ce champ."))
         self.Append(propriete)
         
         # Catégorie 
@@ -450,7 +446,6 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL) :
             dlg.Destroy()
             self.MAJ_modeles()         
         propriete.SetValue(ancienneValeur)
-
 
     def OnPropGridChange(self, event):
         propriete = event.GetProperty()

@@ -8,7 +8,6 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
 from Utils.UTILS_Traduction import _
 import Chemins
 import wx
@@ -17,7 +16,6 @@ from Ctrl import CTRL_Bouton_image
 import GestionDB
 
 from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, CTRL_Outils
-
 
 def FormateMontant(montant):
     if montant == None or montant == "": return ""
@@ -32,6 +30,207 @@ def FormateBool(nombre):
     if int(nombre) == 1 : return "x"
     return "?"
 
+# -------------------------------------------------------------------------------------------------------------------------------------------
+
+class OlvTarifsNoms(FastObjectListView):
+    # cadre olv dans l'écran du choix d'un tarif (saisie)
+    def __init__(self, parent, *args, **kwds):
+        self.parent = parent
+        # Initialisation du listCtrl
+        FastObjectListView.__init__(self, parent, **kwds)
+        # Binds perso
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnActivate)
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnActivate)
+        self.InitObjectListView()
+
+    def InitObjectListView(self):
+        # Couleur en alternance des lignes
+        self.oddRowsBackColor = "#F0FBED"
+        self.evenRowsBackColor = wx.Colour(255, 255, 255)
+        self.useExpansionColumn = True
+        liste_Colonnes = [
+            ColumnDefn(_("Code"), 'left', 120, "codeTarif", typeDonnee="texte", isSpaceFilling=True ),
+            ColumnDefn(_("Nom Tarif"), 'left', 200, "nomTarif", typeDonnee="texte", isSpaceFilling=True),
+            ColumnDefn(_("Prix article"), 'left', 100, "prixArticle", typeDonnee="montant", stringConverter=FormateMontant),
+            ColumnDefn(_("Last Usage"), 'left', 100, "annee", typeDonnee="entier", stringConverter=FormateEntier),
+        ]
+
+        self.SetColumns(liste_Colonnes)
+        self.SetEmptyListMsg(_("Aucun Tarif"))
+        self.SetEmptyListMsgFont(wx.FFont(11, wx.DEFAULT, faceName="Tekton"))
+        self.SetSortColumn(self.columns[2],False,False)
+
+    def InitModel(self):
+        self.tracksOLV = self.parent.tracksTarifsNoms
+        self.SetObjects(self.tracksOLV)
+
+    def MAJ(self, ID=None):
+        self.InitModel()
+        # Sélection d'un item
+        if ID != None:
+            obj = self.parent.tracksTarifsNoms[ID]
+            self.SelectObject(obj, deselectOthers=True, ensureVisible=True)
+        self._ResizeSpaceFillingColumns()
+
+    def OnActivate(self,evt):
+        prixArticle = self.GetSelectedObjects()[0].prixArticle
+        if not prixArticle:
+            prixArticle = 0.0
+        self.parent.prixArticle = prixArticle
+        self.parent.prix = prixArticle
+        self.parent.ctrl_prix.SetValue("{:6.2f}".format(prixArticle))
+        self.parent.ctrl_prix.SetFocus()
+
+class Saisie(wx.Dialog):
+    # écran du choix d'un tarif à appliquer
+    def __init__(self, parent, codeTarif="", prix=None, cumul=None):
+        wx.Dialog.__init__(self, parent, -1,
+                           size=(450, 700),
+                           style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
+        self.parent = parent
+        self.prixArticle = None
+        self.prix = None
+        self.champsNoms = ["codeTarif", "nomTarif", "prixArticle", "annee"]
+        self.lstCodesNoms, self.tracksTarifsNoms = self.GetTarifsNoms()
+        IDselect = None
+        if codeTarif:
+            IDselect = self.lstCodesNoms.index(codeTarif)
+
+        info = "Le choix ci-dessous s'appliquera aux lignes précédemment sélectionnées\n(les choix multiples étaient possibles)"
+        self.text_info = wx.TextCtrl(self, -1, "",
+                                     style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_CENTER,
+                                     size=(500, 50))
+        self.text_info.SetDefaultStyle(wx.TextAttr(wx.BLUE))
+        self.text_info.WriteText(info)
+        self.text_info.Enable(False)
+
+        self.label_prix = wx.StaticText(self, -1, _("Prix de base:"))
+        self.ctrl_prix = wx.TextCtrl(self, -1, "")
+
+        self.staticbox_tarifNom = wx.StaticBox(self, -1, "Choix du tarif")
+        self.olvTarifsNoms = OlvTarifsNoms(self, id=-1,
+                                           style=wx.LC_HRULES | wx.LC_VRULES | wx.LC_SINGLE_SEL)
+        self.olvTarifsNoms.MAJ(IDselect)
+        self.ctrl_recherche = CTRL_Outils(self, listview=self.olvTarifsNoms)
+
+        if prix != None:
+            self.ctrl_prix.SetValue(str(prix))
+        self.ctrl_cumul = wx.CheckBox(self, -1, "Sans réduction cumul et ministère")
+        if cumul == 1:
+            self.ctrl_cumul.SetValue(True)
+
+        self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"),
+                                                cheminImage="Images/32x32/Valider.png")
+        self.bouton_annuler = CTRL_Bouton_image.CTRL(self, id=wx.ID_CANCEL,
+                                                     texte=_("Annuler"),
+                                                     cheminImage="Images/32x32/Annuler.png")
+
+        self.SetTitle(_("Affectation d'un tarif"))
+        self.SetMinSize((300, 400))
+
+        self.olvTarifsNoms.SetToolTip(_("Choisissez le tarif à affecter"))
+        infoPrix = _(
+            "Ce prix de base >0 se substituera au 'prixParam1' des articles de typeLigne 'Séjour'")
+        self.label_prix.SetToolTip(infoPrix)
+        self.ctrl_prix.SetToolTip(infoPrix)
+        mess = "Cette case excluera les inscriptions à ce tarif de la réduction cumul\n"
+        mess += " et la réduction ministère ne sera pas proposée"
+        self.ctrl_cumul.SetToolTip(mess)
+
+        grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
+        grid_sizer_base.Add(self.text_info, 0, 0, 0)
+        staticbox_olv = wx.StaticBoxSizer(self.staticbox_tarifNom, wx.VERTICAL)
+        staticbox_olv.Add(self.olvTarifsNoms, 1, wx.EXPAND | wx.ALL, 10)
+        staticbox_olv.Add(self.ctrl_recherche, 0, wx.EXPAND | wx.ALL, 10)
+        grid_sizer_base.Add(staticbox_olv, 0, wx.EXPAND, 0)
+
+        grid_sizer_boutons = wx.FlexGridSizer(rows=1, cols=6, vgap=10, hgap=10)
+
+        grid_sizer_boutons.Add(self.label_prix, 0,
+                               wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer_boutons.Add(self.ctrl_prix, 1, wx.EXPAND, 0)
+        grid_sizer_boutons.Add(self.ctrl_cumul, 1, wx.EXPAND, 0)
+        grid_sizer_boutons.Add((20, 20), 1, wx.EXPAND, 0)
+        grid_sizer_boutons.Add(self.bouton_ok, 0, 0, 0)
+        grid_sizer_boutons.Add(self.bouton_annuler, 0, 0, 0)
+        grid_sizer_boutons.AddGrowableCol(3)
+        grid_sizer_base.Add(grid_sizer_boutons, 0,
+                            wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND, 10)
+        grid_sizer_base.AddGrowableCol(0)
+        grid_sizer_base.AddGrowableRow(1)
+        self.SetSizerAndFit(grid_sizer_base)
+        self.Layout()
+        self.Bind(wx.EVT_BUTTON, self.OnBoutonOk, self.bouton_ok)
+
+    def GetChoix(self):
+        selection = self.olvTarifsNoms.GetSelectedObject()
+        codeTarif = selection.codeTarif
+        nomTarif = selection.nomTarif
+        prix = self.prix
+        cumul = self.ctrl_cumul.GetValue()
+        return (codeTarif, nomTarif, prix, cumul)
+
+    def GetIsPrixArt(self):
+        if self.prix == self.prixArticle:
+            return True
+        return False
+
+    def GetTarifsNoms(self):
+        # Récupération des noms de tous les Tarifs
+        DB = GestionDB.DB()
+        req = """
+            SELECT matTarifsNoms.trnCodeTarif, matTarifsNoms.trnLibelle, Max(activites.date_fin), 
+                    Max(If(matArticles.artCodeBlocFacture='Sejour',matArticles.artPrix1,0))
+            FROM (((matTarifsNoms 
+            INNER JOIN matTarifsLignes ON matTarifsNoms.trnCodeTarif = matTarifsLignes.trlCodeTarif) 
+            LEFT JOIN matTarifs ON matTarifsNoms.trnCodeTarif = matTarifs.trfCodeTarif) 
+            LEFT JOIN activites ON matTarifs.trfIDactivite = activites.IDactivite) 
+            LEFT JOIN matArticles ON matTarifsLignes.trlCodeArticle = matArticles.artCodeArticle
+            GROUP BY matTarifsNoms.trnCodeTarif, matTarifsNoms.trnLibelle
+            ;"""
+        DB.ExecuterReq(req, MsgBox="OL_Tarifs.GetTarifsNoms")
+        lstTarifs = DB.ResultatReq()
+        # regroupements sur des clés 'codeTarif"
+        ddTarifsNoms = {}
+        for codeTarif, nomTarif, date, prix in lstTarifs:
+            try:
+                dte = int(date[:4])
+            except:
+                dte = 0
+            ddTarifsNoms[codeTarif] = {"nom": nomTarif, "annee": dte, "prixArticle": prix}
+        # transposition en tracks
+        tracksTarifsNoms = []
+        lstCodesNoms = []
+        for code in list(ddTarifsNoms.keys()):
+            donnees = [
+                code,
+                ddTarifsNoms[code]["nom"],
+                ddTarifsNoms[code]["prixArticle"],
+                ddTarifsNoms[code]["annee"], ]
+            tracksTarifsNoms.append(Track(donnees, self.champsNoms))
+            lstCodesNoms.append(code)
+        DB.Close()
+        return lstCodesNoms, tracksTarifsNoms
+
+    def OnBoutonOk(self, event):
+        if not self.olvTarifsNoms.GetSelectedObject():
+            mess = "Vous n'avez pas choisi un tarif à appliquer"
+            wx.MessageBox(mess, "Validation impossible", wx.OK | wx.ICON_ERROR)
+            return
+        try:
+            valPrix = float(self.ctrl_prix.GetValue())
+        except:
+            valPrix = None
+            self.ctrl_prix.SetValue("")
+        if valPrix == None:
+            mess = "Vous n'avez pas saisi un nombre"
+            wx.MessageBox(mess, "Validation impossible", wx.OK | wx.ICON_ERROR)
+            return
+        self.prix = valPrix
+        self.EndModal(wx.ID_OK)
+
+# -------------------------------------------------------------------------------------------------------------------------------------------
+
 class Track(object):
     def __init__(self, donnees, champs):
         ix =0
@@ -44,6 +243,7 @@ class ListView(FastObjectListView):
     # olv dans l'activité onglet tarifs en bas
     def __init__(self, parent,*args, **kwds):
         self.donnees = []
+        self.select = []
         self.parent = parent
         # Récupération des paramètres perso
         self.champs = ["IDactivite","IDgroupe","IDcateg","nomCateg","nomGroupe","codeTarif","nomTarif","prix","cumul"]
@@ -133,7 +333,7 @@ class ListView(FastObjectListView):
             ColumnDefn(_("Groupe"), 'left', 200, "nomGroupe", typeDonnee="texte",isSpaceFilling=True),
             ColumnDefn(_("Code"), 'left', 80, "codeTarif",typeDonnee="texte",),
             ColumnDefn(_("Nom Tarif"), 'left', 200, "nomTarif",typeDonnee="texte", isSpaceFilling=True),
-            ColumnDefn(_("Prix"), 'left', 80, "prix",typeDonnee="montant",stringConverter= FormateMontant),
+            ColumnDefn(_("Prix"), 'right', 80, "prix",typeDonnee="montant",stringConverter= FormateMontant),
             ColumnDefn(_("ExcluCumul"), 'left', 80, "cumul",typeDonnee="montant",stringConverter= FormateBool),
             ]
         
@@ -242,13 +442,13 @@ class ListView(FastObjectListView):
                 self.SelectObject(track,deselectOthers=False)
 
     def Modifier(self, event):
+        self.select = self.Selection()
         if len(self.Selection()) == 0 :
             dlg = wx.MessageDialog(self, _("Vous n'avez sélectionné aucun groupe à modifier dans la liste"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
             dlg.ShowModal()
             dlg.Destroy()
             return
         codeTarif = self.Selection()[0].codeTarif
-        nomTarif = self.Selection()[0].nomTarif
         prix = self.Selection()[0].prix
         cumul = self.Selection()[0].cumul
 
@@ -271,13 +471,13 @@ class ListView(FastObjectListView):
             track.nomTarif = nomTarif
             track.cumul = cumul
             if isPrixArticle:
-                prix = None
-
+                prixSauve = None
+            else: prixSauve = prix
             listeCles = [("trfIDactivite", track.IDactivite),
                          ("trfIDgroupe", track.IDgroupe),
                          ("trfIDcategorie_tarif", track.IDcateg), ]
             listeDonnees = [("trfCodeTarif", track.codeTarif),
-                            ("trfPrix", prix),
+                            ("trfPrix", prixSauve),
                             ("trfCumul", cumul), ]
             oldCodeTarif = track.donnees[self.champs.index("codeTarif")]
             oldPrix = track.donnees[self.champs.index("prix")]
@@ -296,11 +496,16 @@ class ListView(FastObjectListView):
                     # pas de tarif associé, on supprime les enregistrements précédents
                     ret = DB.ReqDELcles("matTarifs", listeCles=listeCles, MsgBox="OL_Tarifs.Modifier-delete")
             # stockage interne pour prochaines
+            if not prix:
+                prix = ""
             track.donnees[self.champs.index("codeTarif")] = codeTarif
             track.donnees[self.champs.index("nomTarif")] = nomTarif
             track.donnees[self.champs.index("prix")] = prix
             track.donnees[self.champs.index("cumul")] = cumul
+            track.prix = prix # nécessaire pour forcer le refresh sur lui seulement!!
         DB.Close()
+        for item in self.select:
+            self.Select(self.innerList.index(item))
         self.Refresh()
         return  # fin de Sauve
 
@@ -315,198 +520,8 @@ class ListView(FastObjectListView):
         # Confirmation de suppression
         dlg = wx.MessageDialog(self, _("Souhaitez-vous vraiment supprimer les affectations de tarifs?"), _("Suppression"), wx.YES_NO|wx.NO_DEFAULT|wx.CANCEL|wx.ICON_INFORMATION)
         if dlg.ShowModal() == wx.ID_YES :
-            self.SauveSelection("","",None,None)
+            self.SauveSelection(None,"","",None,None)
         dlg.Destroy()
-
-# -------------------------------------------------------------------------------------------------------------------------------------------
-
-
-class OlvTarifsNoms(FastObjectListView):
-    def __init__(self, parent, *args, **kwds):
-        self.parent = parent
-        # Initialisation du listCtrl
-        FastObjectListView.__init__(self, parent, **kwds)
-        # Binds perso
-        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnActivate)
-        self.InitObjectListView()
-
-    def InitObjectListView(self):
-        # Couleur en alternance des lignes
-        self.oddRowsBackColor = "#F0FBED"
-        self.evenRowsBackColor = wx.Colour(255, 255, 255)
-        self.useExpansionColumn = True
-        liste_Colonnes = [
-            ColumnDefn(_("Code"), 'left', 120, "codeTarif", typeDonnee="texte", isSpaceFilling=True ),
-            ColumnDefn(_("Nom Tarif"), 'left', 200, "nomTarif", typeDonnee="texte", isSpaceFilling=True),
-            ColumnDefn(_("Prix article"), 'left', 100, "prixArticle", typeDonnee="montant", stringConverter=FormateMontant),
-            ColumnDefn(_("Last Usage"), 'left', 100, "annee", typeDonnee="entier", stringConverter=FormateEntier),
-        ]
-
-        self.SetColumns(liste_Colonnes)
-        self.SetEmptyListMsg(_("Aucun Tarif"))
-        self.SetEmptyListMsgFont(wx.FFont(11, wx.DEFAULT, faceName="Tekton"))
-        self.SetSortColumn(self.columns[2],False,False)
-
-    def InitModel(self):
-        self.tracksOLV = self.parent.tracksTarifsNoms
-        self.SetObjects(self.tracksOLV)
-
-    def MAJ(self, ID=None):
-        self.InitModel()
-        # Sélection d'un item
-        if ID != None:
-            obj = self.parent.tracksTarifsNoms[ID]
-            self.SelectObject(obj, deselectOthers=True, ensureVisible=True)
-        self._ResizeSpaceFillingColumns()
-
-    def OnActivate(self,evt):
-        prixArticle = self.GetSelectedObjects()[0].prixArticle
-        if not prixArticle:
-            prixArticle = 0.0
-        self.parent.prixArticle = prixArticle
-        self.parent.prix = prixArticle
-        self.parent.ctrl_prix.SetValue("{:6.2f}".format(prixArticle))
-        self.parent.ctrl_prix.SetFocus()
-
-class Saisie(wx.Dialog):
-    # écran du choix d'un tarif à appliquer
-    def __init__(self, parent, codeTarif="", prix=None, cumul=None):
-        wx.Dialog.__init__(self, parent, -1,
-                           size=(450,700),
-                           style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
-        self.parent = parent
-        self.prixArticle = None
-        self.prix = None
-        self.champsNoms = ["codeTarif","nomTarif","prixArticle","annee"]
-        self.lstCodesNoms, self.tracksTarifsNoms = self.GetTarifsNoms()
-        IDselect = None
-        if codeTarif:
-            IDselect = self.lstCodesNoms.index(codeTarif)
-
-        info = "Le choix ci-dessous s'appliquera aux lignes précédemment sélectionnées\n(les choix multiples étaient possibles)"
-        self.text_info = wx.TextCtrl(self, -1, "",
-                                     style=wx.TE_MULTILINE|wx.TE_READONLY|wx.TE_CENTER,
-                                     size=(500,50))
-        self.text_info.SetDefaultStyle(wx.TextAttr(wx.BLUE))
-        self.text_info.WriteText(info)
-        self.text_info.Enable(False)
-
-        self.staticbox_tarifNom = wx.StaticBox(self, -1,"Choix du tarif")
-        self.olvTarifsNoms = OlvTarifsNoms(self, id=-1, style=wx.LC_HRULES|wx.LC_VRULES|wx.LC_SINGLE_SEL)
-        self.olvTarifsNoms.MAJ(IDselect)
-        self.ctrl_recherche = CTRL_Outils(self, listview=self.olvTarifsNoms)
-
-        self.label_prix = wx.StaticText(self, -1, _("Prix de base:"))
-        self.ctrl_prix = wx.TextCtrl(self, -1, "")
-        if prix !=None :
-            self.ctrl_prix.SetValue(str(prix))
-        self.ctrl_cumul = wx.CheckBox(self, -1, "Sans réduction cumul et ministère")
-        if cumul == 1 :
-            self.ctrl_cumul.SetValue(True)
-
-
-        self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"), cheminImage="Images/32x32/Valider.png")
-        self.bouton_annuler = CTRL_Bouton_image.CTRL(self, id=wx.ID_CANCEL, texte=_("Annuler"), cheminImage="Images/32x32/Annuler.png")
-        
-        self.SetTitle(_("Affectation d'un tarif"))
-        self.SetMinSize((300, 400))
-        
-        self.olvTarifsNoms.SetToolTip(_("Choisissez le tarif à affecter"))
-        infoPrix = _("Ce prix de base >0 se substituera au 'prixParam1' des articles de typeLigne 'Séjour'")
-        self.label_prix.SetToolTip(infoPrix)
-        self.ctrl_prix.SetToolTip(infoPrix)
-        mess = "Cette case excluera les inscriptions à ce tarif de la réduction cumul\n"
-        mess += " et la réduction ministère ne sera pas proposée"
-        self.ctrl_cumul.SetToolTip(mess)
-
-        grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
-        grid_sizer_base.Add(self.text_info, 0, 0, 0)
-        staticbox_olv = wx.StaticBoxSizer(self.staticbox_tarifNom, wx.VERTICAL)
-        staticbox_olv.Add(self.olvTarifsNoms, 1, wx.EXPAND|wx.ALL, 10)
-        staticbox_olv.Add(self.ctrl_recherche, 0, wx.EXPAND|wx.ALL, 10)
-        grid_sizer_base.Add(staticbox_olv,0,wx.EXPAND,0)
-
-        grid_sizer_boutons = wx.FlexGridSizer(rows=1, cols=6, vgap=10, hgap=10)
-
-        grid_sizer_boutons.Add(self.label_prix, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer_boutons.Add(self.ctrl_prix, 1, wx.EXPAND, 0)
-        grid_sizer_boutons.Add(self.ctrl_cumul, 1, wx.EXPAND, 0)
-        grid_sizer_boutons.Add((20, 20), 1, wx.EXPAND, 0)
-        grid_sizer_boutons.Add(self.bouton_ok, 0, 0, 0)
-        grid_sizer_boutons.Add(self.bouton_annuler, 0, 0, 0)
-        grid_sizer_boutons.AddGrowableCol(3)
-        grid_sizer_base.Add(grid_sizer_boutons, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 10)
-        grid_sizer_base.AddGrowableCol(0)
-        grid_sizer_base.AddGrowableRow(1)
-        self.SetSizerAndFit(grid_sizer_base)
-        self.Layout()
-        self.Bind(wx.EVT_BUTTON, self.OnBoutonOk, self.bouton_ok)
-
-    def GetChoix(self):
-        selection = self.olvTarifsNoms.GetSelectedObject()
-        codeTarif = selection.codeTarif
-        nomTarif = selection.nomTarif
-        prix = self.prix
-        cumul = self.ctrl_cumul.GetValue()
-        return (codeTarif,nomTarif,prix,cumul)
-    def GetIsPrixArt(self):
-        if self.prix == self.prixArticle:
-            return True
-        return False
-
-    def GetTarifsNoms(self):
-        # Récupération des noms de tous les Tarifs
-        DB = GestionDB.DB()
-        req = """
-            SELECT matTarifsNoms.trnCodeTarif, matTarifsNoms.trnLibelle, Max(activites.date_fin), 
-                    Max(If(matArticles.artCodeBlocFacture='Sejour',matArticles.artPrix1,0))
-            FROM (((matTarifsNoms 
-            INNER JOIN matTarifsLignes ON matTarifsNoms.trnCodeTarif = matTarifsLignes.trlCodeTarif) 
-            LEFT JOIN matTarifs ON matTarifsNoms.trnCodeTarif = matTarifs.trfCodeTarif) 
-            LEFT JOIN activites ON matTarifs.trfIDactivite = activites.IDactivite) 
-            LEFT JOIN matArticles ON matTarifsLignes.trlCodeArticle = matArticles.artCodeArticle
-            GROUP BY matTarifsNoms.trnCodeTarif, matTarifsNoms.trnLibelle
-            ;"""
-        DB.ExecuterReq(req,MsgBox = "OL_Tarifs.GetTarifsNoms")
-        lstTarifs = DB.ResultatReq()
-        # regroupements sur des clés 'codeTarif"
-        ddTarifsNoms = {}
-        for codeTarif,nomTarif,date,prix in lstTarifs :
-            try:
-                dte = int(date[:4])
-            except:
-                dte = 0
-            ddTarifsNoms[codeTarif] = {"nom":nomTarif,"annee":dte,"prixArticle":prix}
-        # transposition en tracks
-        tracksTarifsNoms = []
-        lstCodesNoms = []
-        for code in list(ddTarifsNoms.keys()):
-            donnees = [
-                    code,
-                    ddTarifsNoms[code]["nom"],
-                    ddTarifsNoms[code]["prixArticle"],
-                    ddTarifsNoms[code]["annee"],]
-            tracksTarifsNoms.append(Track(donnees,self.champsNoms))
-            lstCodesNoms.append(code)
-        DB.Close()
-        return lstCodesNoms,tracksTarifsNoms
-
-    def OnBoutonOk(self, event):
-        if not self.olvTarifsNoms.GetSelectedObject():
-            mess = "Vous n'avez pas choisi un tarif à appliquer"
-            wx.MessageBox(mess,"Validation impossible", wx.OK | wx.ICON_ERROR)
-            return
-        try:
-            valPrix = float(self.ctrl_prix.GetValue())
-        except:
-            valPrix = None
-            self.ctrl_prix.SetValue("")
-        if valPrix == None:
-            mess = "Vous n'avez pas saisi un nombre"
-            wx.MessageBox(mess,"Validation impossible", wx.OK | wx.ICON_ERROR)
-            return
-        self.prix = valPrix
-        self.EndModal(wx.ID_OK)
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -368,7 +368,8 @@ def Importation(liste_activites=[], date_debut=None, date_fin=None, date_edition
                 "IDprestation" : IDprestation, "date" : date, "categorie" : categorie, "label" : label,
                 "montant_initial" : montant_initial, "montant" : montant, "tva" : tva, 
                 "IDtarif" : IDtarif, "nomTarif" : nomTarif, "nomCategorieTarif" : nomCategorieTarif, 
-                "montant_ventilation" : montant_ventilation, "listeDatesConso" : listeDates,
+                "montant_ventilation" : montant_ventilation,
+                "listeDatesConso" : listeDates,
                 "deductions" : deductions, "forfait_date_debut": UTILS_Dates.DateEngEnDateDD(forfait_date_debut), "forfait_date_fin": UTILS_Dates.DateEngEnDateDD(forfait_date_fin),
                 }
 

@@ -85,6 +85,19 @@ def RechercheAgrement(listeAgrements, IDactivite, date):
             return agrement
     return None
 
+def SyntheseActivite(lstDates):
+    jours = len(lstDates)
+    lstDates.sort()
+    debut = lstDates[0]
+    fin = lstDates[-1]
+    old = debut - datetime.timedelta(1)
+    nuits=-1
+    for dte in lstDates:
+        if dte - old == datetime.timedelta(1):
+            nuits +=1
+            old = dte
+    return debut,fin,jours,nuits
+
 # -------------------------------------------------------------------------------------------------------------------------
 
 class CTRL_Individus(wx.CheckListBox):
@@ -477,7 +490,6 @@ class CTRL_Unites(wx.CheckListBox):
 
 # -----------------------------------------------------------------------------------------------------------------------
 
-
 class CTRL_Donnees(gridlib.Grid): 
     def __init__(self, parent):
         gridlib.Grid.__init__(self, parent, -1, size=(200, 200), style=wx.WANTS_CHARS)
@@ -619,8 +631,6 @@ class CTRL_Donnees(gridlib.Grid):
         self.SetValeur("nom", dictInfosTitulaires[self.parent.IDfamille]["titulairesAvecCivilite"])
         self.SetValeur("rue", dictInfosTitulaires[self.parent.IDfamille]["adresse"]["rue"])
         self.SetValeur("ville", "%s %s" % (dictInfosTitulaires[self.parent.IDfamille]["adresse"]["cp"], dictInfosTitulaires[self.parent.IDfamille]["adresse"]["ville"]))
-        
-
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -649,7 +659,7 @@ class Dialog(wx.Dialog):
         # Individus
         self.staticbox_individus_staticbox = wx.StaticBox(self, -1, _("Sélection des individus"))
         self.ctrl_individus = CTRL_Individus(self)
-        self.ctrl_individus.SetMinSize((170, 60))
+        self.ctrl_individus.SetMinSize((-1, 60))
 
         # Activités
         self.staticbox_activites_staticbox = wx.StaticBox(self, -1, _("Sélection des activités"))
@@ -659,7 +669,7 @@ class Dialog(wx.Dialog):
         # Unités
         self.staticbox_unites_staticbox = wx.StaticBox(self, -1, _("Sélection des prestations"))
         self.ctrl_unites = CTRL_Unites(self)
-        self.ctrl_unites.SetMinSize((-1, 80))
+        self.ctrl_unites.SetMinSize((100, 80))
         self.ctrl_afficher_conso = wx.CheckBox(self, -1, _("Afficher uniquement les conso"))
         self.ctrl_afficher_conso.SetValue(True) 
         
@@ -703,8 +713,6 @@ class Dialog(wx.Dialog):
         self.ctrl_activites.SetDonnees(listeIndividus, date_debut, date_fin)
         listeActivites = self.ctrl_activites.GetListeActivites()
         self.ctrl_unites.SetDonnees(listeIndividus, listeActivites, date_debut, date_fin)
-
-
 
     def __set_properties(self):
         self.SetTitle(_("Edition d'une attestation de présence"))
@@ -757,7 +765,7 @@ class Dialog(wx.Dialog):
         # unites
         staticbox_unites = wx.StaticBoxSizer(self.staticbox_unites_staticbox, wx.VERTICAL)
         staticbox_unites.Add(self.ctrl_unites, 1, wx.ALL|wx.EXPAND, 5)
-        staticbox_unites.Add(self.ctrl_afficher_conso, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 5)
+        staticbox_unites.Add(self.ctrl_afficher_conso, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 5)
         grid_sizer_gauche.Add(staticbox_unites, 1, wx.EXPAND, 0)
         
         grid_sizer_gauche.AddGrowableRow(0)
@@ -774,13 +782,14 @@ class Dialog(wx.Dialog):
         grid_sizer_droit.Add(staticbox_donnees, 1, wx.EXPAND, 0)
         
         # Options
-        grid_sizer_droit.Add(self.ctrl_parametres, 1, wx.EXPAND, 0)
+        grid_sizer_droit.Add(self.ctrl_parametres, 3, wx.EXPAND, 0)
         
-        grid_sizer_droit.AddGrowableRow(0)
+        #grid_sizer_droit.AddGrowableRow(0)
+        grid_sizer_droit.AddGrowableRow(1)
         grid_sizer_droit.AddGrowableCol(0)
-        grid_sizer_contenu.Add(grid_sizer_droit, 1, wx.EXPAND, 0)
+        grid_sizer_contenu.Add(grid_sizer_droit, 3, wx.EXPAND, 0)
         grid_sizer_contenu.AddGrowableRow(0)
-##        grid_sizer_contenu.AddGrowableCol(0)
+        grid_sizer_contenu.AddGrowableCol(0)
         grid_sizer_contenu.AddGrowableCol(1)
         grid_sizer_base.Add(grid_sizer_contenu, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
 
@@ -869,8 +878,12 @@ class Dialog(wx.Dialog):
             ("activites", self.dictSave["activites"] ), 
             ("individus", self.dictSave["individus"] ), 
             ("IDutilisateur", self.dictSave["IDutilisateur"] ), 
-            ("date_debut", self.dictSave["date_debut"] ), 
+            ("date_debut", self.dictSave["date_debut"] ),
             ("date_fin", self.dictSave["date_fin"] ), 
+            ("act_debut", self.dictSave["act_debut"] ), 
+            ("act_fin", self.dictSave["act_fin"] ), 
+            ("act_jours", self.dictSave["act_jours"] ), 
+            ("act_nuits", self.dictSave["act_nuits"] ), 
             ("total", self.dictSave["total"] ), 
             ("regle", self.dictSave["regle"] ), 
             ("solde", self.dictSave["solde"] ), 
@@ -1089,17 +1102,12 @@ class Dialog(wx.Dialog):
             montant = FloatToDecimal(montant) 
             montant_ventilation = FloatToDecimal(montant_ventilation) 
             
-            # Regroupement par compte payeur
-            if (IDcompte_payeur in dictValeurs) == False :
-                    
+            # Création vide: Regroupement par compte payeur
+            if (IDcompte_payeur in dictValeurs) == False :                    
                 # Recherche des titulaires
                 dictInfosTitulaires = dictNomsTitulaires[IDfamille]
-                nomsTitulairesAvecCivilite = dictInfosTitulaires["titulairesAvecCivilite"]
                 nomsTitulairesSansCivilite = dictInfosTitulaires["titulairesSansCivilite"]
-                rue_resid = dictInfosTitulaires["adresse"]["rue"]
-                cp_resid = dictInfosTitulaires["adresse"]["cp"]
-                ville_resid = dictInfosTitulaires["adresse"]["ville"]
-                
+
                 # Mémorisation des infos                
                 dictValeurs[IDcompte_payeur] = {
                     "nomSansCivilite" : nomsTitulairesSansCivilite,
@@ -1115,7 +1123,10 @@ class Dialog(wx.Dialog):
                     "select" : True,
                     "date_debut" : date_debut,
                     "date_fin" : date_fin,
-
+                    "act_debut" : datetime.date(2999,12,31),
+                    "act_fin" : datetime.date(2000,1,1),
+                    "act_jours" : 0,
+                    "act_nuits" : 0,
                     "{LIEU_EDITION}" : dictDonnees["lieu"],
                     "{DESTINATAIRE_NOM}" : dictDonnees["nom"],
                     "{DESTINATAIRE_RUE}" : dictDonnees["rue"],
@@ -1153,36 +1164,31 @@ class Dialog(wx.Dialog):
                     if dictReponse["controle"] == "codebarres" :
                         dictValeurs[IDcompte_payeur]["{CODEBARRES_QUESTION_%d}" % dictReponse["IDquestion"]] = dictReponse["reponse"]
 
-                # Fusion pour textes personnalisés
-                dictValeurs[IDcompte_payeur]["texte_titre"] = CTRL_Attestations_options.RemplaceMotsCles(dictOptions["texte_titre"], dictValeurs[IDcompte_payeur])
-                dictValeurs[IDcompte_payeur]["texte_introduction"] = CTRL_Attestations_options.RemplaceMotsCles(dictOptions["texte_introduction"], dictValeurs[IDcompte_payeur])
-                dictValeurs[IDcompte_payeur]["texte_conclusion"] = CTRL_Attestations_options.RemplaceMotsCles(dictOptions["texte_conclusion"], dictValeurs[IDcompte_payeur])
-
-
-##        # Récupération et transformation du texte d'intro
-##        if self.ctrl_intro.GetValue() == True :
-##            textIntro = self.ctrl_texte_intro.GetValue()         
-##            textIntro = textIntro.replace("{GENRE}", genreSignataire)
-##            textIntro = textIntro.replace("{NOM}", nomSignataire)
-##            textIntro = textIntro.replace("{FONCTION}", fonctionSignataire)
-##            textIntro = textIntro.replace("{ENFANTS}", self.ctrl_individus.GetTexteNoms() )
-##            textIntro = textIntro.replace("{DATE_DEBUT}", DateEngFr(str(date_debut)))
-##            textIntro = textIntro.replace("{DATE_FIN}", DateEngFr(str(date_fin)))
-##            dictValeurs[self.IDfamille]["intro"] = textIntro
-##        else:
-##            dictValeurs[self.IDfamille]["intro"] = None
-
+            # Recherche du nbre de dates pour cette prestation
+            if IDprestation in dictConsommations:
+                listeDates = dictConsommations[IDprestation]
+                debut, fin, jours, nuits = SyntheseActivite(listeDates)
+                dictValeurs[IDcompte_payeur]["act_debut"] = min(
+                    [dictValeurs[IDcompte_payeur]["act_debut"], debut])
+                dictValeurs[IDcompte_payeur]["act_fin"] = max(
+                    [dictValeurs[IDcompte_payeur]["act_fin"], fin])
+                dictValeurs[IDcompte_payeur]["act_jours"] += jours
+                dictValeurs[IDcompte_payeur]["act_nuits"] += nuits
+            else:
+                listeDates = []
 
             # Insert les montants pour le compte payeur
             if montant_ventilation == None : montant_ventilation = FloatToDecimal(0.0)
             dictValeurs[IDcompte_payeur]["total"] += montant
             dictValeurs[IDcompte_payeur]["ventilation"] += montant_ventilation
             dictValeurs[IDcompte_payeur]["solde"] = dictValeurs[IDcompte_payeur]["total"] - dictValeurs[IDcompte_payeur]["ventilation"]
-            
             dictValeurs[IDcompte_payeur]["{TOTAL_PERIODE}"] = "%.02f %s" % (dictValeurs[IDcompte_payeur]["total"], SYMBOLE)
             dictValeurs[IDcompte_payeur]["{TOTAL_REGLE}"] = "%.02f %s" % (dictValeurs[IDcompte_payeur]["ventilation"], SYMBOLE)
             dictValeurs[IDcompte_payeur]["{SOLDE_DU}"] = "%.02f %s" % (dictValeurs[IDcompte_payeur]["solde"], SYMBOLE)
-
+            dictValeurs[IDcompte_payeur]["{ACT_DEBUT}"] = '{:%d/%m/%Y}'.format(dictValeurs[IDcompte_payeur]["act_debut"])
+            dictValeurs[IDcompte_payeur]["{ACT_FIN}"] = '{:%d/%m/%Y}'.format(dictValeurs[IDcompte_payeur]["act_fin"])
+            dictValeurs[IDcompte_payeur]["{ACT_JOURS}"] = str(dictValeurs[IDcompte_payeur]["act_jours"])
+            dictValeurs[IDcompte_payeur]["{ACT_NUITS}"] = str(dictValeurs[IDcompte_payeur]["act_nuits"])
 
             # Ajout d'une prestation familiale
             if IDindividu == None : 
@@ -1227,13 +1233,7 @@ class Dialog(wx.Dialog):
             # Ajout de la présence
             if (date in dictValeurs[IDcompte_payeur]["individus"][IDindividu]["activites"][IDactivite]["presences"]) == False :
                 dictValeurs[IDcompte_payeur]["individus"][IDindividu]["activites"][IDactivite]["presences"][date] = { "texte" : DateEngFr(str(date)), "unites" : [], "total" : FloatToDecimal(0.0) }
-            
-            # Recherche du nbre de dates pour cette prestation
-            if IDprestation in dictConsommations :
-                listeDates = dictConsommations[IDprestation]
-            else:
-                listeDates = []
-            
+
             # Recherche des déductions
             if IDprestation in dictDeductions :
                 deductions = dictDeductions[IDprestation]
@@ -1272,7 +1272,14 @@ class Dialog(wx.Dialog):
                 listeActivitesUtilisees.append(IDactivite) 
         
         # --------------------------------------------------------------------------------------------------------------------
-        
+
+        # Fusion pour textes personnalisés
+        dictValeurs[IDcompte_payeur]["texte_titre"] = CTRL_Attestations_options.RemplaceMotsCles(dictOptions["texte_titre"], dictValeurs[IDcompte_payeur])
+        dictValeurs[IDcompte_payeur]["texte_introduction"] = \
+            CTRL_Attestations_options.RemplaceMotsCles(dictOptions["texte_introduction"],
+                                                       dictValeurs[IDcompte_payeur])
+        dictValeurs[IDcompte_payeur]["texte_conclusion"] = CTRL_Attestations_options.RemplaceMotsCles(dictOptions["texte_conclusion"], dictValeurs[IDcompte_payeur])
+
                 
         # Préparation des données pour une sauvegarde de l'attestation
         self.dictSave = {}
@@ -1284,6 +1291,10 @@ class Dialog(wx.Dialog):
         self.dictSave["IDutilisateur"] = UTILS_Identification.GetIDutilisateur()
         self.dictSave["date_debut"] = str(date_debut)
         self.dictSave["date_fin"] = str(date_fin)
+        self.dictSave["act_debut"] = dictValeurs[IDcompte_payeur]["act_debut"]
+        self.dictSave["act_fin"] = dictValeurs[IDcompte_payeur]["act_fin"]
+        self.dictSave["act_jours"] = int(dictValeurs[IDcompte_payeur]["act_jours"])
+        self.dictSave["act_nuits"] = int(dictValeurs[IDcompte_payeur]["act_nuits"])
         self.dictSave["total"] = float(dictValeurs[IDcompte_payeur]["total"])
         self.dictSave["regle"] = float(dictValeurs[IDcompte_payeur]["ventilation"])
         self.dictSave["solde"] = float(dictValeurs[IDcompte_payeur]["ventilation"] - dictValeurs[IDcompte_payeur]["total"])
@@ -1313,11 +1324,10 @@ class Dialog(wx.Dialog):
         
         return dictChampsFusion
 
-
 if __name__ == "__main__":
     app = wx.App(0)
     #wx.InitAllImageHandlers()
-    dialog_1 = Dialog(None, IDfamille=14, date_debut=datetime.date(2013, 7, 1), date_fin=datetime.date(2014, 7, 30))
+    dialog_1 = Dialog(None, IDfamille=4406, date_debut=datetime.date(2023, 1, 1), date_fin=datetime.date(2023, 3, 30))
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()
     app.MainLoop()

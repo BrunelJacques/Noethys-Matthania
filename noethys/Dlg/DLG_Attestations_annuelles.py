@@ -78,8 +78,6 @@ def FormateValeur(valeur, mode="decimal"):
 ##        resultat = "%s:%s" % (hr, mn)
 ##    return resultat
 
-
-
 class Parametres(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=-1, name="panel_parametres", style=wx.TAB_TRAVERSAL)
@@ -324,7 +322,6 @@ class Dialog(wx.Dialog):
 
         if reponse == 200 :
             self.EndModal(wx.ID_OK)
-        
 
 
 if __name__ == "__main__":
