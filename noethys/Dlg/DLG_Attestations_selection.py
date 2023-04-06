@@ -16,7 +16,6 @@ import datetime
 import sys
 import traceback
 import GestionDB
-import CTRL_Choix_modele
 import CTRL_Attestations_selection
 
 import UTILS_Identification
@@ -141,6 +140,7 @@ class Hyperlien(Hyperlink.HyperLinkCtrl):
         self.UpdateLink()
 
 class Dialog(wx.Dialog):
+    # alimenté par DLG_Attestations_annuelles, il affiche les prestations puis lance DLG_Impression attestations
     def __init__(self, parent, date_debut=None, date_fin=None, dateNaiss=None, listeActivites=[], listePrestations=[]):
         wx.Dialog.__init__(self, parent, -1, name="DLG_Attestations_selection", style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
         self.parent = parent
@@ -217,7 +217,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(staticbox_attestations, 1, wx.EXPAND|wx.TOP|wx.LEFT|wx.RIGHT, 10)        
 
         # Options
-        grid_sizer_base.Add(self.ctrl_parametres, 1, wx.EXPAND|wx.LEFT|wx.RIGHT, 10)
+        grid_sizer_base.Add(self.ctrl_parametres, 3, wx.EXPAND|wx.LEFT|wx.RIGHT, 10)
         
         # Boutons
         grid_sizer_boutons = wx.FlexGridSizer(rows=1, cols=5, vgap=10, hgap=10)
@@ -232,6 +232,7 @@ class Dialog(wx.Dialog):
         self.SetSizer(grid_sizer_base)
         grid_sizer_base.Fit(self)
         grid_sizer_base.AddGrowableRow(0)
+        grid_sizer_base.AddGrowableRow(1)
         grid_sizer_base.AddGrowableCol(0)
         self.Layout()
         self.CenterOnScreen()
@@ -300,12 +301,6 @@ class Dialog(wx.Dialog):
             if track["commentaire"] != "" :
                 dictCommentaires[(track["label"], track["IDactivite"])] = track["commentaire"]
         dictOptions["dictCommentaires"] = dictCommentaires
-
-        # Détail
-        #if dictOptions["affichage_prestations"] == 0 :
-        #    detail = True
-        #else:
-        detail = False
 
         # Création des PDF à l'unité
         repertoire = dictOptions["repertoire_copie"]
@@ -401,8 +396,8 @@ class Dialog(wx.Dialog):
                         ("individus", texteIndividus), 
                         ("IDutilisateur", IDutilisateur), 
                         ("date_debut", str(self.date_debut)), 
-                        ("date_fin", str(self.date_fin)), 
-                        ("total", float(total)), 
+                        ("date_fin", str(self.date_fin)),
+                        ("total", float(total)),
                         ("regle", float(regle)), 
                         ("solde", float(solde)), 
                         ]
@@ -432,21 +427,15 @@ class Dialog(wx.Dialog):
         self.ctrl_parametres.MemoriserParametres() 
     
 
-
-
 if __name__ == "__main__":
     app = wx.App(0)
     #wx.InitAllImageHandlers()
     dialog_1 = Dialog(None,
-        date_debut = datetime.date(2014, 1, 15),
-        date_fin = datetime.date(2014, 7, 30),
+        date_debut = datetime.date(2023, 1, 1),
+        date_fin = datetime.date(2023, 12, 31),
         dateNaiss = None,
-        listeActivites = [1, 2, 3, 4, 5],
-        listePrestations = [
-            {"commentaire" : "", "IDactivite" : 1, "label" : _("Journée avec repas")},
-            {"commentaire" : "", "IDactivite" : 1, "label" : _("Demi-journée avec repas")},
-            {"commentaire" : "", "IDactivite" : 1, "label" : _("Demi-journée")},
-            ],
+        listeActivites = [212, 213, 239, 240, 261, 271, 279, 281, 302, 313, 314, 324, 325, 352, 353, 374, 384, 403, 412, 416, 417, 418, 458, 478, 479, 482, 483, 490, 491, 504, 522, 542, 544, 552, 553, 554, 573, 579, 580, 608, 609, 620, 630, 635, 636, 651, 652, 653, 684, 685, 701, 706, 741, 742, 743, 761, 763],
+        listePrestations = [{'label': 'David CHAPARRO - 31 Neige&Famille S1/AB 2023 - 5 NEIGE EVASION B', 'IDactivite': 741, 'commentaire': ''}, {'label': 'David DIRRENBERGER - 31 Neige&Famille S1/AB 2023 - 5 NEIGE EVASION B', 'IDactivite': 741, 'commentaire': ''}],
         )
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()

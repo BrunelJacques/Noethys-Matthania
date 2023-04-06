@@ -65,6 +65,19 @@ def PeriodeComplete(mois, annee):
     return periodeComplete
 
 
+def SyntheseActivite(lstDates):
+    jours = len(lstDates)
+    lstDates.sort()
+    debut = lstDates[0]
+    fin = lstDates[-1]
+    old = debut - datetime.timedelta(1)
+    nuits=-1
+    for dte in lstDates:
+        if dte - old == datetime.timedelta(1):
+            nuits +=1
+            old = dte
+    return debut,fin,jours,nuits
+
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 
 def Importation(liste_activites=[], date_debut=None, date_fin=None, date_edition=None, dateNaiss=None, listePrestations=[], typeLabel="original"):
@@ -260,6 +273,10 @@ def Importation(liste_activites=[], date_debut=None, date_fin=None, date_edition
                     "intro" : "",
                     "date_debut" : date_debut,
                     "date_fin" : date_fin,
+                    "act_debut": datetime.date(2999, 12, 31),
+                    "act_fin": datetime.date(2000, 1, 1),
+                    "act_jours": 0,
+                    "act_nuits": 0,
 
                     "{DATE_DEBUT}" : DateEngFr(str(date_debut)),
                     "{DATE_FIN}" : DateEngFr(str(date_fin)),
@@ -283,6 +300,19 @@ def Importation(liste_activites=[], date_debut=None, date_fin=None, date_edition
 
                 dictComptes[IDcompte_payeur].update(infosIndividus.GetDictValeurs(mode="famille", ID=IDfamille, formatChamp=True))
 
+            # Recherche du nbre de dates pour cette prestation
+            if IDprestation in dictConsommations:
+                listeDates = dictConsommations[IDprestation]
+                debut, fin, jours, nuits = SyntheseActivite(listeDates)
+                dictComptes[IDcompte_payeur]["act_debut"] = min(
+                    [dictComptes[IDcompte_payeur]["act_debut"], debut])
+                dictComptes[IDcompte_payeur]["act_fin"] = max(
+                    [dictComptes[IDcompte_payeur]["act_fin"], fin])
+                dictComptes[IDcompte_payeur]["act_jours"] += jours
+                dictComptes[IDcompte_payeur]["act_nuits"] += nuits
+            else:
+                listeDates = []
+
             # Insert les montants pour le compte payeur
             if IDprestation in dictVentilation :
                 montant_ventilation = FloatToDecimal(dictVentilation[IDprestation])
@@ -296,7 +326,10 @@ def Importation(liste_activites=[], date_debut=None, date_fin=None, date_edition
             dictComptes[IDcompte_payeur]["{TOTAL_PERIODE}"] = "%.02f %s" % (dictComptes[IDcompte_payeur]["total"], SYMBOLE)
             dictComptes[IDcompte_payeur]["{TOTAL_REGLE}"] = "%.02f %s" % (dictComptes[IDcompte_payeur]["ventilation"], SYMBOLE)
             dictComptes[IDcompte_payeur]["{SOLDE_DU}"] = "%.02f %s" % (dictComptes[IDcompte_payeur]["solde"], SYMBOLE)
-
+            dictComptes[IDcompte_payeur]["{ACT_DEBUT}"] = '{:%d/%m/%Y}'.format(dictComptes[IDcompte_payeur]["act_debut"])
+            dictComptes[IDcompte_payeur]["{ACT_FIN}"] = '{:%d/%m/%Y}'.format(dictComptes[IDcompte_payeur]["act_fin"])
+            dictComptes[IDcompte_payeur]["{ACT_JOURS}"] = str(dictComptes[IDcompte_payeur]["act_jours"])
+            dictComptes[IDcompte_payeur]["{ACT_NUITS}"] = str(dictComptes[IDcompte_payeur]["act_nuits"])
 
             # Ajout d'une prestation familiale
             if IDindividu == None : 
@@ -344,12 +377,6 @@ def Importation(liste_activites=[], date_debut=None, date_fin=None, date_edition
             # Ajout de la présence
             if (date in dictComptes[IDcompte_payeur]["individus"][IDindividu]["activites"][IDactivite]["presences"]) == False :
                 dictComptes[IDcompte_payeur]["individus"][IDindividu]["activites"][IDactivite]["presences"][date] = { "texte" : DateEngFr(str(date)), "unites" : [], "total" : FloatToDecimal(0.0) }
-            
-            # Recherche du nbre de dates pour cette prestation
-            if IDprestation in dictConsommations :
-                listeDates = dictConsommations[IDprestation]
-            else:
-                listeDates = []
 
             # Recherche des déductions
             if IDprestation in dictDeductions :

@@ -21,7 +21,7 @@ import wx.propgrid as wxpg
 import copy
 
 
-TEXTE_INTRO = _("Je soussigné{SIGNATAIRE_GENRE} {SIGNATAIRE_NOM}, {SIGNATAIRE_FONCTION}, atteste avoir accueilli {NOMS_INDIVIDUS}, pour une durée de {ACT_JOURS} jours {ACT_NUITS} nuits,, sur la période du {ACT_DEBUT} au {ACT_FIN}, selon le détail suivant :")
+TEXTE_INTRO = _("Je soussigné{SIGNATAIRE_GENRE} {SIGNATAIRE_NOM}, {SIGNATAIRE_FONCTION}, atteste avoir accueilli {NOMS_INDIVIDUS}, pour une durée de {ACT_JOURS} jours {ACT_NUITS} nuits, sur la période du {ACT_DEBUT} au {ACT_FIN}, selon le détail suivant :")
 
 
 def RemplaceMotsCles(texte="", dictValeurs={}):
@@ -82,10 +82,10 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL) :
         self.Append(propriete)
 
         # Répertoire de sauvegarde
-        propriete = wxpg.DirProperty(name=_("Répertoire pour copie unique"), label="repertoire_copie", value="")
+        propriete = wxpg.DirProperty(label=_("Répertoire copies"),name="repertoire_copie", value="")
         propriete.SetHelpString(_("Enregistrer une copie unique de chaque document dans le répertoire sélectionné. Sinon laissez vide ce champ."))
         self.Append(propriete)
-        
+
         # Catégorie 
         self.Append( wxpg.PropertyCategory(_("Titre")) )
 
@@ -472,7 +472,6 @@ class CTRL(wx.Panel):
         self.ctrl_parametres.SetMinSize((440, 120)) 
                 
         self.__do_layout()
-        
 
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=1, cols=2, vgap=10, hgap=20)
@@ -511,13 +510,7 @@ class CTRL(wx.Panel):
         
         return dictOptions
 
-
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-
-
-
 
 class MyFrame(wx.Frame):
     def __init__(self, *args, **kwds):

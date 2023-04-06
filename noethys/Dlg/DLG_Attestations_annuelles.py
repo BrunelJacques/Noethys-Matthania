@@ -8,26 +8,17 @@
 # Licence:         Licence GNU GPL
 #-----------------------------------------------------------
 
-
-import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
 import datetime
-import time
-import sys
 import math
 
-import GestionDB
 from Ctrl import CTRL_Bandeau
 from Ctrl import CTRL_Selection_activites
 from Ctrl import CTRL_Saisie_date
 from Ol import OL_Attestations_prestations
-from Ol import OL_Liste_regimes
 from Dlg import DLG_Attestations_selection
-
-import FonctionsPerso
 from Utils import UTILS_Utilisateurs
 
 
@@ -188,7 +179,7 @@ class Dialog(wx.Dialog):
         intro = _("Pour éditer une attestation de présence, vous pouvez utiliser la fonction dédiée depuis une fiche famille. Mais pour éditer tout un lot d'attestations (Les attestations annuelles pour les impôts par exemple), il est plus rapide d'utiliser cette fonction. Commencez par définir vos paramètres de sélection puis cliquez sur Ok.")
         titre = _("Edition d'attestations de présence")
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Generation.png")
-        self.SetTitle(titre)
+        self.SetTitle("DLG_Attestations_annuelles")
         
         # Panel Paramètres
         self.ctrl_parametres = Parametres(self)

@@ -25,7 +25,6 @@ from Data import DATA_Civilites as Civilites
 from Utils import UTILS_Historique
 from Utils import UTILS_Identification
 from Utils import UTILS_Titulaires
-from Ctrl import CTRL_Choix_modele
 from Utils import UTILS_Config
 from Utils import UTILS_Questionnaires
 import FonctionsPerso
@@ -214,8 +213,6 @@ class CTRL_Individus(wx.CheckListBox):
         
         return texteNoms
 
-# ----------------------------------------------------------------------------------------------------------------------------------
-
 class CTRL_Activites(wx.CheckListBox):
     def __init__(self, parent):
         wx.CheckListBox.__init__(self, parent, -1)
@@ -309,8 +306,6 @@ class CTRL_Activites(wx.CheckListBox):
     
     def GetDictActivites(self):
         return self.dictActivites
-    
-# ----------------------------------------------------------------------------------------------------------------------------------
 
 class CTRL_Unites(wx.CheckListBox):
     def __init__(self, parent):
@@ -413,82 +408,6 @@ class CTRL_Unites(wx.CheckListBox):
     
     def GetDictUnites(self):
         return self.dictUnites
-    
-# ----------------------------------------------------------------------------------------------------------------------------------
-
-##class CTRL_Signataires(wx.Choice):
-##    def __init__(self, parent):
-##        wx.Choice.__init__(self, parent, -1) 
-##        self.parent = parent
-##        self.listeActivites = []
-##        self.MAJ() 
-##        if len(self.dictDonnees) > 0 :
-##            self.SetSelection(0)
-##    
-##    def MAJ(self, listeActivites=[] ):
-##        self.listeActivites = listeActivites
-##        listeItems, indexDefaut = self.GetListeDonnees()
-##        if len(listeItems) == 0 :
-##            self.Enable(False)
-##        else:
-##            self.Enable(True)
-##        self.SetItems(listeItems)
-##        if indexDefaut != None :
-##            self.Select(indexDefaut)
-##
-##        # Recherche le nom de l'utilisateur parmi la liste des signataires
-##        dictUtilisateur = UTILS_Identification.GetDictUtilisateur()
-##        for index, dictDonnees in self.dictDonnees.iteritems() :
-##            if dictUtilisateur != None :
-##                texte1 = "%s %s" % (dictUtilisateur["prenom"], dictUtilisateur["nom"])
-##                texte2 = "%s %s" % (dictUtilisateur["nom"], dictUtilisateur["prenom"])
-##                if dictDonnees["nom"].lower() == texte1.lower() or dictDonnees["nom"].lower() == texte2.lower() :
-##                    self.SetSelection(index)
-##
-##    def GetListeDonnees(self):
-##        if len(self.listeActivites) == 0 : conditionActivites = "()"
-##        elif len(self.listeActivites) == 1 : conditionActivites = "(%d)" % self.listeActivites[0]
-##        else : conditionActivites = str(tuple(self.listeActivites))
-##        db = GestionDB.DB()
-##        req = """SELECT IDresponsable, IDactivite, nom, fonction, defaut, sexe
-##        FROM responsables_activite
-##        WHERE IDactivite IN %s
-##        ORDER BY nom;""" % conditionActivites
-##        db.ExecuterReq(req,MsgBox="ExecuterReq")
-##        listeDonnees = db.ResultatReq()
-##        db.Close()
-##        listeItems = []
-##        self.dictDonnees = {}
-##        indexDefaut = None
-##        index = 0
-##        for IDresponsable, IDactivite, nom, fonction, defaut, sexe in listeDonnees :
-##            if indexDefaut == None and defaut == 1 : indexDefaut = index
-##            self.dictDonnees[index] = { 
-##                "ID" : IDresponsable, "IDactivite" : IDactivite,
-##                "nom" : nom, "fonction" : fonction,
-##                "defaut" : defaut, "sexe" : sexe, 
-##                }
-##            listeItems.append(nom)
-##            index += 1
-##        return listeItems, indexDefaut
-##
-##    def SetID(self, ID=0):
-##        for index, values in self.dictDonnees.iteritems():
-##            if values["ID"] == ID :
-##                 self.SetSelection(index)
-##
-##    def GetID(self):
-##        index = self.GetSelection()
-##        if index == -1 : return None
-##        return self.dictDonnees[index]["ID"]
-##    
-##    def GetInfos(self):
-##        """ Récupère les infos sur le signataire sélectionné """
-##        index = self.GetSelection()
-##        if index == -1 : return None
-##        return self.dictDonnees[index]
-
-# -----------------------------------------------------------------------------------------------------------------------
 
 class CTRL_Donnees(gridlib.Grid): 
     def __init__(self, parent):
@@ -900,8 +819,7 @@ class Dialog(wx.Dialog):
         
         # Mémorisation des paramètres
         self.ctrl_parametres.MemoriserParametres() 
-        
-    
+
     def OnBoutonAnnuler(self, event):
         self.Sauvegarder() 
         # Fermeture de la fenêtre
