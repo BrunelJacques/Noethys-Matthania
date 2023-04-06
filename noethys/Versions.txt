@@ -1,5 +1,5 @@
 version 1.3.2.34 (06/04/2023):
-- Attestations: Implémentation des dates et jours dans l'edition annuelle globale
+- Attestations: Dates activité et nb jours dans l'edition annuelle globale
 
 version 1.3.2.33 (05/04/2023):
 - Duplication activités: les tarifs sont copiés
