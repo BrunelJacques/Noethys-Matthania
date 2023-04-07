@@ -1,3 +1,6 @@
+version 1.3.2.35 (07/04/2023):
+- Prix activités: la coche d'une ligne devient une saisie avec valeur par défaut
+
 version 1.3.2.34 (06/04/2023):
 - Attestations: Dates activité et nb jours dans l'edition annuelle globale
 

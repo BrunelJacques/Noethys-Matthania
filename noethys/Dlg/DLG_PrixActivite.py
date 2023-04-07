@@ -661,6 +661,7 @@ class DlgTarification(wx.Dialog):
             for objOrigine in self.dataorigine:
                 if objOrigine.codeArticle == self.obj.codeArticle:
                     self.obj.prixUnit = objOrigine.prixUnit
+                    self.obj.saisie = True
 
         # une saisie texte a eu lieu des contrôles et actions sont nécessaires
         if self.lastBind == "texte" :
