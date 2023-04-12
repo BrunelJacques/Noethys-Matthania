@@ -1123,7 +1123,7 @@ def CalRedSejour(track, tracks, dictDonnees):
             if altTrack.saisie: mtt = altTrack.montant
             else: mtt = altTrack.montantCalcul
             calcul -= (mtt * track.prix1 / 100)
-    return track.prix1,calcul
+    return 1,calcul
 
 def CalRedCumul(track, tracks, dictDonnees) :
     if not 'dicCumul' in list(dictDonnees.keys()):
