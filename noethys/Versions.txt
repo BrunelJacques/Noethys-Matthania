@@ -1,3 +1,6 @@
+version 1.3.2.37 (14/04/2023):
+- Création nouveau dossier vide implémenté
+
 version 1.3.2.36 (12/04/2023):
 - Réduction séjour: correction d'un bug ancien révélé par la 2.35
 

@@ -304,11 +304,8 @@ class DB():
             elif not self.isNetwork:
                 del DICT_CONNEXIONS[self.IDconnexion]
                 del IX_CONNEXION["pointeurs"][self.IDconnexion]
-
-            #else:
-            #    print("Déja Closed! ID",self.IDconnexion,self.IDconnexion in DICT_CONNEXIONS, self.IDconnexion in IX_CONNEXION["pointeurs"])
         except Exception as err:
-            print("GestionDB.Close ID %d: "%self.IDconnexion,type(err),err)
+            print("GestionDB.Close ID %s: "%str(self.IDconnexion),type(err),err)
         if all:
             AfficheConnexionsOuvertes("-")
             try:
@@ -316,7 +313,7 @@ class DB():
                 for id in lstID:
                     IX_CONNEXION["pointeurs"][id].Close()
             except Exception as err:
-                print("GestionDB.CloseALL ID %d: "%self.IDconnexion,err)
+                print("GestionDB.CloseALL ID %s: "%str(self.IDconnexion),err)
                 pass
         del self
 

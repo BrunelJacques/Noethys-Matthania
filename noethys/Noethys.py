@@ -924,7 +924,7 @@ class MainFrame(wx.Frame):
 
         # Création de la base PHOTOS
         if modeFichier != "internet":
-            DB = GestionDB.DB(suffixe="PHOTOS", modeCreation=True)
+            DB = UpgradeDB.DB(suffixe="PHOTOS", modeCreation=True)
             if DB.echec == 1:
                 dlgprogress.Destroy()
                 erreur = DB.erreur
@@ -970,10 +970,10 @@ class MainFrame(wx.Frame):
         dlgprogress.Update(numEtape, message);
         numEtape += 1
         DB = UpgradeDB.DB(suffixe="DATA")
-        DB.CreationTousIndex()
+        DB.CreationTousIndex(self,None)
         DB.Close()
         DB = UpgradeDB.DB(suffixe="PHOTOS")
-        DB.CreationTousIndex()
+        DB.CreationTousIndex(self,None)
         DB.Close()
 
         # Créé un identifiant unique pour ce fichier

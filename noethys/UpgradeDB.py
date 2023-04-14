@@ -264,10 +264,12 @@ class DB(GestionDB.DB):
                     self.Commit()
         return retour
 
-    def CreationTousIndex(self,parent,dicIndex,tables):
+    def CreationTousIndex(self,parent,dicIndex,tables=None):
         """ Création de tous les index """
         if not dicIndex or dicIndex=={}:
             dicIndex =DATA_Tables.DB_INDEX
+        if not tables:
+            tables = DATA_Tables.DB_DATA
 
         for nomIndex, dict in dicIndex.items() :
             if not 'table' in dict:
@@ -304,10 +306,11 @@ class DB(GestionDB.DB):
 
     def Importation_table(self, nomTable="",
                           nomFichierdefault=Chemins.GetStaticPath(
-                              "Databases/Defaut.dat"), mode="local"):
+                              "Databases/Defaut.dat")):
         """ Importe toutes les données d'une table donnée """
         # Ouverture de la base par défaut
-        if mode == "local":
+
+        if not self.isNetwork:
             import sqlite3
             if os.path.isfile(nomFichierdefault) == False:
                 print("Le fichier n'existe pas.")
@@ -337,6 +340,8 @@ class DB(GestionDB.DB):
                 return (False,
                         "La connexion avec la base de donnees MYSQL a importer a echouee : \nErreur detectee :%s" % err)
 
+        if not self.IsTableExists(nomTable):
+            return (False, None)
         # Recherche des noms de champs de la table
         req = "SELECT * FROM %s" % nomTable
         cursor.execute(req)
@@ -444,7 +449,8 @@ class DB(GestionDB.DB):
         lstTables = DATA_Tables.GetLstTablesOptions(lstOptions=listeDonnees)
         # importation des tables et valeurs par défaut
         for nomTable in lstTables:
-            self.Importation_table(nomTable)
+            if self.IsTableExists(nomTable):
+                self.Importation_table(nomTable)
         return True
 
     def CtrlTables(self, parent, dicTables, tables):
@@ -614,7 +620,7 @@ def ConversionLocalReseau(nomFichier="", nouveauFichier="", fenetreParente=None)
         nomFichierActif = UTILS_Fichiers.GetRepData(u"%s_%s.dat" % (nomFichier, suffixe))
         nouveauNom = nouveauFichier[nouveauFichier.index("[RESEAU]"):].replace("[RESEAU]", "")
 
-        dictResultats = GestionDB.TestConnexionMySQL(typeTest="fichier", nomFichier=u"%s_%s" % (nouveauFichier, suffixe) )
+        dictResultats = GestionDB.TestConnexionMySQL(typeTest="fichier", nomFichier=u"%s_%s" % (nouveauNom, suffixe) )
         # Vérifie la connexion au réseau
         if dictResultats["connexion"][0] == False :
             erreur = dictResultats["connexion"][1]
@@ -737,13 +743,13 @@ class Ajout_IndexMat(wx.Frame):
         """Constructor"""
         wx.Frame.__init__(self, parent=None, size=(550, 400))
         DB1 = DB(suffixe="DATA", modeCreation=False)
-        DB1.CreationTousIndex(DATA_Tables.DB_PK)
+        DB1.CreationTousIndex(self,DATA_Tables.DB_PK)
         if DB1.retourReq != "ok" :
             dlg = wx.MessageDialog(self, "Erreur base de données.\n\nErreur : %s" % DB1.retourReq,
                                    "Erreur de création d'index PK", wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
             dlg.Destroy()
-        DB1.CreationTousIndex(DATA_Tables.DB_INDEX)
+        DB1.CreationTousIndex(self,DATA_Tables.DB_INDEX)
         if DB1.retourReq != "ok" :
             dlg = wx.MessageDialog(self, "Erreur base de données.\n\nErreur : %s" % DB1.retourReq,
                                    "Erreur de création d'index IX", wx.OK | wx.ICON_ERROR)
