@@ -615,14 +615,6 @@ class CTRL(wx.TreeCtrl):
         """ % (datetime.date.today(), condition, datetime.date.today())
         self.DB.ExecuterReq(req,MsgBox="ExecuterReq")
         listeRenseignementsObligatoires = self.DB.ResultatReq()
-    
-        # Récupération des données de la famille
-        if self.IDfamille != None :
-            req = """SELECT IDcaisse, num_allocataire, allocataire, titulaire_helios, code_comptable
-            FROM familles WHERE IDfamille=%d""" % self.IDfamille
-            self.DB.ExecuterReq(req,MsgBox="ExecuterReq")
-            IDcaisse, num_allocataire, allocataire, titulaire_helios, code_comptable = self.DB.ResultatReq()[0]
-            dictDonneesFamille = {"IDcaisse":IDcaisse, "num_allocataire":num_allocataire, "allocataire":allocataire, "titulaire_helios":titulaire_helios, "code_comptable":code_comptable}
 
         # Récupère la liste des ID individus concernés
         listeIDindividus = []
@@ -630,6 +622,7 @@ class CTRL(wx.TreeCtrl):
             IDindividu = valeurs[1]
             if IDindividu not in listeIDindividus and IDindividu != None :
                 listeIDindividus.append(IDindividu)
+
         
         # Récupère les données individus
         if len(listeIDindividus) == 0 : conditionIDindividu = "()"
