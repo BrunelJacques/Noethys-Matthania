@@ -58,41 +58,60 @@ class Track(object):
         if prenom == None : prenom = ""
         self.champ_recherche = "%s %s %s" % (nom, prenom, nom)
 
-
     def GetRattachements(self):
         # Récupération des rattachements dans la base
         DB = GestionDB.DB()
-        req = """SELECT IDrattachement, IDindividu, IDfamille, IDcategorie, titulaire
-        FROM rattachements
+        req = """
+        SELECT rattachements.IDcategorie, rattachements.IDfamille, 
+               rattachements.titulaire, familles.IDfamille
+        FROM rattachements 
+        LEFT JOIN familles ON rattachements.IDfamille = familles.IDfamille
         WHERE IDindividu=%d
+        GROUP BY rattachements.IDcategorie, rattachements.IDfamille, rattachements.titulaire, familles.IDfamille;
         ;""" % self.IDindividu
         DB.ExecuterReq(req)
         listeRattachements = DB.ResultatReq()
-        DB.Close()
 
         # Recherche des rattachements
         dictTitulaires = {}
-        if len(listeRattachements) == 0 :
-            rattachements = None
-            dictTitulaires = {}
-            txtTitulaires = _("Rattaché à aucune famille")
-        elif len(listeRattachements) == 1 :
-            IDfamille = listeRattachements[0][2]
-            IDcategorie = listeRattachements[0][3]
-            titulaire = listeRattachements[0][4]
-            rattachements = [(IDcategorie, IDfamille, titulaire)]
-            dictTitulaires[IDfamille] = self.GetNomsTitulaires(IDfamille)
-            txtTitulaires = dictTitulaires[IDfamille]
-        else:
+        lstRattachOrphelins = []
+        rattachements = None
+        dictTitulaires = {}
+        txtTitulaires = _("Rattaché à aucune famille")
+        if len(listeRattachements) == 1 :
+            rattachement = listeRattachements[0]
+            (IDcategorie, IDfamille, titulaire, familles_id) = rattachement
+            if familles_id:
+                rattachements = [(IDcategorie, IDfamille, titulaire)]
+                dictTitulaires[IDfamille] = self.GetNomsTitulaires(IDfamille)
+                txtTitulaires = dictTitulaires[IDfamille]
+            else:
+                lstRattachOrphelins.append(IDfamille)
+        elif len(listeRattachements) > 1:
             rattachements = []
             txtTitulaires = ""
-            for IDrattachement, IDindividu, IDfamille, IDcategorie, titulaire in listeRattachements :
-                rattachements.append((IDcategorie, IDfamille, titulaire))
-                nomsTitulaires =  self.GetNomsTitulaires(IDfamille)
-                dictTitulaires[IDfamille] = nomsTitulaires
-                txtTitulaires += nomsTitulaires + " | "
+            for IDcategorie, IDfamille, titulaire, familles_id in listeRattachements :
+                if familles_id:
+                    rattachements.append((IDcategorie, IDfamille, titulaire))
+                    nomsTitulaires =  self.GetNomsTitulaires(IDfamille)
+                    dictTitulaires[IDfamille] = nomsTitulaires
+                    txtTitulaires += nomsTitulaires + " | "
+                else:
+                    lstRattachOrphelins.append(IDfamille)
             if len(txtTitulaires) > 0 :
                 txtTitulaires = txtTitulaires[:-2]
+            else:
+                txtTitulaires = None
+        if len(lstRattachOrphelins) > 0:
+            # correction de l'anomalie de non présence dans familles de l'id famille
+            for IDfamille in lstRattachOrphelins:
+                req = """
+                DELETE FROM rattachements 
+                WHERE IDindividu = %d
+                    AND IDfamille = %d  
+                ;""" % (self.IDindividu, IDfamille)
+                DB.ExecuterReq(req,MsgBox = "OL_Individu.GetRattachements DEL orphelins")
+        DB.Close()
 
         return rattachements, dictTitulaires, txtTitulaires
 

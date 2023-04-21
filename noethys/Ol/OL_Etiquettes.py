@@ -723,7 +723,10 @@ class ListView(ObjectListView):
         self.diffusions = diffusions
         self.refusPub = refusPub
         self.actif = actif
-        self.categorie = categorie
+        if not categorie:
+            self.categorie = 'familles'
+        else:
+            self.categorie = categorie
         self.InitModel()
         self.InitObjectListView()
         self.MajCompteurs()
@@ -732,7 +735,8 @@ class ListView(ObjectListView):
         nbcoches = len(self.GetCheckedObjects())
         nblignes = len(self.innerList)
         dlg = self.GrandParent.parent
-        dlg.box_donnees_staticbox.SetLabel("Lignes %ss : (%d), cochées %d" % (self.categorie,nblignes,nbcoches))
+        if hasattr(dlg,"box_donnees_staticbox"):
+            dlg.box_donnees_staticbox.SetLabel("Lignes %ss : (%d), cochées %d" % (self.categorie,nblignes,nbcoches))
 
     def GetReponse(self, IDquestion=None, ID=None):
         if IDquestion in self.DICT_QUESTIONNAIRES :
