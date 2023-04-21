@@ -86,7 +86,7 @@ def GetListItemsMenu(self,menuTransports):
              "label": _("Upgrade de la Base de donnée"),
              "infobulle": _("Cet outil ajoute les tables et champs manquants"),
              "image": "Images/16x16/Outils.png",
-             "action": self.On_upgrade_base, "actif": False},
+             "action": self.On_upgrade_base, "actif": True},
             {"code": "upgrade_modules",
              "label": _("Mise à jour Noethys"),
              "infobulle": _("Cet outil permet d'importer un nouvelle version des programmes "),

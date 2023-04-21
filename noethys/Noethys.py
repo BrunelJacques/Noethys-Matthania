@@ -1514,7 +1514,6 @@ class MainFrame(wx.Frame):
 
     def ValidationVersionFichier(self, nomFichier):
         """ Vérifie que la version du fichier est à jour avec le logiciel """
-        self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(False)
         # Récupère les numéros de version
         versionLogiciel = FonctionsPerso.ConvertVersionTuple(VERSION_LOGICIEL)
         VERSION_DATA = UTILS_Parametres.Parametres(mode="get",
@@ -1525,9 +1524,17 @@ class MainFrame(wx.Frame):
         self.infoVersions = "Conversion des données %s -> %s" % (
             VERSION_DATA, VERSION_LOGICIEL)
 
+        if UTILS_Utilisateurs.IsAdmin(afficheMessage=False):
+            self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
+            self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(True)
+        else:
+            self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(False)
+            self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(False)
+
         # les versions correspondent: on passe
         if versionData == versionLogiciel:
             return True
+
 
         # synchronisation des versions
         resultat = True
@@ -1552,9 +1559,6 @@ class MainFrame(wx.Frame):
                 titre = "Erreur UpDate"
                 style = wx.OK | wx.ICON_ERROR
                 message = "Pb Update"
-                messAttente = _(
-                    "Mise à jour de la base de données en cours... Veuillez patienter...")
-                attente = wx.BusyInfo(messAttente, None)
                 import UpgradeDB
                 DB = UpgradeDB.DB(nomFichier=nomFichier)
                 resultat = DB.UpdateDB(self, versionData)
@@ -1567,9 +1571,6 @@ class MainFrame(wx.Frame):
                 traceback.print_exc(file=sys.stdout)
                 message = "Problème lors de la mise à jour de la base de données : \n\n%s" % err
                 resultat = False
-            finally:
-                # Fermeture de la fenêtre d'attente
-                del attente
             return resultat, message, titre, style
 
         message = "Base de donnée inchangée!\n\nAbandon du traitement"
@@ -1596,28 +1597,28 @@ class MainFrame(wx.Frame):
             mess = "Base de donnée d'un niveau inférieur\n\n"
             mess += "Faut-il mettre à jour la base de donnée distante?"
             dlg = wx.MessageDialog(self, mess, _(""),
-                                   wx.YES_NO | wx.YES_DEFAULT | wx.ICON_WARNING)
+                                   wx.YES_NO|wx.CANCEL | wx.YES_DEFAULT | wx.ICON_WARNING)
             reponse = dlg.ShowModal()
             dlg.Destroy()
-            if reponse != wx.ID_YES:
-                return True
-            mess = "UPGRADE BASE conseillé\n\n"
-            mess += "Version logiciel '%s' - Version base de donnée '%s'\n" % (
-                versionData[:3], versionLogiciel[:3])
-            mess += "Ce changement de niveau de version peut nécessiter une mise à jour de la base\n"
-            mess += "On peut quand même travailler en mode dégradé, avec un plus grand risque de bug."
-            wx.MessageBox(mess, "", style=wx.ICON_INFORMATION)
-            if UTILS_Utilisateurs.IsAdmin(afficheMessage=True):
-                self.SauvegardeAutomatique()
-                self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
-                self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(True)
-            else:
-                self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(False)
+            if reponse == wx.ID_CANCEL:
                 self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(False)
                 return True
+            elif reponse == wx.ID_NO:
+                mess = "UPGRADE BASE conseillé\n\n"
+                mess += "Version logiciel '%s' - Version base de donnée '%s'\n" % (
+                    versionLogiciel[:3],versionData[:3])
+                mess += "Ce changement de niveau de version peut nécessiter une mise à jour de la base\n"
+                mess += "On peut quand même travailler en mode dégradé, avec un plus grand risque de bug."
+                wx.MessageBox(mess, "", style=wx.ICON_INFORMATION)
+                return True
+            elif not UTILS_Utilisateurs.IsAdmin(afficheMessage=True):
+                return True
+
             self.SetStatusText(self.infoVersions + " ...")
             print(self.infoVersions)
             self.mess = self.infoVersions
+            self.SauvegardeAutomatique()
+
             try:
                 import UpgradeDB
                 resultat = UpgradeDB.MAJ_TablesEtChamps(self)

@@ -1139,7 +1139,8 @@ DB_DATA = {
                 ("nom", "VARCHAR(300)", "Nom de l'arrêt"),
                 ], # Arrêts des lignes régulières pour les transports
     
-    "transports":[            ("IDtransport", "INTEGER PRIMARY KEY AUTOINCREMENT", "ID Transport"),
+    "transports":[
+                ("IDtransport", "INTEGER PRIMARY KEY AUTOINCREMENT", "ID Transport"),
                 ("IDindividu", "INTEGER", "ID Individu"),
                 ("mode", "VARCHAR(100)", "Mode : TRANSP | PROG | MODELE"),
                 ("categorie", "VARCHAR(100)", "Catégorie du moyen de locomotion"),
@@ -2071,6 +2072,7 @@ DB_INDEX = {
         "IX_matTarifs_trfIDactivite"  :  {"table"  :  "matTarifs",  "champ" : "trfIDactivite", },
         "IX_matTarifsLignes_trlCodeArticle"  :  {"table"  :  "matTarifsLignes",  "champ" : "trlCodeArticle", },
         "IX_matTarifsLignes_trlCodeTarif"  :  {"table"  :  "matTarifsLignes",  "champ" : "trlCodeTarif", },
+        "IX_transports_depart_date"  :  {"table"  :  "transports",  "champ" : "depart_date", },
         "index_photos_IDindividu": {"table": "photos", "champ": "IDindividu"},
         "index_liens_IDfamille": {"table": "liens", "champ": "IDfamille"},
         "index_familles_IDcompte_payeur": {"table": "familles", "champ": "IDcompte_payeur"},

@@ -20,6 +20,7 @@ from Utils import UTILS_Utilisateurs
 class DB(GestionDB.DB):
     def __init__(self, *args, **kwds):
         GestionDB.DB.__init__(self, *args, **kwds)
+        self.nb = 0
 
     def TransposeChamp(self,typeChamp):
         # Adaptation à Sqlite
@@ -264,13 +265,16 @@ class DB(GestionDB.DB):
                     self.Commit()
         return retour
 
-    def CreationTousIndex(self,parent,dicIndex,tables=None):
+    def CreationTousIndex(self,parent,dicIndex,tables=None,tip=None):
         """ Création de tous les index """
         if not dicIndex or dicIndex=={}:
             dicIndex =DATA_Tables.DB_INDEX
         if not tables:
             tables = DATA_Tables.DB_DATA
-
+        self.nb = 0
+        if parent and hasattr(parent, "mess"):
+            rapport = True
+        else: rapport = False
         for nomIndex, dict in dicIndex.items() :
             if not 'table' in dict:
                 raise Exception("Structure incorrecte: shema Index '%s' - absence cle 'table'"%nomIndex)
@@ -290,19 +294,25 @@ class DB(GestionDB.DB):
                     if len(recordset)>0:
                         # primary exists on passe
                         continue
-            if not self.IsIndexExists(nomIndex) :
+            idx = self.IsIndexExists(nomIndex)
+            if not idx:
                 ret = self.CreationIndex(nomIndex,dicIndex)
-                mess = "Création de l'index %s: %s" %(nomIndex,ret)
+                if ret == "ok":
+                    self.nb += 1
                 # Affichage dans la StatusBar
-                if parent:
+                if rapport:
                     parent.mess += "%s %s, " % (nomIndex, ret)
                     parent.SetStatusText(parent.mess[-200:])
-        if parent:
-            if parent.mess[-17:] == "Index PK Terminés":
-                parent.mess += "- Index alt Terminés"
-            else:
-                parent.mess += "- Index PK Terminés"
+                else:
+                    print("Création de l'index %s: %s" % (nomIndex, ret))
+
+        if rapport:
+            if tip == "IX":
+                parent.mess += "- %d Index alt Créés"%self.nb
+            elif tip == "PK":
+                parent.mess += "- %d Index PK Terminés"%self.nb
             parent.SetStatusText(parent.mess[-200:])
+
 
     def Importation_table(self, nomTable="",
                           nomFichierdefault=Chemins.GetStaticPath(
@@ -595,13 +605,23 @@ class DB(GestionDB.DB):
             except Exception as err:
                 return " filtre de conversion %s | " % ".".join(
                     [str(x) for x in versionFiltre]) + str(err)
-        """
+
         versionFiltre = (1, 3, 1, 13)
         if versionData <= versionFiltre:
             try:
                 Init_tables(parent=parent, mode='creation', tables=["releases"],
                             db_tables=Data.DATA_Tables.DB_DOCUMENTS,
                             suffixe="DOCUMENTS")
+                print("Mise a niveau base %s\t\t\t\t>>>>>>> OK" % ".".join(
+                    [str(x) for x in versionFiltre]))
+            except Exception as err:
+                return " filtre de conversion %s | " % ".".join(
+                    [str(x) for x in versionFiltre]) + str(err)
+        """
+        versionFiltre = (1, 3, 2, 40)
+        if versionData < versionFiltre:
+            try:
+                Ajout_IndexMat(parent=parent)
                 print("Mise a niveau base %s\t\t\t\t>>>>>>> OK" % ".".join(
                     [str(x) for x in versionFiltre]))
             except Exception as err:
@@ -739,23 +759,38 @@ def GetChamps_DATA_Tables(nomTable=""):
         return []
 
 class Ajout_IndexMat(wx.Frame):
-    def __init__(self):
+    # lançé à la mano ou dans les releases cf exemple anciennes releases
+    def __init__(self,parent=None):
         """Constructor"""
-        wx.Frame.__init__(self, parent=None, size=(550, 400))
+        wx.Frame.__init__(self, parent=parent, size=(550, 400))
+        self.mess = ""
+        nb = 0
+        if parent:
+            parent.mess = ""
+            frame = parent
+        else:
+            frame = self
         DB1 = DB(suffixe="DATA", modeCreation=False)
-        DB1.CreationTousIndex(self,DATA_Tables.DB_PK)
+        DB1.CreationTousIndex(frame,DATA_Tables.DB_PK,tip="PK")
         if DB1.retourReq != "ok" :
             dlg = wx.MessageDialog(self, "Erreur base de données.\n\nErreur : %s" % DB1.retourReq,
                                    "Erreur de création d'index PK", wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
             dlg.Destroy()
-        DB1.CreationTousIndex(self,DATA_Tables.DB_INDEX)
+        nb += DB1.nb
+        DB1.CreationTousIndex(frame,DATA_Tables.DB_INDEX,tip="IX")
         if DB1.retourReq != "ok" :
             dlg = wx.MessageDialog(self, "Erreur base de données.\n\nErreur : %s" % DB1.retourReq,
                                    "Erreur de création d'index IX", wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
             dlg.Destroy()
+        nb += DB1.nb
         DB1.Close()
+        if parent:
+            parent.SetStatusText(parent.mess[-200:])
+            self.mess = "Ctrl des Index\n\n" + parent.mess
+        if nb >0:
+            wx.MessageBox(self.mess,"Fin travail")
 
 def Init_tables(parent=None, mode='creation',tables=[],
                 db_tables=None,db_ix=None,db_pk=None,suffixe="DATA"):
@@ -782,10 +817,10 @@ def Init_tables(parent=None, mode='creation',tables=[],
         db = DB()
         db.cursor = db.connexion.cursor()
 
-        db.CreationTousIndex(parent,db_ix, tables)
+        db.CreationTousIndex(parent,db_ix, tables,tip="IX")
         if not db_pk or db_pk=={}:
             db_pk = DATA_Tables.DB_PK
-        db.CreationTousIndex(parent,db_pk, tables)
+        db.CreationTousIndex(parent,db_pk, tables,tip="PK")
 
     # Crée les tables et ajoute les champs manquants dans les présentes
     elif mode == "ctrl":
@@ -864,7 +899,7 @@ def MAJ_TablesEtChamps(parent=None, mode='ctrl',lstTables=[]):
                           db_tables=db_tables, suffixe=suffixe)
     del attente
 
-    wx.MessageBox("Fin de traitement"," ",style=wx.OK)
+    wx.MessageBox("Fin du contrôle tables et champs"," ",style=wx.OK)
     return True
 
 if __name__ == "__main__":
