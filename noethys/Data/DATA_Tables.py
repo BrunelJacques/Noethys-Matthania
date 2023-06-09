@@ -480,13 +480,13 @@ DB_DATA = {
                 ("date", "DATE", "Date si dans forfait"),
                 ("quantite_max", "INTEGER", "Quantité max d'unités"),
                 ("IDgroupe", "INTEGER", "ID du groupe concerné"),
-                ], # Combinaisons d'unités pour les tarifs
+                ], # Obsolète Combinaisons d'unités pour les tarifs
     
     "combi_tarifs_unites":[("IDcombi_tarif_unite", "INTEGER PRIMARY KEY AUTOINCREMENT", "ID combinaison de tarif"),
                 ("IDcombi_tarif", "INTEGER", "ID du combi_tarif"),
                 ("IDtarif", "INTEGER", "ID du tarif"),
                 ("IDunite", "INTEGER", "ID de l'unité"),
-                ], # Combinaisons d'unités pour les tarifs
+                ], # Obsolète Combinaisons d'unités pour les tarifs
     
     "tarifs_lignes":          [("IDligne", "INTEGER PRIMARY KEY AUTOINCREMENT", "ID ligne de tarif"),
                 ("IDactivite", "INTEGER", "ID de l'activité concernée"),
@@ -525,7 +525,7 @@ DB_DATA = {
                 ("revenu_min", "FLOAT", "Montant revenu min"),
                 ("revenu_max", "FLOAT", "Montant revenu max"),
                 ("IDmodele", "INTEGER", "IDmodele de prestation"),
-                ], # Lignes du tableau de calcul de tarifs
+                ], # Obsolète Lignes du tableau de calcul de tarifs
                 
     "inscriptions":[           ("IDinscription", "INTEGER PRIMARY KEY AUTOINCREMENT", "ID inscription"),
                 ("IDindividu", "INTEGER", "ID de l'individu"),

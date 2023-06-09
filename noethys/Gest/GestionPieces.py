@@ -18,6 +18,7 @@ from Gest import GestionInscription
 from Gest import GestionArticle
 from Ol import OL_FacturationPieces
 from Ctrl import CTRL_ChoixListe
+from Utils import UTILS_Dates
 
 def Transport(xxx_todo_changeme):
     (aller,retour) = xxx_todo_changeme
@@ -326,7 +327,7 @@ class Forfaits():
             else: montant -= dictLigne["montant"]
         montant -= transports
         today = datetime.date.today()
-        dteFac = GestionDB.DateEngEnDateDD(dictDonnees["dateFacturation"])
+        dteFac = UTILS_Dates.DateEngEnDateDD(dictDonnees["dateFacturation"])
         exDeb,exFin = DB.GetExercice(dteFac, alertes="date exercice de la facture", approche=True)
         if today <= exFin:
             dictDonnees["dateAvoir"] = str(today)
