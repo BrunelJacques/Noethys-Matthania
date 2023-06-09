@@ -356,7 +356,7 @@ class DlgMenu(wx.Dialog):
             # Cas de la génération d'un avoir global de la pièce
             self.dictDonnees = fMod.dictDonnees
             fMod.Destroy()
-            self.Historise("AvoirInscription")
+            self.Historise("AvoirGénéré")
             # Vérifier pour confirmer les réductions liées aux inscriptions...
             fFam = DLG_PrixFamille.DlgTarification(self,self.dictDonnees,fromIndividu=True,fromAvoir=True)
             ret = fFam.ShowModal()

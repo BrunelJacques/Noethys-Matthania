@@ -328,7 +328,9 @@ class Forfaits():
         montant -= transports
         today = datetime.date.today()
         dteFac = UTILS_Dates.DateEngEnDateDD(dictDonnees["dateFacturation"])
-        exDeb,exFin = DB.GetExercice(dteFac, alertes="date exercice de la facture", approche=True)
+        exDeb,exFin = DB.GetExercice(dteFac, alertes=False, approche=False)
+        if not exFin:
+            exDeb, exFin = DB.GetExercice(today, alertes=False, approche=False)
         if today <= exFin:
             dictDonnees["dateAvoir"] = str(today)
         else :

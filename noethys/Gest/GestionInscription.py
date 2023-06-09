@@ -23,6 +23,7 @@ DictActions = {
     "SuppressionInscription" : 77,
     "Facturation" : 76,
     "AjoutFacturation" : 76,
+    "AvoirGénéré": 76,
     "ModificationFacturation" : 75,
     "SuppressionFacturation" : 74,
     "MiseEnCoherence" : 73,

@@ -1,5 +1,6 @@
 version 1.3.2.41 (09/06/2023):
 - Avoir global: pb de conversion de date
+- Cohérence: gestion des avoirs sur factures exercices précédent
 
 version 1.3.2.40 (21/04/2023):
 - Transports: optimisation par index date!

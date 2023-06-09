@@ -47,6 +47,7 @@ def Corr_ptnPrinc(parent,IDfamille, dLigne, **kw):
         cc = dLigne["champCible"] == "IDprestation"
         st = dLigne["ssType"] == "NoCle"
         if tc & c & cc &st:
+
             return parent.SynchroPrestationToPiece(dLigne)
 
         # selon la nature de la piece absence des consos
@@ -628,6 +629,14 @@ class Diagnostic():
         return False
 
     def SynchroPrestationToPiece(self,dLigne):
+
+        def synchroConsos(IDprestation, IDinscription):
+            # inscription de la pièce de la prestation
+            if len(dPrest) == 0:
+                return False
+            lstDonnees = [("IDprestation", IDprestation)]
+            return self.ReqMAJ(dLigne,"consommations",lstDonnees,"IDinscription",IDinscription,MsgBox=mess + "31")
+
         # la pièce est demandeuse on la corrige
         if dLigne["table"] == "matPieces" and  dLigne["champ"] == "pieIDprestation":
             IDfamille = dLigne["IDfamille"]
@@ -652,7 +661,6 @@ class Diagnostic():
             if ret != "ok":
                 return False
             recordset = self.DB.ResultatReq()
-
             IDprestation = None
             if len(recordset) == 0 and nature == "COM":
                 # retrograde la pièce en réservation si commande
@@ -672,16 +680,19 @@ class Diagnostic():
                 return majIDprestationInPiece([("pieIDprestation",IDprestation)])
             return False
 
-        def synchroConsos(IDprestation, IDinscription):
-            # inscription de la pièce de la prestation
-            dInscr = DATA_Tables.GetDictRecord(self.DB,"inscriptions",IDinscription,mess=mess + " 30")
-            if len(dPrest) == 0:
-                return False
-            lstDonnees = [("IDprestation", IDprestation)]
-            return self.ReqMAJ(dLigne,"consommations",lstDonnees,"IDinscription",IDinscription,MsgBox=mess + "31")
+        # la piece avoir n'a plus ID on vérifie s'il y a une prestation 'consoAvoir'
+        elif dLigne["table"] == "matPieces" and dLigne["champ"] == "pieNoAvoir":
+            where = " IDcontrat = %d AND categorie = 'consoavoir' "%dLigne['ID']
+            ddPrestations = DATA_Tables.GetDdRecords(self.DB,"prestations",where,mess=" SynchroPrestationToPiece 10")
+            if len(ddPrestations) == 0:
+                # il n'y avait pas non plus de prestations, on change la nature
+                lstDonnees = [('pieNature','FAC')]
+                return self.ReqMAJ(dLigne, "matPieces", lstDonnees, "pieIDnumPiece",
+                                   dLigne['ID'], MsgBox="SynchroPrestationToPiece 20")
+            return False
 
         # la prestation est demandeuse on corrige sa cible
-        if dLigne["table"] == "prestations" and dLigne["champ"] == "IDprestation":
+        elif dLigne["table"] == "prestations" and dLigne["champ"] == "IDprestation":
             IDprestation = dLigne["ID"]
             # appel prestation, pièce et inscription concernées
             mess = "DLGFacturationPieces.SynchroPrestationToPiece"
@@ -715,8 +726,8 @@ class Diagnostic():
                 return True
             else:
                 return False
-        raise Exception("Pb d'itineraire: %s"%str(dLigne))
-        return False
+
+        raise Exception("Cas non prévu: %s"%str(dLigne))
 
     def SynchroInscriptionToConsommation(self,dLigne):
         # mises à jour des consommations d'une inscription par écrasement de ses valeurs communes
@@ -1254,7 +1265,7 @@ class Diagnostic():
                     IDinscription = dictPiece["IDinscription"]
                     # Test de champs attendus sinon interdits
                     testPointeur(ID,dictPiece,"pieIDprestation",["COM","FAC","AVO"])
-                    testPointeur(ID,dictPiece,"pieNoFacture",["FAC"])
+                    testPointeur(ID,dictPiece,"pieNoFacture",["FAC","AVO"])
                     testPointeur(ID,dictPiece,"pieNoAvoir",["AVO",])
                     testPointeur(ID,dictPiece,"pieIDinscription",None)
             return "ok"
@@ -1317,6 +1328,13 @@ class Diagnostic():
                             break
                 return trouve
 
+            def rechercheElargie(tblCible,IDcible):
+                mess = "GetionCoherence.rechercheElargie table %s" % tblCible
+                dLigne= DATA_Tables.GetDictRecord(self.DB,tblCible,IDcible,mess)
+                if len(dLigne)>0:
+                    return dLigne
+                return None
+
             # -------------------------- Cohérence des pointeurs principaux --------------------------------------------
             for IDfamille, ddTblOrig in dddTblOrig.items():
                 if IDfamille == "nomTable": continue
@@ -1331,7 +1349,8 @@ class Diagnostic():
                     # presence de clé dans la cible
                     if tblCible and IDcible and IDcible in tblCible["dictDon"]:
                         dictCible = tblCible["dictDon"][IDcible]
-                    else: dictCible = None
+                    else:
+                        dictCible = rechercheElargie(nomCible,IDcible)
 
                     if not "IDinscription" in dict:
                         IDinscription = None

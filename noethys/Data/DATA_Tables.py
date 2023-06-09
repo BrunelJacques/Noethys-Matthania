@@ -2202,8 +2202,7 @@ def GetDictRecord(DB,nomTable,ID,mess=None):
     return dicRetour
 
 def GetDdRecords(DB,nomTable,where,lstChamps=None,mess=None):
-    # retrourne les dictionnaires des records d'une table filtrée where, premier champ doit être l'ID pk
-
+    # retourne les dictionnaires des records d'une table filtrée par where
     if lstChamps and not isinstance(lstChamps,list):
         raise Exception("lstChamp type not list! : %s"%str(lstChamps))
     if not lstChamps:
