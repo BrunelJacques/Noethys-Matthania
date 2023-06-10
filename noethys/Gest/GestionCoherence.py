@@ -1349,8 +1349,9 @@ class Diagnostic():
                     # presence de clé dans la cible
                     if tblCible and IDcible and IDcible in tblCible["dictDon"]:
                         dictCible = tblCible["dictDon"][IDcible]
-                    else:
+                    elif tblCible and IDcible and nomCible != 'numeros':
                         dictCible = rechercheElargie(nomCible,IDcible)
+                    else: dictCible = None
 
                     if not "IDinscription" in dict:
                         IDinscription = None
