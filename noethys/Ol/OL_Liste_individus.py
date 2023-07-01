@@ -58,9 +58,9 @@ def GetListe(listeActivites=None, presents=None, archives=False):
 
     # Condition archives
     if archives == True :
-        conditionArchives = "AND (individus.etat IS NULL OR individus.etat='archive')"
+        conditionArchives = ""
     else :
-        conditionArchives = "AND individus.etat IS NULL"
+        conditionArchives = ""
 
     # Conditions Présents
 ##    if presents == None :
@@ -78,7 +78,7 @@ def GetListe(listeActivites=None, presents=None, archives=False):
         req = """SELECT IDindividu, IDinscription
         FROM consommations
         WHERE date>='%s' AND date<='%s' AND consommations.etat IN ('reservation', 'present') %s
-        GROUP BY IDindividu
+        GROUP BY IDindividu, IDinscription
         ;"""  % (str(presents[0]), str(presents[1]), conditionActivites.replace("inscriptions", "consommations"))
         DB.ExecuterReq(req,MsgBox="ExecuterReq")
         listeIndividusPresents = DB.ResultatReq()
@@ -96,11 +96,12 @@ def GetListe(listeActivites=None, presents=None, archives=False):
     
     req = """
     SELECT %s
-    FROM inscriptions 
-    LEFT JOIN individus ON individus.IDindividu = inscriptions.IDindividu
-    WHERE inscriptions.statut='ok' AND (inscriptions.date_desinscription IS NULL OR inscriptions.date_desinscription>='%s') %s %s
-    GROUP BY individus.IDindividu
-    ;""" % (",".join(listeChamps), datetime.date.today(), conditionArchives, conditionActivites)
+    FROM (inscriptions 
+    LEFT JOIN individus ON individus.IDindividu = inscriptions.IDindividu)
+    LEFT JOIN matPieces ON matPieces.pieIDinscription = inscriptions.IDinscription
+    WHERE (matPieces.pieNature in ('FAC','COM','RES')) %s %s
+    GROUP BY %s
+    ;""" % (",".join(listeChamps), conditionArchives, conditionActivites, ",".join(listeChamps))
     DB.ExecuterReq(req,MsgBox="ExecuterReq")
     listeDonnees = DB.ResultatReq()
     DB.Close() 

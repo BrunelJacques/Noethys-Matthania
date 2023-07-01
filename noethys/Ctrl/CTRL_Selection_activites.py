@@ -7,14 +7,27 @@
 # Copyright:       (c) 2010-11 Ivan LUCAS
 # Licence:         Licence GNU GPL
 #-----------------------------------------------------------
-
-import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
-from Ctrl import CTRL_Bouton_image
 import GestionDB
 import wx.lib.agw.customtreectrl as CT
+from datetime import date
+from UTILS_Dates import DateDDEnDateEng
+
+def WhereDates(periode):
+    deb_per, fin_per = periode
+    filtre = ""
+    if deb_per:
+        deb_per = DateDDEnDateEng(deb_per)
+        filtre += " ((activites.date_fin >= '%s') or (activites.date_debut >= '%s'))" % (deb_per, deb_per)
+    if fin_per:
+        if filtre != "":
+            filtre += " AND "
+        fin_per = DateDDEnDateEng(fin_per)
+        filtre += " ((activites.date_fin <= '%s') or (activites.date_debut <= '%s'))" % (fin_per, fin_per)
+    if filtre != "":
+        filtre = "WHERE ( %s )"%filtre
+    return filtre
 
 class CTRL_Groupes(CT.CustomTreeCtrl):
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.SIMPLE_BORDER) :
@@ -37,12 +50,15 @@ class CTRL_Groupes(CT.CustomTreeCtrl):
         self.MAJ() 
 
     def Importation(self):
-        listeDonnees = []
+        if hasattr(self.parent,"periode"):
+            whereDate = WhereDates(self.parent.periode)
+        else: whereDate = ""
         DB = GestionDB.DB()
         req = """SELECT groupes.IDgroupe, groupes.nom, groupes.ordre, activites.IDactivite, activites.nom, activites.date_fin
         FROM groupes
         LEFT JOIN activites ON activites.IDactivite = groupes.IDactivite
-        ORDER BY activites.date_fin DESC;"""
+        %s
+        ORDER BY activites.date_fin DESC;"""%whereDate
         DB.ExecuterReq(req,MsgBox="ExecuterReq")
         listeGroupes = DB.ResultatReq()      
         DB.Close() 
@@ -167,7 +183,6 @@ class CTRL_Groupes(CT.CustomTreeCtrl):
                     self.Coche(item, etat=True)
                 else :
                     self.Coche(item, etat=False)
-        
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -199,12 +214,16 @@ class CTRL_Groupes_activites(wx.CheckListBox):
             index += 1
 
     def Importation(self):
+        if hasattr(self.parent,"periode"):
+            whereDate = WhereDates(self.parent.periode)
+        else: whereDate = ""
         DB = GestionDB.DB()
         req = """SELECT IDgroupe_activite, groupes_activites.IDactivite, activites.nom, types_groupes_activites.nom, groupes_activites.IDtype_groupe_activite
         FROM groupes_activites
         LEFT JOIN types_groupes_activites ON types_groupes_activites.IDtype_groupe_activite = groupes_activites.IDtype_groupe_activite
         LEFT JOIN activites ON activites.IDactivite = groupes_activites.IDactivite
-        ORDER BY types_groupes_activites.nom;"""
+        %s
+        ORDER BY types_groupes_activites.nom;"""%whereDate
         DB.ExecuterReq(req,MsgBox="ExecuterReq")
         listeActivites = DB.ResultatReq()
         DB.Close()
@@ -302,12 +321,15 @@ class CTRL_Activites(wx.CheckListBox):
             index += 1
 
     def Importation(self):
-        listeDonnees = []
+        if hasattr(self.parent,"periode"):
+            whereDate = WhereDates(self.parent.periode)
+        else: whereDate = ""
         DB = GestionDB.DB()
         req = """SELECT IDactivite, nom
         FROM activites
+        %s
         ORDER BY date_fin DESC
-        ;"""
+        ;"""%whereDate
         DB.ExecuterReq(req,MsgBox="ExecuterReq")
         listeActivites = DB.ResultatReq()      
         DB.Close() 
@@ -344,11 +366,13 @@ class CTRL_Activites(wx.CheckListBox):
 # -----------------------------------------------------------------------------------------------------------------------
 
 class CTRL(wx.Panel):
-    def __init__(self, parent, afficheToutes=False, modeGroupes=False):
+    def __init__(self, parent, afficheToutes=False, modeGroupes=False,
+                 periode=(date.today(),date.today())):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
         self.parent = parent
         self.afficheToutes = afficheToutes
         self.modeGroupes = modeGroupes
+        self.periode = periode
         
         # Contrôles
         self.radio_toutes = wx.RadioButton(self, -1, _("Toutes les activités"), style=wx.RB_GROUP)
@@ -358,14 +382,14 @@ class CTRL(wx.Panel):
             style = 0
         self.radio_groupes_activites = wx.RadioButton(self, -1, _("Les groupes d'activités suivants :"), style=style)
         self.ctrl_groupes_activites = CTRL_Groupes_activites(self)
-        self.ctrl_groupes_activites.SetMinSize((200, 40))
+        self.ctrl_groupes_activites.SetMinSize((100, 40))
         self.radio_activites = wx.RadioButton(self, -1, _("Les activités suivantes :"))
         
         self.ctrl_activites = CTRL_Activites(self)
-        self.ctrl_activites.SetMinSize((200, 40))
+        self.ctrl_activites.SetMinSize((100, 40))
         
         self.ctrl_groupes = CTRL_Groupes(self)
-        self.ctrl_groupes.SetMinSize((200, 40))
+        self.ctrl_groupes.SetMinSize((100, 40))
         
         if self.modeGroupes == False :
             self.ctrl_activites.MAJ() 
@@ -385,10 +409,14 @@ class CTRL(wx.Panel):
         grid_sizer_base = wx.FlexGridSizer(rows=7, cols=1, vgap=5, hgap=5)
         grid_sizer_base.Add(self.radio_toutes, 0, wx.BOTTOM, 5)
         grid_sizer_base.Add(self.radio_groupes_activites, 0, 0, 0)
-        grid_sizer_base.Add(self.ctrl_groupes_activites, 0, wx.LEFT|wx.EXPAND, 18)
-        grid_sizer_base.Add((1, 1), 0, wx.EXPAND, 0)
-        grid_sizer_base.Add(self.radio_activites, 0, 0, 0)
-        grid_sizer_base.Add(self.ctrl_activites, 0, wx.LEFT|wx.EXPAND, 18)
+        grid_sizer_base.Add(self.ctrl_groupes_activites,
+                            proportion=1,
+                            flag=wx.LEFT|wx.EXPAND)
+        grid_sizer_base.Add((1, 1), 0, wx.LEFT|wx.EXPAND, 0)
+        grid_sizer_base.Add(self.radio_activites, 5, 0, 0)
+        grid_sizer_base.Add(self.ctrl_activites,
+                            proportion=50,
+                            flag=wx.LEFT|wx.EXPAND)
         grid_sizer_base.Add(self.ctrl_groupes, 0, wx.LEFT|wx.EXPAND, 18)
         grid_sizer_base.AddGrowableRow(2)
         grid_sizer_base.AddGrowableRow(5)
@@ -397,6 +425,7 @@ class CTRL(wx.Panel):
 
         self.SetSizer(grid_sizer_base)
         grid_sizer_base.Fit(self)
+        #self.Layout()
         
         # Init Contrôles
         self.ctrl_groupes_activites.Enable(self.radio_groupes_activites.GetValue())
@@ -426,7 +455,15 @@ class CTRL(wx.Panel):
             dlg.Destroy()
             return False
         return True
-    
+
+    def SetPeriode(self, periode):
+        self.periode = periode
+        self.ctrl_activites.MAJ()
+        self.ctrl_groupes_activites.MAJ()
+        self.ctrl_groupes.MAJ()
+        self.GetGroupes()
+        self.GetActivites()
+
     def SetActivites(self, listeActivites=[]):
         if self.modeGroupes == False :
             self.ctrl_activites.SetIDcoches(listeActivites)
@@ -467,7 +504,14 @@ class CTRL(wx.Panel):
         else:
             dictActivites = self.ctrl_activites.GetDictActivites()
         return dictActivites
-        
+
+    def GetDictGroupes(self):
+        if self.radio_groupes_activites.GetValue() == True:
+            dictGroupes = self.ctrl_groupes.GetDictGroupes()
+        else:
+            dictGroupes = self.ctrl_groupes.GetDictGroupes()
+        return dictGroupes
+
     def OnCheck(self):
         try :
             self.parent.OnCheckActivites()
@@ -516,13 +560,8 @@ class CTRL(wx.Panel):
             else :
                 self.ctrl_groupes.SetGroupes(listeID)
         self.OnRadioActivites(None)
-            
-            
-            
-            
-            
-        
 
+# ----------------------------------------------------------------------------------------------------------------------------------
 
 class MyFrame(wx.Frame):
     def __init__(self, *args, **kwds):
@@ -537,14 +576,15 @@ class MyFrame(wx.Frame):
         sizer_2.Add(self.ctrl, 1, wx.ALL|wx.EXPAND, 4)
         sizer_2.Add(bouton_test, 0, wx.ALL|wx.EXPAND, 4)
         panel.SetSizer(sizer_2)
-        self.SetMinSize((300, 600))
-        self.Layout()
+        self.SetMinSize((150, 200))
+        #self.Layout()
         self.CentreOnScreen()
         self.Bind(wx.EVT_BUTTON, self.OnBouton, bouton_test) 
         
     def OnBouton(self, event):
-        self.ctrl.ctrl_groupes.SetGroupes([1, 3])
-        print(self.ctrl.ctrl_groupes.GetGroupes())
+        #self.ctrl.ctrl_groupes.SetGroupes([1, 3])
+        print(self.ctrl.GetActivites())
+        print(self.ctrl.GetGroupes())
         
 
 if __name__ == '__main__':

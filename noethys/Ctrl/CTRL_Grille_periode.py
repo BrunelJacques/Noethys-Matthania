@@ -321,8 +321,7 @@ class CTRL(wx.Panel):
         grid_sizer_base.Add(self.notebook, 1, wx.EXPAND, 0)
         self.SetSizer(grid_sizer_base)
         grid_sizer_base.Fit(self)
-    
-    
+
     def OnSelection(self):
         """ Quand une sélection de période est effectuée dans l'une des pages du notebook """
         self.evtActif = False
@@ -337,7 +336,6 @@ class CTRL(wx.Panel):
             self.parent.SetListesPeriodes(listeSelections) 
         
         self.evtActif = True
-            
     
     def OnPageChanged(self, event):
         """ Quand une page du notebook est sélectionnée """

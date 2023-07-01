@@ -10,7 +10,6 @@
 
 
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
@@ -44,7 +43,6 @@ class Options(wx.Panel):
         self.label_date_fin = wx.StaticText(self, -1, _("Au"))
         self.ctrl_date_fin = CTRL_Saisie_date.Date(self)
         self.bouton_date_fin = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Calendrier.png"), wx.BITMAP_TYPE_ANY))
-        self.check_archives = wx.CheckBox(self, -1, _("Afficher les individus archivés"))
 
         self.__set_properties()
         self.__do_layout()
@@ -80,13 +78,16 @@ class Options(wx.Panel):
         grid_sizer_dates.Add(self.bouton_date_fin, 0, 0, 0)
         grid_sizer_base.Add(grid_sizer_dates, 1, wx.LEFT|wx.EXPAND, 18)
 
-        grid_sizer_base.Add(self.check_archives, 1, wx.EXPAND | wx.TOP, 5)
 
         self.SetSizer(grid_sizer_base)
         grid_sizer_base.Fit(self)
         grid_sizer_base.AddGrowableCol(0)
 
-    def OnRadio(self, event): 
+    def OnChoixDate(self,event=None):
+        self.periode = (self.ctrl_date_debut.GetDate(),self.ctrl_date_fin.GetDate())
+        self.parent.OnDatesOptions(self.periode)
+
+    def OnRadio(self, event):
         if self.radio_inscrits.GetValue() == True :
             etat = False
         else:
@@ -103,6 +104,7 @@ class Options(wx.Panel):
         if dlg.ShowModal() == wx.ID_OK :
             date = dlg.GetDate()
             self.ctrl_date_debut.SetDate(date)
+            self.OnChoixDate()
         dlg.Destroy()
 
     def OnBoutonDateFin(self, event): 
@@ -110,8 +112,9 @@ class Options(wx.Panel):
         if dlg.ShowModal() == wx.ID_OK :
             date = dlg.GetDate()
             self.ctrl_date_fin.SetDate(date)
+            self.OnChoixDate()
         dlg.Destroy()
-    
+
 ##    def GetConcernes(self):
 ##        if self.check_concernes.GetValue() == True :
 ##            return True
@@ -150,8 +153,8 @@ class Options(wx.Panel):
             return (date_debut, date_fin)
 
     def GetArchives(self):
-        return self.check_archives.GetValue()
-
+        #return self.check_archives.GetValue()
+        return False
 # -------------------------------------------------------------------------------------------------------------------------
 
 class Parametres(wx.Panel):
@@ -159,15 +162,16 @@ class Parametres(wx.Panel):
         wx.Panel.__init__(self, parent, id=-1, name="panel_parametres", style=wx.TAB_TRAVERSAL)
         self.parent = parent
         
-##        # Période
-##        self.staticbox_periode_staticbox = wx.StaticBox(self, -1, _("Date de référence"))
-##        self.ctrl_date = CTRL_Saisie_date.Date(self)
-##        self.ctrl_date.SetDate(datetime.date.today())
-##        self.bouton_date = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Calendrier.png"), wx.BITMAP_TYPE_ANY))
+        # Période
+        self.staticbox_periode_staticbox = wx.StaticBox(self, -1, _("Date de référence"))
+        self.ctrl_date = CTRL_Saisie_date.Date(self)
+        self.periode = (datetime.date.today(),datetime.date.today())
+        self.ctrl_date.SetDate(datetime.date.today())
+        self.bouton_date = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Calendrier.png"), wx.BITMAP_TYPE_ANY))
         
         # Activités
         self.staticbox_activites_staticbox = wx.StaticBox(self, -1, _("Activités"))
-        self.ctrl_activites = CTRL_Selection_activites.CTRL(self)
+        self.ctrl_activites = CTRL_Selection_activites.CTRL(self, periode=self.periode)
         self.ctrl_activites.SetMinSize((-1, 90))
         
         # Inscrits / Présents
@@ -182,25 +186,24 @@ class Parametres(wx.Panel):
         self.__do_layout()
         
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAfficher, self.bouton_afficher)
-##        self.Bind(wx.EVT_BUTTON, self.OnBoutonDate, self.bouton_date)
-        
+        self.Bind(wx.EVT_BUTTON, self.OnBoutonDate, self.bouton_date)
 
     def __set_properties(self):
         self.bouton_afficher.SetToolTip(wx.ToolTip(_("Cliquez ici pour afficher la liste en fonction des paramètres sélectionnés")))
-##        self.ctrl_date.SetToolTip(wx.ToolTip(_("Saisissez la date de référence")))
-##        self.bouton_date.SetToolTip(wx.ToolTip(_("Cliquez ici pour sélectionner la date de référence dans un calendrier")))
+        self.ctrl_date.SetToolTip(wx.ToolTip(_("Saisissez la date de référence")))
+        self.bouton_date.SetToolTip(wx.ToolTip(_("Cliquez ici pour sélectionner la date de référence dans un calendrier")))
 
     def __do_layout(self):
-        grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
+        grid_sizer_base = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
         
-##        # Date de référence
-##        staticbox_periode = wx.StaticBoxSizer(self.staticbox_periode_staticbox, wx.VERTICAL)
-##        grid_sizer_periode = wx.FlexGridSizer(rows=1, cols=7, vgap=5, hgap=5)
-##        grid_sizer_periode.Add((13, 10), 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
-##        grid_sizer_periode.Add(self.ctrl_date, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-##        grid_sizer_periode.Add(self.bouton_date, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-##        staticbox_periode.Add(grid_sizer_periode, 1, wx.ALL|wx.EXPAND, 5)
-##        grid_sizer_base.Add(staticbox_periode, 1, wx.RIGHT|wx.EXPAND, 5)
+        # Date de référence
+        staticbox_periode = wx.StaticBoxSizer(self.staticbox_periode_staticbox, wx.VERTICAL)
+        grid_sizer_periode = wx.FlexGridSizer(rows=1, cols=7, vgap=5, hgap=5)
+        grid_sizer_periode.Add((13, 10), 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer_periode.Add(self.ctrl_date, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer_periode.Add(self.bouton_date, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        staticbox_periode.Add(grid_sizer_periode, 1, wx.ALL|wx.EXPAND, 5)
+        grid_sizer_base.Add(staticbox_periode, 0, wx.RIGHT|wx.EXPAND, 5)
         
         # Activités
         staticbox_activites = wx.StaticBoxSizer(self.staticbox_activites_staticbox, wx.VERTICAL)
@@ -217,26 +220,39 @@ class Parametres(wx.Panel):
 
         self.SetSizer(grid_sizer_base)
         grid_sizer_base.Fit(self)
-        grid_sizer_base.AddGrowableRow(0)
+        grid_sizer_base.AddGrowableRow(1)
         grid_sizer_base.AddGrowableCol(0)
 
-##    def OnBoutonDate(self, event): 
-##        dlg = DLG_calendrier_simple.Dialog(self)
-##        if dlg.ShowModal() == wx.ID_OK :
-##            date = dlg.GetDate()
-##            self.ctrl_date.SetDate(date)
-##        dlg.Destroy()
-    
+    def OnChoixDate(self, event=None):
+        self.periode = (self.ctrl_date.GetDate(),self.ctrl_date.GetDate())
+        self.ctrl_activites.SetPeriode(self.periode)
+        self.ctrl_options.ctrl_date_debut.SetDate(self.periode[0])
+        self.ctrl_options.ctrl_date_fin.SetDate(self.periode[1])
+
+    def OnBoutonDate(self, event):
+        dlg = DLG_calendrier_simple.Dialog(self)
+        if dlg.ShowModal() == wx.ID_OK :
+            date = dlg.GetDate()
+            self.ctrl_date.SetDate(date)
+            self.OnChoixDate()
+        dlg.Destroy()
+
+    def OnDatesOptions(self,periode):
+        self.periode = periode
+        self.ctrl_date.SetDate(self.periode[0])
+        self.ctrl_activites.SetPeriode(self.periode)
+
+
     def OnBoutonAfficher(self, event):
         """ Validation des données saisies """
-##        # Vérifie date de référence
-##        date_reference = self.ctrl_date.GetDate()
-##        if self.ctrl_date.FonctionValiderDate() == False or date_reference == None :
-##            dlg = wx.MessageDialog(self, _("La date de référence ne semble pas valide !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
-##            dlg.ShowModal()
-##            dlg.Destroy()
-##            self.ctrl_date.SetFocus()
-##            return False
+        # Vérifie date de référence
+        date_reference = self.ctrl_date.GetDate()
+        if self.ctrl_date.FonctionValiderDate() == False or date_reference == None :
+            dlg = wx.MessageDialog(self, _("La date de référence ne semble pas valide !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            self.ctrl_date.SetFocus()
+            return False
                 
         # Vérifie les activités sélectionnées
         listeActivites = self.ctrl_activites.GetActivites()
@@ -261,8 +277,6 @@ class Parametres(wx.Panel):
         
         return True
     
-
-
 # --------------------------------------------------------------------------------------------------------------------------------------------------
 
 class Dialog(wx.Dialog):
@@ -300,7 +314,7 @@ class Dialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.ctrl_listview.MenuConfigurerListe, self.bouton_configuration)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAide, self.bouton_aide)
         
-        self.MAJ(None)
+        #self.MAJ(None)
         
 
     def __set_properties(self):

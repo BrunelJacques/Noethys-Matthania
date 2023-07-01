@@ -296,7 +296,6 @@ class Page_Dates(wx.Panel):
     def GetDateFin(self):
         return self.ctrl_date_fin.GetDate()
 
-
 class Page_Jour(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
@@ -347,8 +346,6 @@ class Page_Jour(wx.Panel):
 
     def GetDateFin(self):
         return self.ctrl_date.GetDate()
-
-
 
 class CTRL(wx.Notebook):
     def __init__(self, parent, callback=None):
@@ -422,14 +419,6 @@ class CTRL(wx.Notebook):
         return self.listePages[index]["code"]
 
 
-
-
-            
-            
-            
-        
-
-
 class MyFrame(wx.Frame):
     def __init__(self, *args, **kwds):
         wx.Frame.__init__(self, *args, **kwds)
@@ -438,7 +427,8 @@ class MyFrame(wx.Frame):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_1.Add(panel, 1, wx.ALL|wx.EXPAND)
         self.SetSizer(sizer_1)
-        self.ctrl = CTRL(panel)
+        #self.ctrl = CTRL(panel)
+        self.ctrl = Page_Jour(self)
         sizer_2 = wx.BoxSizer(wx.VERTICAL)
         sizer_2.Add(self.ctrl, 1, wx.ALL|wx.EXPAND, 4)
         sizer_2.Add(bouton_test, 0, wx.ALL|wx.EXPAND, 4)
@@ -450,7 +440,11 @@ class MyFrame(wx.Frame):
         
     def OnBouton(self, event):
         print("test")
-        
+
+    def CallBack(self, event=None):
+        if self.callback != None and self.callback_actif == True :
+            self.callback()
+
 
 if __name__ == '__main__':
     app = wx.App(0)

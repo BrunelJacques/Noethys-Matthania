@@ -153,6 +153,7 @@ class Date(masked.TextCtrl):
         # Vérification de la date
         self.FonctionValiderDate()
         # Envoi un signal de changement de date au panel parent
+        self.parent.OnChoixDate()
         try :
             self.parent.OnChoixDate()
         except :
@@ -402,7 +403,8 @@ def ValideDate(texte, date_min="01/01/1900", date_max="01/01/2999", avecMessages
 
 class Date2(wx.Panel):
     """ Contrôle Date avec Bouton Calendrier inclus """
-    def __init__(self, parent, date_min="01/01/1910", date_max="01/01/2030", activeCallback=True, size=(-1, -1), heure=False, pos=wx.DefaultPosition):
+    def __init__(self, parent, date_min="01/01/1910", date_max="01/01/2030",
+                 activeCallback=True, size=(-1, -1), heure=False, pos=wx.DefaultPosition):
         wx.Panel.__init__(self, parent, id=-1, name="panel_date2", size=size, pos=pos, style=wx.TAB_TRAVERSAL)
         self.parent = parent
         self.activeCallback = activeCallback
@@ -495,6 +497,66 @@ class Date2(wx.Panel):
     def SetFocus(self):
         self.ctrl_date.SetFocus()
 
+class Periode(wx.Panel):
+    """ Saisie d'une période avec Bouton Calendrier inclus """
+    def __init__(self, parent, size=(-1, -1),pos=wx.DefaultPosition):
+        wx.Panel.__init__(self, parent, id=-1, name="periode",size=size,pos=pos)
+        self.parent = parent
+        self.periode = (datetime.date.today(),datetime.date.today())
+        # Période
+        self.label_du = wx.StaticText(self, wx.ID_ANY, _("Du"))
+        self.ctrl_date_debut = Date2(self)
+        self.label_au = wx.StaticText(self, wx.ID_ANY, _("au"))
+        self.ctrl_date_fin = Date2(self)
+
+        # Properties
+        self.ctrl_date_debut.SetToolTip(wx.ToolTip("Saisir le début de la période"))
+        self.ctrl_date_fin.SetToolTip(wx.ToolTip("Saisir la fin de la période"))
+
+        self.__do_layout()
+        self.SetPeriode()
+
+    def __do_layout(self):
+        sizer_base = wx.BoxSizer(wx.HORIZONTAL)
+
+        grid_sizer_periode = wx.FlexGridSizer(2, 2, 5, 5)
+        grid_sizer_periode.Add(self.label_du, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer_periode.Add(self.ctrl_date_debut, 0, wx.EXPAND, 0)
+        grid_sizer_periode.Add(self.label_au, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer_periode.Add(self.ctrl_date_fin, 0, wx.EXPAND, 0)
+        sizer_base.Add(grid_sizer_periode, 1, wx.EXPAND | wx.ALL, 10)
+
+        self.SetSizer(sizer_base)
+        self.Layout()
+
+    def OnChoixDate(self):
+        # Envoi un signal de changement de date au panel parent
+        if hasattr(self.parent,"OnChoixDate"):
+            self.parent.OnChoixDate()
+
+    def SetPeriode(self,periode=(datetime.date.today(),datetime.date.today())):
+        self.periode = periode
+        self.ctrl_date_debut.SetDate(self.periode[0])
+        self.ctrl_date_fin.SetDate(self.periode[1])
+
+    def GetPeriode(self):
+        return self.periode
+
+    def OnChoixDate(self):
+        self.periode = (self.GetDateDebut(),self.GetDateFin())
+        if self.periode[1] < self.periode[0]:
+            self.periode = (self.periode[0],self.periode[0])
+            self.SetPeriode(self.periode)
+
+        if hasattr(self.parent,'OnChoixDate'):
+            self.parent.OnChoixDate()
+
+    def GetDateDebut(self):
+        return self.ctrl_date_debut.GetDate()
+
+    def GetDateFin(self):
+        return self.ctrl_date_fin.GetDate()
+
 class MyFrame(wx.Frame):
     def __init__(self, *args, **kwds):
         wx.Frame.__init__(self, *args, **kwds)
@@ -505,10 +567,12 @@ class MyFrame(wx.Frame):
         self.ctrl1 = Date2(panel, heure=True)
         self.ctrl2 = Date2(panel)
         self.bouton1 = wx.Button(panel, -1, "Tester la validité du ctrl 1")
+        self.periode = Periode(panel)
         sizer_2 = wx.BoxSizer(wx.VERTICAL)
-        sizer_2.Add(self.ctrl1, 0, wx.ALL|wx.EXPAND, 4)
+        sizer_2.Add(self.ctrl1, 1, wx.ALL|wx.EXPAND, 4)
         sizer_2.Add(self.ctrl2, 0, wx.ALL|wx.EXPAND, 4)
         sizer_2.Add(self.bouton1, 0, wx.ALL | wx.EXPAND, 4)
+        sizer_2.Add(self.periode, 1, wx.ALL | wx.EXPAND, 4)
         panel.SetSizer(sizer_2)
         self.Layout()
         self.CentreOnScreen()

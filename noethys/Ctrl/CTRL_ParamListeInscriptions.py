@@ -1200,8 +1200,8 @@ class Dialog(wx.Dialog):
         sizer_2.Add(self.panel, 1, wx.ALL|wx.EXPAND, 0)
 
         box_test = wx.StaticBoxSizer(self.box_selection_staticbox, wx.VERTICAL)
-        box_test.Add(self.ctrl_listview, 1, wx.LEFT|wx.EXPAND, 25)
-        box_test.Add(self.ctrl_recherche, 1, wx.ALL|wx.EXPAND, 0)
+        #box_test.Add(self.ctrl_listview, 1, wx.LEFT|wx.EXPAND, 25)
+        #box_test.Add(self.ctrl_recherche, 1, wx.ALL|wx.EXPAND, 0)
         sizer_2.Add(box_test, 1, wx.ALL|wx.EXPAND, 0)
 
         sizer_2.AddGrowableRow(0)

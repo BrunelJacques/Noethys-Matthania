@@ -10,7 +10,6 @@
 
 
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
@@ -128,8 +127,6 @@ class CTRL_profil_perso(CTRL_Profil.CTRL):
         """ Récupération des paramètres pour la sauvegarde du profil """
         dictParametres = self.dlg.GetParametres()
         self.Enregistrer(dictParametres)
-
-
 
 
 class Page_Generalites(wx.Panel):
@@ -254,8 +251,6 @@ class Page_Options(wx.Panel):
             self.check_photos.SetValue(dictParametres["taille_photo"] != 0)
             self.OnCheckPhotos()
 
-
-
 # ----------------------------------------------------------------------------------------------------------------------------------------------
 
 class CTRL_Parametres(wx.Notebook):
@@ -303,7 +298,6 @@ class CTRL_Parametres(wx.Notebook):
     def SetParametres(self, dictParametres={}):
         for dictPage in self.listePages:
             dictPage["ctrl"].SetParametres(dictParametres)
-
 
 # ----------------------------------------------------------------------------------------------------------------------------------
 
@@ -399,9 +393,10 @@ class Dialog(wx.Dialog):
 
         # Récupération et vérification des données
         listeActivites = dictParametres["liste_activites"]
-        if len(listeActivites) == 0 :
+        listeGroupes = dictParametres["liste_groupes"]
+        if len(listeActivites)  + len(listeGroupes) == 0 :
             self.ctrl_notebook.AffichePage("generalites")
-            dlg = wx.MessageDialog(self, _("Vous devez obligatoirement cocher au moins une activité !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
+            dlg = wx.MessageDialog(self, _("Vous devez obligatoirement cocher au moins une activité ou un groupe!"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
             dlg.ShowModal()
             dlg.Destroy()
             return False
@@ -498,7 +493,7 @@ class Dialog(wx.Dialog):
             req = """SELECT individus.IDindividu, IDcivilite, nom, prenom, date_naiss
             FROM individus 
             LEFT JOIN inscriptions ON inscriptions.IDindividu = individus.IDindividu
-            WHERE inscriptions.statut='ok' AND IDactivite IN %s
+            WHERE IDactivite IN %s
             GROUP BY individus.IDindividu
             ORDER BY nom, prenom
             ;""" % conditionActivites
@@ -656,11 +651,6 @@ class Dialog(wx.Dialog):
         FonctionsPerso.LanceFichierExterne(nomDoc)
 
         self.EcritStatusBar(u"")
-
-
-
-
-
 
 
 if __name__ == "__main__":
