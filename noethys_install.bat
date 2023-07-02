@@ -40,6 +40,7 @@ if %errorlevel% neq 0 (
     exit /b
 )
 echo Environnement: actif ok
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 pause
 call path\to\env\Scripts\deactivate
