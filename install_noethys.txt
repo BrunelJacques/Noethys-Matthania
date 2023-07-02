@@ -1,0 +1,25 @@
+echo off
+c:
+cd "c:\Program Files\Noethys-Matthania\Noethys\noethys"
+cd ..
+python Test.py
+echo ---------------------------------------------------
+echo Test presence Python et Noethys: no error ci-dessus
+echo ---------------------------------------------------
+pause
+echo on
+python -m venv venv
+echo off
+dir
+echo ---------------------------------------------------
+echo L'environnement 'venv' present,
+echo ouvrez une fenetre en mode commande (shell)
+echo cd  "c:\Program Files\Noethys-Matthania\Noethys"
+echo lancer: venv\Scripts\activate.bat ou sans .bat
+echo L'environnement actif, le prompt affiche  venv
+echo ---------------------------------------------------
+echo lancer: pip install requirements
+echo ---------------------------------------------------
+echo Les packages defilent lors de leur installation. FIN
+echo ---------------------------------------------------
+pause
