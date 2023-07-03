@@ -23,6 +23,7 @@ from dateutil import relativedelta
 from Utils.UTILS_Traduction import _
 from Utils import UTILS_Dates
 from Ctrl import CTRL_Saisie_heure
+from FonctionsPerso import Beep
 
 
 ID_AIDE = 5
@@ -529,11 +530,6 @@ class Periode(wx.Panel):
         self.SetSizer(sizer_base)
         self.Layout()
 
-    def OnChoixDate(self):
-        # Envoi un signal de changement de date au panel parent
-        if hasattr(self.parent,"OnChoixDate"):
-            self.parent.OnChoixDate()
-
     def SetPeriode(self,periode=(datetime.date.today(),datetime.date.today())):
         self.periode = periode
         self.ctrl_date_debut.SetDate(self.periode[0])
@@ -543,11 +539,20 @@ class Periode(wx.Panel):
         return self.periode
 
     def OnChoixDate(self):
-        self.periode = (self.GetDateDebut(),self.GetDateFin())
-        if self.periode[1] < self.periode[0]:
-            self.periode = (self.periode[0],self.periode[0])
+        debut,fin = self.GetDateDebut(),self.GetDateFin()
+        # incohérences dates saisies
+        if fin < debut:
+            Beep(duration=500)
+            if self.periode[0] == debut:
+                # début inchangé, on l'aligne sur la fin
+                self.periode = (fin,fin)
+            else:
+                # on aligne la fin sur le début
+                self.periode = (debut,debut)
             self.SetPeriode(self.periode)
-
+        else:
+            self.periode = (debut, fin)
+        self.SetPeriode(self.periode)
         if hasattr(self.parent,'OnChoixDate'):
             self.parent.OnChoixDate()
 

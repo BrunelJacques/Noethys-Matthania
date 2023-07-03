@@ -4,6 +4,8 @@ icalendar
 lxml
 matplotlib
 mysqlclient
+mysql-connector
+mysql
 numpy
 opencv-python
 openpyxl
@@ -15,6 +17,7 @@ pystrich
 python_dateutil
 pyttsx
 pytz
+pywin32
 reportlab
 setuptools
 sqlalchemy

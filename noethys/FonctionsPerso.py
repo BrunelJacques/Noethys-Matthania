@@ -14,6 +14,7 @@ import GestionDB
 import datetime
 import os
 import codecs
+import winsound
 from Utils import UTILS_Fichiers
 
 # ---- Fonctions usuelles-------------------------------
@@ -36,6 +37,10 @@ def Nz(valeur, type = "int"):
     if type == 'int':
         valeur = int(valeur)
     return valeur
+
+def Beep(frequency=440,duration=1000):
+    # works seulement pour windows
+    winsound.Beep(frequency, duration)
 
 def NoPunctuation(txt = ''):
     if not txt: return ''
@@ -837,7 +842,6 @@ def InsertThemeDansOL():
     print("Fini !!!!!!!!!!!!!!!!!")
 
 if __name__ == "__main__":
-
     app = wx.App(0)
 
     import wx.lib.dialogs as dialogs
