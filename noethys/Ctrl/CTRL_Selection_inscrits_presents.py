@@ -117,7 +117,7 @@ class CTRL(wx.Panel):
 
         # Activités
         self.staticbox_activites_staticbox = wx.StaticBox(self, -1, _("Activités"))
-        self.ctrl_activites = CTRL_Selection_activites.CTRL(self,modeGroupes=False)
+        self.ctrl_activites = CTRL_Selection_activites.CTRL(self,modeGroupes=True)
         self.ctrl_activites.SetMinSize((100, 100))
 
         # Groupes
@@ -216,7 +216,7 @@ class CTRL(wx.Panel):
     def GetParametres(self):
         dictParametres = {}
 
-        dictParametres["liste_periodes"] = [self.ctrl_periode.GetPeriode,]
+        dictParametres["liste_periodes"] = [self.ctrl_periode.GetPeriode(),]
         dictParametres["impression_infos_med_mode_presents"] = self.radio_presents.GetValue()
 
         dictParametres["mode"] = "inscrits"

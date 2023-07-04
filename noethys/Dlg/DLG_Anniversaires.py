@@ -490,12 +490,16 @@ class Dialog(wx.Dialog):
                     dictOuvertures[IDactivite].append(IDgroupe)
 
             # Récupération des individus inscrits
-            req = """SELECT individus.IDindividu, IDcivilite, nom, prenom, date_naiss
-            FROM individus 
-            LEFT JOIN inscriptions ON inscriptions.IDindividu = individus.IDindividu
-            WHERE IDactivite IN %s
-            GROUP BY individus.IDindividu
-            ORDER BY nom, prenom
+            req = """SELECT individus.IDindividu, IDcivilite, individus.nom, 
+                    individus.prenom, individus.date_naiss
+            FROM (individus 
+            LEFT JOIN inscriptions ON inscriptions.IDindividu = individus.IDindividu)
+            LEFT JOIN activites ON activites.IDactivite = inscriptions.IDactivite
+            WHERE ((inscriptions.IDactivite IN %s )
+                AND (SUBSTRING(date_naiss,4,5) >= SUBSTRING(activites.date_debut,4,5))
+                AND (SUBSTRING(date_naiss,4,5) <= SUBSTRING(activites.date_fin,4,5)))
+            GROUP BY individus.IDindividu, IDcivilite, individus.nom, 
+                    individus.prenom, individus.date_naiss
             ;""" % conditionActivites
             DB.ExecuterReq(req,MsgBox="ExecuterReq")
             listeIndividus = DB.ResultatReq()
