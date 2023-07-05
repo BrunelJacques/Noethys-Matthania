@@ -58,7 +58,7 @@ def Corr_ptnPrinc(parent,IDfamille, dLigne, **kw):
         # Inscription absente
         tc = dLigne["tblCible"] == "inscriptions"
         c = dLigne["cleOrig"] == "pieIDinscription"
-        sst = dLigne["ssType"] in ("NoCle", "CleNone","NoTbl")
+        sst = dLigne["ssType"] in ("NoCle","zzNoCle", "CleNone","NoTbl")
         if tc & c & sst:
             return parent.RebuildInscription(IDfamille,dLigne)
 
@@ -1465,7 +1465,7 @@ class Diagnostic():
                         ajoutAnomalie("NoCle",IDcible,attendu,messNoCle(ID,IDcible))
                         continue
                     # ======== clé cible présente on teste l'accès direct ==============================================
-                    if dictCible and not flou:
+                    if dictCible and not flou and champCible in dictCible:
                         trouve = dictCible[champCible]
                         # cas de vérif de nature dans inscriptions
                         if champCible == "natures":

@@ -154,7 +154,6 @@ class Date(masked.TextCtrl):
         # Vérification de la date
         self.FonctionValiderDate()
         # Envoi un signal de changement de date au panel parent
-        self.parent.OnChoixDate()
         try :
             self.parent.OnChoixDate()
         except :
