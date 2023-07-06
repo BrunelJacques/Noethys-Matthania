@@ -745,9 +745,11 @@ class Forfaits():
         # fin AjoutPrestation
 
     def GetPieceModif(self,parent,IDindividu,IDactivite,IDnumPiece = None,DB=None):
-        DBfourni = DB # ajout tardif, on gère aussi le DB non fourni en kwds
+        try:
+            DBfourni = (DB.connexion.open == 1) # ajout tardif, on gère aussi le DB non fourni en kwds
+        except: DBfourni = False
         if not DBfourni:
-            DB = self.DB
+            DB = GestionDB.DB()
         dicoDB = DATA_Tables.DB_DATA
         listeChamps = []
         for descr in dicoDB["matPieces"]:
@@ -806,6 +808,7 @@ class Forfaits():
         if self.dictPiece["IDcategorie_tarif"] == None:
             self.dictPiece["nom_categorie_tarif"]="Famille"
         else: self.dictPiece["nom_categorie_tarif"] = DB.GetNomCategorieTarif(self.dictPiece["IDcategorie_tarif"])
+        if not DBfourni: DB.Close()
         return True
         #fin GetPieceModif
 
@@ -1707,6 +1710,7 @@ class Forfaits():
             #remet les consos
             if dictDonnees["IDindividu"] != 0:
                 self.AjoutConsommations(self,dictDonnees)
+            DB.Close()
         #fin RetroAvo
 
     def NeutraliseReport(self,IDcomptePayeur,IDindividu,IDactivite):
@@ -1718,14 +1722,13 @@ class Forfaits():
         if dlg != wx.ID_YES:
             print("KO !")
             return
-        #Suppresion des consommations et inscriptions 2017
+        #Suppresion des consommations et inscriptions
         req = """SELECT inscriptions.IDinscription, activites.date_debut,activites.date_fin
                 FROM inscriptions
                 INNER JOIN activites ON inscriptions.IDactivite = activites.IDactivite
                 WHERE %s ; """ % (condition)
         retour = self.DB.ExecuterReq(req,MsgBox="GestionInscription.NeutraliseReport")
         if retour != "ok" :
-            GestionDB.MessageBox(self.parent,retour)
             return None
         recordset = self.DB.ResultatReq()
         listeInscriptions = []

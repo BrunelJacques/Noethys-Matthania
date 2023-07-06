@@ -23,7 +23,7 @@ from dateutil import relativedelta
 from Utils.UTILS_Traduction import _
 from Utils import UTILS_Dates
 from Ctrl import CTRL_Saisie_heure
-from FonctionsPerso import Beep
+import FonctionsPerso
 
 
 ID_AIDE = 5
@@ -541,7 +541,7 @@ class Periode(wx.Panel):
         debut,fin = self.GetDateDebut(),self.GetDateFin()
         # incohérences dates saisies
         if fin < debut:
-            Beep(duration=500)
+            FonctionsPerso.Beep(duration=500)
             if self.periode[0] == debut:
                 # début inchangé, on l'aligne sur la fin
                 self.periode = (fin,fin)
@@ -586,6 +586,7 @@ class MyFrame(wx.Frame):
         print(self.ctrl1.Validation())
 
 if __name__ == '__main__':
+
     app = wx.App(0)
     #wx.InitAllImageHandlers()
     frame_1 = MyFrame(None, -1, "TEST", size=(800, 400))

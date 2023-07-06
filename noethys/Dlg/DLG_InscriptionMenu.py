@@ -287,8 +287,8 @@ class DlgMenu(wx.Dialog):
             return
         select = self.selection[0]
         self.IDinscription = select.IDinscription
-        fGest = GestionInscription.Forfaits(self,DB=self.DB)
-        reqPiece = fGest.GetPieceModif(self,select.IDindividu,select.IDactivite)
+        fGest = GestionInscription.Forfaits(self)
+        reqPiece = fGest.GetPieceModif(self,select.IDindividu,select.IDactivite,DB=self.DB)
         # GetPieceModif False pour abandon, None pour absence de piece, True pour self.dictPiece alimentée
         if reqPiece == None:
             GestionDB.MessageBox(self, _("Pas de pièce associée à cette inscription!\nLa modification est impossible"))
