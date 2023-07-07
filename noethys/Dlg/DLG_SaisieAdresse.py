@@ -335,6 +335,8 @@ class PnlAdresse(wx.Panel):
     def SetValue(self,champ,valeur):
         # SetValue de 'valeur' sur le ctrl de la ligne nommée par 'champ'
         ixChamp = self.lstNomsChamps.index(champ)
+        if not valeur:
+            valeur = ""
         self.lstCtrl[ixChamp].ctrl.SetValue(valeur)
 
     def SetString(self,champ,valeur):
