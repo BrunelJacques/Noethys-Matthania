@@ -569,6 +569,7 @@ class ListView(ObjectListView):
             mess += "Les consommations gérées par les inscriptions ou la famille ne sont pas duplicables"
             wx.MessageBox(mess,"Duplication impossible")
             return
+        selected = self.Selection()[0]
         # Charge les noms des champs
         from Data import DATA_Tables
         dicoDB = DATA_Tables.DB_DATA
@@ -603,8 +604,7 @@ class ListView(ObjectListView):
             self.SelectObjects(selection)
             flag = (selection[0].label,selection[0].date)
             self.Modifier(None)
-            obj = self.Selection()[0]
-            if flag == (obj.label,obj.date):
+            if flag == (selected.label,selected.date):
                 mess = "Risque de doublon!\n\n"
                 mess += "La duplication n'a pas été suivie d'une modification de date ou d'intitulé."
                 wx.MessageBox(mess,"Remarque non bloquante")
