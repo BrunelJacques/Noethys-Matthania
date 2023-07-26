@@ -946,7 +946,7 @@ def MultiParrain(codeArticle,dictDonnees,listeOLV):
             if len(retVentil) > 0:
                 ventil =  retVentil[0][1]
                 if ventil == None :
-                    solde = "0.0"
+                    solde = 0
                 else:
                     solde = int(100.0 * float(ventil) / float(retVentil[0][0]))
             prefixe = "Parrainage "
