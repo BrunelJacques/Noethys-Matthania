@@ -5555,8 +5555,8 @@ def ImportationObjets(IDmodele=None, InForeground=True):
             
     # Création des objets
     for objet in listeObjets :
-        objet["x"] = float(objet["x"])
-        objet["y"] = float(objet["y"])
+        #objet["x"] = float(objet["x"])
+        #objet["y"] = float(objet["y"])
 
         # Rectangle
         if objet["categorie"] == "rectangle" :

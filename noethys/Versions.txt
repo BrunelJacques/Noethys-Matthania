@@ -1,3 +1,6 @@
+version  1.3.2.50 (10/08/2023)
+- version numpy n'accepte plus float ok si wxpython 4.2.1 et numpy 1.25.2
+
 version  1.3.2.49 (26/07/2023)
 - Parrainage: bug de type corrigé
 
