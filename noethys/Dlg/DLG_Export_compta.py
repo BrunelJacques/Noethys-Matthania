@@ -402,7 +402,8 @@ class Donnees():
         self.fGest = GestionInscription.Forfaits(self)
 
         # Premier contrôle idem aux accès facturation pour tout le non transféré
-        gCoh = GestionCoherence.Diagnostic(self,None,inCpta=False, noInCpta=True)
+        gCoh = GestionCoherence.Diagnostic(self,None,inCpta=False, noInCpta=True,
+                                           params = self.dictParametres)
         self.coherent = gCoh.Coherence()
         del gCoh
         # Autres contrôles propres au transfert

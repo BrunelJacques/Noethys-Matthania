@@ -176,6 +176,13 @@ def GET_PARAMS_POINTEURS(dictPieces,dictPrestations,dictConsommations,dictInscri
 # Appel de toutes les données. Sous forme de lignes de table en ddd: IDfamille-IDtable-dRecord
 class DiagDonnees():
     def __init__(self,DB,famille,**kw):
+        self.params = kw.pop("params",None)
+        self.conditionDate = None
+        try:
+            self.conditionDate = " BETWEEN '%s' and '%s'"%(self.params['date_debut'],
+                                    self.params['date_fin'])
+        except:
+            self.conditionDate = None
         self.withCompta = kw
         self.famille = famille
         self.DB = DB
@@ -277,30 +284,42 @@ class DiagDonnees():
 
         # Gestion du filtre pieces sur envoyé à la compta
         def setFiltreComptaPieces():
-            if not self.famille:
-                whereFamille = "TRUE"
+            if not self.conditionDate:
+                whereDate = " TRUE"
             else:
-                whereFamille = "((pieIDfamille = %d) OR (pieIDcompte_payeur = %d))"%(self.famille,self.famille)
-
+                whereDate = """((matPieces.pieDateFacturation %s) 
+                    AND (matPieces.pieComptaFac Is Null)) 
+                OR ((matPieces.pieDateAvoir %s) 
+                    AND (matPieces.pieComptaAvo Is Null))"""%(self.conditionDate,
+                                                              self.conditionDate)
+            if not self.famille:
+                where = whereDate
+            else:
+                where = """(%s) 
+                AND ((pieIDfamille = %d) 
+                    OR (pieIDcompte_payeur = %d))"""%(whereDate,self.famille,self.famille)
+            # aucun
             if (self.withCompta["inCpta"] != True) and (self.withCompta["noInCpta"] != True):
                 where = """
                     WHERE  FALSE"""
+            # seulement les transférés en compta
             elif self.withCompta["inCpta"] == True and (self.withCompta["noInCpta"] != True):
                 where = """
                     WHERE ( %s )
                     AND ((pieComptaFac IS NOT NULL) 
-                            OR (pieComptaAvo IS NOT NULL)) """% whereFamille
+                            OR (pieComptaAvo IS NOT NULL)) """% where
+            # seulement les non transférés en compta
             elif self.withCompta["noInCpta"]  == True and (self.withCompta["inCpta"] != True):
                 where = """
                     WHERE ( %s )
-                    AND (   (   (pieComptaFac IS NULL)
-                            )   
-                            OR  (   (pieComptaAvo IS NULL)
-                                    AND (pieNature = 'AVO')
-                                )
-                    )"""% whereFamille
+                    AND (   (pieComptaFac IS NULL)
+                            OR  ((pieComptaAvo IS NULL)
+                                AND (pieNature = 'AVO')
+                            )
+                    )"""% where
+            # transfert compta ignoré
             else:
-                where = "WHERE %s"% whereFamille
+                where = "WHERE %s"% where
 
             return where
         where = setFiltreComptaPieces()
@@ -351,25 +370,35 @@ class DiagDonnees():
 
         # Gestion du filtre de prestations sur envoyé à la compta
         def setFiltreComptaPrestations():
-            whereFamille = self.WhereFamille()
+            if not self.conditionDate:
+                whereDate = " TRUE"
+            else:
+                whereDate = """((prestations.date %s) 
+                    AND (prestations.compta Is Null)) """%(self.conditionDate)
+            if not self.famille:
+                where = whereDate
+            else:
+                whereFamille = self.WhereFamille()
+                where = """(%s) 
+                        AND (%s)"""%(whereDate,whereFamille)
             if (self.withCompta["inCpta"] != True) and (self.withCompta["noInCpta"] != True):
                 where = """
-                    WHERE FALSE"""
+                    WHERE (FALSE)"""
             elif self.withCompta["inCpta"] == True and (self.withCompta["noInCpta"] != True):
                 where = """
-                    WHERE ( %s ) 
-                    AND (compta IS NOT NULL)"""%whereFamille
+                    WHERE (( %s ) 
+                    AND (compta IS NOT NULL))"""%where
             elif self.withCompta["noInCpta"]  == True and (self.withCompta["inCpta"] != True):
                 where = """
-                    WHERE ( %s ) 
-                    AND (compta IS NULL)"""%whereFamille
+                    WHERE (( %s ) 
+                    AND (compta IS NULL))"""%where
             else:
-                where = "WHERE %s"%whereFamille
+                where = "WHERE (%s)"%where
 
             return where
-        where = self.WhereFamille()
+        where = setFiltreComptaPrestations()
         where += """
-            AND categorie IN ('consommation','consoavoir')"""
+            AND (categorie IN ('consommation','consoavoir'))"""
 
         # appel des prestations
         dddPrestations = self.GetDictUneTable(table,lstChamps,where)
@@ -396,11 +425,16 @@ class DiagDonnees():
 
         # Gestion du filtre de factures sur liste venant des  prestations
         def setFiltreComptaFactures():
+            if not self.conditionDate:
+                whereDate = " TRUE"
+            else:
+                whereDate = """(prestations.date %s)"""%(self.conditionDate)
             IDfamille = self.famille
             if not IDfamille:
-                whereFamille = "TRUE"
+                where = "(%s) "%whereDate
             else:
-                whereFamille = "(factures.IDcompte_payeur = %d )"%(IDfamille)
+                where = """ (%s) 
+                AND (factures.IDcompte_payeur = %d )"""%(whereDate,IDfamille)
 
             if len(self.lstIDfactures) > 0:
                 condID = "(factures.IDfacture in (%s))"%str(self.lstIDfactures)[1:-1]
@@ -408,11 +442,11 @@ class DiagDonnees():
             if len(self.lstNoFactures) > 0:
                 condNo = "(numero in (%s))"%str(self.lstNoFactures)[1:-1]
             else: condNo = True
-            where = """WHERE %s 
+            where = """WHERE (%s) 
                             AND ( 
                                     %s
                                     OR
-                                    %s)"""%(whereFamille,condID,condNo)
+                                    %s)"""%(where,condID,condNo)
 
             return where
         where = setFiltreComptaFactures()
@@ -499,8 +533,9 @@ class DiagDonnees():
 
 # Diagnostic de cohérence des données principales de facturation
 class Diagnostic():
-    def __init__(self,parent,famille,inCpta=False,noInCpta=True,mute=True):
-        kw = {"inCpta": inCpta,"noInCpta":noInCpta}
+    def __init__(self,parent,famille,inCpta=False,noInCpta=True,mute=True,params=None):
+        kw = {"inCpta": inCpta,"noInCpta":noInCpta,"params":params}
+        self.params = params
         if not hasattr(parent,"fGest") :
             mute = False
             self.DB = GestionDB.DB() # on ne fermera pas DB car lancement manuel
@@ -887,7 +922,6 @@ class Diagnostic():
         if (not dLigne["table"] == "factures") or (not dLigne["champCible"] == "SUM(montant)"):
             raise Exception("Pb d'itineraire: %s"%str(dLigne))
         # appel des pièces de la facture pour vérif du montant attendu
-        IDfacture = dLigne["ID"]
         mess = "DLGFactPiece.RebuildFacture"
         dFact = self.dictFactures[IDfamille]["dictDon"][dLigne["ID"]]
         ddPieces = self.dictPieces[IDfamille]["dictDon"]
@@ -1479,8 +1513,11 @@ class Diagnostic():
                             if nomCible == "prestations" and champCible == "montant" \
                                     and dictCible["categorie"] == "consoavoir":
                                 signe = -1
-                            if round(trouve,2) == round(attendu,2) * signe:
-                                continue
+                            try:
+                                if round(trouve,2) == round(attendu,2) * signe:
+                                    continue
+                            except:
+                                pass
                         # cas général
                         else:
                             if trouve == attendu:
@@ -1534,7 +1571,7 @@ class Diagnostic():
             return ret
 
         if not self.famille:
-            attente = wx.BusyInfo("Vérifie pointeurs entre tables...")
+            attente = wx.BusyInfo("Vérification des pointeurs entre tables...")
 
         # test des pointeurs autres que clé des tables
         paramsPtnPrinc = GET_PARAMS_POINTEURS(self.dictPieces,self.dictPrestations,self.dictConsommations,
