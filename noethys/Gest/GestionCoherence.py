@@ -257,19 +257,20 @@ class DiagDonnees():
             whereFamille = "TRUE"
         else:
             whereFamille = "IDfamille = %d"%(self.famille)
+
         if (self.withCompta["inCpta"] != True) and (self.withCompta["noInCpta"] != True):
-            where = """
-                WHERE FALSE"""
+            where = "FALSE"
         elif self.withCompta["inCpta"] == True and (self.withCompta["noInCpta"] != True):
             where = """
-                WHERE ( %s ) 
+                ( %s ) 
                 AND (compta IS NOT NULL)"""%whereFamille
         elif self.withCompta["noInCpta"]  == True and (self.withCompta["inCpta"] != True):
             where = """
-        WHERE ( %s ) 
+            ( %s ) 
              AND (compta IS NULL)"""%whereFamille
         else:
-            where = "WHERE %s"%whereFamille
+            where = whereFamille
+
         return where
 
     def GetMatPieces(self):
@@ -365,6 +366,8 @@ class DiagDonnees():
     def GetPrestations(self):
         # ----------- préparation de l'appel de prestations ------------------------------------------------------------
         table = "prestations"
+        leftJoin = "LEFT JOIN matPieces ON prestations.IDcontrat = matPieces.pieIDnumPiece"
+
         lstChamps = ["IDprestation","IDfamille","IDcompte_payeur","IDcontrat","IDactivite","IDindividu",
                      "IDcategorie_tarif","IDfacture","categorie","montant","compta"]
 
@@ -398,10 +401,12 @@ class DiagDonnees():
             return where
         where = setFiltreComptaPrestations()
         where += """
-            AND (categorie IN ('consommation','consoavoir'))"""
+            AND (categorie LIKE 'conso%%')
+            AND (pieNature IN ('FAC','AVO')
+                OR (pieNature IS NULL))"""
 
         # appel des prestations
-        dddPrestations = self.GetDictUneTable(table,lstChamps,where)
+        dddPrestations = self.GetDictUneTable(table,lstChamps,where,leftJoin)
         dictPrestations = {"nomTable":"prestations"}
         for IDfamille, ddPrestations in dddPrestations.items():
             if IDfamille == "nomTable": continue
