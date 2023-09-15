@@ -398,14 +398,16 @@ class Donnees():
         self.date_debut = dictParametres["date_debut"]
         self.date_fin =dictParametres["date_fin"]
         self.dictParametres = dictParametres
-        self.dictTitulaires = UTILS_Titulaires.GetTitulaires()
         self.fGest = GestionInscription.Forfaits(self)
 
         # Premier contrôle idem aux accès facturation pour tout le non transféré
+        dlgAttente = PBI.PyBusyInfo(_("Vérif cohérence du 'à transférer' ..."), parent=None, title=_("Veuillez patienter..."), icon=wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Logo.png"), wx.BITMAP_TYPE_ANY))
+        wx.Yield()
         gCoh = GestionCoherence.Diagnostic(self,None,inCpta=False, noInCpta=True,
                                            params = self.dictParametres)
         self.coherent = gCoh.Coherence()
         del gCoh
+        del dlgAttente
         # Autres contrôles propres au transfert
         if self.coherent:
             coherVte = True

@@ -127,9 +127,11 @@ DICT_PARAMS = {
 
 # paramétrage des pointeurs de tables principales:[tblOrig,cleOrig,champOrig,tblCible,champCible,flou]
 def GET_PARAMS_POINTEURS(dictPieces,dictPrestations,dictConsommations,dictInscriptions,dictFactures,dictNumeros):
-    """ cleOrig: Champ de la table d'origine qui contient la clé premier champ de la table cible
+    """ table origine: qui pointe une table cible
+        cleOrig: Champ de la table d'origine qui contient la clé premier champ de la table cible
         champOrig: champ de la table d'origine qui contient la valeur à rechercher dans la cible,
                     champOrig=None fait chercher dans toutes les lignes pour la famille (c'est long)
+        table cible: qui est pointée par l'origine
         champCible: dans la table cible c'est le champ qui contient la valeur à vérifier
         flou: cherche une autre ligne dans la table cible  qui aurait la valeur cherchée, idem None en champOrig"""
     return [
@@ -252,25 +254,39 @@ class DiagDonnees():
             dddRetour[IDfamille][ID] = dic
         return dddRetour
 
-    def WhereFamille(self):
+    def WhereFamille(self,champ1,champ2=None):
         if not self.famille:
-            whereFamille = "TRUE"
+            where = "TRUE"
         else:
-            whereFamille = "IDfamille = %d"%(self.famille)
+            where1 = "%s = %d" %(champ1,self.famille)
+            if champ2:
+                where = """
+                    (%s)
+                    OR (%s = %d
+                    )"""%(where1,champ2,self.famille)
+            else: where = where1
+        return where
 
+    def WhereDate(self,champ):
+        if not self.conditionDate:
+            whereDate = "TRUE"
+        else:
+            whereDate = "%s %s" % (champ,self.conditionDate)
+        return whereDate
+
+    def WhereCompta(self,champ):
+        # ni en compta ni à transférer
         if (self.withCompta["inCpta"] != True) and (self.withCompta["noInCpta"] != True):
             where = "FALSE"
+        # seulement déjà en compta
         elif self.withCompta["inCpta"] == True and (self.withCompta["noInCpta"] != True):
-            where = """
-                ( %s ) 
-                AND (compta IS NOT NULL)"""%whereFamille
+            where = "%s IS NOT NULL"%champ
+        # seulement à transférer
         elif self.withCompta["noInCpta"]  == True and (self.withCompta["inCpta"] != True):
-            where = """
-            ( %s ) 
-             AND (compta IS NULL)"""%whereFamille
+            where = "%s IS NULL"%champ
+        # toutes écritures
         else:
-            where = whereFamille
-
+            where = "TRUE"
         return where
 
     def GetMatPieces(self):
@@ -284,46 +300,27 @@ class DiagDonnees():
         groupBy = "GROUP BY %s"%(", ".join(lstChamps[:-2]))
 
         # Gestion du filtre pieces sur envoyé à la compta
-        def setFiltreComptaPieces():
-            if not self.conditionDate:
-                whereDate = " TRUE"
-            else:
-                whereDate = """((matPieces.pieDateFacturation %s) 
-                    AND (matPieces.pieComptaFac Is Null)) 
-                OR ((matPieces.pieDateAvoir %s) 
-                    AND (matPieces.pieComptaAvo Is Null))"""%(self.conditionDate,
-                                                              self.conditionDate)
-            if not self.famille:
-                where = whereDate
-            else:
-                where = """(%s) 
-                AND ((pieIDfamille = %d) 
-                    OR (pieIDcompte_payeur = %d))"""%(whereDate,self.famille,self.famille)
-            # aucun
-            if (self.withCompta["inCpta"] != True) and (self.withCompta["noInCpta"] != True):
-                where = """
-                    WHERE  FALSE"""
-            # seulement les transférés en compta
-            elif self.withCompta["inCpta"] == True and (self.withCompta["noInCpta"] != True):
-                where = """
-                    WHERE ( %s )
-                    AND ((pieComptaFac IS NOT NULL) 
-                            OR (pieComptaAvo IS NOT NULL)) """% where
-            # seulement les non transférés en compta
-            elif self.withCompta["noInCpta"]  == True and (self.withCompta["inCpta"] != True):
-                where = """
-                    WHERE ( %s )
-                    AND (   (pieComptaFac IS NULL)
-                            OR  ((pieComptaAvo IS NULL)
-                                AND (pieNature = 'AVO')
-                            )
-                    )"""% where
-            # transfert compta ignoré
-            else:
-                where = "WHERE %s"% where
-
+        def setFiltrePieces():
+            whereFamPay = self.WhereFamille("pieIDfamille","pieIDcompte_payeur")
+            whereDate = self.WhereDate("matPieces.pieDateModif")
+            whereCptaFac = self.WhereCompta("matPieces.pieComptaFac")
+            whereCptaAvo = self.WhereCompta("matPieces.pieComptaAvo")
+            where = """
+            WHERE (
+                (   %s
+                )
+                AND (
+                    %s
+                )
+                AND(
+                    (%s)
+                    OR( (%s)
+                         AND ( pieNature = 'AVO')
+                    )
+                )    
+            )"""%(whereFamPay,whereDate,whereCptaFac,whereCptaAvo)
             return where
-        where = setFiltreComptaPieces()
+        where = setFiltrePieces()
 
         # appel des IDmax piece par inscription
         req = """
@@ -372,37 +369,21 @@ class DiagDonnees():
                      "IDcategorie_tarif","IDfacture","categorie","montant","compta"]
 
         # Gestion du filtre de prestations sur envoyé à la compta
-        def setFiltreComptaPrestations():
-            if not self.conditionDate:
-                whereDate = " TRUE"
-            else:
-                whereDate = """((prestations.date %s) 
-                    AND (prestations.compta Is Null)) """%(self.conditionDate)
-            if not self.famille:
-                where = whereDate
-            else:
-                whereFamille = self.WhereFamille()
-                where = """(%s) 
-                        AND (%s)"""%(whereDate,whereFamille)
-            if (self.withCompta["inCpta"] != True) and (self.withCompta["noInCpta"] != True):
-                where = """
-                    WHERE (FALSE)"""
-            elif self.withCompta["inCpta"] == True and (self.withCompta["noInCpta"] != True):
-                where = """
-                    WHERE (( %s ) 
-                    AND (compta IS NOT NULL))"""%where
-            elif self.withCompta["noInCpta"]  == True and (self.withCompta["inCpta"] != True):
-                where = """
-                    WHERE (( %s ) 
-                    AND (compta IS NULL))"""%where
-            else:
-                where = "WHERE (%s)"%where
-
+        def setFiltrePrestations():
+            whereFamille = self.WhereFamille("prestations.IDcompte_payeur")
+            whereDate = self.WhereDate("prestations.date")
+            whereCompta = self.WhereCompta("prestations.compta")
+            where = """
+        WHERE(  (%s)
+                AND (%s)
+                AND (%s)
+        )"""%(whereFamille,whereDate,whereCompta)
             return where
-        where = setFiltreComptaPrestations()
+            
+        where = setFiltrePrestations()
         where += """
             AND (categorie LIKE 'conso%%')
-            AND (pieNature IN ('FAC','AVO')
+            AND (pieNature IN ('FAC','AVO','COM')
                 OR (pieNature IS NULL))"""
 
         # appel des prestations
@@ -429,17 +410,9 @@ class DiagDonnees():
         groupBy = "GROUP BY %s"%(", ".join(lstChamps[:-1]))
 
         # Gestion du filtre de factures sur liste venant des  prestations
-        def setFiltreComptaFactures():
-            if not self.conditionDate:
-                whereDate = " TRUE"
-            else:
-                whereDate = """(prestations.date %s)"""%(self.conditionDate)
-            IDfamille = self.famille
-            if not IDfamille:
-                where = "(%s) "%whereDate
-            else:
-                where = """ (%s) 
-                AND (factures.IDcompte_payeur = %d )"""%(whereDate,IDfamille)
+        def setFiltreFactures():
+            whereFamille = self.WhereFamille("factures.IDcompte_payeur")
+            whereDate = self.WhereDate("prestations.date")
 
             if len(self.lstIDfactures) > 0:
                 condID = "(factures.IDfacture in (%s))"%str(self.lstIDfactures)[1:-1]
@@ -447,14 +420,16 @@ class DiagDonnees():
             if len(self.lstNoFactures) > 0:
                 condNo = "(numero in (%s))"%str(self.lstNoFactures)[1:-1]
             else: condNo = True
-            where = """WHERE (%s) 
-                            AND ( 
-                                    %s
-                                    OR
-                                    %s)"""%(where,condID,condNo)
-
+            where = """
+            WHERE   (%s)
+                    AND (%s)
+                    AND ( 
+                            (%s)
+                            OR
+                            (%s)
+                        )"""%(whereFamille,whereDate,condID,condNo)
             return where
-        where = setFiltreComptaFactures()
+        where = setFiltreFactures()
 
         # appel des factures
         dddFactures = self.GetDictUneTable(table,lstChamps,where,leftJoin,groupBy)
@@ -475,13 +450,17 @@ class DiagDonnees():
         dictInscriptions = {"nomTable":"inscriptions"}
         # requete sql lancement
         if len(self.lstIDinscriptions) > 0:
-            where = self.WhereFamille()
-            where += "AND IDinscription in ( %s )"%(str(self.lstIDinscriptions)[1:-1])
+            # appel des inscriptions
+            whereFamille = self.WhereFamille("inscriptions.IDfamille","inscriptions.IDcompte_payeur")
+            where = """
+                (   (%s
+                    )
+                    AND (IDinscription in ( %s )
+                    )
+                )"""%(whereFamille,str(self.lstIDinscriptions)[1:-1])
             lstChamps = ["IDinscription", "IDfamille", "IDcompte_payeur",
                          "IDindividu", "IDactivite", "IDgroupe",
                          "IDcategorie_tarif"]
-            # appel des inscriptions
-            where = "IDinscription in ( %s )"%str(self.lstIDinscriptions)[1:-1]
             ddInscriptions = DATA_Tables.GetDdRecords(  self.DB,"inscriptions",where,
                                                         lstChamps=lstChamps,
                                                         mess="DLG_FacturationPieces.GetInscriptions")
@@ -578,13 +557,6 @@ class Diagnostic():
         if not ret == "ok":
             return ret
         self.coherence = True
-
-        def Compteur(dddTable):
-            nb = 0
-            for IDfamille, ddTable in dddTable.items():
-                if IDfamille == "nomTable": continue
-                nb += len(list(ddTable["dictDon"].keys()))
-            return nb
 
         # Tentative de correction et rapport
         self.nbt =0
@@ -1366,7 +1338,6 @@ class Diagnostic():
                             trouve = cle
                             break
                 return trouve
-
             def rechercheElargie(tblCible,IDcible):
                 mess = "GetionCoherence.rechercheElargie table %s" % tblCible
                 dLigne= DATA_Tables.GetDictRecord(self.DB,tblCible,IDcible,mess)
@@ -1385,12 +1356,26 @@ class Diagnostic():
                     if cleOrig:
                         IDcible = dict[cleOrig]
                     else: IDcible = None
+
+                    # éluder les pièces familles pour cible inscription
+                    if nomOrig == "matPieces" and cleOrig == "pieIDinscription" and  dict["pieIDindividu"] == 0:
+                            continue
+
                     # presence de clé dans la cible
                     if tblCible and IDcible and IDcible in tblCible["dictDon"]:
                         dictCible = tblCible["dictDon"][IDcible]
-                    elif tblCible and IDcible and nomCible != 'numeros':
+                    elif IDcible and nomCible != 'numeros':
                         dictCible = rechercheElargie(nomCible,IDcible)
-                    else: dictCible = None
+                    elif IDcible and nomCible == 'numeros':
+                        dictCible = None
+                        where = "factures.numero = %d"%IDcible
+                        temp = DATA_Tables.GetDdRecords(self.DB,"factures",where,mess= "recherche numero facture ")
+                        for key in temp.keys():
+                            # prend la première clé
+                            dictCible = temp[key]
+                            break
+                    else:
+                        dictCible = None
 
                     if not "IDinscription" in dict:
                         IDinscription = None
@@ -1400,7 +1385,7 @@ class Diagnostic():
                     attendu = "encore indefini"
                     if  not champOrig in dict:
                         # cas particuliers géré sans tentative d'accès direct
-                        if champOrig  in ("consos",):
+                        if champOrig  in ("consos"):
                             pass
                         else:
                             wx.MessageBox("Le champ origine: '%s' pas dans %s"%(champOrig,nomOrig),"Arret program")
@@ -1417,7 +1402,7 @@ class Diagnostic():
                         continue
 
                     # ----------------------------- Exceptions de traitement -------------------------------------------
-                    piece = (nomOrig == "matPieces")
+                    piece = (nomOrig == "matPieces") and ("pieIDindividu" in dict)
                     pieNivFamille = (piece and dict["pieIDindividu"] == 0)
                     # exception pour l'IDinscription d'une pièce famille qui est l'année et non l'inscription
                     if pieNivFamille and cleOrig == "pieIDinscription":
@@ -1608,6 +1593,17 @@ class Diagnostic():
             (self.dictPieces,self.dictPrestations,self.dictFactures,
              self.dictNumeros,self.dictConsommations,self.dictInscriptions,self.dictPiecesMax) = lstTables
             ret = "ok"
+        # pour tests de bonne lecture des tables
+        """
+        for table in lstTables:
+            idfam = 1673
+            if 'nomTable' in table:
+                print(table['nomTable'])
+            else: print('xxxxxx')
+            if idfam in table:
+                print(len(table[idfam]['dictDon']),table[idfam]['dictDon'].keys())
+            print("-------")
+        """
         return ret# fin GetDonnees
 
     # confirmation si demande de l'ensemble (risque de lenteur)
