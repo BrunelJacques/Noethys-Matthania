@@ -11,7 +11,7 @@
 import Chemins
 import wx
 import os
-from six.moves import configparser
+import configparser
 try :
     from Utils import UTILS_Adaptations
 except:

@@ -11,7 +11,6 @@
 import Chemins
 import os
 import re
-import six
 import UTILS_Fichiers
 import UTILS_Json
 import codecs

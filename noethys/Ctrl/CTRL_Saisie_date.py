@@ -16,7 +16,6 @@ import re
 import sys
 import datetime
 import calendar
-import six
 from Utils import UTILS_Config
 from dateutil.parser import parse, parserinfo
 from dateutil import relativedelta
@@ -109,7 +108,7 @@ class Date(masked.TextCtrl):
             return
         try :
             # Quelque soit le format, le change en datetime
-            if type(date) == str or type(date) == six.text_type :
+            if type(date) == str:
                 if date[2] == "/" :
                     # Si c'est une date française
                     dateDD = datetime.date(year=int(date[6:10]), month=int(date[3:5]), day=int(date[:2]))
@@ -449,7 +448,7 @@ class Date2(wx.Panel):
             self.parent.OnChoixDate()
 
     def SetDate(self, date):
-        if type(date) == datetime.datetime or (type(date) in (str, six.text_type) and ":" in date):
+        if type(date) == datetime.datetime or (type(date) in (str) and ":" in date):
             self.ctrl_date.SetDate(datetime.datetime.strftime(UTILS_Dates.DateEngEnDateDDT(date), "%Y-%m-%d"))
             if self.heure == True :
                 self.ctrl_heure.SetHeure(datetime.datetime.strftime(UTILS_Dates.DateEngEnDateDDT(date), "%H:%M"))

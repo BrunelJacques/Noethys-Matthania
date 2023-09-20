@@ -2117,7 +2117,10 @@ def GetChamps_DATA_Tables(nomTable=None):
 
 def GetComplementInscription(DB,where,mess=None):
     # appel de natures
-    wherePiece = where.replace("IDinscription","pieIDinscription")
+    wherePiece = where.replace("inscriptions", "matPieces")
+    for champ in ("IDinscription","IDcompte_payeur","IDfamille"):
+        champPie = "pie%s"%champ
+        wherePiece = wherePiece.replace(champ,champPie)
     req = """
         SELECT pieIDinscription,pieNature
         FROM matPieces 
@@ -2134,11 +2137,14 @@ def GetComplementInscription(DB,where,mess=None):
     else: return {}
 
     # Appel nbreConsos
+    whereConsos = where.replace("inscriptions", "consommations")
+    whereConsos = whereConsos.replace("famille", "compte_payeur")
+    mess = "DATA_Tables.GetComplementInscriptions2"
     req = """
         SELECT IDinscription, COUNT(IDconso)
         FROM consommations
         WHERE %s
-        GROUP BY IDinscription;"""%(where)
+        GROUP BY IDinscription;"""%(whereConsos)
     ret = DB.ExecuterReq(req,MsgBox=mess)
     if ret == "ok" :
         recordset = DB.ResultatReq()
@@ -2150,6 +2156,7 @@ def GetComplementInscription(DB,where,mess=None):
     else: return {}
 
     # Calcul inscription active => parti ou non
+    mess = "DATA_Tables.GetComplementInscriptions3"
     req = """
         SELECT IDindividu, IDactivite, COUNT(IDinscription)
         FROM inscriptions
@@ -2220,6 +2227,7 @@ def GetDdRecords(DB,nomTable,where,lstChamps=None,mess=None):
     else: raise Exception("DATA_Tables.GetDdRecords req: %s"%req)
     if nomTable == "inscriptions":
         # ajout de natures et nbconsos
+        mess = "DATA_Tables.GetDdRecords/GetComplementInscription"
         ddComplements = GetComplementInscription(DB,where,mess)
         for IDinscription, dic in ddComplements.items():
             if not IDinscription in ddRetour:

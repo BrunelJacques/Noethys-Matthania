@@ -463,7 +463,7 @@ class DiagDonnees():
                          "IDcategorie_tarif"]
             ddInscriptions = DATA_Tables.GetDdRecords(  self.DB,"inscriptions",where,
                                                         lstChamps=lstChamps,
-                                                        mess="DLG_FacturationPieces.GetInscriptions")
+                                                        mess="GestionCoherence.GetInscriptions1")
             for IDinscription, dInscr in ddInscriptions.items():
                 IDfamille = dInscr["IDfamille"]
                 if not IDfamille in dictInscriptions:

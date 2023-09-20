@@ -10,7 +10,6 @@
 
 import wx
 import datetime
-import six
 from decimal import Decimal
 
 if 'phoenix' in wx.PlatformInfo:
@@ -117,10 +116,7 @@ class Footer(Control):
                                 texte = datetime.timedelta(0)
                     if converter != None :
                         texte = converter(texte)
-                    if six.PY2:
-                        liste_types = (int, float, long)
-                    else :
-                        liste_types = (int, float)
+                    liste_types = (int, float)
                     if type(texte) in liste_types :
                         texte = str(texte)
                 
