@@ -448,7 +448,8 @@ class Date2(wx.Panel):
             self.parent.OnChoixDate()
 
     def SetDate(self, date):
-        if type(date) == datetime.datetime or (type(date) in (str) and ":" in date):
+        testdatetime = isinstance(date,(datetime.datetime,datetime.date))
+        if type(date) == testdatetime or (isinstance(date,str) and ":" in date):
             self.ctrl_date.SetDate(datetime.datetime.strftime(UTILS_Dates.DateEngEnDateDDT(date), "%Y-%m-%d"))
             if self.heure == True :
                 self.ctrl_heure.SetHeure(datetime.datetime.strftime(UTILS_Dates.DateEngEnDateDDT(date), "%H:%M"))
