@@ -1,3 +1,7 @@
+version  1.3.2.56 (25/09/2023)
+- non diffusée
+- Saisie date bug remplacement de wx.lib.masked
+
 version  1.3.2.55 (21/09/2023)
 - Saisie date bug corrigé
 
