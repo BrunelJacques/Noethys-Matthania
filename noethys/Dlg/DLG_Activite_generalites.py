@@ -118,6 +118,7 @@ class Panel(wx.Panel):
         self.mode_modif = not nouvelleActivite
         
         self.listeInitialeGroupes = []
+        self.nbreOuvertures = 0
         
         # Nom Activité
         self.staticbox_nom_staticbox = wx.StaticBox(self, -1, _("Nom de l'activité"))
@@ -472,6 +473,13 @@ class Panel(wx.Panel):
         self.label_validite_du.Enable(etat)
         self.ctrl_validite_au.Enable(etat)
         self.label_validite_au.Enable(etat)
+        if self.nbreOuvertures > 0:
+            self.ctrl_validite_du.Enable(False)
+            self.ctrl_validite_au.Enable(False)
+        else:
+            self.ctrl_validite_du.Enable(True)
+            self.ctrl_validite_au.Enable(True)
+
     
     def OnCheckLimitationInscrits(self, event):
         self.ctrl_limitation_inscrits.Enable(self.check_limitation_inscrits.GetValue())
@@ -528,7 +536,19 @@ class Panel(wx.Panel):
             img = activite[11]
             if img != None :
                 self.ctrl_logo.ChargeFromBuffer(img)
-                
+
+        # griser la zone dates réservée aux créations pas aux copies
+        DB = GestionDB.DB()
+        req = """
+            SELECT Count(ouvertures.IDouverture) AS CompteDeIDouverture
+            FROM ouvertures
+            WHERE (ouvertures.IDactivite= %d);
+            """ % self.IDactivite
+        DB.ExecuterReq(req,MsgBox="DLG_Activite_generalites.importation.ouvertures")
+        self.nbreOuvertures = DB.ResultatReq()[0][0]
+        DB.Close()
+        self.OnRadioValidite(None)
+
         # Validité
         date_debut = activite[12]
         date_fin = activite[13]
@@ -753,7 +773,7 @@ class MyFrame(wx.Frame):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_1.Add(panel, 1, wx.ALL|wx.EXPAND)
         self.SetSizer(sizer_1)
-        self.ctrl= Panel(panel, IDactivite=1)
+        self.ctrl= Panel(panel, IDactivite=784)
         sizer_2 = wx.BoxSizer(wx.VERTICAL)
         sizer_2.Add(self.ctrl, 1, wx.ALL|wx.EXPAND, 4)
         panel.SetSizer(sizer_2)

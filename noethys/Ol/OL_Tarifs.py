@@ -492,7 +492,7 @@ class ListView(FastObjectListView):
                     ret = DB.ReqMAJcles("matTarifs", listeDonnees, listeCles, MsgBox="OL_Tarifs.Modifier-Insert")
             # il n'y a plus de tarif associé on supprime
             else:
-                if len(oldCodeTarif) > 0:
+                if oldCodeTarif and len(oldCodeTarif) > 0:
                     # pas de tarif associé, on supprime les enregistrements précédents
                     ret = DB.ReqDELcles("matTarifs", listeCles=listeCles, MsgBox="OL_Tarifs.Modifier-delete")
             # stockage interne pour prochaines
@@ -503,6 +503,8 @@ class ListView(FastObjectListView):
             track.donnees[self.champs.index("prix")] = prix
             track.donnees[self.champs.index("cumul")] = cumul
             track.prix = prix # nécessaire pour forcer le refresh sur lui seulement!!
+        req = "FLUSH TABLES matTarifs;"
+        DB.ExecuterReq(req,MsgBox="OL_Tarifs FLUSH matTarifs;")
         DB.Close()
         for item in self.select:
             self.Select(self.innerList.index(item))

@@ -1,3 +1,8 @@
+version  1.3.2.57 (19/10/2023)
+- bug sur gestion des tarifs
+- duplication d'activité: date validité grisées pour forcer le passage par changer dates
+- ajout d'un Flush sur modif tarification
+
 version  1.3.2.56 (06/10/2023)
 - Saisie date bug remplacement de wx.lib.masked
 
