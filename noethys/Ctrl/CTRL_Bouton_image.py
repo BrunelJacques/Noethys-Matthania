@@ -36,7 +36,8 @@ def PILtoWx(image):
 
 
 class CTRL(wx.Button):
-    def __init__(self, parent, id=-1, texte="", cheminImage=None, tailleImage=(20, 20), margesImage=(4, 0, 0, 0), positionImage=wx.LEFT, margesTexte=(0, 1)):
+    def __init__(self, parent, id=-1, texte="", cheminImage=None, tailleImage=(20, 20),
+                 margesImage=(4, 0, 0, 0), positionImage=wx.LEFT, margesTexte=(0, 1)):
         wx.Button.__init__(self, parent, id=id, label=texte)
         self.parent = parent   
         self.texte = texte

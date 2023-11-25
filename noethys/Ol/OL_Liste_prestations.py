@@ -25,6 +25,11 @@ from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
 
 from Ctrl.CTRL_ObjectListView import GroupListView, ColumnDefn, Filter, CTRL_Outils, PanelAvecFooter
 
+
+def dateDDenSQL(dateDD):
+    if not isinstance(dateDD,datetime.date): return ""
+    return dateDD.strftime("%Y-%m-%d")
+
 def Transport(xxx_todo_changeme):
     (aller,retour) = xxx_todo_changeme
     prix = 0.00
@@ -76,7 +81,6 @@ class Track(object):
             self.label_facture = ""
         else:
             num_facture = donnees["num_facture"]
-            date_facture = donnees["date_facture"]
             if num_facture != None :
                 if type(num_facture) == int :
                     num_facture = str(num_facture)
@@ -106,27 +110,22 @@ class ListView(GroupListView):
         self.selectionTrack = None
         GroupListView.__init__(self, *args, **kwds)
 
-        self.listePeriodes = []
-        self.dictFiltres = {}
+        self.periode = (None)
+        self.dictFiltres = {'periode': None,'whereActivite': "FALSE",'lignes': None}
         self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
         self.SetShowGroups(False)
 
-    def GetSQLdates(self, listePeriodes=[]):
-        texteSQL = ""
-        for date_debut, date_fin in listePeriodes :
-            texteSQL += "(prestations.date>='%s' AND prestations.date<='%s') OR " % (date_debut, date_fin)
-        if len(texteSQL) > 0 :
-            texteSQL = "  (" + texteSQL[:-4] + ")"
-        else:
-            texteSQL = ""
-        return texteSQL
+    def GetSQLdates(self, periode):
+        debSQL = dateDDenSQL(periode[0])
+        finSQL = dateDDenSQL(periode[1])
+        return "(prestations.date BETWEEN '%s' AND '%s')" % (debSQL, finSQL)
 
     def GetListePrestations(self, IDfamille=None, listeComptesPayeurs=[]):
         DB = GestionDB.DB()
         
         # Filtres de l'utilisateur
         filtreSQL = ''
-        filtre = self.GetFiltres()
+        filtre = self.GetWhere()
         if len(filtre) >1 : filtreSQL = 'WHERE '+ filtre
         # Appel des prestations
         req = """
@@ -212,7 +211,7 @@ class ListView(GroupListView):
         listePrestations = []
         numLigne = 0
         IDprestationOld = 0
-        if "detail" in self.dictFiltres["COMPLEXE"]:
+        if "detail" in self.dictFiltres['lignes']:
             # composition de la liste à partir du détail
             #   pieIDprestation,IDnumLigne,DateCreation,Nature, IDfamille,  nom,  prenom, pctLibelle, artLibelle, Montant, NoFacture, prixTranspAller, prixTranspRetour
             for IDprestation,IDnumLigne, date, categorie, IDfamille, nomIndividu, prenomIndividu,nomAbregeActivite,nomCategorieTarif,label,montant_detail,num_facture, prixTranspAller, prixTranspRetour in listeDetail :
@@ -247,7 +246,7 @@ class ListView(GroupListView):
                     dictTransp["montant_detail"] =  FloatToDecimal(prixTransp)
                     listePrestations.append(dictTransp)
 
-        if "total" in self.dictFiltres["COMPLEXE"]:
+        if "total" in self.dictFiltres['lignes']:
             #   IDprestation, IDcompte_payeur, date, categorie,label ,montant, IDactivite, nom,         abrege,             nom,                IDfacture, numero,  date_edition,    forfait, IDcategorie_tarif,IDfamille, IDindividu, nom,         prenom,         montant_detail, reglement_frais
             for IDprestation, IDcompte_payeur, date, categorie, label, montant, IDactivite, nomActivite, nomAbregeActivite, nomCategorieTarif, IDfacture, num_facture, date_facture, forfait, IDcategorie_tarif, IDfamille, IDindividu, nomIndividu, prenomIndividu, montant_detail, reglement_frais in listeDonnees :
                 date = DateEngEnDateDD(date)
@@ -377,23 +376,19 @@ class ListView(GroupListView):
         self.SetAlwaysGroupByColumn(indexColonne+1)
 ##        self.SetSortColumn(self.columns[indexColonne-1], resortNow=True)
     
-    def GetFiltres(self):
+    def GetWhere(self):
         filtreSQL = ""
-        for champFiltre, valeur in self.dictFiltres.items() :
-            if (not "COMPLEXE" in champFiltre) and  (valeur != None) :
-                if len(filtreSQL) > 1 : filtreSQL += " AND"
-                filtreSQL += "%s" %(valeur)
-        if "noConsos" in self.dictFiltres["COMPLEXE"]:
-            filtreSQL = self.dictFiltres["COMPLEXE"][1]
+        if self.dictFiltres['periode']:
+            filtreSQL += """
+            %s"""%(self.GetSQLdates(self.dictFiltres['periode']))
+
+        if self.dictFiltres['whereActivite']:
+            filtreSQL += "\nAND " + self.dictFiltres['whereActivite']
         return filtreSQL
 
-    def SetListePeriodes(self, listePeriodes=[]):
-        if listePeriodes == None :
-            self.listePeriodes = []
-        else:
-            self.listePeriodes = listePeriodes
-        self.MAJ() 
-        
+    def GetWhereLignes(self):
+        return ""
+    
     def MAJ(self, ID=None):
         if ID != None :
             self.selectionID = ID
@@ -865,13 +860,13 @@ class MyFrame(wx.Frame):
             self.ctrl_recherche = CTRL_Outils(self, listview=self.ctrl_prestations, afficherCocher=True)
             self.ctrl_recherche.SetBackgroundColour((255, 255, 255))
             sizer_2.Add(self.listviewAvecFooter, 1, wx.ALL|wx.EXPAND, 4)
-        panel.SetSizer(sizer_2)
+        self.SetSizer(sizer_2)
         self.SetSize((900, 400))
         self.Layout()
 
 if __name__ == '__main__':
     app = wx.App(0)
-    frame_1 = MyFrame("avec",None, -1, "GroupListView")
+    frame_1 = MyFrame("sans",None, -1, "GroupListView")
     app.SetTopWindow(frame_1)
     frame_1.Show()
     app.MainLoop()

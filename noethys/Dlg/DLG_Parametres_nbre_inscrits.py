@@ -34,6 +34,7 @@ CHOICES_TRI_ACTIVITES = [
     ("Date de début d'activité","activites.date_debut"),
     ("Date de fin d'activité",'activites_date_fin')]
 
+# ces deux classes sont quasi identiques, à factoriser dans CTRL_SelectionActivités
 
 class DlgGroupes(wx.Dialog):
     def __init__(self, parent, ):

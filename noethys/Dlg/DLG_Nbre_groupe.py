@@ -81,7 +81,7 @@ class Renderer_gauge(object):
         mdc.SetTextForeground(COULEUR_TEXTE)
         x = rect.width/2 - textWidth/2
         x = 0 + 4
-        mdc.DrawText(texte, x, rect.height/2 - dummy/2)
+        mdc.DrawText(texte, int(x), int(rect.height/2 - dummy/2))
         
         # Double buffering
         dc.SetClippingRegion(rect.x, rect.y, rect.width, rect.height)
@@ -100,7 +100,7 @@ class Renderer_gauge(object):
         # Gauge de fond
         dc.SetBrush(wx.Brush(COULEUR_GAUGE_FOND))
         dc.SetPen(wx.TRANSPARENT_PEN)
-        dc.DrawRectangle(0, (h-self.hauteurGauge)/2 , w, self.hauteurGauge)
+        dc.DrawRectangle(0, int((h-self.hauteurGauge)/2) , int(w), int(self.hauteurGauge))
 
         # Gauge d'inscriptions
         if self.nbrePlacesDispo != 0 :
@@ -130,7 +130,7 @@ class Renderer_gauge(object):
 
         dc.SetBrush(wx.Brush(couleur))
         dc.SetPen(wx.Pen(COULEUR_TRAIT, 1))
-        dc.DrawRectangle(0, (h-self.hauteurGauge)/2 , largeurGauge, self.hauteurGauge)
+        dc.DrawRectangle(0, int((h-self.hauteurGauge)/2) , int(largeurGauge), int(self.hauteurGauge))
         
         if etat == "alerte" :
             tailleImage = 16

@@ -16,48 +16,7 @@ from Ctrl import CTRL_Bouton_image
 import GestionDB
 from Ctrl import CTRL_Bandeau
 from Ol import OL_Liste_prestations
-from Utils import UTILS_Dates
-import datetime
-
-
-def dateDDenSQL(dateDD):
-    if not isinstance(dateDD,datetime.date): return ""
-    return dateDD.strftime("%Y-%m-%d")
-
-class CTRL_Annee(wx.Choice):
-    def __init__(self, parent):
-        wx.Choice.__init__(self, parent, -1) 
-        self.parent = parent
-        self.listeNoms = []
-        self.listeID = []
-        self.SetListeDonnees()
-
-    def SetListeDonnees(self):
-        DB = GestionDB.DB()
-        if DB.isNetwork:
-            req = """SELECT left(date,4) as annee
-            FROM prestations
-            GROUP BY annee DESC;"""
-            ret = DB.ExecuterReq(req,MsgBox="ExecuterReq")
-            listeDonnees = DB.ResultatReq()
-        else:
-            an = datetime.date.today().year
-            listeDonnees = []
-            for annee in range(an,an-4,-1):
-                listeDonnees.append((str(annee),))
-
-        DB.Close()
-        listeAnnees = []
-        for (annee,) in listeDonnees :
-            self.listeNoms.append(str(annee))
-            self.listeID.append(int(str(annee)))
-        self.SetItems(self.listeNoms)
-        self.SetSelection(len(listeAnnees))
-    
-    def GetID(self):
-        index = self.GetSelection()
-        if index == -1 : return None
-        return self.listeID[index]
+import CTRL_Saisie_date
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -69,43 +28,54 @@ class CTRL_Activite(wx.Choice):
         self.listeID = []
         self.debutPeriode = None
         self.finPeriode = None
-        self.SetListeDonnees()
 
     def SetListeDonnees(self):
-        self.listeLabels = [_("Toutes")]
-        self.listeID = []
-        if self.debutPeriode == None:
-            filtreActivite = ""
-        else:
-            filtreActivite = " WHERE date_fin > '%s' AND date_debut < '%s' "%(self.debutPeriode,self.finPeriode)
-        DB = GestionDB.DB()
-        req = """SELECT IDactivite, nom, abrege
-        FROM activites %s
-        ORDER BY date_fin ASC
-        ;""" % filtreActivite
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
-        listeDonnees = DB.ResultatReq()
-        DB.Close()
-        if len(listeDonnees) == 0 : return
-        dictActivites = {}
-        for IDactivite, nom, abrege in listeDonnees :
-            self.listeLabels.append(nom)
-            self.listeID.append(IDactivite)
+        self.listeLabels = ["Toutes",]
+        self.listeID = ['toutes',]
+        if self.debutPeriode != None and self.finPeriode != None:
+            where = "(prestations.date >= '%s') AND (prestations.date <= '%s') "%(self.debutPeriode,self.finPeriode)
+            DB = GestionDB.DB()
+            req = """
+                SELECT activites.IDactivite, activites.nom, prestations.categorie
+                FROM prestations 
+                LEFT JOIN activites ON prestations.IDactivite = activites.IDactivite
+                WHERE (%s)
+                GROUP BY activites.IDactivite, activites.nom, prestations.categorie
+                ORDER BY activites.nom ASC
+            ;""" % where
+            DB.ExecuterReq(req,MsgBox="ExecuterReq")
+            listeDonnees = DB.ResultatReq()
+            DB.Close()
+            if len(listeDonnees) == 0 : return
+            for IDactivite, nom, categorie in listeDonnees :
+                if IDactivite != None and IDactivite > 0:
+                    self.listeLabels.append(nom)
+                    self.listeID.append(IDactivite)
+                elif 'conso' in categorie:
+                    self.listeLabels.append('_Niveau famille')
+                    self.listeID.append('conso')
+                else:
+                    self.listeLabels.append(categorie)
+                    self.listeID.append(categorie)
         self.SetItems(self.listeLabels)
-        self.SetSelection(1)
+        self.SetSelection(0)
 
     def GetID(self):
         index = self.GetSelection()
         if index < 1 : return 0
-        return self.listeID[index-1]
-    
+        return self.listeID[index]
+
+    def GetIndexID(self,ID):
+        return self.listeID.index(ID)
+
+
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
 class Dialog(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
         self.parent = parent
-        self.annee = 0
+        self.periode = (None, None)
         intro = _("Vous trouvez ici la liste des prestations avec leur total et leur détail dans deux colonnes différentes. <br />Une ligne pour le total de la prestation est précédée du détail trouvé dans les lignes de la pièce correspondante")
         titre = _("Liste des prestations - Lignes de Pièces")
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/22x22/Smiley_nul.png")
@@ -113,17 +83,20 @@ class Dialog(wx.Dialog):
         # Paramètres
         self.staticbox_options_staticbox = wx.StaticBox(self, -1, _("Filtres"))
 
-        self.label_annee = wx.StaticText(self, -1, _("Année :"))
-        self.ctrl_annee = CTRL_Annee(self)
-        self.ctrl_annee.SetMinSize((60, -1))
+        self.label_periode = wx.StaticText(self, -1, _("Période"))
+        self.ctrl_periode = CTRL_Saisie_date.Periode(self,flexGridParams=(1,5,0,4))
+        self.ctrl_periode.SetMinSize((330, -1))
 
         self.label_activite = wx.StaticText(self, -1, _("Activité :"))
         self.ctrl_activite = CTRL_Activite(self)
         self.ctrl_activite.SetMinSize((200, -1))
 
-        self.label_facture = wx.StaticText(self, -1, _("Détail/Total :"))
-        self.ctrl_facture = wx.Choice(self, -1, choices = (_("Détail lignes"), _("Total prestations"), _("Les deux"), _("Prest.HorsConsos")))
-        self.ctrl_facture.Select(0) 
+        self.label_lignes = wx.StaticText(self, -1, _("Détail/Total :"))
+        self.ctrl_lignes = wx.Choice(self, -1, 
+                                     choices = ("Détail lignes", "Total prestations",
+                                                "Les deux", "Prest.HorsConsos",
+                                                "Toutes prestations"))
+        self.ctrl_lignes.Select(0) 
                 
         # Liste
         self.listviewAvecFooter = OL_Liste_prestations.ListviewAvecFooter(self, kwargs={}) 
@@ -152,9 +125,8 @@ class Dialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnBoutonListeExportTexte, self.bouton_liste_export_texte)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonListeExportExcel, self.bouton_liste_export_excel)
         
-        self.Bind(wx.EVT_CHOICE, self.MAJannee, self.ctrl_annee)
         self.Bind(wx.EVT_CHOICE, self.MAJactivite, self.ctrl_activite)
-        self.Bind(wx.EVT_CHOICE, self.MAJfacture, self.ctrl_facture)
+        self.Bind(wx.EVT_CHOICE, self.MAJlignes, self.ctrl_lignes)
         
         # Init contrôles
         wx.CallAfter(self.MAJinit)
@@ -171,24 +143,25 @@ class Dialog(wx.Dialog):
         self.SetMinSize((1000, 700))
 
     def __do_layout(self):
-        grid_sizer_base = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
+        grid_sizer_base = wx.FlexGridSizer(rows=4, cols=1, vgap=5, hgap=10)
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
 
         # Paramètres
         staticbox_options = wx.StaticBoxSizer(self.staticbox_options_staticbox, wx.VERTICAL)
         
-        grid_sizer_options = wx.FlexGridSizer(rows=1, cols=16, vgap=5, hgap=5)
-        grid_sizer_options.Add(self.label_annee, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer_options.Add(self.ctrl_annee, 0, 0, 0)
-        grid_sizer_options.Add( (5, 5), 0, wx.EXPAND, 0)
-        grid_sizer_options.Add(self.label_activite, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer_options.Add(self.ctrl_activite, 0, 0, 0)
-        grid_sizer_options.Add( (5, 5), 0, wx.EXPAND, 0)
-        grid_sizer_options.Add(self.label_facture, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer_options.Add(self.ctrl_facture, 0, 0, 0)
-##        grid_sizer_options.AddGrowableCol(4)
-        staticbox_options.Add(grid_sizer_options, 0, wx.EXPAND|wx.ALL, 10)
-        grid_sizer_base.Add(staticbox_options, 0, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
+        grid_sizer_options = wx.FlexGridSizer(rows=1, cols=16, vgap=0, hgap=5)
+        grid_sizer_options.Add(self.label_periode, 0, wx.TOP, 13)
+        grid_sizer_options.Add(self.ctrl_periode, 0, 0, 0)
+        grid_sizer_options.Add( (25, 5), 1,wx.EXPAND, 0)
+        grid_sizer_options.Add(self.label_activite, 0, wx.TOP, 13)
+        grid_sizer_options.Add(self.ctrl_activite, 1, wx.EXPAND|wx.TOP, 10)
+        grid_sizer_options.Add( (25, 5), 1,wx.EXPAND,0)
+        grid_sizer_options.Add(self.label_lignes, 0, wx.TOP, 13)
+        grid_sizer_options.Add(self.ctrl_lignes, 0, wx.TOP, 10)
+        grid_sizer_options.Add( (25, 5), 1, wx.EXPAND,0)
+        #grid_sizer_options.AddGrowableCol(4)
+        staticbox_options.Add(grid_sizer_options, 0, wx.EXPAND,0)
+        grid_sizer_base.Add(staticbox_options, 0, wx.LEFT|wx.RIGHT|wx.EXPAND, 0)
 
         # Contenu
         grid_sizer_contenu = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
@@ -229,55 +202,62 @@ class Dialog(wx.Dialog):
         self.CenterOnScreen()
 
     def MAJinit(self):
-        self.MAJannee()
+        self.MAJperiode()
         self.MAJactivite()
-        self.MAJfacture()
+        self.MAJlignes()
         self.MAJ()
 
-    def MAJannee(self, event=None):
-        # Filtre Année
-        self.annee = self.ctrl_annee.GetID()
-        if self.annee and self.annee != 0 :
-            self.ctrl_listview.listePeriodes = [(datetime.date(self.annee, 1, 1), datetime.date(self.annee, 12, 31)),]
-            self.ctrl_activite.debutPeriode = datetime.date(self.annee, 1, 1)
-            self.ctrl_activite.finPeriode = datetime.date(self.annee, 12, 31)
+    def MAJperiode(self, event=None):
+        # Filtre Période
+        (debut,fin) = self.ctrl_periode.GetPeriode()
+        if debut and fin:
+            self.ctrl_listview.dictFiltres['periode'] = (debut,fin)
+            self.ctrl_activite.debutPeriode = debut
+            self.ctrl_activite.finPeriode = fin
+            # reprend le choix antérieur malgré le changement de liste
+            ID = self.ctrl_activite.GetID()
             self.ctrl_activite.SetListeDonnees()
+            try:
+                index = self.ctrl_activite.GetIndexID(ID)                
+                self.ctrl_activite.SetSelection(index)
+            except Exception as err:
+                self.ctrl_activite.SetSelection(0)                
         else :
-            self.ctrl_listview.listePeriodes = []
+            self.ctrl_listview.dictFiltres['periode'] = None
         if event != None:
-            if "activite" in self.ctrl_listview.dictFiltres :
-                del self.ctrl_listview.dictFiltres["activite"]
+            if "whereActivite" in self.ctrl_listview.dictFiltres :
+                del self.ctrl_listview.dictFiltres["whereActivite"]
             self.MAJ()
             
     def MAJactivite(self, event=None):
         # Filtre Activité
         IDactivite = self.ctrl_activite.GetID()
-        if IDactivite != 0 :
-            self.ctrl_listview.dictFiltres["activite"] = "( pieIDactivite = %d )" %IDactivite
-        else :
-            self.ctrl_listview.dictFiltres["activite"] = "( matPieces.pieIDactivite IN (%s) OR matPieces.pieIDinscription = %d )" %(str(self.ctrl_activite.listeID)[1:-1],self.annee)
+        if isinstance(IDactivite,int):
+            self.ctrl_listview.dictFiltres["whereActivite"] = "( pieIDactivite = %d )" %IDactivite
+        elif IDactivite == 'toutes':
+            self.ctrl_listview.dictFiltres["whereActivite"] = "TRUE"
+        elif isinstance(IDactivite,str):
+            self.ctrl_listview.dictFiltres["whereActivite"] = "( prestations.categorie = '%s' )" %IDactivite
+        else:
+            raise ValueError('Non attendu')
         if event != None:
             self.MAJ()
 
-    def MAJfacture(self, event=None):
-        # Filtre Facturé
-        facture = self.ctrl_facture.GetSelection()
+    def MAJlignes(self, event=None):
+        self.ctrl_listview.periode = self.ctrl_periode.GetPeriode()
+        # Filtre type de lignes
+        lignes = self.ctrl_lignes.GetSelection()
         self.MAJactivite()
-        if facture == 0 :
-            self.ctrl_listview.dictFiltres["COMPLEXE"] = ["detail"]
-        if facture == 1 :
-            self.ctrl_listview.dictFiltres["COMPLEXE"] = ["total"]
-        if facture == 2 :
-            self.ctrl_listview.dictFiltres["COMPLEXE"] = ["detail","total"]
-        if facture == 3 :
-            DB = GestionDB.DB()
-            (deb,fin) = DB.GetExercice(datetime.date(self.annee,1,1))
-            debSQL = dateDDenSQL(deb)
-            finSQL = dateDDenSQL(fin)
-            texte = "(prestations.categorie NOT LIKE 'conso%%' AND prestations.date >= '%s'  AND prestations.date <= '%s')" %(debSQL,finSQL)
-            self.ctrl_listview.dictFiltres["COMPLEXE"] = ["noConsos",texte,"total"]
-            if "activite" in self.ctrl_listview.dictFiltres :
-                del self.ctrl_listview.dictFiltres["activite"]
+        if lignes == 0 :
+            self.ctrl_listview.dictFiltres["lignes"] = ["detail",]
+        if lignes == 1 :
+            self.ctrl_listview.dictFiltres["lignes"] = ["total",]
+        if lignes == 2 :
+            self.ctrl_listview.dictFiltres["lignes"] = ["detail","total"]
+        if lignes == 3 :
+            self.ctrl_listview.dictFiltres["lignes"] = ["noConsos",]
+        if lignes == 4:
+            self.ctrl_listview.dictFiltres["lignes"] = ["noConsos","total"]
         if event != None:
             self.MAJ()
 
@@ -302,6 +282,8 @@ class Dialog(wx.Dialog):
     def OnBoutonListeExportExcel(self, event):
         self.ctrl_listview.ExportExcel(None)
 
+    def OnChoixDate(self):
+        self.MAJperiode()
 
     def OnBoutonAide(self, event): 
         from Utils import UTILS_Aide

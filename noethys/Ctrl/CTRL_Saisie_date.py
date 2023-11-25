@@ -557,10 +557,15 @@ class Date2(wx.Panel):
 class Periode(wx.Panel):
     """ Saisie d'une période avec Bouton Calendrier inclus """
 
-    def __init__(self, parent, size=(-1, -1), pos=wx.DefaultPosition):
+    def __init__(self, parent,
+                 size=(-1, -1),
+                 pos=wx.DefaultPosition,
+                 flexGridParams=(2, 2, 5, 5)):
+        # flexGridParams: (nblignes, nbcolonnes, interligne, intercolonnes)
         wx.Panel.__init__(self, parent, id=-1, name="periode", size=size, pos=pos)
         self.parent = parent
         self.periode = (datetime.date.today(), datetime.date.today())
+        self.flexGridParams = flexGridParams
         # Période
         self.label_du = wx.StaticText(self, wx.ID_ANY, "Du")
         self.ctrl_date_debut = Date2(self)
@@ -577,12 +582,16 @@ class Periode(wx.Panel):
     def __do_layout(self):
         sizer_base = wx.BoxSizer(wx.HORIZONTAL)
 
-        grid_sizer_periode = wx.FlexGridSizer(2, 2, 5, 5)
+        grid_sizer_periode = wx.FlexGridSizer(*self.flexGridParams)
         grid_sizer_periode.Add(self.label_du, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_periode.Add(self.ctrl_date_debut, 0, wx.EXPAND, 0)
+        # augmente les espaces entre les dates selon indiqué
+        if self.flexGridParams[1] > 4:
+            largeur = (self.flexGridParams[1] - 4)*5
+            grid_sizer_periode.Add((largeur,0), 0, 0, 0)
         grid_sizer_periode.Add(self.label_au, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_periode.Add(self.ctrl_date_fin, 0, wx.EXPAND, 0)
-        sizer_base.Add(grid_sizer_periode, 1, wx.EXPAND | wx.ALL, 10)
+        sizer_base.Add(grid_sizer_periode, 1, wx.EXPAND | wx.ALL,10)
 
         self.SetSizer(sizer_base)
         self.Layout()
@@ -631,7 +640,7 @@ class MyFrame(wx.Frame):
         self.ctrl1.SetDate(datetime.date.today())
         self.ctrl2 = Date2(panel, heure=True)
         self.bouton1 = wx.Button(panel, -1, "Tester la validité du ctrl 1")
-        self.periode = Periode(panel)
+        self.periode = Periode(panel,flexGridParams=(1,5,5,4))
         sizer_2 = wx.BoxSizer(wx.VERTICAL)
         sizer_2.Add(self.ctrl1, 1, wx.ALL | wx.EXPAND, 4)
         sizer_2.Add(self.ctrl2, 0, wx.ALL | wx.EXPAND, 4)
