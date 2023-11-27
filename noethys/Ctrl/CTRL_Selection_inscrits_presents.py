@@ -11,7 +11,7 @@
 from Utils.UTILS_Traduction import _
 import wx
 import GestionDB
-from Ctrl import CTRL_Selection_activites
+from Ctrl import CTRL_Selection_activites_groupes
 from Ctrl import CTRL_Saisie_date
 from Utils import UTILS_Dates
 
@@ -117,12 +117,12 @@ class CTRL(wx.Panel):
 
         # Activités
         self.staticbox_activites_staticbox = wx.StaticBox(self, -1, _("Activités"))
-        self.ctrl_activites = CTRL_Selection_activites.CTRL(self,modeGroupes=True)
+        self.ctrl_activites = CTRL_Selection_activites_groupes.CTRL(self,modeGroupes=True)
         self.ctrl_activites.SetMinSize((100, 100))
 
         # Groupes
         #self.staticbox_groupes_staticbox = wx.StaticBox(self, -1, _("Groupes"))
-        #self.ctrl_groupes = CTRL_Selection_activites.CTRL_Groupes(self)
+        #self.ctrl_groupes = CTRL_Selection_activites_groupes.CTRL_Groupes(self)
         #self.ctrl_groupes.SetMinSize((10, 100))
 
         self.__Property()

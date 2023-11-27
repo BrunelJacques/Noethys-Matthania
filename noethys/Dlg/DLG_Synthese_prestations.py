@@ -21,7 +21,7 @@ import wx.lib.agw.hyperlink as hl
 
 import GestionDB
 from Ctrl import CTRL_Bandeau
-from Ctrl import CTRL_Selection_activites
+from Ctrl import CTRL_Selection_activites_groupes
 from Ctrl import CTRL_Saisie_date
 from Dlg import DLG_calendrier_simple
 from Ctrl import CTRL_Synthese_prestations
@@ -235,7 +235,7 @@ class Parametres(wx.Panel):
         
         # Activités
         self.staticbox_activites_staticbox = wx.StaticBox(self, -1, _("Activités"))
-        self.ctrl_activites = CTRL_Selection_activites.CTRL(self)
+        self.ctrl_activites = CTRL_Selection_activites_groupes.CTRL(self)
         self.ctrl_activites.SetMinSize((-1, 90))
         
         # Options

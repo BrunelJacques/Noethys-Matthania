@@ -20,7 +20,7 @@ import GestionDB
 from Ctrl import CTRL_Bandeau
 from Ol import OL_Liste_nominative_soldes
 from Ctrl import CTRL_Saisie_date
-from Ctrl import CTRL_Selection_activites
+from Ctrl import CTRL_Selection_activites_groupes
 
 
 
@@ -320,7 +320,7 @@ class Parametres(wx.Panel):
         
         # Activité
         self.box_activite_staticbox = wx.StaticBox(self, -1, _("Activités"))
-        self.ctrl_activite = CTRL_Selection_activites.CTRL(self)
+        self.ctrl_activite = CTRL_Selection_activites_groupes.CTRL(self)
         self.ctrl_activite.SetMinSize((240, -1))
         
         # Groupes

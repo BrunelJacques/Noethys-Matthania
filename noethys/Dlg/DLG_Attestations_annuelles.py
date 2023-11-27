@@ -15,7 +15,7 @@ import datetime
 import math
 
 from Ctrl import CTRL_Bandeau
-from Ctrl import CTRL_Selection_activites
+from Ctrl import CTRL_Selection_activites_groupes
 from Ctrl import CTRL_Saisie_date
 from Ol import OL_Attestations_prestations
 from Dlg import DLG_Attestations_selection
@@ -88,7 +88,7 @@ class Parametres(wx.Panel):
         
         # Activités
         self.staticbox_activites_staticbox = wx.StaticBox(self, -1, _("Activités"))
-        self.ctrl_activites = CTRL_Selection_activites.CTRL(self)
+        self.ctrl_activites = CTRL_Selection_activites_groupes.CTRL(self)
         
         # Actualiser
         self.bouton_actualiser = CTRL_Bouton_image.CTRL(self, texte=_("Rafraîchir la liste"), cheminImage="Images/32x32/Actualiser.png")

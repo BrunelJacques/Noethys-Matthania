@@ -19,7 +19,7 @@ import datetime
 import GestionDB
 from Ctrl import CTRL_Bandeau
 from Ctrl import CTRL_Saisie_date
-from Ctrl import CTRL_Selection_activites
+from Ctrl import CTRL_Selection_activites_groupes
 from Ol import OL_Etat_nomin_selections
 from Dlg import DLG_Etat_nomin_resultats
 from Utils import UTILS_Parametres
@@ -813,7 +813,7 @@ class Dialog(wx.Dialog):
         
         # Activités
         self.box_activites_staticbox = wx.StaticBox(self, -1, _("Activités"))
-        self.ctrl_activites = CTRL_Selection_activites.CTRL(self)
+        self.ctrl_activites = CTRL_Selection_activites_groupes.CTRL(self)
         self.ctrl_activites.SetMinSize((240, -1))
 
         # Champs

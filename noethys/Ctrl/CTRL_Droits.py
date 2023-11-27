@@ -18,7 +18,7 @@ import sys
 import wx.grid as gridlib
 import Outils.gridlabelrenderer as glr
 import GestionDB
-from Ctrl import CTRL_Selection_activites
+from Ctrl import CTRL_Selection_activites_groupes
 import wx.lib.agw.supertooltip as STT
 import textwrap
 
@@ -945,7 +945,7 @@ class DLG_Restrictions(wx.Dialog):
         self.parent = parent
         
         self.label_intro = wx.StaticText(self, wx.ID_ANY, _("Vous pouvez sélectionner des activités ou des groupes d'activités :"))
-        self.ctrl_activites = CTRL_Selection_activites.CTRL(self)
+        self.ctrl_activites = CTRL_Selection_activites_groupes.CTRL(self)
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"), cheminImage="Images/32x32/Valider.png")
         self.bouton_annuler = CTRL_Bouton_image.CTRL(self, texte=_("Annuler"), cheminImage="Images/32x32/Annuler.png")

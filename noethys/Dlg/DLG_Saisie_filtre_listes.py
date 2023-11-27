@@ -18,7 +18,7 @@ from Ctrl import CTRL_Bouton_image
 from Ctrl import CTRL_ChoixListe
 from Ctrl import CTRL_Saisie_date
 from Ctrl import CTRL_Saisie_euros
-from Ctrl import CTRL_Selection_activites
+from Ctrl import CTRL_Selection_activites_groupes
 
 def ValueTrack(track,code):
     # retourne la valeur de track.code
@@ -732,7 +732,7 @@ class CTRL_Page_inscrits(wx.Panel):
 
         # Activités
         self.label_intro = wx.StaticText(self, -1, _("Uniquement les individus inscrits aux activités suivantes :"))
-        self.ctrl_activites = CTRL_Selection_activites.CTRL(self, modeGroupes=True)
+        self.ctrl_activites = CTRL_Selection_activites_groupes.CTRL(self, modeGroupes=True)
 
         # Présents
         self.check_presents = wx.CheckBox(self, -1, _("Et présents du"))

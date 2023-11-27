@@ -17,7 +17,7 @@ from Ctrl import CTRL_Bouton_image
 import datetime
 
 from Ctrl import CTRL_Saisie_date
-from Ctrl import CTRL_Selection_activites
+from Ctrl import CTRL_Selection_activites_groupes
 from Utils import UTILS_Titulaires
 from Utils import UTILS_Utilisateurs
 from Utils import UTILS_Gestion
@@ -243,7 +243,7 @@ class Panel(wx.Panel):
         
         # Activités
         self.box_activites_staticbox = wx.StaticBox(self, -1, _("Activités"))
-        self.ctrl_activites = CTRL_Selection_activites.CTRL(self)
+        self.ctrl_activites = CTRL_Selection_activites_groupes.CTRL(self)
 
         # Inclure prestations antérieures non facturées
         self.box_anterieures_staticbox = wx.StaticBox(self, -1, _("Prestations antérieures non facturées"))

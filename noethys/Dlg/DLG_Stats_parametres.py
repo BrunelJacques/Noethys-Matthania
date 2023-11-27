@@ -18,7 +18,7 @@ import datetime
 import calendar
 
 import GestionDB
-from Ctrl import CTRL_Selection_activites
+from Ctrl import CTRL_Selection_activites_groupes
 from Ctrl import CTRL_Saisie_date
 
 
@@ -401,7 +401,7 @@ class Dialog(wx.Dialog):
         
         # Activités
         self.box_activites_staticbox = wx.StaticBox(self, -1, _("Activités"))
-        self.ctrl_activites = CTRL_Selection_activites.CTRL(self)
+        self.ctrl_activites = CTRL_Selection_activites_groupes.CTRL(self)
         
         # Mode
         self.box_mode_staticbox = wx.StaticBox(self, -1, _("Mode de calcul"))

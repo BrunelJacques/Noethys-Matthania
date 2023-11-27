@@ -17,7 +17,7 @@ from Ctrl import CTRL_Bouton_image
 import datetime
 import GestionDB
 from Ctrl import CTRL_Saisie_date
-from Ctrl import CTRL_Selection_activites
+from Ctrl import CTRL_Selection_activites_groupes
 
 
 
@@ -30,7 +30,7 @@ class Dialog(wx.Dialog):
         self.staticbox_activites = wx.StaticBox(self, -1, _("Activités"))
         self.radio_tous = wx.RadioButton(self, -1, _("Tous les individus"))
         self.radio_inscrits = wx.RadioButton(self, -1, _("Uniquement les inscrits aux activités suivantes :"))
-        self.ctrl_activites = CTRL_Selection_activites.CTRL(self)
+        self.ctrl_activites = CTRL_Selection_activites_groupes.CTRL(self)
         
         self.check_presents = wx.CheckBox(self, -1, _("Et présents du"))
         self.ctrl_date_debut = CTRL_Saisie_date.Date2(self)

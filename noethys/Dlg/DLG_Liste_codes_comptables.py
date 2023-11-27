@@ -20,7 +20,7 @@ from Ctrl import CTRL_Bandeau
 from Ol import OL_Liste_codes_comptables
 from Ctrl import CTRL_Saisie_date
 from Dlg import DLG_calendrier_simple
-from Ctrl import CTRL_Selection_activites
+from Ctrl import CTRL_Selection_activites_groupes
 from Utils import UTILS_Dates
 
 
@@ -154,7 +154,7 @@ class Parametres(wx.Panel):
 
         # Activités
         self.staticbox_activites_staticbox = wx.StaticBox(self, -1, _("Activités"))
-        self.ctrl_activites = CTRL_Selection_activites.CTRL(self)
+        self.ctrl_activites = CTRL_Selection_activites_groupes.CTRL(self)
         self.ctrl_activites.SetMinSize((-1, 90))
         
         # Inscrits / Présents

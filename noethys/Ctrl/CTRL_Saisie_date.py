@@ -40,6 +40,75 @@ ID_ANNEE_SUIVANTE = 320
 datePattern = re.compile(
     r"(?P<jour>[\d]{1,2})/(?P<mois>[\d]{1,2})/(?P<annee>[\d]{4})")
 
+def ValideDate(texte, date_min="01/01/1900", date_max="01/01/2999", avecMessages=True):
+    message = "La date que vous venez de saisir ne semble pas valide !"
+    """ Verificateur de validite de date """
+    if texte == "  /  /    " or texte == "":
+        return True
+
+    listeErreurs = []
+
+    # Recherche depuis l'expression régulière
+    date = datePattern.match(texte)
+    if date:
+        # On vérifie que les chiffres existent
+        jour = int(date.group("jour"))
+        if jour == 0 or jour > 31:
+            listeErreurs.append("le jour")
+        mois = int(date.group("mois"))
+        if mois == 0 or mois > 12:
+            listeErreurs.append("le mois")
+        annee = int(date.group("annee"))
+        if annee < 1900 or annee > 2999:
+            listeErreurs.append("l'année")
+
+        # Affichage du message d'erreur
+        if listeErreurs:
+            # Message en cas de date incomplète
+            if avecMessages == True:
+                nbErreurs = len(listeErreurs)
+                if nbErreurs == 1:
+                    message = "Une incohérence a été détectée dans " + listeErreurs[0]
+                else:
+                    message = "Des incohérences ont été détectées dans " + \
+                              listeErreurs[0]
+                    if nbErreurs == 2:
+                        message += " et " + listeErreurs[1]
+                    elif nbErreurs == 3:
+                        message += ", " + listeErreurs[1] + " et " + listeErreurs[2]
+                message += " de la date que vous venez de saisir. Veuillez la vérifier."
+                wx.MessageBox(message, "Erreur de date")
+            return False
+        else:
+            # On vérifie que les dates sont comprises dans l'intervalle donné en paramètre
+            date_min = int(str(date_min[6:10]) + str(date_min[3:5]) + str(date_min[:2]))
+            date_max = int(str(date_max[6:10]) + str(date_max[3:5]) + str(date_max[:2]))
+            date_sel = int(str(annee) + ('0' if mois < 10 else '') + str(mois) +
+                           ('0' if jour < 10 else '') + str(jour))
+
+            if date_sel < date_min:
+                if avecMessages == True:
+                    message = "La date que vous venez de saisir semble trop ancienne. Veuillez la vérifier."
+                    wx.MessageBox(message, "Erreur de date")
+                return False
+            if date_sel > date_max:
+                if avecMessages == True:
+                    message = "La date que vous venez de saisir semble trop élevée. Veuillez la vérifier."
+                    wx.MessageBox(message, "Erreur de date")
+                return False
+
+            # On vérifie que la date peut être transformée en Datetime
+            try:
+                datetime.date(year=annee, month=mois, day=jour)
+            except:
+                pass
+            else:
+                return True
+
+    if avecMessages == True:
+        wx.MessageBox(message, "Erreur de date")
+    return False
+
 class myparserinfo(parserinfo):
     JUMP = [" ", ".", ",", ";", "-", "/", "'",
             "at", "on", "and", "ad", "m", "t", "of",
@@ -75,7 +144,6 @@ class myparserinfo(parserinfo):
 
     def __init__(self):
         parserinfo.__init__(self, dayfirst=True, yearfirst=False)
-
 
 class Date(wx.TextCtrl):
     """ Contrôle Date simple """
@@ -374,79 +442,8 @@ class Date(wx.TextCtrl):
             from Utils import UTILS_Aide
             UTILS_Aide.Aide("Slectionnerunedate")
 
-
-def ValideDate(texte, date_min="01/01/1900", date_max="01/01/2999", avecMessages=True):
-    message = "La date que vous venez de saisir ne semble pas valide !"
-    """ Verificateur de validite de date """
-    if texte == "  /  /    " or texte == "":
-        return True
-
-    listeErreurs = []
-
-    # Recherche depuis l'expression régulière
-    date = datePattern.match(texte)
-    if date:
-        # On vérifie que les chiffres existent
-        jour = int(date.group("jour"))
-        if jour == 0 or jour > 31:
-            listeErreurs.append("le jour")
-        mois = int(date.group("mois"))
-        if mois == 0 or mois > 12:
-            listeErreurs.append("le mois")
-        annee = int(date.group("annee"))
-        if annee < 1900 or annee > 2999:
-            listeErreurs.append("l'année")
-
-        # Affichage du message d'erreur
-        if listeErreurs:
-            # Message en cas de date incomplète
-            if avecMessages == True:
-                nbErreurs = len(listeErreurs)
-                if nbErreurs == 1:
-                    message = "Une incohérence a été détectée dans " + listeErreurs[0]
-                else:
-                    message = "Des incohérences ont été détectées dans " + \
-                              listeErreurs[0]
-                    if nbErreurs == 2:
-                        message += " et " + listeErreurs[1]
-                    elif nbErreurs == 3:
-                        message += ", " + listeErreurs[1] + " et " + listeErreurs[2]
-                message += " de la date que vous venez de saisir. Veuillez la vérifier."
-                wx.MessageBox(message, "Erreur de date")
-            return False
-        else:
-            # On vérifie que les dates sont comprises dans l'intervalle donné en paramètre
-            date_min = int(str(date_min[6:10]) + str(date_min[3:5]) + str(date_min[:2]))
-            date_max = int(str(date_max[6:10]) + str(date_max[3:5]) + str(date_max[:2]))
-            date_sel = int(str(annee) + ('0' if mois < 10 else '') + str(mois) +
-                           ('0' if jour < 10 else '') + str(jour))
-
-            if date_sel < date_min:
-                if avecMessages == True:
-                    message = "La date que vous venez de saisir semble trop ancienne. Veuillez la vérifier."
-                    wx.MessageBox(message, "Erreur de date")
-                return False
-            if date_sel > date_max:
-                if avecMessages == True:
-                    message = "La date que vous venez de saisir semble trop élevée. Veuillez la vérifier."
-                    wx.MessageBox(message, "Erreur de date")
-                return False
-
-            # On vérifie que la date peut être transformée en Datetime
-            try:
-                datetime.date(year=annee, month=mois, day=jour)
-            except:
-                pass
-            else:
-                return True
-
-    if avecMessages == True:
-        wx.MessageBox(message, "Erreur de date")
-    return False
-
-
+# Contrôle Date avec Bouton Calendrier inclus
 class Date2(wx.Panel):
-    """ Contrôle Date avec Bouton Calendrier inclus """
     def __init__(self, parent, date_min="01/01/1910", date_max="01/01/2030",
                  activeCallback=True, size=(-1, -1), heure=False, pos=wx.DefaultPosition):
         wx.Panel.__init__(self, parent, id=-1, name="panel_date2", size=size, pos=pos,
@@ -553,18 +550,21 @@ class Date2(wx.Panel):
     def SetFocus(self):
         self.ctrl_date.SetFocus()
 
-
+# Saisie d'une période avec Boutons Calendrier inclus
 class Periode(wx.Panel):
-    """ Saisie d'une période avec Bouton Calendrier inclus """
-
+    # pour positionnement debut fin horizontal : flexGridParams=(1,5,0,4)
+    """ pour positionnement debut fin vertical : flexGridParams=(2,2,5,5)
+        flexGrid: (nblignes, nbcolonnes, interligne, intercolonnes)
+        si nbcolonnes est >4 il y aura des espaces sup entre début et fin
+    """
     def __init__(self, parent,
+                 periode = (datetime.date.today(), datetime.date.today()),
                  size=(-1, -1),
                  pos=wx.DefaultPosition,
                  flexGridParams=(2, 2, 5, 5)):
-        # flexGridParams: (nblignes, nbcolonnes, interligne, intercolonnes)
         wx.Panel.__init__(self, parent, id=-1, name="periode", size=size, pos=pos)
         self.parent = parent
-        self.periode = (datetime.date.today(), datetime.date.today())
+        self.periode = periode
         self.flexGridParams = flexGridParams
         # Période
         self.label_du = wx.StaticText(self, wx.ID_ANY, "Du")
@@ -577,7 +577,7 @@ class Periode(wx.Panel):
         self.ctrl_date_fin.SetToolTip(wx.ToolTip("Saisir la fin de la période"))
 
         self.__do_layout()
-        self.SetPeriode()
+        self.SetPeriode(self.periode)
 
     def __do_layout(self):
         sizer_base = wx.BoxSizer(wx.HORIZONTAL)
@@ -587,8 +587,8 @@ class Periode(wx.Panel):
         grid_sizer_periode.Add(self.ctrl_date_debut, 0, wx.EXPAND, 0)
         # augmente les espaces entre les dates selon indiqué
         if self.flexGridParams[1] > 4:
-            largeur = (self.flexGridParams[1] - 4)*5
-            grid_sizer_periode.Add((largeur,0), 0, 0, 0)
+            espace = (self.flexGridParams[1] - 4)*5 # 5pt par colonne supplémentaire à 4
+            grid_sizer_periode.Add((espace,0), 0, 0, 0)
         grid_sizer_periode.Add(self.label_au, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_periode.Add(self.ctrl_date_fin, 0, wx.EXPAND, 0)
         sizer_base.Add(grid_sizer_periode, 1, wx.EXPAND | wx.ALL,10)

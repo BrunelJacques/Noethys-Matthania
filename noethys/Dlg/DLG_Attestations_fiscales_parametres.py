@@ -21,7 +21,7 @@ import math
 
 import GestionDB
 from Ctrl import CTRL_Bandeau
-from Ctrl import CTRL_Selection_activites
+from Ctrl import CTRL_Selection_activites_groupes
 from Ctrl import CTRL_Saisie_date
 from Ol import OL_Attestations_fiscales_prestations
 from Dlg import DLG_Attestations_fiscales_selection
@@ -111,7 +111,7 @@ class Parametres(wx.Panel):
         
         # Activités
         self.staticbox_activites_staticbox = wx.StaticBox(self, -1, _("Activités"))
-        self.ctrl_activites = CTRL_Selection_activites.CTRL(self)
+        self.ctrl_activites = CTRL_Selection_activites_groupes.CTRL(self)
 
         # Modes de règlements
         self.staticbox_modes_staticbox = wx.StaticBox(self, -1, _("Modes de règlement"))

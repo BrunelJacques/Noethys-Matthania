@@ -18,7 +18,7 @@ import sys
 import six
 import GestionDB
 from Ctrl import CTRL_Bandeau
-from Ctrl import CTRL_Selection_activites
+from Ctrl import CTRL_Selection_activites_groupes
 from Ctrl import CTRL_Saisie_date
 from Ctrl import CTRL_Etat_global_parametres
 from Ctrl import CTRL_Etat_global_options
@@ -123,7 +123,7 @@ class Parametres(wx.Panel):
 
         # Activités
         self.staticbox_activites_staticbox = wx.StaticBox(self, -1, _("Activités"))
-        self.ctrl_activites = CTRL_Selection_activites.CTRL(self)
+        self.ctrl_activites = CTRL_Selection_activites_groupes.CTRL(self)
         
         self.__set_properties()
         self.__do_layout()

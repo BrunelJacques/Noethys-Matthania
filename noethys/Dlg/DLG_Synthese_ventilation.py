@@ -17,7 +17,7 @@ from Ctrl import CTRL_Bouton_image
 import wx.lib.agw.hyperlink as Hyperlink
 from Ctrl import CTRL_Bandeau
 from Ctrl import CTRL_Selection_depots
-from Ctrl import CTRL_Selection_activites
+from Ctrl import CTRL_Selection_activites_groupes
 from Ctrl import CTRL_Saisie_date
 from Ctrl import CTRL_Synthese_ventilation
 
@@ -88,7 +88,7 @@ class Page_prestations(wx.Panel):
         self.ctrl_date_fin = CTRL_Saisie_date.Date(self)
 
         self.check_activites = wx.CheckBox(self, -1, _("Uniquement rattachées aux activités :"))
-        self.ctrl_activites = CTRL_Selection_activites.CTRL(self)
+        self.ctrl_activites = CTRL_Selection_activites_groupes.CTRL(self)
 
         self.__set_properties()
         self.__do_layout()

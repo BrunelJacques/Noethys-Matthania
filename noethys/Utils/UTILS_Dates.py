@@ -21,6 +21,25 @@ LISTE_MOIS = (_("janvier"), _("février"), _("mars"), _("avril"), _("mai"), _("ju
 LISTE_JOURS_ABREGES = (_("Lun."), _("Mar."), _("Mer."), _("Jeu."), _("Ven."), _("Sam."), _("Dim."))
 LISTE_MOIS_ABREGES = (_("janv."), _("fév."), _("mars"), _("avril"), _("mai"), _("juin"), _("juil."), _("août"), _("sept."), _("oct"), _("nov."), _("déc."))
 
+# Conversion date
+def ConvertDateWXenDate(datewx=None):
+    """ Convertit une date WX.datetime en datetime """
+    if datewx == None :
+        return None
+    if isinstance(datewx, datetime.datetime):
+        return datetime.date(datewx.year, datewx.month, datewx.day)
+    jour = datewx.GetDay()
+    mois = datewx.GetMonth()+1
+    annee = datewx.GetYear()
+    date = datetime.date(annee, mois, jour)
+    return date
+
+def DatetimeEnFr(date=None):
+    if date in ("", "None", None):
+        return None
+    if type(date) == str :
+        date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+    return date.strftime("%d/%m/%Y %H:%M:%S")
 
 def DateEngFr(textDate):
     if textDate in (None, "") : return ""
@@ -31,6 +50,13 @@ def DateEngFr(textDate):
 def DateDDEnFr(date):
     if date == None : return ""
     return DateEngFr(str(date))
+
+def DateEngEnDateDD(dateEng):
+    if not isinstance(dateEng,str): dateEng = str(dateEng)
+    if dateEng in (None, "", "None") : return None
+    if len(dateEng) < 10: return None
+    if type(dateEng) == datetime.date : return dateEng
+    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 def DateDDEnDateEng(datedd):
     if not isinstance(datedd, datetime.date):
@@ -50,12 +76,32 @@ def DateComplete(dateDD, abrege=False):
     dateComplete = listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
     return dateComplete
 
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    if dateEng in (None, "", "None") : return None
-    if len(dateEng) < 10: return None
-    if type(dateEng) == datetime.date : return dateEng
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
+def DateFrEng(textDate):
+    if textDate in ("", None):
+        return None
+    text = str(textDate[6:10]) + "-" + str(textDate[3:5]) + "-" + str(textDate[:2])
+    return text
+
+# Conversions date-time
+def ConvertDateWXenDT(datewx=None):
+    """ Convertit une date WX.datetime en datetime """
+    if datewx == None :
+        return None
+    jour = datewx.GetDay()
+    mois = datewx.GetMonth()+1
+    annee = datewx.GetYear()
+    heures = datewx.GetHour()
+    minutes = datewx.GetMinute()
+    dt = datetime.datetime(annee, mois, jour, heures, minutes)
+    return dt
+
+def ConvertDateDTenWX(date=None):
+    """ Convertit une date datetime en WX.datetime """
+    if date == None :
+        return None
+    datewx = wx.DateTime()
+    datewx.Set(date.day, month=date.month-1, year=date.year)
+    return datewx
 
 def DateEngEnDateDDT(dateEng):
     if dateEng in (None, "", "None") : return None
@@ -65,12 +111,13 @@ def DateEngEnDateDDT(dateEng):
     else :
         return datetime.datetime.strptime(dateEng, "%Y-%m-%d %H:%M:%S.%f")
 
-def DateFrEng(textDate):
-    if textDate in ("", None):
+def DatetimeTimeEnStr(heure, separateur="h"):
+    if heure == None :
         return None
-    text = str(textDate[6:10]) + "-" + str(textDate[3:5]) + "-" + str(textDate[:2])
-    return text
+    else :
+        return "%02d%s%02d" % (heure.hour, separateur, heure.minute)
 
+# Autres fonctions date ou deltatime
 def PeriodeComplete(mois, annee):
     listeMois = (_("Janvier"), _("Février"), _("Mars"), _("Avril"), _("Mai"), _("Juin"), _("Juillet"), _("Août"), _("Septembre"), _("Octobre"), _("Novembre"), _("Décembre"))
     periodeComplete = "%s %d" % (listeMois[mois-1], annee)
@@ -101,16 +148,16 @@ def HeuresEnDecimal(texteHeure="07:00"):
     heure = str(heures + minutes)
     return int(heure)
 
+def DeltaEnHeures(valeur=datetime.timedelta(0)):
+    """ Convertit une durée timedelta en nombre d'heures"""
+    return (valeur.days*24) + (valeur.seconds/3600.0)
+
 def FloatEnDelta(valeur=10.50):
     """ Convertit une valeur décimale en timedelta """
     return datetime.timedelta(hours=valeur)
 
 def DeltaEnFloat(valeur=datetime.timedelta(0)):
     """ Convertit une valeur décimale en timedelta """
-    return (valeur.days*24) + (valeur.seconds/3600.0)
-
-def DeltaEnHeures(valeur=datetime.timedelta(0)):
-    """ Convertit une durée timedelta en nombre d'heures"""
     return (valeur.days*24) + (valeur.seconds/3600.0)
 
 def SoustractionHeures(heure_max, heure_min):
@@ -197,12 +244,6 @@ def HeureStrEnTime(heureStr):
     except :
         return datetime.time(0, 0)
 
-def DatetimeTimeEnStr(heure, separateur="h"):
-    if heure == None : 
-        return None
-    else :
-        return "%02d%s%02d" % (heure.hour, separateur, heure.minute)
-
 def HorodatageEnDatetime(horodatage, separation=None):
     if separation == None :
         annee = int(horodatage[0:4])
@@ -277,45 +318,6 @@ def FormateMois(donnee):
     else:
         annee, mois = donnee
         return "%s %d" % (LISTE_MOIS[mois-1].capitalize(), annee)
-
-def ConvertDateWXenDate(datewx=None):
-    """ Convertit une date WX.datetime en datetime """
-    if datewx == None :
-        return None
-    if isinstance(datewx, datetime.datetime):
-        return datetime.date(datewx.year, datewx.month, datewx.day)
-    jour = datewx.GetDay()
-    mois = datewx.GetMonth()+1
-    annee = datewx.GetYear()
-    date = datetime.date(annee, mois, jour)
-    return date
-
-def ConvertDateWXenDT(datewx=None):
-    """ Convertit une date WX.datetime en datetime """
-    if datewx == None :
-        return None
-    jour = datewx.GetDay()
-    mois = datewx.GetMonth()+1
-    annee = datewx.GetYear()
-    heures = datewx.GetHour()
-    minutes = datewx.GetMinute()
-    dt = datetime.datetime(annee, mois, jour, heures, minutes)
-    return dt
-
-def ConvertDateDTenWX(date=None):
-    """ Convertit une date datetime en WX.datetime """
-    if date == None :
-        return None
-    datewx = wx.DateTime()
-    datewx.Set(date.day, month=date.month-1, year=date.year)
-    return datewx
-
-def DatetimeEnFr(date=None):
-    if date in ("", "None", None):
-        return None
-    if type(date) == str :
-        date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
-    return date.strftime("%d/%m/%Y %H:%M:%S")
 
 def FormatDelta(delta, fmt="auto"):
     """ fmt = 'auto' ou par exemple : '{jours} jours {heures}:{minutes}:{secondes}' """
