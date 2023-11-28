@@ -109,6 +109,10 @@ def ValideDate(texte, date_min="01/01/1900", date_max="01/01/2999", avecMessages
         wx.MessageBox(message, "Erreur de date")
     return False
 
+def PeriodeMois(date=datetime.date.today(),nbjours=30):
+    deb = date-datetime.timedelta(nbjours)
+    return [deb,date]
+
 class myparserinfo(parserinfo):
     JUMP = [" ", ".", ",", ";", "-", "/", "'",
             "at", "on", "and", "ad", "m", "t", "of",
@@ -558,7 +562,7 @@ class Periode(wx.Panel):
         si nbcolonnes est >4 il y aura des espaces sup entre début et fin
     """
     def __init__(self, parent,
-                 periode = (datetime.date.today(), datetime.date.today()),
+                 periode = PeriodeMois(),
                  size=(-1, -1),
                  pos=wx.DefaultPosition,
                  flexGridParams=(2, 2, 5, 5)):
@@ -596,7 +600,7 @@ class Periode(wx.Panel):
         self.SetSizer(sizer_base)
         self.Layout()
 
-    def SetPeriode(self, periode=(datetime.date.today(), datetime.date.today())):
+    def SetPeriode(self, periode=PeriodeMois()):
         self.periode = periode
         self.ctrl_date_debut.SetDate(self.periode[0])
         self.ctrl_date_fin.SetDate(self.periode[1])
@@ -616,6 +620,10 @@ class Periode(wx.Panel):
                 # on aligne la fin sur le début
                 self.periode = (debut, debut)
             self.SetPeriode(self.periode)
+            mess = "On continue?\n\nLa fin et le début ont été mis en cohérence"
+            ret = wx.MessageBox(mess,"DATE CORRIGEE",style=wx.YES_NO|wx.ICON_EXCLAMATION)
+            if ret != wx.YES:
+                return
         else:
             self.periode = (debut, fin)
         self.SetPeriode(self.periode)

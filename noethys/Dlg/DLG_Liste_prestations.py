@@ -17,10 +17,11 @@ import GestionDB
 from Ctrl import CTRL_Bandeau
 from Ol import OL_Liste_prestations
 import CTRL_Saisie_date
+import CTRL_SelectionActivitesModal as sam
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
-class CTRL_Activite(wx.Choice):
+class zzzCTRL_Activite(wx.Choice):
     def __init__(self, parent):
         wx.Choice.__init__(self, parent, -1) 
         self.parent = parent
@@ -69,13 +70,30 @@ class CTRL_Activite(wx.Choice):
         return self.listeID.index(ID)
 
 
+class CTRL_Activite(sam.CTRL_BoutonSelectionActivites):
+    def __init__(self, parent):
+        sam.CTRL_BoutonSelectionActivites.__init__(self, parent, -1,parent.periode) 
+        self.parent = parent
+        self.listeID = []
+        self.debutPeriode = None
+        self.finPeriode = None
+
+    def SetListeDonnees(self):
+        self.SetPeriode(self.parent.periode)
+
+    def GetWhere(self):
+        if len(self.GetIDactivites()) > 1:
+            return "( pieIDactivite in (%s))"%str(self.GetIDactivites())[1:-1]
+        elif len(self.GetIDactivites()) > 0:
+            return "( pieIDactivite = %d )" % self.GetIDactivites[0]
+        else: return " FALSE "
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
 class Dialog(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
         self.parent = parent
-        self.periode = (None, None)
+        self.periode = CTRL_Saisie_date.PeriodeMois()
         intro = _("Vous trouvez ici la liste des prestations avec leur total et leur détail dans deux colonnes différentes. <br />Une ligne pour le total de la prestation est précédée du détail trouvé dans les lignes de la pièce correspondante")
         titre = _("Liste des prestations - Lignes de Pièces")
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/22x22/Smiley_nul.png")
@@ -124,8 +142,7 @@ class Dialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAide, self.bouton_aide)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonListeExportTexte, self.bouton_liste_export_texte)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonListeExportExcel, self.bouton_liste_export_excel)
-        
-        self.Bind(wx.EVT_CHOICE, self.MAJactivite, self.ctrl_activite)
+
         self.Bind(wx.EVT_CHOICE, self.MAJlignes, self.ctrl_lignes)
         
         # Init contrôles
@@ -203,51 +220,36 @@ class Dialog(wx.Dialog):
 
     def MAJinit(self):
         self.MAJperiode()
-        self.MAJactivite()
+        self.OnActivites()
         self.MAJlignes()
         self.MAJ()
 
     def MAJperiode(self, event=None):
         # Filtre Période
-        (debut,fin) = self.ctrl_periode.GetPeriode()
-        if debut and fin:
-            self.ctrl_listview.dictFiltres['periode'] = (debut,fin)
-            self.ctrl_activite.debutPeriode = debut
-            self.ctrl_activite.finPeriode = fin
-            # reprend le choix antérieur malgré le changement de liste
-            ID = self.ctrl_activite.GetID()
-            self.ctrl_activite.SetListeDonnees()
-            try:
-                index = self.ctrl_activite.GetIndexID(ID)                
-                self.ctrl_activite.SetSelection(index)
-            except Exception as err:
-                self.ctrl_activite.SetSelection(0)                
+        periode = self.ctrl_periode.GetPeriode()
+        if periode and periode[0] != None:
+            self.ctrl_listview.dictFiltres['periode'] = periode
+            self.ctrl_activite.SetPeriode(periode)
         else :
             self.ctrl_listview.dictFiltres['periode'] = None
         if event != None:
-            if "whereActivite" in self.ctrl_listview.dictFiltres :
-                del self.ctrl_listview.dictFiltres["whereActivite"]
+            if "whereActivites" in self.ctrl_listview.dictFiltres :
+                del self.ctrl_listview.dictFiltres["whereActivites"]
             self.MAJ()
             
-    def MAJactivite(self, event=None):
+    def OnActivites(self, retour=None,periode=None):
         # Filtre Activité
-        IDactivite = self.ctrl_activite.GetID()
-        if isinstance(IDactivite,int):
-            self.ctrl_listview.dictFiltres["whereActivite"] = "( pieIDactivite = %d )" %IDactivite
-        elif IDactivite == 'toutes':
-            self.ctrl_listview.dictFiltres["whereActivite"] = "TRUE"
-        elif isinstance(IDactivite,str):
-            self.ctrl_listview.dictFiltres["whereActivite"] = "( prestations.categorie = '%s' )" %IDactivite
-        else:
-            raise ValueError('Non attendu')
-        if event != None:
+        if periode:
+            self.ctrl_periode.SetPeriode(periode)
+        self.ctrl_listview.dictFiltres["whereActivites"] = self.ctrl_activite.GetWhere()
+        if retour == wx.ID_OK:
             self.MAJ()
 
     def MAJlignes(self, event=None):
         self.ctrl_listview.periode = self.ctrl_periode.GetPeriode()
         # Filtre type de lignes
         lignes = self.ctrl_lignes.GetSelection()
-        self.MAJactivite()
+        self.OnActivites()
         if lignes == 0 :
             self.ctrl_listview.dictFiltres["lignes"] = ["detail",]
         if lignes == 1 :

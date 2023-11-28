@@ -111,7 +111,7 @@ class ListView(GroupListView):
         GroupListView.__init__(self, *args, **kwds)
 
         self.periode = (None)
-        self.dictFiltres = {'periode': None,'whereActivite': "FALSE",'lignes': None}
+        self.dictFiltres = {'periode': None,'whereActivites': "FALSE",'lignes': None}
         self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
         self.SetShowGroups(False)
 
@@ -120,7 +120,7 @@ class ListView(GroupListView):
         finSQL = dateDDenSQL(periode[1])
         return "(prestations.date BETWEEN '%s' AND '%s')" % (debSQL, finSQL)
 
-    def GetListePrestations(self, IDfamille=None, listeComptesPayeurs=[]):
+    def GetListePrestations(self, ):
         DB = GestionDB.DB()
         
         # Filtres de l'utilisateur
@@ -276,7 +276,7 @@ class ListView(GroupListView):
     def GetTracks(self):
         # Récupération des données prestations
         listeID = None
-        listeDonnees = self.GetListePrestations(IDfamille=self.IDfamille)
+        listeDonnees = self.GetListePrestations()
 
         listeListeView = []
         for item in listeDonnees :
@@ -382,8 +382,8 @@ class ListView(GroupListView):
             filtreSQL += """
             %s"""%(self.GetSQLdates(self.dictFiltres['periode']))
 
-        if self.dictFiltres['whereActivite']:
-            filtreSQL += "\nAND " + self.dictFiltres['whereActivite']
+        if self.dictFiltres['whereActivites']:
+            filtreSQL += "\nAND " + self.dictFiltres['whereActivites']
         return filtreSQL
 
     def GetWhereLignes(self):

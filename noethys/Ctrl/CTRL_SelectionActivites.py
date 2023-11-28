@@ -8,6 +8,8 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
+# Version à factoriser avec CTRL_SelectionActivitesModal conçu adaptable par classe ADAPT
+
 import wx
 import Chemins
 import datetime
