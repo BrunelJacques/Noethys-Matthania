@@ -342,17 +342,24 @@ class CTRL(wx.Panel):
         #fgSizer_base.Fit(self)
 
     def SetPeriode(self,periode):
-        self.Adapt.SetPeriode(periode)
         if not self.periode == periode:
+            messageAttente = PBI.PyBusyInfo("Recherche des activités...",
+                                            parent=None, title="Veuillez patienter...",
+                                            icon=wx.Bitmap(Chemins.GetStaticPath(
+                                                "Images/16x16/Logo.png"),
+                                                           wx.BITMAP_TYPE_ANY))
+            wx.Yield()
+            self.Adapt.SetPeriode(periode)
             self.periode = periode
             self.ctrl_periode.SetPeriode(periode)
             self.oldPeriode = [x for x in self.periode]
-        ret = self.Adapt.SearchPossibles()
-        if ret == 'ok':
-            self.ctrl_groupesActivite.MAJ()
-            self.ctrl_activites.SetGroupes(self.ctrl_groupesActivite.GetIDgroupes())
-            self.ctrl_activites.MAJ()
-        return ret
+            ret = self.Adapt.SearchPossibles()
+            if ret == 'ok':
+                self.ctrl_groupesActivite.MAJ()
+                self.ctrl_activites.SetGroupes(self.ctrl_groupesActivite.GetIDgroupes())
+                self.ctrl_activites.MAJ()
+            del messageAttente
+        return
 
     def CocheTout(self, bool, ID):
         if ID == "grpAct":
@@ -365,6 +372,9 @@ class CTRL(wx.Panel):
         groupes = self.ctrl_groupesActivite.GetIDgroupes()
         self.ctrl_activites.SetGroupes(groupes)
         self.ctrl_activites.MAJ()
+
+    def OnChoixDate(self,evt=None):
+        self.SetPeriode(self.ctrl_periode.GetPeriode())
         
     # fonctions appelées par le parent
     def Validation(self):
@@ -465,14 +475,10 @@ class CTRL_BoutonSelectionActivites(wx.Panel):
         self.periode = periode
         self.lstActivites = []
         self.lstActivitesChecked = []
-        self.btn = CTRL_Bouton_image.CTRL(self,
-                                          texte="Activites",
+        self.btn = CTRL_Bouton_image.CTRL(self,texte="Activites à choisir",
                                           cheminImage=Chemins.GetStaticPath("Images/16x16/Loupe_et_menu.png"),
-                                          tailleImage=(25,16),
-                                          margesImage=(0,0,0,0),
-                                          positionImage=wx.RIGHT,
-                                          margesTexte=(0,0),
-                                          )
+                                          tailleImage=(25,16),margesImage=(0,0,0,0),
+                                          positionImage=wx.RIGHT,margesTexte=(0,0))
         self.SetMaxSize(maxSize)
         self.btn.SetMinSize(minSize)
         self.btn.Bind(wx.EVT_BUTTON,self.OnActivate)
@@ -484,19 +490,10 @@ class CTRL_BoutonSelectionActivites(wx.Panel):
         self.__init()
 
     def __init(self):
-        dlgAttente = PBI.PyBusyInfo("Recherche des activités...",
-                                    parent=None, title="Veuillez patienter...",
-                                    icon=wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Logo.png"), wx.BITMAP_TYPE_ANY))
-        wx.Yield()
         self.dlg = DLG_SelectionActivites(self)
-        self.SetPeriode(self.periode)
-        self.__GetIDactivites()
-        del dlgAttente
 
     def SetPeriode(self,periode):
-        self.periode = periode
-        self.dlg.ctrl.SetPeriode(periode)
-        self.__GetIDactivites()
+        self.periode = periode # c'est l'activation du bouton qui activera la recherche
 
     def GetPeriode(self):
         return self.dlg.ctrl.GetPeriode()
@@ -504,6 +501,7 @@ class CTRL_BoutonSelectionActivites(wx.Panel):
     def GetIDactivites(self):
         return self.lstActivitesChecked
 
+    # stockage local des activités du dlg modal
     def __GetIDactivites(self):
         self.lstActivites = self.dlg.ctrl.GetIDactivitesPossibles()
         self.lstActivitesChecked = self.dlg.ctrl.GetIDactivites()
@@ -514,10 +512,12 @@ class CTRL_BoutonSelectionActivites(wx.Panel):
         oldPeriode = [x for x in self.periode]
         self.dlg.ctrl.ctrl_groupesActivite.SaveData()
         self.dlg.ctrl.ctrl_activites.SaveData()
+        self.dlg.ctrl.SetPeriode(self.periode) # initialise la recherche selon la date initiale
+
         retour = self.dlg.ShowModal()
-        print("retour home", retour)
         if retour == wx.ID_OK:
             self.__GetIDactivites()
+            self.periode=self.dlg.ctrl.GetPeriode()
         else:
             self.SetPeriode(oldPeriode)
             self.dlg.ctrl.ctrl_groupesActivite.RestaureData()
@@ -540,7 +540,7 @@ class MyFrame(wx.Frame):
         wx.Frame.__init__(self, *args, **kwds)
         panel = wx.Panel(self, -1)
         self.panel = panel
-        periode = (datetime.date(2023,7,14),datetime.date(2023,8,15))
+        periode = (datetime.date(2023,7,14),datetime.date(2023,7,15))
         self.panel.ctrl = CTRL_BoutonSelectionActivites(panel,-1,periode)
         self.panel.ctrl2 = wx.TextCtrl(panel,value="ctrl2")
         self.panel.ctrl3 = wx.TextCtrl(panel,value="ctrl3")

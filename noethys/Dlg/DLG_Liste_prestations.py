@@ -86,7 +86,7 @@ class CTRL_Activite(sam.CTRL_BoutonSelectionActivites):
             return "( pieIDactivite in (%s))"%str(self.GetIDactivites())[1:-1]
         elif len(self.GetIDactivites()) > 0:
             return "( pieIDactivite = %d )" % self.GetIDactivites[0]
-        else: return " FALSE "
+        else: return "FALSE"
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
 class Dialog(wx.Dialog):
@@ -109,12 +109,12 @@ class Dialog(wx.Dialog):
         self.ctrl_activite = CTRL_Activite(self)
         self.ctrl_activite.SetMinSize((200, -1))
 
-        self.label_lignes = wx.StaticText(self, -1, _("Détail/Total :"))
-        self.ctrl_lignes = wx.Choice(self, -1, 
-                                     choices = ("Détail lignes", "Total prestations",
-                                                "Les deux", "Prest.HorsConsos",
-                                                "Toutes prestations"))
-        self.ctrl_lignes.Select(0) 
+        self.ctrl_avecDetail = wx.CheckBox(self, -1, "AvecDétail")
+        self.ctrl_niveauFamille = wx.CheckBox(self, -1, "NiveauFamille")
+        self.ctrl_horsConsos = wx.CheckBox(self, -1, "HorsConsos")
+        self.ctrl_avecDetail.SetValue(False)
+        self.ctrl_horsConsos.SetValue(True)
+        self.ctrl_niveauFamille.SetValue(False)
                 
         # Liste
         self.listviewAvecFooter = OL_Liste_prestations.ListviewAvecFooter(self, kwargs={}) 
@@ -136,6 +136,10 @@ class Dialog(wx.Dialog):
         self.__set_properties()
         self.__do_layout()
         
+        self.Bind(wx.EVT_CHECKBOX, self.OnOptions, self.ctrl_avecDetail)
+        self.Bind(wx.EVT_CHECKBOX, self.OnOptions, self.ctrl_niveauFamille)
+        self.Bind(wx.EVT_CHECKBOX, self.OnOptions, self.ctrl_horsConsos)
+
         self.Bind(wx.EVT_BUTTON, self.OuvrirFiche, self.bouton_ouvrir_fiche)
         self.Bind(wx.EVT_BUTTON, self.Apercu, self.bouton_apercu)
         self.Bind(wx.EVT_BUTTON, self.Imprimer, self.bouton_imprimer)
@@ -143,8 +147,6 @@ class Dialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnBoutonListeExportTexte, self.bouton_liste_export_texte)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonListeExportExcel, self.bouton_liste_export_excel)
 
-        self.Bind(wx.EVT_CHOICE, self.MAJlignes, self.ctrl_lignes)
-        
         # Init contrôles
         wx.CallAfter(self.MAJinit)
 
@@ -167,15 +169,15 @@ class Dialog(wx.Dialog):
         staticbox_options = wx.StaticBoxSizer(self.staticbox_options_staticbox, wx.VERTICAL)
         
         grid_sizer_options = wx.FlexGridSizer(rows=1, cols=16, vgap=0, hgap=5)
-        grid_sizer_options.Add(self.label_periode, 0, wx.TOP, 13)
         grid_sizer_options.Add(self.ctrl_periode, 0, 0, 0)
-        grid_sizer_options.Add( (25, 5), 1,wx.EXPAND, 0)
+        grid_sizer_options.Add( (5, 5), 1,wx.EXPAND, 0)
         grid_sizer_options.Add(self.label_activite, 0, wx.TOP, 13)
         grid_sizer_options.Add(self.ctrl_activite, 1, wx.EXPAND|wx.TOP, 10)
-        grid_sizer_options.Add( (25, 5), 1,wx.EXPAND,0)
-        grid_sizer_options.Add(self.label_lignes, 0, wx.TOP, 13)
-        grid_sizer_options.Add(self.ctrl_lignes, 0, wx.TOP, 10)
-        grid_sizer_options.Add( (25, 5), 1, wx.EXPAND,0)
+        grid_sizer_options.Add( (5, 5), 1,wx.EXPAND,0)
+        grid_sizer_options.Add(self.ctrl_avecDetail, 0, wx.TOP, 10)
+        grid_sizer_options.Add(self.ctrl_niveauFamille, 0, wx.TOP, 10)
+        grid_sizer_options.Add(self.ctrl_horsConsos, 0, wx.TOP, 10)
+        grid_sizer_options.Add( (5, 5), 1, wx.EXPAND,0)
         #grid_sizer_options.AddGrowableCol(4)
         staticbox_options.Add(grid_sizer_options, 0, wx.EXPAND,0)
         grid_sizer_base.Add(staticbox_options, 0, wx.LEFT|wx.RIGHT|wx.EXPAND, 0)
@@ -219,49 +221,36 @@ class Dialog(wx.Dialog):
         self.CenterOnScreen()
 
     def MAJinit(self):
-        self.MAJperiode()
-        self.OnActivites()
-        self.MAJlignes()
+        self.OnChoixDate()
+        self.OnActivites(wx.ID_OK,None)
+        self.OnOptions()
         self.MAJ()
 
-    def MAJperiode(self, event=None):
+    def OnChoixDate(self, event=None):
         # Filtre Période
         periode = self.ctrl_periode.GetPeriode()
-        if periode and periode[0] != None:
-            self.ctrl_listview.dictFiltres['periode'] = periode
-            self.ctrl_activite.SetPeriode(periode)
-        else :
-            self.ctrl_listview.dictFiltres['periode'] = None
-        if event != None:
-            if "whereActivites" in self.ctrl_listview.dictFiltres :
-                del self.ctrl_listview.dictFiltres["whereActivites"]
+        self.ctrl_listview.dictFiltres['periode'] = periode
+        self.ctrl_activite.SetPeriode(periode)
+        if event:
             self.MAJ()
-            
+ 
     def OnActivites(self, retour=None,periode=None):
         # Filtre Activité
-        if periode:
-            self.ctrl_periode.SetPeriode(periode)
-        self.ctrl_listview.dictFiltres["whereActivites"] = self.ctrl_activite.GetWhere()
         if retour == wx.ID_OK:
-            self.MAJ()
+            oldPeriode = self.ctrl_periode.GetPeriode()
+            if periode and oldPeriode != periode:
+                self.ctrl_periode.SetPeriode(periode)
+                self.ctrl_listview.dictFiltres['periode'] = periode
+            if self.ctrl_listview.dictFiltres["whereActivites"] != self.ctrl_activite.GetWhere():
+                self.ctrl_listview.dictFiltres["whereActivites"] = self.ctrl_activite.GetWhere()
+                self.MAJ()
 
-    def MAJlignes(self, event=None):
-        self.ctrl_listview.periode = self.ctrl_periode.GetPeriode()
-        # Filtre type de lignes
-        lignes = self.ctrl_lignes.GetSelection()
-        self.OnActivites()
-        if lignes == 0 :
-            self.ctrl_listview.dictFiltres["lignes"] = ["detail",]
-        if lignes == 1 :
-            self.ctrl_listview.dictFiltres["lignes"] = ["total",]
-        if lignes == 2 :
-            self.ctrl_listview.dictFiltres["lignes"] = ["detail","total"]
-        if lignes == 3 :
-            self.ctrl_listview.dictFiltres["lignes"] = ["noConsos",]
-        if lignes == 4:
-            self.ctrl_listview.dictFiltres["lignes"] = ["noConsos","total"]
-        if event != None:
-            self.MAJ()
+    def OnOptions(self,event=None):
+        options =  {'avecDetail': self.ctrl_avecDetail.GetValue(),
+                    'niveauFamille': self.ctrl_niveauFamille.GetValue(),
+                    'horsConsos': self.ctrl_horsConsos.GetValue()}
+        self.ctrl_listview.dictFiltres["options"] = options
+        self.MAJ()
 
     def MAJ(self, event=None):
         # MAJ de la liste
@@ -284,8 +273,6 @@ class Dialog(wx.Dialog):
     def OnBoutonListeExportExcel(self, event):
         self.ctrl_listview.ExportExcel(None)
 
-    def OnChoixDate(self):
-        self.MAJperiode()
 
     def OnBoutonAide(self, event): 
         from Utils import UTILS_Aide
