@@ -21,55 +21,6 @@ import CTRL_SelectionActivitesModal as sam
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
-class zzzCTRL_Activite(wx.Choice):
-    def __init__(self, parent):
-        wx.Choice.__init__(self, parent, -1) 
-        self.parent = parent
-        self.listeNoms = []
-        self.listeID = []
-        self.debutPeriode = None
-        self.finPeriode = None
-
-    def SetListeDonnees(self):
-        self.listeLabels = ["Toutes",]
-        self.listeID = ['toutes',]
-        if self.debutPeriode != None and self.finPeriode != None:
-            where = "(prestations.date >= '%s') AND (prestations.date <= '%s') "%(self.debutPeriode,self.finPeriode)
-            DB = GestionDB.DB()
-            req = """
-                SELECT activites.IDactivite, activites.nom, prestations.categorie
-                FROM prestations 
-                LEFT JOIN activites ON prestations.IDactivite = activites.IDactivite
-                WHERE (%s)
-                GROUP BY activites.IDactivite, activites.nom, prestations.categorie
-                ORDER BY activites.nom ASC
-            ;""" % where
-            DB.ExecuterReq(req,MsgBox="ExecuterReq")
-            listeDonnees = DB.ResultatReq()
-            DB.Close()
-            if len(listeDonnees) == 0 : return
-            for IDactivite, nom, categorie in listeDonnees :
-                if IDactivite != None and IDactivite > 0:
-                    self.listeLabels.append(nom)
-                    self.listeID.append(IDactivite)
-                elif 'conso' in categorie:
-                    self.listeLabels.append('_Niveau famille')
-                    self.listeID.append('conso')
-                else:
-                    self.listeLabels.append(categorie)
-                    self.listeID.append(categorie)
-        self.SetItems(self.listeLabels)
-        self.SetSelection(0)
-
-    def GetID(self):
-        index = self.GetSelection()
-        if index < 1 : return 0
-        return self.listeID[index]
-
-    def GetIndexID(self,ID):
-        return self.listeID.index(ID)
-
-
 class CTRL_Activite(sam.CTRL_BoutonSelectionActivites):
     def __init__(self, parent):
         sam.CTRL_BoutonSelectionActivites.__init__(self, parent, -1,parent.periode) 
@@ -250,6 +201,9 @@ class Dialog(wx.Dialog):
                     'niveauFamille': self.ctrl_niveauFamille.GetValue(),
                     'horsConsos': self.ctrl_horsConsos.GetValue()}
         self.ctrl_listview.dictFiltres["options"] = options
+        if self.ctrl_avecDetail.GetValue() and self.ctrl_activite.nbActivites == 0:
+            mess = "Choississez des activités\n\nLe détail ne s'applique qu'aux lignes d'activité"
+            wx.MessageBox(mess,"Remarque",wx.ICON_INFORMATION)
         self.MAJ()
 
     def MAJ(self, event=None):

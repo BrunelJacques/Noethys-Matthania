@@ -475,6 +475,7 @@ class CTRL_BoutonSelectionActivites(wx.Panel):
         self.periode = periode
         self.lstActivites = []
         self.lstActivitesChecked = []
+        self.nbActivites = 0
         self.btn = CTRL_Bouton_image.CTRL(self,texte="Activites à choisir",
                                           cheminImage=Chemins.GetStaticPath("Images/16x16/Loupe_et_menu.png"),
                                           tailleImage=(25,16),margesImage=(0,0,0,0),
@@ -507,6 +508,7 @@ class CTRL_BoutonSelectionActivites(wx.Panel):
         self.lstActivitesChecked = self.dlg.ctrl.GetIDactivites()
         label = "%d choix activités / %d" %(len(self.lstActivitesChecked),len(self.lstActivites))
         self.btn.SetTexte(label)
+        self.nbActivites = len(self.lstActivitesChecked)
 
     def OnActivate(self,evt):
         oldPeriode = [x for x in self.periode]

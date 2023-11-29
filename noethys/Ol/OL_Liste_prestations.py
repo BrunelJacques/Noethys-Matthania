@@ -127,11 +127,11 @@ class ListView(GroupListView):
         return "(prestations.IDactivite = 0)"
 
     def GetWhereHorsConsos(self):
-        return "(NOT 'conso' in prestations.categorie)"
+        return "(NOT prestations.categorie LIKE 'conso%%')"
 
     def GetWhere(self):
         filtreSQL = """
-           %s\nAND  ( """ % (self.GetSQLdates(self.dictFiltres['periode']))
+                    %s\nAND  ( """ % (self.GetSQLdates(self.dictFiltres['periode']))
 
         if not 'FALSE' in self.dictFiltres['whereActivites']:
             filtreSQL += "%s \n     OR "%self.dictFiltres['whereActivites']
@@ -149,12 +149,11 @@ class ListView(GroupListView):
 
     def GetListePrestations(self, ):
         DB = GestionDB.DB()
-        
-        # Filtres de l'utilisateur
-        filtreSQL = ''
-        filtre = self.GetWhere()
+        listeDetail = []
+        listeDonnees = []
 
-        if len(filtre) >1 : filtreSQL = 'WHERE '+ filtre
+        # Filtres de l'utilisateur
+        filtreSQL = 'WHERE '+ self.GetWhere()
         # Appel des prestations
         req = """
         SELECT prestations.IDprestation, prestations.IDcompte_payeur, prestations.date, categorie,
@@ -180,7 +179,6 @@ class ListView(GroupListView):
         listeDonnees = DB.ResultatReq()
         dictFamilles = {}
         dictVentilation = {}
-        listeDetail = []
         if len(listeDonnees) > 0:
             serieIDprestations = "(  "
             serieIDfamilles = "(  "
@@ -239,7 +237,7 @@ class ListView(GroupListView):
         listePrestations = []
         numLigne = 0
         IDprestationOld = 0
-        if self.dictFiltres['options'][0]:
+        if self.dictFiltres['options']['avecDetail']:
             # composition de la liste à partir du détail
             #   pieIDprestation,IDnumLigne,DateCreation,Nature, IDfamille,  nom,  prenom, pctLibelle, artLibelle, Montant, NoFacture, prixTranspAller, prixTranspRetour
             for IDprestation,IDnumLigne, date, categorie, IDfamille, nomIndividu, prenomIndividu,nomAbregeActivite,nomCategorieTarif,label,montant_detail,num_facture, prixTranspAller, prixTranspRetour in listeDetail :
@@ -273,6 +271,30 @@ class ListView(GroupListView):
                     dictTransp["label"] = libelle
                     dictTransp["montant_detail"] =  FloatToDecimal(prixTransp)
                     listePrestations.append(dictTransp)
+
+        #   IDprestation, IDcompte_payeur, date, categorie,label ,montant, IDactivite, nom,         abrege,             nom,                IDfacture, numero,  date_edition,    forfait, IDcategorie_tarif,IDfamille, IDindividu, nom,         prenom,         montant_detail, reglement_frais
+        for IDprestation, IDcompte_payeur, date, categorie, label, montant, IDactivite, nomActivite, nomAbregeActivite, nomCategorieTarif, IDfacture, num_facture, date_facture, forfait, IDcategorie_tarif, IDfamille, IDindividu, nomIndividu, prenomIndividu, montant_detail, reglement_frais in listeDonnees :
+            date = DateEngEnDateDD(date)
+            if IDprestation in dictVentilation :
+                montant_ventilation = FloatToDecimal(dictVentilation[IDprestation])
+            else :
+                montant_ventilation = FloatToDecimal(0.0)
+            if montant == None :
+                montant = FloatToDecimal(0.0)
+
+            dictTemp = {
+                "IDprestation" : (IDprestation * 100),  "IDcompte_payeur" : IDcompte_payeur, "date" : date, "categorie" : categorie,
+                "label" : label, "montant" : FloatToDecimal(montant), "IDactivite" : IDactivite, "nomActivite" : nomActivite, "nomAbregeActivite" : nomAbregeActivite, "IDtarif" : 0, "nomTarif" : "",
+                "nomCategorieTarif" : nomCategorieTarif, "IDfacture" : IDfacture, "num_facture" : num_facture, "date_facture" : date_facture, "forfait" : forfait,
+                "IDfamille" : IDfamille, "IDindividu" : IDindividu, "nomIndividu" : nomIndividu, "prenomIndividu" : prenomIndividu,
+                "montant_ventilation" : FloatToDecimal(montant_ventilation), "montant_detail" : FloatToDecimal(montant_detail),
+                "reglement_frais" : reglement_frais,
+                }
+            if dictTemp["nomIndividu"]== None :
+                dictTemp["nomIndividu"] = dictFamilles[dictTemp["IDfamille"]][0]
+                dictTemp["prenomIndividu"] = dictFamilles[dictTemp["IDfamille"]][1]
+            listePrestations.append(dictTemp)
+
         return listePrestations
         # fin GetListePrestations
 

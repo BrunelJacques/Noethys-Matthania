@@ -92,6 +92,8 @@ class ListView(FastObjectListView):
             DB.ExecuterReq(req,MsgBox="ExecuterReq")
             listeDus = DB.ResultatReq()
             for IDfamille, IDprestation, minDatePrest , mttPrestations, ventPrestations in listeDus:
+                if round(mttPrestations,0) <= round(ventPrestations,0):
+                    continue
                 if mttPrestations != 0 :
                     if not IDfamille in listeIDfamilles:
                         listeIDfamilles.append(IDfamille)
