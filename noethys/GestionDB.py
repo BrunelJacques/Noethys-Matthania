@@ -1105,7 +1105,7 @@ class DB():
         if dateFin != None and dateDeb != None:
             exActD,exActF = self.GetExercice(dateFin,labelDate = "de fin d'activité", alertes = alertes)
             if exActD != None:
-                exercice = True
+                exercice = (exActD,exActF)
             else:
                 exercice = False
             if today <= dateDeb :
@@ -1135,10 +1135,9 @@ class DB():
                     else:
                         # les deux exercices sont ouverts
                         if exTodayD == exActD: # on est dans le même exercice, ok
-                            dateFacture = today
+                            dateFacture = dateFin
                         else :
                             # choix nécessaire car le deux exerices sont différents
-                            retour=[None]
                             dateFacture = dateFin
                             if alertes :
                                 txt1 = "Exercice activité du %s au %s" %(str(exActD),str(exActF))
@@ -1340,7 +1339,6 @@ class GestionBase(wx.Frame):
             pos = nomFichier("[RESEAU]")
             nomFichier = nomFichier[:pos]+"[RESEAU]"+nomBase
             self.db = DB(suffixe=suffixe,nomFichier=nomFichier)
-        print(('echec',self.db.echec))
 
     def GetOccupations(self):
         # pointer base: 'information_schema' valeurs plus hautes
@@ -1509,6 +1507,6 @@ class Messages(wx.Frame):
 
 if __name__ == "__main__":
     app = wx.App()
-    #gdb = GestionBase()#nomFichier=u'3306;192.168.1.43;root;motdepasse[RESEAU]information_schema',suffixe=None
-    #print(gdb.GetOccupations())
+    gdb = GestionBase()#nomFichier=u'3306;192.168.1.43;root;motdepasse[RESEAU]information_schema',suffixe=None
+    print(gdb.db.GetDateFacture(0,738,datetime.date.today()))
 

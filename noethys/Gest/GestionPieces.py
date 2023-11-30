@@ -645,7 +645,7 @@ class Forfaits():
             date, exercice = DB.GetDateFacture(inscription, activite,
                                                datetime.date.today(), alertes=False,
                                                retourExercice=True)
-            if exercice == (None, None):
+            if (exercice == (None, None)) or exercice == False :
                 # l'exercice n'est pas encore ouvert pour cette ligne
                 GestionDB.Messages().Box(titre="Exercices comptables",
                                          message="Présence d'une pièce se rapportant à un exercice non ouvert\nSa facturation n'est pas possible")
