@@ -2666,7 +2666,7 @@ class ImageDecoration(Decoration):
                     mdc, xsrc=0, ysrc=0, useMask=True)
             mdc.SelectObject(wx.NullBitmap)
         else:
-            dc.DrawBitmap(self.bitmap, x, y, True)
+            dc.DrawBitmap(self.bitmap, int(x), int(y), True)
 
 
 #----------------------------------------------------------------------------

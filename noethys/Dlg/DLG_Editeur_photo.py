@@ -140,7 +140,7 @@ class ImgBox(wx.Window):
         
         # Dessin de la photo
         largeurImg, hauteurImg = self.bmp.GetSize()
-        dc.DrawBitmap(self.bmp, self.posxPhoto - (largeurImg / 2.0), self.posyPhoto - (hauteurImg / 2.0), 0)
+        dc.DrawBitmap(self.bmp, int(self.posxPhoto - (largeurImg / 2.0)), int(self.posyPhoto - (hauteurImg / 2.0), 0))
         
         # Définit la position et la taille du cadre de sélection
         coeffReduction = 2.0

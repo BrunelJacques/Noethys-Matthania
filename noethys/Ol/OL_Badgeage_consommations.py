@@ -9,13 +9,11 @@
 #------------------------------------------------------------------------
 
 
-import Chemins
 from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Utils import UTILS_Dates
 import datetime
-import time
 import GestionDB
 
 from Utils import UTILS_Interface

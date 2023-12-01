@@ -134,7 +134,7 @@ class Renderer_gauge(object):
         
         if etat == "alerte" :
             tailleImage = 16
-            dc.DrawBitmap(wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Attention.png"), wx.BITMAP_TYPE_ANY) , largeurGauge-tailleImage-2, (h-tailleImage)/2)
+            dc.DrawBitmap(wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Attention.png"), wx.BITMAP_TYPE_ANY) , largeurGauge-tailleImage-2, int((h-tailleImage)/2))
 
     def SetValeurs(self, nbreCampeurs=0, nbrePlacesDispo=0, nbreResas=0, nbreDevis=0, nbreAnims=0, nbreStaff=0):
         self.nbreCampeurs = nbreCampeurs

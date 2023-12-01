@@ -182,7 +182,7 @@ class ListView(FastObjectListView):
         bmp = img.ConvertToBitmap()
         dc = wx.MemoryDC()
         dc.SelectObject(bmp)
-        dc.DrawBitmap(bitmap, taille[0]/2.0-bitmap.GetSize()[0]/2.0, taille[1]/2.0-bitmap.GetSize()[1]/2.0)
+        dc.DrawBitmap(bitmap, int(taille[0]/2.0-bitmap.GetSize()[0]/2.0), int(taille[1]/2.0-bitmap.GetSize()[1]/2.0))
         dc.SelectObject(wx.NullBitmap)
         return bmp
 

@@ -22,7 +22,7 @@ from Utils import UTILS_Fichiers
 from Utils import UTILS_Config
 from Data import DATA_Civilites as Civilites
 from Utils import UTILS_Titulaires
-from Utils import UTILS_Questionnaires
+from Utils.UTILS_Questionnaires import ChampsEtReponses
 from Utils import UTILS_Dates
 from Dlg import DLG_Apercu_facture
 from Utils import UTILS_Impression_facture
@@ -202,7 +202,7 @@ class Facturation():
         self.dictGroupes = {}
         self.reportInclus = False
         # " Récupération des questionnaires"
-        self.Questionnaires = UTILS_Questionnaires.ChampsEtReponses(type="famille")
+        self.Questionnaires = ChampsEtReponses(type="famille")
         # "fin __init__"
 
     def RechercheAgrement(self, IDactivite, date):
@@ -1175,7 +1175,7 @@ class Facturation():
                 self.dictGroupes[IDgroupe] = {"nom": nom}
 
         # Récupération des questionnaires
-        self.Questionnaires = UTILS_Questionnaires.ChampsEtReponses(type="famille")
+        self.Questionnaires = ChampsEtReponses(type="famille")
 
     # Recherche des prestations recomposées par les lignes de toutes les pièces
     def GetPieces(self):

@@ -159,7 +159,7 @@ class Panel(wx.Panel):
                 dc.SetTextForeground("#6A9742")
 
             # Dessine l'image
-            dc.DrawBitmap(bmp, x, y)
+            dc.DrawBitmap(bmp, int(x), int(y))
 
             # Dessine le titre
             dc.SetFont(wx.Font(taille_police, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, "MS Shell Dlg 2"))

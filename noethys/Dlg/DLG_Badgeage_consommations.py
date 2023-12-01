@@ -10,13 +10,12 @@
 
 
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
 import datetime
 from Ctrl import CTRL_Bandeau
-from Ctrl import CTRL_Saisie_date
+from Ctrl.CTRL_Saisie_date import Date2
 from Ol import OL_Badgeage_consommations
 
 
@@ -35,9 +34,9 @@ class Dialog(wx.Dialog):
         # Paramètres
         self.box_parametres_staticbox = wx.StaticBox(self, -1, _("Paramètres"))
         self.label_date_debut = wx.StaticText(self, -1, _("Période :"))
-        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self)
+        self.ctrl_date_debut = Date2(self)
         self.label_date_fin = wx.StaticText(self, -1, _("Au"))
-        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self)
+        self.ctrl_date_fin = Date2(self)
         self.ctrl_date_debut.SetDate(datetime.date.today())
         self.ctrl_date_fin.SetDate(datetime.date.today())
         self.bouton_actualiser = wx.Button(self, -1, _("Actualiser"))

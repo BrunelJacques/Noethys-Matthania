@@ -95,13 +95,16 @@ LISTEtypeLigne = [
 # Fonctions paramétrables
 
 def AnneeAcad(DB,IDactivite=None, date= None, alertes=True):
-    # Retourne les dates début et fin annee académique sur date activité
+    # Retourne les dates début et fin annee académique sur date debut d'activité
     if IDactivite:
         dictDonnees = {"IDactivite" : IDactivite,}
         annee = RechercheAnneeAcad(DB,dictDonnees)
     elif isinstance(date, datetime.date):
         annee = date.year
-    else: annee = datetime.date.today().year
+        if date.month >=9: annee +=1
+    else:
+        annee = datetime.date.today().year
+        if datetime.date.today().month >=9: annee +=1
     deb = datetime.date(annee-1,9,1)
     fin = datetime.date(annee,8,31)
     return deb, fin
@@ -1332,6 +1335,7 @@ if __name__ == "__main__":
     #app = wx.App()
     #main()
     DB = GestionDB.DB()
-    #deb,fin =  DebutFin_Activite(DB,466)
+    print(DebutFin_Activite(DB,740))
     NbreJoursActivite(DB,393,985, IDindividu= 1386)
+    print(AnneeAcad(DB,None,None))
 

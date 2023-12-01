@@ -372,7 +372,7 @@ class CTRL_Interface(wx.Panel):
         largeur, hauteur = self.bmp_fond.GetSize()
         tailleDC = self.GetSize()
         x, y = (tailleDC[0]-largeur)/2.0, (tailleDC[1]-hauteur)/2.0
-        dc.DrawBitmap(self.bmp_fond, x, y)
+        dc.DrawBitmap(self.bmp_fond, int(x), int(y))
         
         # Update de la zone modifiée
         rgn = self.GetUpdateRegion()

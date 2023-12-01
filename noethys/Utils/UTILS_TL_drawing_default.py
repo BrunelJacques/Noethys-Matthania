@@ -740,7 +740,7 @@ class DefaultDrawingAlgorithm(DrawingAlgorithm):
                                  (x_balloon, event_rect.Y),
                                 True)
         if icon != None:
-            self.dc.DrawBitmap(icon, x, y, False)
+            self.dc.DrawBitmap(icon, int(x), int(y), False)
             x += iw + BALLOON_RADIUS
         if lines != None:
             ty = y

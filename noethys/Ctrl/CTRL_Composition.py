@@ -425,7 +425,7 @@ class CadreIndividu():
             self.zoomContenuRatio = 1
             
         # Paramètres du cadre
-        x, y = self.xCentre-(largeur/2.0), self.yCentre-(hauteur/2.0)
+        x, y = int(self.xCentre-(largeur/2)), int(self.yCentre-(hauteur/2))
         self.x, self.y = x, y
         if self.genre == "M" :
             couleurFondHautCadre = (217, 212, 251)
@@ -443,7 +443,7 @@ class CadreIndividu():
             ecart = 5
             self.dc.SetBrush(wx.Brush((0, 0, 0), style=wx.TRANSPARENT))
             self.dc.SetPen(wx.Pen(couleurSelectionCadre, 1, wx.DOT))
-            self.dc.DrawRoundedRectangle(wx.Rect(x-ecart, y-ecart, largeur+(ecart*2), hauteur+(ecart*2)), radius=5*self.zoom)
+            self.dc.DrawRoundedRectangle(wx.Rect(int(x-ecart), int(y-ecart), int(largeur+(ecart*2)), int(hauteur+(ecart*2))), radius=int(5*self.zoom))
 
         # Dessin du cadre
         self.dc.SetBrush(wx.Brush(couleurFondBasCadre))
@@ -509,12 +509,12 @@ class CadreIndividu():
         # Dessin du symbole TITULAIRE
         if self.titulaire == 1:
             bmpTitulaire = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Titulaire.png"),wx.BITMAP_TYPE_ANY)
-            xBmpTitulaire, yBmpTitulaire = x + largeur - 5 - 32, y + 5
+            xBmpTitulaire, yBmpTitulaire = x + int(largeur) - 5 - 32, y + 5
             self.dc.DrawBitmap(bmpTitulaire, x + paddingCadre,
                                y + paddingCadre + 2)
 
         # Mémorisation dans le dictionnaire d'objets
-        self.dc.SetIdBounds(self.IDobjet, wx.Rect(x, y, largeur, hauteur))
+        self.dc.SetIdBounds(self.IDobjet, wx.Rect(int(x), int(y), int(largeur), int(hauteur)))
         self.parent.dictIDs[self.IDobjet] = ("individu", self.IDindividu)
 
     def SurvolCalendrier(self, x, y):

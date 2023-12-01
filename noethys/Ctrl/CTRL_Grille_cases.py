@@ -8,7 +8,6 @@
 # Licence:         Licence GNU GPL
 #-----------------------------------------------------------
 
-
 from Utils.UTILS_Traduction import _
 import Chemins
 import wx
@@ -16,7 +15,6 @@ from Ctrl import CTRL_Bouton_image
 import wx.grid as gridlib
 import datetime
 import copy
-import time
 import textwrap
 import operator
 
@@ -26,11 +24,9 @@ from Ctrl import CTRL_Grille_renderers
 from Ctrl import CTRL_Grille
 from Utils import UTILS_Dates
 from Utils import UTILS_Identification
-from Utils import UTILS_Divers
 from Utils import UTILS_Utilisateurs
 
 from Ctrl.CTRL_Saisie_transport import DICT_CATEGORIES as DICT_CATEGORIES_TRANSPORTS
-
 
 class CTRL_Couleur(wx.Choice):
     def __init__(self, parent):
@@ -70,7 +66,6 @@ class CTRL_Couleur(wx.Choice):
         index = self.GetSelection()
         if index == -1 : return None
         return self.dictDonnees[index]["code"]
-
 
 class DLG_Saisie_memo(wx.Dialog):
     def __init__(self, parent, texte="", couleur=None):
@@ -146,7 +141,6 @@ class DLG_Saisie_memo(wx.Dialog):
         self.texte = self.ctrl_texte.GetValue()
         self.couleur = self.ctrl_couleur.GetCode()
         self.EndModal(wx.ID_OK)
-
 
 class CaseSeparationDate():
     def __init__(self, ligne, grid, numLigne=None, numColonne=None, couleurFond=(255, 255, 255)):
@@ -299,8 +293,6 @@ class CaseMemo():
         """ Modification manuelle du mémo """
         self.grid.SetCellValue(self.numLigne, self.numColonne, texte)
         self.MemoriseValeurs()
-        
-        
 
 class CaseTransports():
     def __init__(self, ligne, grid, numLigne=None, numColonne=None, IDindividu=None, date=None):
@@ -449,7 +441,6 @@ class CaseTransports():
 
     def GetStatutTexte(self, x, y):
         return _("Double-cliquez sur la case 'Transports' pour ajouter, modifier ou supprimer un transport")
-
 
 class Case():
     def __init__(self, ligne, grid, numLigne=None, numColonne=None, IDindividu=None, IDfamille=None, date=None, IDunite=None, IDactivite=None, verrouillage=0):
@@ -1082,7 +1073,6 @@ class Case():
                                             
         self.MAJremplissage()
 
-
 class CaseStandard(Case):
     def __init__(self, ligne, grid, numLigne=None, numColonne=None, IDindividu=None, IDfamille=None, date=None, IDunite=None, IDactivite=None, verrouillage=0):
         Case.__init__(self, ligne, grid, numLigne, numColonne, IDindividu, IDfamille, date, IDunite, IDactivite, verrouillage)
@@ -1236,20 +1226,6 @@ class CaseStandard(Case):
             DB = GestionDB.DB()
             self.IDutilisateur = DB.IDutilisateurActuel()
             self.forfait = 2
-            if self.IDactivite > 0 and self.IDindividu > 0 :
-                req = """ SELECT IDprestation
-                    FROM prestations
-                    WHERE ( IDactivite = '%d' ) AND ( IDindividu = '%d' ) ;""" %(self.IDactivite, self.IDindividu)
-                retour = DB.ExecuterReq(req,MsgBox="ExecuterReq")
-                if retour != "ok" :
-                    GestionDB.MessageBox(None,retour)
-                retour = DB.ResultatReq()
-                if len(retour)>0:
-                    self.IDprestation = retour[0][0]
-                else:
-                    wx.MessageBox("Vous souhaitez gérer des consommations, mais il n'y a pas de prestation ouverte\n\n"+
-                                    "seule une réservation ou une commande permettent de gérer des consommations!")
-                    self.grid.Parent.Parent.EndModal(wx.ID_CANCEL)
             DB.Close
 
         if (self.IDindividu in self.grid.dictConsoIndividus) == False :

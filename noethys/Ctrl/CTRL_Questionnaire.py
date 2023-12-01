@@ -16,11 +16,9 @@ import wx
 from Ctrl import CTRL_Bouton_image
 import wx.lib.agw.hypertreelist as HTL
 import wx.lib.colourselect
-##import wx.lib.agw.knobctrl
-import datetime
 import GestionDB
 
-from Ctrl import CTRL_Saisie_date
+from Ctrl.CTRL_Saisie_date import Date2
 from Ctrl import CTRL_Saisie_euros
 from Dlg import DLG_Saisie_categorie_question
 from Ctrl import CTRL_Vignettes_documents
@@ -503,9 +501,9 @@ class CTRL_case_coche(wx.CheckBox):
 
 # -------------------------------------------------------------------------------------------------------------------
 
-class CTRL_date(CTRL_Saisie_date.Date2):
+class CTRL_saisieDate(Date2):
     def __init__(self, parent, item=None, track=None):
-        CTRL_Saisie_date.Date2.__init__(self, parent) 
+        Date2.__init__(self, parent)
         self.parent = parent
         self.item = item
         self.track = track
@@ -1116,7 +1114,7 @@ class CTRL(HTL.HyperTreeList):
                         if track.controle == "liste_deroulante" : ctrl = CTRL_liste_deroulante(self.GetMainWindow(), item=brancheQuestion, track=track) # size=(largeurControle, -1) )
                         if track.controle == "liste_coches" : ctrl = CTRL_liste_coches(self.GetMainWindow(), item=brancheQuestion, track=track) # size=(largeurControle, -1) )
                         if track.controle == "case_coche" : ctrl = CTRL_case_coche(self.GetMainWindow(), item=brancheQuestion, track=track) # size=(-1, -1) )
-                        if track.controle == "date" : ctrl = CTRL_date(self.GetMainWindow(), item=brancheQuestion, track=track) # size=(-1, -1) )
+                        if track.controle == "date" : ctrl = CTRL_saisieDate(self.GetMainWindow(), item=brancheQuestion, track=track) # size=(-1, -1) )
                         if track.controle == "slider" : ctrl = CTRL_slider(self.GetMainWindow(), item=brancheQuestion, track=track) # size=(largeurControle, -1) )
                         if track.controle == "couleur" : ctrl = CTRL_couleur(self.GetMainWindow(), item=brancheQuestion, track=track) # size=(largeurControle, 20) )
 ##                        if track.controle == "potentiometre" : ctrl = CTRL_potentiometre(self.GetMainWindow(), item=brancheQuestion, track=track) # size=(largeurControle, 100) )

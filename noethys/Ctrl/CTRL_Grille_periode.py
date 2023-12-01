@@ -183,7 +183,8 @@ class Annee(wx.Panel):
         grid_sizer_annee.AddGrowableCol(1)
         # Binds
         self.ctrl_annee.Bind(wx.EVT_SPINCTRL, self.OnSelectionAnnee)
-        
+
+
     def OnSelectionAnnee(self, event):
         self.GetGrandParent().OnSelection()
     

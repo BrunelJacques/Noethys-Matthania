@@ -153,7 +153,7 @@ class CTRL_Video(wx.Panel):
             except :
                 pass
             dc.Clear()
-            dc.DrawBitmap(self.bmp, x, y)
+            dc.DrawBitmap(self.bmp, int(x), int(y))
             
             # Dessin des rectangles des visages
             for (x, y, w, h) in listeVisages:

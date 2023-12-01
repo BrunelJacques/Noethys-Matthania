@@ -678,12 +678,19 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
         self.afficherListeEtiquettes = False
         
         self.DB = GestionDB.DB()
-        self.dictActivites = self.Importation_activites()
-        self.dictIndividus = self.Importation_individus() 
-        self.dictGroupes = self.GetDictGroupes()
+        self.dictIndividus = self.Importation_individus()
+        dicActivites = {}
+        # recherche de toutes les activités de la famille
+        for individu, donnees in self.dictIndividus.items():
+            for inscription in donnees['inscriptions']:
+                dicActivites[inscription['IDactivite']]=True
+        lstActivites = [x for x in dicActivites.keys()]
+        self.dictActivites = self.Importation_activites(lstActivites)
+        # recherche des groupes des activités
+        self.dictGroupes = self.GetDictGroupes(lstActivites)
         self.dictComptesPayeurs = self.GetComptesPayeurs()
-        self.dictQuotientsFamiliaux = self.GetQuotientsFamiliaux()
-        self.dictAides = self.GetAides() 
+        self.dictQuotientsFamiliaux = {} #self.GetQuotientsFamiliaux()
+        self.dictAides = {} #self.GetAides()
         self.dictEtiquettes = self.GetDictEtiquettes()
         self.DB.Close() 
         
@@ -721,12 +728,7 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
         self.listeSelectionIndividus = listeSelectionIndividus
         self.listeIndividusFamille = listeIndividusFamille
         self.listePeriodes = listePeriodes
-        """ JB self.DB = GestionDB.DB()
-        self.Importation_deductions(listeComptesPayeurs=[self.dictComptesPayeurs[self.IDfamille],])
-        self.Importation_prestations(listeComptesPayeurs=[self.dictComptesPayeurs[self.IDfamille],]) 
-        self.Importation_forfaits(listeComptesPayeurs=[self.dictComptesPayeurs[self.IDfamille],]) 
-        self.Importation_transports()
-        self.DB.Close()"""
+
         self.MAJ()
         if modeSilencieux == False :
             del attente
@@ -764,10 +766,7 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
         self.listeVacances = self.GetListeVacances() 
         self.listeFeries = self.GetListeFeries() 
         self.dictRemplissage, self.dictUnitesRemplissage, self.dictConsoIndividus = self.GetDictRemplissage(self.listeActivites, self.listePeriodes, self.listeIndividusFamille)
-        if self.mode == "individu" :
-            listeIndividus = self.listeSelectionIndividus
-        else:
-            listeIndividus = self.listeSelectionIndividus #self.dictConsoIndividus.keys()
+        listeIndividus = self.listeSelectionIndividus
         self.dictInfosInscriptions = self.GetInfosInscriptions(listeIndividus)
         self.dictInfosIndividus = self.GetInfosIndividus(listeIndividus)
         self.dictMemos = self.GetDictMemoJournee(self.listeActivites, self.listePeriodes, self.listeIndividusFamille)
@@ -1028,9 +1027,7 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
 
     def Importation_individus(self):
         dictIndividus = {}
-
         if self.mode == "individu" :
-            
             # -------------------------- MODE INDIVIDU --------------------------
         
             # Recherche les individus de la famille
@@ -1075,7 +1072,6 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
         else:
             
             # -------------------------- MODE DATE --------------------------
-            
             # Recherche les individus 
             req = """SELECT individus.IDindividu, IDcivilite, nom, prenom, date_naiss, IDcategorie, titulaire
             FROM individus
@@ -1383,11 +1379,12 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
             dictInfosInscriptions[IDindividu][IDactivite] = dictInfos 
         return dictInfosInscriptions
 
-    def GetDictGroupes(self):
+    def GetDictGroupes(self,lstActivites):
         dictGroupes = {}
         req = """SELECT IDgroupe, IDactivite, nom, ordre
         FROM groupes
-        ORDER BY ordre;"""
+        WHERE IDactivite in (%s)
+        ORDER BY IDactivite;"""% str(lstActivites)[1:-1]
         self.DB.ExecuterReq(req,MsgBox="CTRL_Grille")
         listeDonnees = self.DB.ResultatReq()
         dictGroupes[0] = { "IDactivite" : 0, "nom" : _("Sans groupe"), "ordre" : 0 }
@@ -1482,153 +1479,22 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
             texte += "%s %s : %s (%s, %s)\n" % (nomIndividu, prenomIndividu, action, nomUnite, dateStr)
         return texte
 
-
-    def Importation_activites(self):
-        
+    def Importation_activites(self,lstActivites):
         # Recherche les activites disponibles
         dictActivites = {}
-        req = """SELECT activites.IDactivite, activites.nom, abrege, date_debut, date_fin
-        FROM activites
-        ORDER BY activites.nom;"""
-        self.DB.ExecuterReq(req,MsgBox="CTRL_Grille")
-        listeActivites = self.DB.ResultatReq()      
-        for IDactivite, nom, abrege, date_debut, date_fin in listeActivites :
-            if date_debut != None : date_debut = DateEngEnDateDD(date_debut)
-            if date_fin != None : date_fin = DateEngEnDateDD(date_fin)
-            dictTemp = { "nom" : nom, "abrege" : abrege, "date_debut" : date_debut, "date_fin" : date_fin, "tarifs" : {} }
-            dictActivites[IDactivite] = dictTemp
-        
-        # Recherche les combinaisons d'unités des tarifs
-        req = """SELECT combi_tarifs_unites.IDcombi_tarif_unite, combi_tarifs_unites.IDcombi_tarif, 
-        combi_tarifs_unites.IDtarif, combi_tarifs_unites.IDunite, date, type, combi_tarifs.quantite_max
-        FROM combi_tarifs_unites
-        LEFT JOIN combi_tarifs ON combi_tarifs.IDcombi_tarif = combi_tarifs_unites.IDcombi_tarif
-        WHERE type='JOURN' OR type='CREDIT';"""
-        self.DB.ExecuterReq(req,MsgBox="CTRL_Grille")
-        listeUnites = self.DB.ResultatReq()
-        dictCombiUnites = {}
-        dictQuantiteMax = {} 
-        for IDcombi_tarif_unite, IDcombi_tarif, IDtarif, IDunite, date, type, quantite_max in listeUnites :
-            if (IDtarif in dictCombiUnites) == False :
-                dictCombiUnites[IDtarif] = {IDcombi_tarif : [IDunite,] }
-            else:
-                if (IDcombi_tarif in dictCombiUnites[IDtarif]) == False :
-                    dictCombiUnites[IDtarif][IDcombi_tarif] = [IDunite,]
-                else:
-                    dictCombiUnites[IDtarif][IDcombi_tarif].append(IDunite)
-            # Mémorisation des quantités max pour les forfaits crédits
-            if quantite_max != None :
-                if (IDcombi_tarif in dictQuantiteMax) == False :
-                    dictQuantiteMax[IDcombi_tarif] = {"quantite_max" : quantite_max, "listeUnites" : [] }
-                dictQuantiteMax[IDcombi_tarif]["listeUnites"].append(IDunite)
-            
-        # Recherche des lignes de calcul
-        champsTable = ", ".join(CHAMPS_TABLE_LIGNES)
-        req = """SELECT %s
-        FROM tarifs_lignes
-        ORDER BY num_ligne;""" % champsTable
-        self.DB.ExecuterReq(req,MsgBox="CTRL_Grille")
-        listeLignes = self.DB.ResultatReq()
-        dictLignesCalcul = {}
-        for valeurs in listeLignes :
-            dictTemp = {}
-            indexValeur = 0
-            for valeur in valeurs :
-                if valeur == "None" : valeur = None
-                dictTemp[CHAMPS_TABLE_LIGNES[indexValeur]] = valeur
-                indexValeur += 1
-            if (dictTemp["IDtarif"] in dictLignesCalcul) == False :
-                dictLignesCalcul[dictTemp["IDtarif"]] = [dictTemp,]
-            else:
-                dictLignesCalcul[dictTemp["IDtarif"]].append(dictTemp)
+        if len(lstActivites) >0:
+            req = """SELECT activites.IDactivite, activites.nom, abrege, date_debut, date_fin
+            FROM activites
+            WHERE IDactivite in (%s)
+            ORDER BY activites.nom;"""%str(lstActivites)[1:-1]
+            self.DB.ExecuterReq(req,MsgBox="CTRL_Grille")
+            listeActivites = self.DB.ResultatReq()
+            for IDactivite, nom, abrege, date_debut, date_fin in listeActivites :
+                if date_debut != None : date_debut = DateEngEnDateDD(date_debut)
+                if date_fin != None : date_fin = DateEngEnDateDD(date_fin)
+                dictTemp = { "nom" : nom, "abrege" : abrege, "date_debut" : date_debut, "date_fin" : date_fin, "tarifs" : {} }
+                dictActivites[IDactivite] = dictTemp
 
-        # Recherche les filtres de questionnaires
-        req = """SELECT IDfiltre, questionnaire_filtres.IDquestion, choix, criteres, IDtarif, 
-        questionnaire_categories.type, controle
-        FROM questionnaire_filtres
-        LEFT JOIN questionnaire_questions ON questionnaire_questions.IDquestion = questionnaire_filtres.IDquestion
-        LEFT JOIN questionnaire_categories ON questionnaire_categories.IDcategorie = questionnaire_questions.IDcategorie
-        WHERE categorie='TARIF';"""
-        self.DB.ExecuterReq(req,MsgBox="CTRL_Grille")
-        listeFiltres = self.DB.ResultatReq()
-        dictFiltres = {}
-        for IDfiltre, IDquestion, choix, criteres, IDtarif, type, controle in listeFiltres :
-            if (IDtarif in dictFiltres) == False :
-                dictFiltres[IDtarif] = []
-            dictFiltres[IDtarif].append({"IDfiltre":IDfiltre, "IDquestion":IDquestion, "choix":choix, "criteres":criteres, "type":type, "controle":controle})
-        
-        # Recherche des tarifs pour chaque activité
-        req = """SELECT 
-        IDtarif, tarifs.IDactivite, tarifs.IDnom_tarif, nom, date_debut, date_fin, 
-        condition_nbre_combi, condition_periode, condition_nbre_jours, condition_conso_facturees,
-        condition_dates_continues, methode, categories_tarifs, groupes, etiquettes, type, forfait_duree, forfait_beneficiaire, cotisations, caisses, jours_scolaires, jours_vacances,
-        code_compta, tva, date_facturation, etats
-        FROM tarifs
-        LEFT JOIN noms_tarifs ON noms_tarifs.IDnom_tarif = tarifs.IDnom_tarif
-        ORDER BY date_debut;"""
-        self.DB.ExecuterReq(req,MsgBox="CTRL_Grille")
-        listeTarifs = self.DB.ResultatReq()      
-        for IDtarif, IDactivite, IDnom_tarif, nom, date_debut, date_fin, condition_nbre_combi, condition_periode, condition_nbre_jours, condition_conso_facturees, condition_dates_continues, methode, categories_tarifs, groupes, etiquettes, type, forfait_duree, forfait_beneficiaire, cotisations, caisses, jours_scolaires, jours_vacances, code_compta, tva, date_facturation, etats in listeTarifs :
-            if date_debut != None : date_debut = DateEngEnDateDD(date_debut)
-            if date_fin != None : date_fin = DateEngEnDateDD(date_fin)
-            listeCategoriesTarifs = ConvertStrToListe(categories_tarifs)
-            listeGroupes = ConvertStrToListe(groupes)
-            listeEtiquettes = ConvertStrToListe(etiquettes)
-            listeCotisations = ConvertStrToListe(cotisations)
-            listeCaisses = ConvertStrToListe(caisses)
-            jours_scolaires = ConvertStrToListe(jours_scolaires)
-            jours_vacances = ConvertStrToListe(jours_vacances)
-            listeEtats = UTILS_Texte.ConvertStrToListe(etats, typeDonnee="texte")
-            
-            dictTemp = {
-                "IDtarif" : IDtarif, "IDactivite" : IDactivite, 
-                "IDnom_tarif" : IDnom_tarif, "nom_tarif" : nom, "date_debut" : date_debut, "date_fin" : date_fin, 
-                "condition_nbre_combi" : condition_nbre_combi, "condition_periode" : condition_periode, 
-                "condition_nbre_jours" : condition_nbre_jours, "condition_conso_facturees" : condition_conso_facturees,
-                "condition_dates_continues" : condition_dates_continues, "methode" : methode, 
-                "categories_tarifs" : listeCategoriesTarifs, "groupes" : listeGroupes, "etiquettes" : listeEtiquettes,
-                "combinaisons_unites" : [], "nbre_max_unites_combi" : 0,
-                "lignes_calcul" : [], "type":type, "forfait_duree":forfait_duree, "forfait_beneficiaire":forfait_beneficiaire, 
-                "cotisations" : listeCotisations, "filtres" : [], "caisses" : listeCaisses, 
-                "jours_scolaires" : jours_scolaires, "jours_vacances" : jours_vacances,
-                "code_compta" : code_compta, "tva" : tva, "date_facturation" : date_facturation,
-                "quantitesMax" : [], "etats" : listeEtats,
-                }
-                
-            # Recherche si ce tarif a des combinaisons d'unités
-            if IDtarif in dictCombiUnites :
-                listeCombinaisons = []
-                nbre_max_unites_combi = 0
-                for IDcombi, listeCombis in dictCombiUnites[IDtarif].items() :
-                    listeCombinaisons.append(tuple(listeCombis))
-                    if len(listeCombis) > nbre_max_unites_combi :
-                        nbre_max_unites_combi = len(listeCombis)
-                    # Mémorisation des quantités max
-                    if IDcombi in dictQuantiteMax :
-                        dictTemp["quantitesMax"].append(dictQuantiteMax[IDcombi])
-                dictTemp["combinaisons_unites"] = listeCombinaisons
-            
-            # Recherche si ce tarif a des lignes de calcul
-            if IDtarif in dictLignesCalcul:
-                dictTemp["lignes_calcul"] = dictLignesCalcul[IDtarif]
-            
-            # Recherche si ce tarif a des filtres de questionnaires :
-            if IDtarif in dictFiltres:
-                dictTemp["filtres"] = dictFiltres[IDtarif]
-            
-            # Mémorisation de ce tarif
-            if (IDactivite in dictActivites) == True :
-                if listeCategoriesTarifs == None :
-                    listeCategoriesTarifs = [None,]
-                for IDcategorie_tarif in listeCategoriesTarifs :
-                    if (IDcategorie_tarif in dictActivites[IDactivite]["tarifs"]) == False:
-                        dictActivites[IDactivite]["tarifs"][IDcategorie_tarif] = []
-                    dictActivites[IDactivite]["tarifs"][IDcategorie_tarif].append(dictTemp)
-            
-            # Vérifie s'il y a des forfaits au crédit dedans :
-            if type == "CREDIT" :
-                self.tarifsForfaitsCreditsPresents = True
-                
         return dictActivites
     
     def Importation_prestations(self, listeComptesPayeurs=[]):
@@ -1914,77 +1780,6 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
                     self.dictDeductions[IDprestation] = []
                 self.dictDeductions[IDprestation].append(dictTemp)
 
-
-    def GetAides(self):
-        """ Récupère les aides journalières de la famille """
-        dictAides = {}
-        
-        # Importation des aides
-        if self.mode == "individu" :
-            req = """SELECT IDaide, IDfamille, IDactivite, aides.nom, date_debut, date_fin, caisses.IDcaisse, caisses.nom, montant_max, nbre_dates_max
-            FROM aides
-            LEFT JOIN caisses ON caisses.IDcaisse = aides.IDcaisse
-            WHERE IDfamille=%d
-            ORDER BY date_debut;""" % self.IDfamille
-        else:
-            req = """SELECT IDaide, IDfamille, IDactivite, aides.nom, date_debut, date_fin, caisses.IDcaisse, caisses.nom, montant_max, nbre_dates_max
-            FROM aides
-            LEFT JOIN caisses ON caisses.IDcaisse = aides.IDcaisse
-            ORDER BY date_debut;"""
-        self.DB.ExecuterReq(req,MsgBox="CTRL_Grille")
-        listeAides = self.DB.ResultatReq()
-        if len(listeAides) == 0 : 
-            return dictAides
-        listeIDaides = []
-        for IDaide, IDfamille, IDactivite, nomAide, date_debut, date_fin, IDcaisse, nomCaisse, montant_max, nbre_dates_max in listeAides :
-            date_debut = DateEngEnDateDD(date_debut)
-            date_fin = DateEngEnDateDD(date_fin)
-            dictTemp = {
-                "IDaide" : IDaide, "IDfamille" : IDfamille, "IDactivite" : IDactivite, "nomAide" : nomAide, "date_debut" : date_debut, "date_fin" : date_fin, 
-                "IDcaisse" : IDcaisse, "nomCaisse" : nomCaisse, "montant_max" : montant_max, "nbre_dates_max" : nbre_dates_max,
-                "beneficiaires" : [], "montants" : {} }
-            dictAides[IDaide] = dictTemp
-            listeIDaides.append(IDaide)
-        
-        if len(listeIDaides) == 0 : conditionAides = "()"
-        elif len(listeIDaides) == 1 : conditionAides = "(%d)" % listeIDaides[0]
-        else : conditionAides = str(tuple(listeIDaides))
-        
-        # Importation des bénéficiaires
-        req = """SELECT IDaide_beneficiaire, IDaide, IDindividu
-        FROM aides_beneficiaires
-        WHERE IDaide IN %s;""" % conditionAides
-        self.DB.ExecuterReq(req,MsgBox="CTRL_Grille")
-        listeBeneficiaires = self.DB.ResultatReq()
-        for IDaide_beneficiaire, IDaide, IDindividu in listeBeneficiaires :
-            if IDaide in dictAides :
-                dictAides[IDaide]["beneficiaires"].append(IDindividu)
-        
-        # Importation des montants, combinaisons et unités de combi
-        req = """SELECT 
-        aides_montants.IDaide, aides_combi_unites.IDaide_combi_unite, aides_combi_unites.IDaide_combi, aides_combi_unites.IDunite,
-        aides_combinaisons.IDaide_montant, aides_montants.montant
-        FROM aides_combi_unites
-        LEFT JOIN aides_combinaisons ON aides_combinaisons.IDaide_combi = aides_combi_unites.IDaide_combi
-        LEFT JOIN aides_montants ON aides_montants.IDaide_montant = aides_combinaisons.IDaide_montant
-        WHERE aides_montants.IDaide IN %s;""" % conditionAides
-        self.DB.ExecuterReq(req,MsgBox="CTRL_Grille")
-        listeUnites = self.DB.ResultatReq()
-        
-        for IDaide, IDaide_combi_unite, IDaide_combi, IDunite, IDaide_montant, montant in listeUnites :
-            if IDaide in dictAides :
-                # Mémorisation du montant
-                if (IDaide_montant in dictAides[IDaide]["montants"]) == False :
-                    dictAides[IDaide]["montants"][IDaide_montant] = {"montant":montant, "combinaisons":{}}
-                # Mémorisation de la combinaison
-                if (IDaide_combi in dictAides[IDaide]["montants"][IDaide_montant]["combinaisons"]) == False :
-                    dictAides[IDaide]["montants"][IDaide_montant]["combinaisons"][IDaide_combi] = []
-                # Mémorisation des unités de combinaison
-                dictAides[IDaide]["montants"][IDaide_montant]["combinaisons"][IDaide_combi].append(IDunite)
-        
-        return dictAides
-
-
     def GetComptesPayeurs(self):
         dictComptesPayeurs = {}
         # Récupère le compte_payeur des ou de la famille
@@ -2000,30 +1795,6 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
         for IDfamille, IDcompte_payeur in listeDonnees :
             dictComptesPayeurs[IDfamille] = IDcompte_payeur
         return dictComptesPayeurs
-    
-    def GetQuotientsFamiliaux(self):
-        dictQuotientsFamiliaux = {}
-        # Récupère le QF de la famille
-        if self.mode == "individu" :
-            req = """SELECT IDquotient, IDfamille, date_debut, date_fin, quotient
-            FROM quotients
-            WHERE IDfamille=%d
-            ORDER BY date_debut
-            ;""" % self.IDfamille
-        else:
-            req = """SELECT IDquotient, IDfamille, date_debut, date_fin, quotient
-            FROM quotients
-            ORDER BY date_debut
-            ;"""
-        self.DB.ExecuterReq(req,MsgBox="CTRL_Grille")
-        listeDonnees = self.DB.ResultatReq()
-        for IDquotient, IDfamille, date_debut, date_fin, quotient in listeDonnees :
-            date_debut = DateEngEnDateDD(date_debut)
-            date_fin = DateEngEnDateDD(date_fin)
-            if (IDfamille in dictQuotientsFamiliaux) == False :
-                dictQuotientsFamiliaux[IDfamille] = []
-            dictQuotientsFamiliaux[IDfamille].append((date_debut, date_fin, quotient))
-        return dictQuotientsFamiliaux
 
 ####CLAVIER ET SOURIS
 
@@ -5230,8 +5001,9 @@ class MyFrame(wx.Frame):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_1.Add(panel, 1, wx.ALL|wx.EXPAND)
         self.SetSizer(sizer_1)
-        self.grille = CTRL(panel, IDfamille=203)
-        self.grille.SetModeIndividu(listeActivites=[16, ], listeSelectionIndividus=[1437,], listeIndividusFamille=[1437,], listePeriodes=[(datetime.date(2015, 7, 1), datetime.date(2015, 7, 10)),])
+        self.grille = CTRL(panel, IDfamille=8578)
+        periode = (datetime.date.today()-datetime.timedelta(365),datetime.date.today(),)
+        self.grille.SetModeIndividu(listeActivites=[788, ], listeSelectionIndividus=[20644,], listeIndividusFamille=[20644,], listePeriodes=[periode,])
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"), cheminImage="Images/32x32/Valider.png")
         self.ctrl_facturation = wx.TextCtrl(panel, -1, "", size=(-1, 60), style=wx.TE_MULTILINE)
         sizer_2 = wx.BoxSizer(wx.VERTICAL)
@@ -5261,7 +5033,7 @@ if __name__ == '__main__':
     app = wx.App(0)
     heure_debut = time.time()
     from Dlg import DLG_Grille
-    frame_1 = DLG_Grille.Dialog(None, IDfamille=2632, selectionIndividus=[12675,])
+    frame_1 = DLG_Grille.Dialog(None, IDfamille=8578, selectionIndividus=[20644,])
     app.SetTopWindow(frame_1)
     print("Temps de chargement CTRL_Grille =", time.time() - heure_debut)
     frame_1.ShowModal()

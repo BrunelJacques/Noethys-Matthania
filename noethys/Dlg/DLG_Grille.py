@@ -20,7 +20,7 @@ import wx.html as html
 
 from Utils import UTILS_Config
 from Utils import UTILS_Utilisateurs
-import GestionDB
+from Utils import UTILS_Dates
 
 from Ctrl import CTRL_Grille
 
@@ -105,8 +105,7 @@ class Commandes(wx.Panel):
             if reponse != wx.ID_YES :
                 return
         # Fermeture de la fenêtre
-        if 'phoenix' in wx.PlatformInfo:
-            self.parent._mgr.UnInit()
+        self.parent._mgr.UnInit()
         self.parent.EndModal(wx.ID_CANCEL)
         
     def OnBoutonAide(self, event):
@@ -250,8 +249,6 @@ class PanelGrille(wx.Panel):
         if self.barreOutils.GetToolState(self.ID_MODE_ATTENTE) == True : return "attente"
         if self.barreOutils.GetToolState(self.ID_MODE_REFUS) == True : return "refus"
 
-
-
 class Notebook(aui.AuiNotebook):
     def __init__(self, parent):
         aui.AuiNotebook.__init__(self, parent, -1, style=aui.AUI_NB_DEFAULT_STYLE | aui.AUI_NB_BOTTOM | wx.NO_BORDER)
@@ -330,9 +327,17 @@ class Dialog(wx.Dialog):
         self.listeSelectionIndividus = self.panel_grille.grille.listeSelectionIndividus
                         
         # Création des panels amovibles
+        dteDefaut = datetime.date.today()-datetime.timedelta(365)
+        for activite, donnees in self.dictActivites.items():
+            if donnees['date_fin'] > dteDefaut:
+                dteDefaut = donnees['date_fin']
         self.panel_periode = CTRL_Grille_periode.CTRL(self)
-        #dictDonnees = UTILS_Config.GetParametre("dict_selection_periodes_activites")
-        #self.panel_periode.SetDictDonnees(dictDonnees)
+        self.panel_periode.page_annee.ctrl_annee.SetAnnee(dteDefaut.year)
+        self.panel_periode.page_mois.ctrl_mois.SetSelectionIndex(dteDefaut.month)
+        self.panel_periode.page_mois.ctrl_annee.SetValue(dteDefaut.year)
+        self.panel_periode.page_dates.ctrl_date_debut.SetDate(datetime.date(dteDefaut.year,dteDefaut.month,1))
+        self.panel_periode.page_dates.ctrl_date_fin.SetDate(dteDefaut)
+
         self._mgr.AddPane(self.panel_periode, aui.AuiPaneInfo().
                           Name("periode").Caption(_("Sélection de la période")).
                           Top().Layer(1).BestSize(wx.Size(230,144)).Position(1).CloseButton(False).Fixed().MaximizeButton(False))
@@ -770,6 +775,7 @@ class Dialog(wx.Dialog):
                     selectionIndividus=listeIndividus, 
                     selectionActivite=activites,
                     )
+        dictResultats = {}
         if dlg.ShowModal() != wx.ID_OK:
             dictResultats = dlg.GetDictResultats() 
             dlg.Destroy()
@@ -797,7 +803,7 @@ if __name__ == "__main__":
     #wx.InitAllImageHandlers()
     import time
     heure_debut = time.time()
-    dialog_1 = Dialog(None, IDfamille=1, selectionIndividus=[3,])
+    dialog_1 = Dialog(None, IDfamille=8578, selectionIndividus=[],selectionTous=True)
     print("Temps de chargement DLG_Grille =", time.time() - heure_debut)
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()

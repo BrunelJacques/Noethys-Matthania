@@ -626,7 +626,7 @@ class Calendrier(wx.ScrolledWindow):
         dc.DrawText(str(texteDate.day), x + 3, y + 2)
 
         # Traitement pour le PseudoDC
-        r = wx.Rect(x, y, l, h)
+        r = wx.Rect(int(x), int(y), int(l), int(h))
         dc.SetIdBounds(IDobjet,r)
         
         

@@ -77,43 +77,6 @@ class CTRL_famille(html.HtmlWindow):
             return texteNoms
         return ""
 
-##class CTRL_famille(wx.Choice):
-##    def __init__(self, parent):
-##        wx.Choice.__init__(self, parent, -1) 
-##        self.parent = parent
-##        self.MAJlisteDonnees() 
-##    
-##    def MAJlisteDonnees(self):
-##        self.SetItems(self.GetListeDonnees())
-##        self.Select(0)
-##    
-##    def GetListeDonnees(self):
-##        db = GestionDB.DB()
-##        req = """SELECT IDrestaurateur, nom
-##        FROM restaurateurs
-##        ORDER BY nom;""" 
-##        db.ExecuterReq(req,MsgBox="ExecuterReq")
-##        listeDonnees = db.ResultatReq()
-##        db.Close()
-##        listeItems = [ _("-------- Aucun --------"), ]
-##        self.dictDonnees = { 0 : { "ID" : None } }
-##        index = 1
-##        for IDrestaurateur, nom in listeDonnees :
-##            self.dictDonnees[index] = { "ID" : IDrestaurateur }
-##            listeItems.append(nom)
-##            index += 1
-##        return listeItems
-##
-##    def SetID(self, ID=0):
-##        for index, values in self.dictDonnees.iteritems():
-##            if values["ID"] == ID :
-##                 self.SetSelection(index)
-##
-##    def GetID(self):
-##        index = self.GetSelection()
-##        if index == -1 : return None
-##        return self.dictDonnees[index]["ID"]
-    
 
 class CTRL_individus(ULC.UltimateListCtrl):
     def __init__(self, parent, IDfamille=None, dictIndividus={}, listeSelectionIndividus=[], selectionTous=False):
