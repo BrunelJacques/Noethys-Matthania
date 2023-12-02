@@ -312,6 +312,7 @@ class CTRL(wx.Panel):
         self.notebook.AddPage(self.page_vacances, _("Vacances"))
         self.notebook.AddPage(self.page_annee, _("Année"))
         self.notebook.AddPage(self.page_dates, _("Dates"))
+        self.notebook.SetSelection(3)
 
         self.__do_layout()
         
@@ -330,7 +331,7 @@ class CTRL(wx.Panel):
         if self.nomParent == "grille" :
             listeSelections = self.GetDatesSelections()
             self.parent.SetListesPeriodes(listeSelections)
-            self.parent.MAJ_grille()
+            self.parent.MAJ_grille(autoCocheActivites=False)
         
         if self.nomParent == "informations_medicales" :
             listeSelections = self.GetDatesSelections()
@@ -384,10 +385,7 @@ class CTRL(wx.Panel):
             if annee != None :
                 page.ctrl_annee.SetValue(annee)
                 page.MAJ()
-            if 'phoenix' in wx.PlatformInfo:
-                page.ctrl_mois.SetSelection(-1)
-            else :
-                page.ctrl_mois.DeselectAll()
+            page.ctrl_mois.SetSelection(-1)
             for index in listeSelections :
                 page.ctrl_mois.SetSelectionIndex(index)
         
@@ -396,10 +394,7 @@ class CTRL(wx.Panel):
             if annee != None :
                 page.ctrl_annee.SetValue(annee)
                 page.MAJ()
-            if 'phoenix' in wx.PlatformInfo:
-                page.ctrl_periode.SetSelection(-1)
-            else :
-                page.ctrl_periode.DeselectAll()
+            page.ctrl_periode.SetSelection(-1)
             for index in listeSelections :
                 page.ctrl_periode.SetSelectionIndex(index)
         

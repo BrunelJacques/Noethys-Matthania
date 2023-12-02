@@ -203,12 +203,18 @@ class GetValeurs():
         for IDindividu in listeIDindividus :
 
             # Nom
-            nomComplet1 = "%s %s" % (dictInfos[IDindividu]["nom"], dictInfos[IDindividu]["prenom"])
-            dictInfos[IDindividu]["nomComplet1"] = nomComplet1
-            if dictInfos[IDindividu]["categorieCivilite"] == "ADULTE" :
-                nomComplet2 = "%s %s %s" % (dictInfos[IDindividu]["civiliteAbrege"], dictInfos[IDindividu]["nom"], dictInfos[IDindividu]["prenom"])
+            if dictInfos[IDindividu]["categorieCivilite"] != "ENFANT" :
+                nomComplet1 = "%s %s" % (dictInfos[IDindividu]["nom"],
+                                         dictInfos[IDindividu]["prenom"])
+                nomComplet2 = "%s %s %s" % ("%d %s"%(IDindividu,
+                                                    dictInfos[IDindividu]["civiliteAbrege"]),
+                                            dictInfos[IDindividu]["nom"],
+                                            dictInfos[IDindividu]["prenom"])
             else:
-                nomComplet2 = nomComplet1
+                nomComplet1 = "%s %s" % (dictInfos[IDindividu]["prenom"],
+                                         dictInfos[IDindividu]["nom"])
+                nomComplet2 = "%d %s"%(IDindividu,nomComplet1)
+            dictInfos[IDindividu]["nomComplet1"] = nomComplet1
             dictInfos[IDindividu]["nomComplet2"] = nomComplet2
             
             # Date de naissance
@@ -2105,7 +2111,7 @@ class MyFrame(wx.Frame):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_1.Add(panel, 1, wx.ALL|wx.EXPAND)
         self.SetSizer(sizer_1)
-        self.myOlv = Notebook(panel, IDfamille=7)
+        self.myOlv = Notebook(panel, IDfamille=8578)
         self.myOlv.MAJ() 
         sizer_2 = wx.BoxSizer(wx.VERTICAL)
         sizer_2.Add(self.myOlv, 1, wx.ALL|wx.EXPAND, 4)

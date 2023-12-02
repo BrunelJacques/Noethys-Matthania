@@ -1068,7 +1068,7 @@ class Synchro():
 
         req = """SELECT IDinscription, IDindividu, IDfamille, IDactivite, IDgroupe, date_desinscription
         FROM inscriptions
-        WHERE inscriptions.statut='ok';"""
+        WHERE (NOT inscriptions.statut LIKE 'ko%%');"""
         DB.ExecuterReq(req,MsgBox="ExecuterReq")
         listeInscriptions = DB.ResultatReq()
         for IDinscription, IDindividu, IDfamille, IDactivite, IDgroupe, date_desinscription in listeInscriptions :

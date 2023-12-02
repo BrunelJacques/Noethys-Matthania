@@ -168,7 +168,7 @@ class Dialog(wx.Dialog):
             FROM inscriptions
             LEFT JOIN activites ON activites.IDactivite = inscriptions.IDactivite 
             LEFT JOIN groupes ON groupes.IDgroupe = inscriptions.IDgroupe
-            WHERE inscriptions.statut='ok' AND IDinscription=%d; """ % IDinscription
+            WHERE (NOT inscriptions.statut LIKE 'ko%%') AND IDinscription=%d; """ % IDinscription
             DB.ExecuterReq(req,MsgBox="ExecuterReq")
             listeDonnees = DB.ResultatReq()
             DB.Close()

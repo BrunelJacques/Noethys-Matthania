@@ -117,7 +117,7 @@ def GetDictCaisses(DB, dictParametres):
         FROM familles
         LEFT JOIN comptes_payeurs ON comptes_payeurs.IDfamille = familles.IDfamille
         LEFT JOIN inscriptions ON inscriptions.IDcompte_payeur = comptes_payeurs.IDcompte_payeur
-        WHERE inscriptions.statut='ok' AND IDactivite IN %s
+        WHERE (NOT inscriptions.statut LIKE 'ko%%') AND IDactivite IN %s
         GROUP BY IDcaisse, familles.IDfamille
         ;""" % conditionsActivites
         
@@ -168,7 +168,7 @@ def GetDictMembres(DB, dictParametres):
         req = """SELECT comptes_payeurs.IDfamille, inscriptions.IDindividu
         FROM inscriptions 
         LEFT JOIN comptes_payeurs ON comptes_payeurs.IDcompte_payeur = inscriptions.IDcompte_payeur
-        WHERE inscriptions.statut='ok' AND IDactivite IN %s
+        WHERE (NOT inscriptions.statut LIKE 'ko%%') AND IDactivite IN %s
         GROUP BY comptes_payeurs.IDfamille, inscriptions.IDindividu
         ;""" % conditionsActivites
 
@@ -228,7 +228,7 @@ def GetDictQuotients(DB, dictParametres):
         LEFT JOIN quotients ON quotients.IDfamille = familles.IDfamille
         LEFT JOIN comptes_payeurs ON comptes_payeurs.IDfamille = familles.IDfamille
         LEFT JOIN inscriptions ON inscriptions.IDcompte_payeur = comptes_payeurs.IDcompte_payeur
-        WHERE inscriptions.statut='ok' AND IDactivite IN %s
+        WHERE (NOT inscriptions.statut LIKE 'ko%%') AND IDactivite IN %s
         GROUP BY familles.IDfamille, IDquotient
         ;""" % conditionsActivites
 
@@ -325,7 +325,7 @@ class Texte_nombre_familles(MODELES.Texte):
             req = """SELECT COUNT(comptes_payeurs.IDfamille)
             FROM inscriptions 
             LEFT JOIN comptes_payeurs ON comptes_payeurs.IDcompte_payeur = inscriptions.IDcompte_payeur
-            WHERE inscriptions.statut='ok' AND IDactivite IN %s
+            WHERE (NOT inscriptions.statut LIKE 'ko%%') AND IDactivite IN %s
             GROUP BY comptes_payeurs.IDfamille
             ;""" % conditionsActivites
         
@@ -375,7 +375,7 @@ class Tableau_nombre_familles(MODELES.Tableau):
             req = """SELECT IDactivite, COUNT(comptes_payeurs.IDfamille)
             FROM inscriptions 
             LEFT JOIN comptes_payeurs ON comptes_payeurs.IDcompte_payeur = inscriptions.IDcompte_payeur
-            WHERE inscriptions.statut='ok' AND IDactivite IN %s
+            WHERE (NOT inscriptions.statut LIKE 'ko%%') AND IDactivite IN %s
             GROUP BY IDactivite, comptes_payeurs.IDfamille
             ;""" % conditionsActivites
             

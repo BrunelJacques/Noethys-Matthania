@@ -58,7 +58,7 @@ def GetListeCotisationsManquantes(dateReference=None, listeActivites=None, prese
     LEFT JOIN individus ON individus.IDindividu = inscriptions.IDindividu
     LEFT JOIN activites ON activites.IDactivite = inscriptions.IDactivite
     %s
-    WHERE inscriptions.statut='ok' AND (inscriptions.date_desinscription IS NULL OR inscriptions.date_desinscription>='%s') %s %s AND activites.date_fin>='%s'
+    WHERE (NOT inscriptions.statut LIKE 'ko%%') AND (inscriptions.date_desinscription IS NULL OR inscriptions.date_desinscription>='%s') %s %s AND activites.date_fin>='%s'
     GROUP BY inscriptions.IDfamille, cotisations_activites.IDtype_cotisation, 
     individus.IDindividu, cotisations_activites.IDactivite,
     types_cotisations.nom, types_cotisations.type, individus.prenom

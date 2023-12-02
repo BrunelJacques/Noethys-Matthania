@@ -71,7 +71,10 @@ class CTRL_Proprietes(wxpg.PropertyGrid) :
         
             for dictTemp in listeProprietes :
                 propriete = wxpg.IntProperty(label=dictTemp["label"], name=dictTemp["code"], value=dictTemp["valeur"])
-                self.Append(propriete)
+                try:
+                    self.Append(propriete)
+                except Exception:
+                    pass
                 self.SetPropertyAttribute(propriete, "Min", 0)
                 self.SetPropertyAttribute(propriete, "Max", 800)
                 self.SetPropertyEditor(propriete, "EditeurAvecBoutons")

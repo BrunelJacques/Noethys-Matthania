@@ -567,7 +567,7 @@ class Base(object) :
 
             req = """SELECT IDindividu, IDfamille, IDactivite, IDgroupe, IDcategorie_tarif, IDcompte_payeur, date_inscription, parti
             FROM inscriptions
-            WHERE inscriptions.statut='ok' AND IDinscription=%d
+            WHERE (NOT inscriptions.statut LIKE 'ko%%') AND IDinscription=%d
             ;""" % self.IDinscription
             DB.ExecuterReq(req,MsgBox="ExecuterReq")
             listeDonnees = DB.ResultatReq()

@@ -105,7 +105,7 @@ def GetDictGenres(DB, dictParametres) :
         req = """SELECT individus.IDindividu, IDcivilite
         FROM individus
         LEFT JOIN inscriptions ON inscriptions.IDindividu = individus.IDindividu 
-        WHERE inscriptions.statut='ok' AND IDactivite IN %s
+        WHERE (NOT inscriptions.statut LIKE 'ko%%') AND IDactivite IN %s
         GROUP BY individus.IDindividu
         ;""" % conditionsActivites
         
@@ -157,7 +157,7 @@ def GetDictAges(DB, dictParametres) :
         req = """SELECT individus.IDindividu, date_naiss
         FROM individus
         LEFT JOIN inscriptions ON inscriptions.IDindividu = individus.IDindividu 
-        WHERE inscriptions.statut='ok' AND IDactivite IN %s
+        WHERE (NOT inscriptions.statut LIKE 'ko%%') AND IDactivite IN %s
         GROUP BY individus.IDindividu
         ;""" % conditionsActivites
         
@@ -254,7 +254,7 @@ def GetDictVilles(DB, dictParametres):
         req = """SELECT individus.IDindividu, adresse_auto
         FROM individus
         LEFT JOIN inscriptions ON inscriptions.IDindividu = individus.IDindividu 
-        WHERE inscriptions.statut='ok' AND IDactivite IN %s
+        WHERE (NOT inscriptions.statut LIKE 'ko%%') AND IDactivite IN %s
         GROUP BY individus.IDindividu
         ;""" % conditionsActivites
         
@@ -338,7 +338,7 @@ def GetListeActivitesPro(DB, dictParametres) :
         FROM individus
         LEFT JOIN inscriptions ON inscriptions.IDindividu = individus.IDindividu 
         LEFT JOIN categories_travail ON categories_travail.IDcategorie = individus.IDcategorie_travail
-        WHERE inscriptions.statut='ok' AND IDactivite IN %s
+        WHERE (NOT inscriptions.statut LIKE 'ko%%') AND IDactivite IN %s
         GROUP BY IDcategorie_travail, inscriptions.IDindividu
         ;""" % conditionsActivites
         
@@ -546,7 +546,7 @@ class Texte_nombre_individus(MODELES.Texte):
         else :
             req = """SELECT COUNT(IDindividu)
             FROM inscriptions 
-            WHERE inscriptions.statut='ok' AND IDactivite IN %s
+            WHERE (NOT inscriptions.statut LIKE 'ko%%') AND IDactivite IN %s
             GROUP BY IDindividu
             ;""" % conditionsActivites
 
@@ -592,7 +592,7 @@ class Tableau_nombre_individus(MODELES.Tableau):
         else:
             req = """SELECT IDactivite, COUNT(IDindividu)
             FROM inscriptions 
-            WHERE inscriptions.statut='ok' AND IDactivite IN %s
+            WHERE (NOT inscriptions.statut LIKE 'ko%%') AND IDactivite IN %s
             GROUP BY IDactivite, IDindividu
             ;""" % conditionsActivites
 

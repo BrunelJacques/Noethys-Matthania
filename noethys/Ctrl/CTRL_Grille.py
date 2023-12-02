@@ -8,13 +8,11 @@
 # Licence:         Licence GNU GPL
 #-----------------------------------------------------------
 
-
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 """
 IMPORTANT :
-rajout de la ligne 101 de gridlabelrenderer.py dans wxPython mixins :
+IL: rajout de la ligne 101 de gridlabelrenderer.py dans wxPython mixins :
 if rows == [-1] : return
 """
 
@@ -35,12 +33,14 @@ import wx.lib.agw.supertooltip as STT
 import pdb, traceback, sys
 
 import GestionDB
+from Data import DATA_Touches as Touches
 from Utils import UTILS_Identification
 from Utils import UTILS_Historique
 from Utils import UTILS_Filtres_questionnaires
 from Utils import UTILS_Questionnaires
 from Utils import UTILS_Divers
 from Utils import UTILS_Parametres
+from Utils import UTILS_Gestion
 import FonctionsPerso
 
 from Data import DATA_Civilites as Civilites
@@ -68,6 +68,7 @@ LARGEUR_COLONNE_UNITE = 50
 LARGEUR_COLONNE_MEMO = 170
 LARGEUR_COLONNE_TRANSPORTS = 100
 LARGEUR_COLONNE_MULTIHORAIRES = 200
+LARGEUR_COLONNE_EVENEMENT = 200
 
 # Colonnes Activités
 LARGEUR_COLONNE_ACTIVITE = 18
@@ -218,7 +219,6 @@ def sub(g):
     resultat = datetime.timedelta(minutes= int(heures)*60 + int(minutes))
     return resultat.__repr__()
 
-
 class BarreRecherche(wx.SearchCtrl):
     def __init__(self, parent, ctrl_grille=None, size=(-1,20)):
         wx.SearchCtrl.__init__(self, parent, size=size, style=wx.TE_PROCESS_ENTER)
@@ -267,7 +267,6 @@ class BarreRecherche(wx.SearchCtrl):
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
-
 class Conso():
     def __init__(self):
         self.IDconso = None
@@ -290,9 +289,10 @@ class Conso():
         self.statut = None
         self.case = None
         self.etiquettes = []
+        self.IDevenement = None
+        self.badgeage_debut = None
+        self.badgeage_fin = None
 
-
-    
 class Ligne():
     def __init__(self, grid, numLigne=None, IDindividu=None, IDfamille=None, date=None, modeLabel="nom", estSeparation=False):
         self.grid = grid
@@ -414,6 +414,10 @@ class Ligne():
                                 heure_max = datetime.time(23, 0)
 
                             case = CTRL_Grille_cases.CaseMultihoraires(self, self.grid, self.numLigne, numColonne, self.IDindividu, IDfamille, self.date, IDunite, IDactivite, verrouillage, heure_min, heure_max)
+
+                        if typeUnite == "Evenement" :
+                            case = CTRL_Grille_cases.CaseEvenement(self, self.grid, self.numLigne, numColonne, self.IDindividu, IDfamille, self.date, IDunite, IDactivite, verrouillage)
+
                         case.IDunite = IDunite
                         self.dictCases[numColonne] = case
                     numColonne += 1
@@ -582,15 +586,6 @@ class Ligne():
     def Flash(self, couleur="#316AC5"):
         """ Met en surbrillance la case quelques instants """
         wx.CallLater(1, self.renderer_label.Flash, couleur)
-        
-##        wx.CallLater(1, self.SetCouleurFondLabel, couleur)
-##        couleurInitiale = self.renderer_label.couleurFond
-##        wx.CallLater(1000, self.SetCouleurFondLabel, couleurInitiale)
-    
-##    def SetCouleurFondLabel(self, couleur):
-##        self.renderer_label.MAJ(couleur)
-##        self.grid.Refresh() 
-        
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -603,7 +598,10 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
         
         # Utilisateur en cours
         self.IDutilisateur = UTILS_Identification.GetIDutilisateur()
-        
+
+        # Périodes de gestion
+        self.gestion = UTILS_Gestion.Gestion(self)
+
         # Init Tooltip
         self.tip = STT.SuperToolTip("")
         self.tip.SetEndDelay(10000) # Fermeture auto du tooltip après 10 secs
@@ -728,11 +726,17 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
         self.listeSelectionIndividus = listeSelectionIndividus
         self.listeIndividusFamille = listeIndividusFamille
         self.listePeriodes = listePeriodes
-
+        self.DB = GestionDB.DB()
+        self.Importation_deductions(listeComptesPayeurs=[self.dictComptesPayeurs[self.IDfamille],])
+        self.Importation_prestations(listeComptesPayeurs=[self.dictComptesPayeurs[self.IDfamille],])
+        self.Importation_forfaits(listeComptesPayeurs=[self.dictComptesPayeurs[self.IDfamille],])
+        self.Importation_transports()
+        self.DB.Close()
         self.MAJ()
         if modeSilencieux == False :
             del attente
 
+    # utilisé par DLG_Gestionnaire_conso
     def SetModeDate(self, listeActivites=[], listeSelectionIndividus=[], date=None, modeSilencieux=False):
         if modeSilencieux == False :
             attente = wx.BusyInfo(_("Recherche des données..."), self)
@@ -792,15 +796,13 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
     def CalcRemplissage(self):
         """ Calcule tout le remplissage """
         self.dictRemplissage2 = {}
+        self.dictRemplissageEvenements = {}
         self.dictConsoUnites = {}
         for IDindividu, dictDates in self.dictConsoIndividus.items() :
             for date, dictUnites in dictDates.items() :
                 for IDunite, listeConso in dictUnites.items() :
-                    quantite = None
-                    
                     for conso in listeConso :
                         if conso.etat in ["reservation", "present", "attente"] :
-
                             if conso.quantite != None :
                                 quantite = conso.quantite
                             else :
@@ -813,8 +815,11 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
                                         valide = True
                                         
                                         # Vérifie s'il y a une plage horaire conditionnelle :
-                                        heure_min = self.dictRemplissage[IDunite_remplissage]["heure_min"]
-                                        heure_max = self.dictRemplissage[IDunite_remplissage]["heure_max"]
+                                        if "heure_min" in self.dictRemplissage[IDunite_remplissage] :
+                                            heure_min = self.dictRemplissage[IDunite_remplissage]["heure_min"]
+                                            heure_max = self.dictRemplissage[IDunite_remplissage]["heure_max"]
+                                        else :
+                                            heure_min, heure_max = None, None
                                         if heure_min != None and heure_max != None and conso.heure_debut != None and conso.heure_fin != None :
                                             try :
                                                 if UTILS_Dates.HeureStrEnTime(conso.heure_debut) <= UTILS_Dates.HeureStrEnTime(heure_max) and UTILS_Dates.HeureStrEnTime(conso.heure_fin) >= UTILS_Dates.HeureStrEnTime(heure_min) :
@@ -1023,7 +1028,7 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
                 self.dictLignes[numLigne] = ligne
                 numLigne += 1
 
-####IMPORTATION DONNEES
+# ----- IMPORTATION DONNEES --------------------------------------------------------------
 
     def Importation_individus(self):
         dictIndividus = {}
@@ -1034,7 +1039,7 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
             req = """SELECT individus.IDindividu, IDcivilite, nom, prenom, date_naiss, IDcategorie, titulaire
             FROM individus
             LEFT JOIN rattachements ON individus.IDindividu = rattachements.IDindividu
-            WHERE rattachements.IDfamille = %d
+            WHERE rattachements.IDfamille = %d AND IDcategorie IN (1, 2)
             ORDER BY nom, prenom;""" % self.IDfamille
             self.DB.ExecuterReq(req,MsgBox="CTRL_Grille")
             listeIndividus = self.DB.ResultatReq()
@@ -1141,8 +1146,9 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
         dictUnites = {}
         # Récupère la liste des unités
         req = """SELECT IDunite, IDactivite, nom, abrege, type, heure_debut, heure_debut_fixe, heure_fin, heure_fin_fixe, date_debut, date_fin, ordre, touche_raccourci, largeur, autogen_active, autogen_conditions, autogen_parametres
-        FROM unites 
-        ORDER BY ordre; """ 
+        FROM unites
+        WHERE IDunite in (%s)
+        ORDER BY ordre; """ %str(listeUnitesUtilisees)[1:-1]
         self.DB.ExecuterReq(req,MsgBox="CTRL_Grille")
         listeDonnees = self.DB.ResultatReq()
         for IDunite, IDactivite, nom, abrege, type, heure_debut, heure_debut_fixe, heure_fin, heure_fin_fixe, date_debut, date_fin, ordre, touche_raccourci, largeur, autogen_active, autogen_conditions, autogen_parametres in listeDonnees :
@@ -1154,6 +1160,9 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
             else:
                 dictListeUnites[IDactivite] = [dictTemp,]
             dictUnites[IDunite] = dictTemp
+
+            if (IDactivite in dictListeUnites) == False :
+                dictListeUnites[IDactivite] = []
 
             # Mémorisation des largeurs
             if (IDunite in self.dictParametres["largeurs"]["unites"]) == False :
@@ -1258,21 +1267,7 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
                                                                         "heure_max" : heure_max,
                                                                         "etiquettes" : etiquettes,
                                                                         }
-        
-        # Récupération des paramètres de remplissage
-        req = """SELECT IDremplissage, IDactivite, IDunite_remplissage, IDgroupe, date, places
-        FROM remplissage 
-        WHERE IDactivite IN %s %s
-        ORDER BY date;""" % (conditionActivites, conditionDates)
-        self.DB.ExecuterReq(req,MsgBox="CTRL_Grille")
-        listeRemplissage = self.DB.ResultatReq()
-        for IDremplissage, IDactivite, IDunite_remplissage, IDgroupe, date, places in listeRemplissage :
-            if places == 0 : 
-                places = None
-            dateDD = DateEngEnDateDD(date)
-            
-            dictRemplissage = UTILS_Divers.DictionnaireImbrique(dictionnaire=dictRemplissage, cles=[IDunite_remplissage, dateDD, IDgroupe], valeur=places)
-                
+
         # Récupération des consommations existantes 
         req = """SELECT IDconso, consommations.IDindividu, IDactivite, IDinscription, date, IDunite, 
         IDgroupe, heure_debut, heure_fin, etat, verrouillage, date_saisie, IDutilisateur, 
@@ -1317,7 +1312,10 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
                 conso.quantite = quantite
                 conso.IDunite = IDunite
                 conso.etiquettes = etiquettes
-                
+                conso.IDevenement = None
+                conso.badgeage_debut = None
+                conso.badgeage_fin = None
+
                 dictConsoIndividus = UTILS_Divers.DictionnaireImbrique(dictionnaire=dictConsoIndividus, cles=[IDindividu, dateDD, IDunite], valeur=[])
                     
                 # Recherche si la consommation n'est pas déjà dans la liste
@@ -1780,6 +1778,79 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
                     self.dictDeductions[IDprestation] = []
                 self.dictDeductions[IDprestation].append(dictTemp)
 
+
+    def GetAides(self):
+        """ Récupère les aides journalières de la famille """
+        dictAides = {}
+
+        # Importation des aides
+        if self.mode == "individu" :
+            req = """SELECT IDaide, IDfamille, IDactivite, aides.nom, date_debut, date_fin, caisses.IDcaisse, caisses.nom, montant_max, nbre_dates_max, jours_scolaires, jours_vacances
+            FROM aides
+            LEFT JOIN caisses ON caisses.IDcaisse = aides.IDcaisse
+            WHERE IDfamille=%d
+            ORDER BY date_debut;""" % self.IDfamille
+        else:
+            req = """SELECT IDaide, IDfamille, IDactivite, aides.nom, date_debut, date_fin, caisses.IDcaisse, caisses.nom, montant_max, nbre_dates_max, jours_scolaires, jours_vacances
+            FROM aides
+            LEFT JOIN caisses ON caisses.IDcaisse = aides.IDcaisse
+            ORDER BY date_debut;"""
+        self.DB.ExecuterReq(req)
+        listeAides = self.DB.ResultatReq()
+        if len(listeAides) == 0 :
+            return dictAides
+        listeIDaides = []
+        for IDaide, IDfamille, IDactivite, nomAide, date_debut, date_fin, IDcaisse, nomCaisse, montant_max, nbre_dates_max, jours_scolaires, jours_vacances in listeAides :
+            date_debut = DateEngEnDateDD(date_debut)
+            date_fin = DateEngEnDateDD(date_fin)
+            jours_scolaires = ConvertStrToListe(jours_scolaires)
+            jours_vacances = ConvertStrToListe(jours_vacances)
+            dictTemp = {
+                "IDaide" : IDaide, "IDfamille" : IDfamille, "IDactivite" : IDactivite, "nomAide" : nomAide, "date_debut" : date_debut, "date_fin" : date_fin,
+                "IDcaisse" : IDcaisse, "nomCaisse" : nomCaisse, "montant_max" : montant_max, "nbre_dates_max" : nbre_dates_max, "jours_scolaires" : jours_scolaires,
+                "jours_vacances" : jours_vacances, "beneficiaires" : [], "montants" : {} }
+            dictAides[IDaide] = dictTemp
+            listeIDaides.append(IDaide)
+
+        if len(listeIDaides) == 0 : conditionAides = "()"
+        elif len(listeIDaides) == 1 : conditionAides = "(%d)" % listeIDaides[0]
+        else : conditionAides = str(tuple(listeIDaides))
+
+        # Importation des bénéficiaires
+        req = """SELECT IDaide_beneficiaire, IDaide, IDindividu
+        FROM aides_beneficiaires
+        WHERE IDaide IN %s;""" % conditionAides
+        self.DB.ExecuterReq(req)
+        listeBeneficiaires = self.DB.ResultatReq()
+        for IDaide_beneficiaire, IDaide, IDindividu in listeBeneficiaires :
+            if IDaide in dictAides :
+                dictAides[IDaide]["beneficiaires"].append(IDindividu)
+
+        # Importation des montants, combinaisons et unités de combi
+        req = """SELECT 
+        aides_montants.IDaide, aides_combi_unites.IDaide_combi_unite, aides_combi_unites.IDaide_combi, aides_combi_unites.IDunite,
+        aides_combinaisons.IDaide_montant, aides_montants.montant
+        FROM aides_combi_unites
+        LEFT JOIN aides_combinaisons ON aides_combinaisons.IDaide_combi = aides_combi_unites.IDaide_combi
+        LEFT JOIN aides_montants ON aides_montants.IDaide_montant = aides_combinaisons.IDaide_montant
+        WHERE aides_montants.IDaide IN %s;""" % conditionAides
+        self.DB.ExecuterReq(req)
+        listeUnites = self.DB.ResultatReq()
+
+        for IDaide, IDaide_combi_unite, IDaide_combi, IDunite, IDaide_montant, montant in listeUnites :
+            if IDaide in dictAides :
+                # Mémorisation du montant
+                if (IDaide_montant in dictAides[IDaide]["montants"]) == False :
+                    dictAides[IDaide]["montants"][IDaide_montant] = {"montant":montant, "combinaisons":{}}
+                # Mémorisation de la combinaison
+                if (IDaide_combi in dictAides[IDaide]["montants"][IDaide_montant]["combinaisons"]) == False :
+                    dictAides[IDaide]["montants"][IDaide_montant]["combinaisons"][IDaide_combi] = []
+                # Mémorisation des unités de combinaison
+                dictAides[IDaide]["montants"][IDaide_montant]["combinaisons"][IDaide_combi].append(IDunite)
+
+        return dictAides
+
+
     def GetComptesPayeurs(self):
         dictComptesPayeurs = {}
         # Récupère le compte_payeur des ou de la famille
@@ -1795,6 +1866,39 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
         for IDfamille, IDcompte_payeur in listeDonnees :
             dictComptesPayeurs[IDfamille] = IDcompte_payeur
         return dictComptesPayeurs
+
+    def GetQuotientsFamiliaux(self):
+        dictQuotientsFamiliaux = {}
+        # Récupère le QF de la famille
+        if self.mode == "individu" :
+            req = """SELECT IDquotient, IDfamille, date_debut, date_fin, quotient, IDtype_quotient
+            FROM quotients
+            WHERE IDfamille=%d
+            ORDER BY date_debut
+            ;""" % self.IDfamille
+        else:
+            req = """SELECT IDquotient, IDfamille, date_debut, date_fin, quotient, IDtype_quotient
+            FROM quotients
+            ORDER BY date_debut
+            ;"""
+        self.DB.ExecuterReq(req)
+        listeDonnees = self.DB.ResultatReq()
+        for IDquotient, IDfamille, date_debut, date_fin, quotient, IDtype_quotient in listeDonnees :
+            date_debut = DateEngEnDateDD(date_debut)
+            date_fin = DateEngEnDateDD(date_fin)
+            if (IDfamille in dictQuotientsFamiliaux) == False :
+                dictQuotientsFamiliaux[IDfamille] = []
+            dictQuotientsFamiliaux[IDfamille].append((date_debut, date_fin, quotient, IDtype_quotient))
+        return dictQuotientsFamiliaux
+
+
+
+
+
+
+
+
+
 
 ####CLAVIER ET SOURIS
 
@@ -1880,6 +1984,17 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
         ligne.OnContextMenu()
         event.Skip()
 
+    def OnLabelLeftClick(self, event):
+        # Annule moving barre
+        self.barreMoving = None
+        self.SetCurseur(None)
+        # Context Menu
+        numLigne = event.GetRow()
+        if numLigne == -1 : return
+        ligne = self.dictLignes[numLigne]
+        ligne.OnLeftClick()
+        event.Skip()
+
     def OnModificationMemo(self, event):
         numLigne = event.GetRow()
         numColonne = event.GetCol()
@@ -1899,6 +2014,17 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
                 ligne = self.dictLignes[numLigne]
                 if numColonne in ligne.dictCases :
                     case = ligne.dictCases[numColonne]
+
+        # Click gauche souris enfoncé
+        if self.casesSurvolees != None and case != None:
+            if case not in self.casesSurvolees and case.GetTypeUnite() in ("Unitaire", "Horaire", "Quantite"):
+                self.casesSurvolees.append(case)
+                if wx.GetMouseState().LeftIsDown():
+                    self.OnLeftClick(event)
+
+        # Recherche si c'est une case évènementielle : si oui, considère l'évènement au lieu de la case
+        if case != None and hasattr(case, "CategorieCase") and case.CategorieCase == "evenement":
+            case = case.RechercheEvenement(x, y)
 
         # Dragging barre
         if self.barreMoving != None :
@@ -2072,6 +2198,19 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
             self.caseSurvolee = None
 
 ####FACTURATION
+
+    def GetEvenementsUnites(self, liste_unites=[], date=None, dictTarif=None, IDindividu=None):
+        liste_evenements = []
+        for numLigne, ligne in self.dictLignes.items() :
+            if ligne.IDindividu == IDindividu :
+                for numColonne, case in ligne.dictCases.items() :
+                    if hasattr(case, "CategorieCase") and case.CategorieCase == "evenement" and case.IDunite in liste_unites and case.date == date :
+                        # return case.liste_evenements
+                        for evenement in case.liste_evenements :
+                            if dictTarif["type"] == "JOURN":
+                                if evenement.conso != None and evenement.conso.etat in dictTarif["etats"] :
+                                    liste_evenements.append(evenement)
+        return liste_evenements
 
     def GetIDfacture(self, conso=None):
         IDfacture = None
@@ -2456,17 +2595,6 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
 
                                             index += 1
 
-##                                # Modifie le tarif aux autres individus de la famille
-##                                for IDprestation, dictValeurs in self.dictPrestations.iteritems() :
-##                                    if IDprestation != IDtarifPrestationSupprimee and dictValeurs["date"] == date and dictValeurs["IDtarif"] == IDtarifTmp and dictValeurs["IDindividu"] != IDindividu :
-##                                        montantInitial = self.dictPrestations[IDprestation]["montant_initial"]
-##                                        montantDeduction = montantInitial - self.dictPrestations[IDprestation]["montant"]
-##                                        montantFinal = montant_tarif_tmp - montantDeduction
-##                                        self.dictPrestations[IDprestation]["montant_initial"] = montant_tarif_tmp
-##                                        self.dictPrestations[IDprestation]["montant"] = montantFinal
-##                                        
-##                                        self.listePrestationsModifiees.append(IDprestation)
-                
         # 8 - Suppression des anciennes prestations
         for IDprestationAncienne, categorie in listeAnciennesPrestations :
             if (IDprestationAncienne in self.dictPrestations) == True :
@@ -2640,17 +2768,6 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
                                         dictTarif["resultat"] = {"IDindividu":None, "montant_tarif":montant_tarif, "nom_tarif":nom_tarif, "temps_facture":temps_facture, "IDcategorie_tarif":None, "nomActivite":self.dictActivites[IDactivite]["abrege"]}
                                         if dictTarif not in dictDonnees[IDfamille]["forfaits"] :
                                             dictDonnees[IDfamille]["forfaits"].append(dictTarif.copy())
-        
-        # Affichage pour DEBUG
-##        for IDfamille, dictFamille in dictDonnees.iteritems() :
-##            print "----- FAMILLE %d -----" % IDfamille
-##            print "forfaits famille =", dictFamille["forfaits"]
-##            
-##            for IDindividu, dictIndividu in dictFamille["individus"].iteritems() :
-##                print "INDIVIDU %d" % IDindividu
-##                for dictTarif in dictIndividu["forfaits"]:
-##                    print "    >", dictTarif
-
         return dictDonnees
         
     def GetFamillesAffichees(self):
@@ -3619,7 +3736,7 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
         else: return 0
 
     def ModifierPrestation(self, IDprestation=None):
-        print(IDprestation)
+        pass
         
     def SupprimerPrestation(self, IDprestation=None, categorie=""):
         del self.dictPrestations[IDprestation]
@@ -3645,7 +3762,8 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
             pass
     
 
-    def Imprimer(self):
+
+    def Imprimer(self, event=None):
         """ Impression des consommations """
         self.CreationPDF() 
         
@@ -3983,6 +4101,8 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
         validation = True
         for dictFiltre in listeFiltres :
             IDquestion = dictFiltre["IDquestion"]
+            defaut = dictFiltre["defaut"]
+            listeReponses = []
 
             # Recherche les réponses
             if dictFiltre["type"] == "individu" :
@@ -3998,6 +4118,10 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
                 WHERE IDquestion=%d AND IDfamille=%d;""" % (IDquestion, IDfamille)
                 DB.ExecuterReq(req,MsgBox="CTRL_Grille")
                 listeReponses = DB.ResultatReq()     
+
+            # Si aucune réponse enregistrée, on récupère la valeur par défaut
+            if len(listeReponses) == 0 :
+                listeReponses = [(None, defaut)]
 
             # Compare le filtre avec les réponses
             for IDreponse, reponse in listeReponses :
@@ -4044,6 +4168,11 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
         dlg.Destroy()
         if resultats == None :
             return
+
+        # Vérifie que la période sélectionnée n'est pas dans une période de gestion
+        if len(self.gestion.liste_periodes) > 0:
+            if self.gestion.IsPeriodeinPeriodes("consommations", resultats["date_debut"], resultats["date_fin"]) == False:
+                return False
 
         # ------ Processus du traitement par lot -----
         dlg_grille = self.GetGrandParent()
@@ -4120,6 +4249,11 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
     def TraitementLot_processus(self, resultats={}):
         """ Processus du traitement par lot """
         journal = {}
+
+        # Recherche les individus impactés
+        listeIndividus = []
+        for dictIndividu in resultats["individus"] :
+            listeIndividus.append(dictIndividu["IDindividu"])
 
         # Parcours les lignes
         for numLigne, ligne in self.dictLignes.items() :
@@ -4614,7 +4748,10 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
                             ("IDprestation", IDprestation),
                             ("quantite", conso.quantite),
                             ("etiquettes", ConvertListeToStr(conso.etiquettes)),
-                            ]
+                            ("IDevenement", conso.IDevenement),
+                            ("badgeage_debut", conso.badgeage_debut),
+                            ("badgeage_fin", conso.badgeage_fin),
+                        ]
 
                         # Pour version optimisée :
                         listeValeurs = []
@@ -4882,8 +5019,11 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
         numColonne = event.GetRowOrCol() 
         largeur = self.GetColSize(numColonne)
         if len(self.dictLignes) == 0 : return
-        ligne = self.dictLignes[0]
-        case = ligne.dictCases[numColonne]
+        cle = next(iter(self.dictLignes))
+        ligne = self.dictLignes[cle]
+        if not hasattr(ligne,'dictCase'): return
+        cle = next(iter(ligne.dictCase))
+        case = ligne.dictCases[cle]
         
         if case.GetTypeUnite() == "separationActivite" :
             self.SetColSize(numColonne, LARGEUR_COLONNE_ACTIVITE)
@@ -4913,6 +5053,14 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
         global AFFICHE_COLONNE_MEMO
         AFFICHE_COLONNE_MEMO = etat
         self.MAJ_affichage()
+
+    def GetMasquerUnitesFermees(self):
+        return MASQUER_UNITES_FERMEES
+
+    def SetMasquerUnitesFermees(self, etat=True):
+        global MASQUER_UNITES_FERMEES
+        MASQUER_UNITES_FERMEES = etat
+        self.MAJ()
 
     def GetFormatLabelLigne(self):
         return FORMAT_LABEL_LIGNE
@@ -4991,6 +5139,232 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
                 return True
         return False
 
+    def SelectionnerLignes(self, event=None):
+        for numLigne, ligne in self.dictLignes.items() :
+            if ligne.estSeparation == False :
+                ligne.coche = True
+        self.Refresh()
+
+    def DeselectionnerLignes(self, event=None):
+        for numLigne, ligne in self.dictLignes.items() :
+            if ligne.estSeparation == False :
+                ligne.coche = False
+        self.Refresh()
+
+    def Recopier(self, event=None):
+        """ Recopiage des conso d'une unité vers une autre unité """
+
+        # Demande les paramètres de la conversion
+        from Dlg import DLG_Recopiage_conso
+        dlg = DLG_Recopiage_conso.Dialog(self)
+        if dlg.ShowModal() == wx.ID_OK :
+            dictDonnees = dlg.GetDonnees()
+            dlg.Destroy()
+        else :
+            dlg.Destroy()
+            return
+
+        # Recherche les cases à recopier
+        listeCasesOriginales = []
+        for numLigne, ligne in self.dictLignes.items() :
+            if dictDonnees["option_lignes"] == "lignes_affichees" or (dictDonnees["option_lignes"] == "lignes_selectionnees" and ligne.coche == True):
+                for numColonne, case in ligne.dictCases.items() :
+                    if case.typeCase == "consommation" and case.IDunite == dictDonnees["ID_unite_origine"] :
+                        listeCasesOriginales.append(case)
+
+        # Traitement
+        listeJournaux = []
+        for case in listeCasesOriginales :
+            for conso in case.GetListeConso() :
+                if conso.etat != None :
+
+                    # Prépare les paramètres de la conso à saisir ou à supprimer
+                    dictParametres = {
+                        "action" : "saisie",
+                        "dates" : [case.ligne.date,],
+                        "description" : u"Recopiage",
+                        "IDactivite" : case.IDactivite,
+                        "date_fin" : [case.ligne.date,],
+                        "date_debut" : [case.ligne.date,],
+                        "jours_scolaires" : [0, 1, 2, 3, 4, 5, 6],
+                        "jours_vacances" : [0, 1, 2, 3, 4, 5, 6],
+                        "semaines" : 1,
+                        "feries" : True,
+                        "individus" : [{"selection" : True, "IDindividu" : case.ligne.IDindividu},],
+                        "etiquettes" : [],
+                        "etat" : "reservation",
+                        "unites" : [{
+                                "nom" : self.dictUnites[dictDonnees["ID_unite_destination"]]["nom"],
+                                "type" : self.dictUnites[dictDonnees["ID_unite_destination"]]["type"],
+                                "IDunite" : dictDonnees["ID_unite_destination"],
+                                "options" : {},}],
+                        }
+
+                    # Informations optionnelles
+                    if dictDonnees["param_etat"] == True :
+                        dictParametres["etat"] = conso.etat
+
+                    if dictDonnees["param_etiquettes"] == True :
+                        dictParametres["etiquettes"] = conso.etiquettes
+
+                    if dictDonnees["param_horaires"] == True :
+                        dictParametres["unites"][0]["options"]["heure_debut"] = conso.heure_debut
+                        dictParametres["unites"][0]["options"]["heure_fin"] = conso.heure_fin
+
+                    if dictDonnees["param_quantite"] == True :
+                        dictParametres["unites"][0]["options"]["quantite"] = conso.quantite
+
+                    # Traitement par lot pour recopier
+                    journal = self.TraitementLot_processus(dictParametres)
+                    listeJournaux.append((case, conso, journal))
+
+        # Formatage du texte de résultats
+        texte = _(u"<B>La procédure de recopiage est terminée mais les incidents suivants ont été rencontrés :</B><BR><BR>")
+
+        afficher = False
+        texte += u"<UL>"
+        for case, conso, journal in listeJournaux :
+            for IDindividu, listeActions in journal.items() :
+                if len(listeActions) > 0 :
+                    afficher = True
+                    for date, nomUnite, action in listeActions :
+                        texte += u"<LI>%s - %s : %s.</LI>" % (case.ligne.labelLigne, nomUnite, action)
+        texte += "</UL><BR><BR>"
+
+        # Affichage des résultats
+        if afficher == True :
+            from Dlg import DLG_Message_html
+            dlg = DLG_Message_html.Dialog(self, texte=u"<FONT SIZE=2>%s</FONT>" % texte, titre=_(u"Résultats du recopiage"), size=(630, 450))
+            dlg.ShowModal()
+            dlg.Destroy()
+
+
+
+
+        # # Calcule les variables
+        # dictVariables = {}
+        # for IDunite, case in dictCasesUnites.iteritems():
+        #     heure_debut = HeureStrEnDelta("00:00")
+        #     heure_fin = HeureStrEnDelta("00:00")
+        #     duree = HeureStrEnDelta("00:00")
+        #     etat = None
+        #
+        #     for conso in case.GetListeConso() :
+        #         if conso.etat != None :
+        #             heure_debut_conso = HeureStrEnDelta(conso.heure_debut)
+        #             heure_fin_conso = HeureStrEnDelta(conso.heure_fin)
+        #             duree_conso = heure_fin_conso - heure_debut_conso
+        #
+        #             # Heure min
+        #             if heure_debut_conso < heure_debut or heure_debut == HeureStrEnDelta("00:00"):
+        #                 heure_debut = heure_debut_conso
+        #
+        #             # Heure_max
+        #             if heure_fin_conso > heure_fin :
+        #                 heure_fin = heure_fin_conso
+        #
+        #             # Durée
+        #             duree += duree_conso
+        #
+        #             # Etat
+        #             etat = conso.etat
+        #
+        #     # Mémorisation des résultats
+        #     dictVariables["{HEUREDEBUT_UNITE%d}" % IDunite] = heure_debut
+        #     dictVariables["{HEUREFIN_UNITE%d}" % IDunite] = heure_fin
+        #     dictVariables["{DUREE_UNITE%d}" % IDunite] = duree
+        #     dictVariables["{ETAT_UNITE%d}" % IDunite] = etat
+        #
+        # # Traite chaque unité auto-générée
+        # for dictUnite in listeUnitesAuto :
+        #
+        #     # Vérifie si les conditions sont réunies
+        #     conditions = dictUnite["autogen_conditions"]
+        #     listeConditions = conditions.split(";")
+        #
+        #     valide = True
+        #     if len(listeConditions) == 0 :
+        #         valide = False
+        #
+        #     for condition in listeConditions :
+        #         # Vérifie que la condition est valide
+        #         if self.ResolveFormule(condition, dictVariables) != True :
+        #             valide = False
+        #
+        #     # Prépare les paramètres de la conso à saisir ou à supprimer
+        #     dictParametres = {
+        #         "dates" : [ligne.date,],
+        #         "description" : u"Auto-génération",
+        #         "IDactivite" : IDactivite,
+        #         "date_fin" : [ligne.date,],
+        #         "date_debut" : [ligne.date,],
+        #         "jours_scolaires" : [0, 1, 2, 3, 4, 5, 6],
+        #         "jours_vacances" : [0, 1, 2, 3, 4, 5, 6],
+        #         "semaines" : 1,
+        #         "feries" : True,
+        #         "individus" : [{"selection" : True, "IDindividu" : ligne.IDindividu},],
+        #         "unites" : [{"nom" : dictUnite["nom"],"type" : dictUnite["type"],"IDunite" : dictUnite["IDunite"],"options" : {}},],
+        #     }
+        #
+        #     # Vérifie si une conso existe déjà :
+        #     consoExists = dictVariables["{ETAT_UNITE%d}" % dictUnite["IDunite"]] != None
+        #     #print "consoExists=", consoExists
+        #
+        #     # Si toutes les conditions sont valides
+        #     if valide == True :
+        #
+        #         # Récupération des paramètres de l'unité auto-générée
+        #         parametres = dictUnite["autogen_parametres"]
+        #         if parametres not in ("", None) :
+        #
+        #             listeDonnees = parametres.split("##")
+        #             for donnee in listeDonnees :
+        #                 champ, valeur = donnee.split(":=")
+        #
+        #                 if champ == "ETIQUETTES" and valeur != None :
+        #                     etiquettes = UTILS_Texte.ConvertStrToListe(valeur)
+        #                     dictParametres["etiquettes"] = etiquettes
+        #
+        #                 if champ == "ETAT" and valeur != None :
+        #                     dictParametres["etat"] = valeur
+        #
+        #                 if champ == "QUANTITE" and valeur != None :
+        #                     if valeur != "1" :
+        #                         dictParametres["unites"][0]["options"]["quantite"] = int(valeur)
+        #
+        #                 if champ == "HEUREDEBUT" and valeur != None :
+        #                     if "FORMULE:" in valeur :
+        #                         formule = valeur.replace("FORMULE:", "")
+        #                         heure_debut = self.ResolveFormule(formule, dictVariables)
+        #                     else :
+        #                         heure_debut = HeureStrEnDelta(valeur)
+        #                     #print "heure_debut=", DeltaEnStr(heure_debut, separateur=":")
+        #                     dictParametres["unites"][0]["options"]["heure_debut"] = DeltaEnStr(heure_debut, separateur=":")
+        #
+        #                 if champ == "HEUREFIN" and valeur != None :
+        #                     if "FORMULE:" in valeur :
+        #                         formule = valeur.replace("FORMULE:", "")
+        #                         heure_fin = self.ResolveFormule(formule, dictVariables)
+        #                     else :
+        #                         heure_fin = HeureStrEnDelta(valeur)
+        #                     #print "heure_fin=", DeltaEnStr(heure_fin, separateur=":")
+        #                     dictParametres["unites"][0]["options"]["heure_fin"] = DeltaEnStr(heure_fin, separateur=":")
+        #
+        #             # Action
+        #             if consoExists :
+        #                 dictParametres["action"] = "modification"
+        #             else :
+        #                 dictParametres["action"] = "saisie"
+        #
+        #             # Traitement par lot
+        #             journal = self.TraitementLot_processus(dictParametres)
+        #             #print "journal =", journal
+        #
+        #     if valide == False and consoExists :
+        #         dictParametres["action"] = "suppression"
+        #         dictParametres["etiquettes"] = []
+        #         journal = self.TraitementLot_processus(dictParametres)
+        #         #print "journal =", journal
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 

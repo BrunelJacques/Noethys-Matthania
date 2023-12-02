@@ -72,7 +72,7 @@ class ListView(FastObjectListView):
         # Récupération des inscriptions existantes
         req = """SELECT IDinscription, IDindividu, IDfamille, IDactivite, IDgroupe, IDcategorie_tarif, IDcompte_payeur, date_inscription, parti
         FROM inscriptions
-        WHERE inscriptions.statut='ok';"""
+        WHERE (NOT inscriptions.statut LIKE 'ko%%');"""
         DB.ExecuterReq(req,MsgBox="ExecuterReq")
         listeDonnees = DB.ResultatReq()
         self.dictInscriptions = {}

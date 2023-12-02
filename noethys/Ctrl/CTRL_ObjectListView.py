@@ -623,7 +623,7 @@ class ObjectListView(OLV.ObjectListView):
         FROM inscriptions 
         LEFT JOIN individus ON individus.IDindividu = inscriptions.IDindividu
         %s
-        WHERE inscriptions.statut='ok' AND (inscriptions.date_desinscription IS NULL OR inscriptions.date_desinscription>='%s')  %s %s %s %s %s
+        WHERE (NOT inscriptions.statut LIKE 'ko%%') AND (inscriptions.date_desinscription IS NULL OR inscriptions.date_desinscription>='%s')  %s %s %s %s %s
         GROUP BY %s
         ;""" % (key, jointurePresents, datetime.date.today(), conditionActivites, conditionGroupes, conditionPresents, conditionDateInscription, conditionDateNaissance, key)
         DB.ExecuterReq(req,MsgBox="ExecuterReq")

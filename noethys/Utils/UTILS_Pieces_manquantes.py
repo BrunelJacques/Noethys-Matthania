@@ -72,7 +72,7 @@ def GetListePiecesManquantes(dateReference=None, listeActivites=None, presents=N
     LEFT JOIN inscriptions ON inscriptions.IDactivite = pieces_activites.IDactivite
     LEFT JOIN individus ON individus.IDindividu = inscriptions.IDindividu
     LEFT JOIN activites ON activites.IDactivite = inscriptions.IDactivite
-    WHERE inscriptions.statut='ok' AND (inscriptions.date_desinscription IS NULL OR inscriptions.date_desinscription>='%s') %s AND activites.date_fin>='%s'
+    WHERE (NOT inscriptions.statut LIKE 'ko%%') AND (inscriptions.date_desinscription IS NULL OR inscriptions.date_desinscription>='%s') %s AND activites.date_fin>='%s'
     GROUP BY inscriptions.IDfamille, pieces_activites.IDtype_piece, 
         individus.IDindividu, types_pieces.nom, 
         types_pieces.public, types_pieces.valide_rattachement, individus.prenom

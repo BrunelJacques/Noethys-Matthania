@@ -219,7 +219,7 @@ class ListView(FastObjectListView):
         LEFT JOIN categories_tarifs ON categories_tarifs.IDcategorie_tarif = inscriptions.IDcategorie_tarif
         LEFT JOIN categories_travail ON categories_travail.IDcategorie = individus.IDcategorie_travail
         LEFT JOIN prestations ON prestations.IDindividu = inscriptions.IDindividu
-        WHERE inscriptions.statut='ok' 
+        WHERE (NOT inscriptions.statut LIKE 'ko%%') 
         AND prestations.IDactivite IN %s %s
         AND inscriptions.IDgroupe IN %s
         AND inscriptions.IDcategorie_tarif IN %s

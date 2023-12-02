@@ -137,7 +137,7 @@ class ListView(FastObjectListView):
         # Recherche des inscriptions existantes
         req = """SELECT IDactivite, IDgroupe, COUNT(IDinscription)
         FROM inscriptions
-        WHERE inscriptions.statut='ok'
+        WHERE (NOT inscriptions.statut LIKE 'ko%%')
         GROUP BY IDactivite, IDgroupe;"""
         DB.ExecuterReq(req,MsgBox="ExecuterReq")
         listeInscriptions = DB.ResultatReq()

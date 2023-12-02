@@ -110,7 +110,7 @@ class ListView(FastObjectListView):
         LEFT JOIN activites ON activites.IDactivite=inscriptions.IDactivite
         LEFT JOIN prestations ON prestations.IDcontrat = contrats.IDcontrat
         LEFT JOIN individus ON individus.IDindividu = contrats.IDindividu
-        WHERE inscriptions.statut='ok' %s
+        WHERE (NOT inscriptions.statut LIKE 'ko%%') %s
         GROUP BY contrats.IDcontrat
         ORDER BY contrats.date_debut; """ % conditions
         DB.ExecuterReq(req,MsgBox="ExecuterReq")

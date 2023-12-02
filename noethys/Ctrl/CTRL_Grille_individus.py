@@ -39,7 +39,6 @@ def CalculeAge(dateReference, date_naiss):
     age = (dateReference.year - date_naiss.year) - int((dateReference.month, dateReference.day) < (date_naiss.month, date_naiss.day))
     return age
 
-
 class CTRL_famille(html.HtmlWindow):
     def __init__(self, parent, IDfamille, dictIndividus, texte="", hauteur=24,  couleurFond=(255, 255, 255)):
         html.HtmlWindow.__init__(self, parent, -1, style=wx.html.HW_NO_SELECTION | wx.html.HW_SCROLLBAR_NEVER | wx.NO_FULL_REPAINT_ON_RESIZE)
@@ -77,7 +76,6 @@ class CTRL_famille(html.HtmlWindow):
             return texteNoms
         return ""
 
-
 class CTRL_individus(ULC.UltimateListCtrl):
     def __init__(self, parent, IDfamille=None, dictIndividus={}, listeSelectionIndividus=[], selectionTous=False):
         ULC.UltimateListCtrl.__init__(self, parent, -1, agwStyle=wx.LC_ICON | wx.LC_ALIGN_LEFT)
@@ -107,8 +105,6 @@ class CTRL_individus(ULC.UltimateListCtrl):
         for age, IDindividu in listeIndividus :
             dictIndividu = self.dictIndividus[IDindividu]
             IDcivilite = dictIndividu["IDcivilite"]
-            nom  = dictIndividu["nom"]
-            prenom  = dictIndividu["prenom"]
             nomFichier = Chemins.GetStaticPath("Images/128x128/%s" % DICT_CIVILITES[IDcivilite]["nomImage"])
             IDphoto, bmp = CTRL_Photo.GetPhoto(IDindividu=IDindividu, nomFichier=nomFichier, taillePhoto=(taillePhoto, taillePhoto), qualite=100)
             img = il.Add(bmp)
@@ -122,7 +118,7 @@ class CTRL_individus(ULC.UltimateListCtrl):
             IDcivilite = dictIndividu["IDcivilite"]
             nom  = dictIndividu["nom"]
             prenom  = dictIndividu["prenom"]
-            label = prenom
+            label = "%s %s"%(prenom, nom)[:20]
             if label == "" :
                 label = " "
             self.InsertImageStringItem(index, label, self.dictPhotos[IDindividu])
@@ -178,45 +174,6 @@ class CTRL_individus(ULC.UltimateListCtrl):
             if self.IsSelected(index) :
                 listeIDselections.append(self.GetItemData(index))
         return listeIDselections
-    
-##    def Importation(self):
-##        DB = GestionDB.DB()
-##        
-##        # Recherche des individus
-##        req = """SELECT individus.IDindividu, IDcivilite, nom, prenom, date_naiss, rattachements.IDfamille, IDcategorie, titulaire
-##        FROM  individus
-##        LEFT JOIN rattachements ON individus.IDindividu = rattachements.IDindividu
-##        WHERE rattachements.IDfamille = %d AND IDcategorie IN (1, 2)
-##        ORDER BY nom, prenom;""" % self.IDfamille
-##        DB.ExecuterReq(req,MsgBox="ExecuterReq")
-##        listeIndividus = DB.ResultatReq()
-##        
-##        # Recherche des inscriptions
-##        req = """SELECT IDinscription, IDindividu, IDfamille, IDactivite, IDgroupe, IDcategorie_tarif
-##        FROM inscriptions 
-##        WHERE IDfamille = %d ;""" % self.IDfamille
-##        DB.ExecuterReq(req,MsgBox="ExecuterReq")
-##        listeInscriptions = DB.ResultatReq()
-##        DB.Close()
-##        dictInscriptions = {}
-##        for IDinscription, IDindividu, IDfamille, IDactivite, IDgroupe, IDcategorie_tarif in listeInscriptions :
-##            dictInscriptions[IDindividu] = True
-##            
-##        listeDictIndividus = []
-##        dictTitulairesFamille = {}
-##        for IDindividu, IDcivilite, nom, prenom, date_naiss, IDfamille, IDcategorie, titulaire in listeIndividus :
-##            if date_naiss != None :
-##                date_naiss = DateEngEnDateDD(date_naiss)
-##                age = CalculeAge(datetime.date.today(), date_naiss)
-##            else:
-##                age = None
-##            dictTemp = {"IDindividu" : IDindividu, "IDcivilite" : IDcivilite, "nom" : nom, "prenom" : prenom, "date_naiss" : date_naiss, "age" : age}
-##            if dictInscriptions.has_key(IDindividu) :
-##                listeDictIndividus.append(dictTemp)
-##            if titulaire == 1 :
-##                dictTitulairesFamille[IDindividu] = dictTemp
-##
-##        return listeDictIndividus
 
 class CTRL(wx.Panel):
     def __init__(self, parent, IDfamille=None, dictIndividus={}, selectionIndividus=[], selectionTous=False):
@@ -252,7 +209,23 @@ class MyFrame(wx.Frame):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_1.Add(panel, 1, wx.ALL|wx.EXPAND)
         self.SetSizer(sizer_1)
-        self.myOlv = CTRL(panel, IDfamille=209)
+        self.myOlv = CTRL(panel, IDfamille=8578,dictIndividus={
+                                        18912: {'IDcivilite': 90, 'civiliteAbrege': '', 'nom': 'AFOCAL',
+                                              'prenom': 'Secrétaire général', 'date_naiss': None,
+                                              'age': None, 'IDcategorie': 1, 'titulaire': 1,
+                                              'inscriptions': []},
+                                        20644: {'IDcivilite': 90,
+                                               'civiliteAbrege': '',
+                                               'nom': 'AFOCAL ALSACE LORRAINE',
+                                               'prenom': '-',
+                                               'date_naiss': None,
+                                               'age': None,
+                                               'IDcategorie': 1,
+                                               'titulaire': 1,
+                                               'inscriptions': []}
+                                        },
+                          selectionIndividus=[20644]
+                          )
         sizer_2 = wx.BoxSizer(wx.VERTICAL)
         sizer_2.Add(self.myOlv, 1, wx.ALL|wx.EXPAND, 4)
         panel.SetSizer(sizer_2)

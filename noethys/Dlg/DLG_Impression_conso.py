@@ -1669,7 +1669,7 @@ class Dialog(wx.Dialog):
             LEFT JOIN types_sieste ON types_sieste.IDtype_sieste = individus.IDtype_sieste
             LEFT JOIN inscriptions ON inscriptions.IDindividu = individus.IDindividu
             LEFT JOIN scolarite ON scolarite.IDindividu = individus.IDindividu AND scolarite.date_debut <= '%s' AND scolarite.date_fin >= '%s'
-            WHERE inscriptions.statut='ok' AND inscriptions.IDactivite IN %s and (inscriptions.date_desinscription IS NULL OR inscriptions.date_desinscription>='%s')
+            WHERE (NOT inscriptions.statut LIKE 'ko%%') AND inscriptions.IDactivite IN %s and (inscriptions.date_desinscription IS NULL OR inscriptions.date_desinscription>='%s')
             ; """ % (min(listeDates), max(listeDates), conditionActivites, max(listeDates))
             DB.ExecuterReq(req,MsgBox="DLG_Impression_conso")
             listeTousInscrits = DB.ResultatReq()

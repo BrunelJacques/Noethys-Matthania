@@ -1,8 +1,8 @@
 version  1.3.2.30 (01/12/2023)
-- Gestion des consommations remanié
+- Gestion des consommations remanié et optimisé
 - Modification possible des consos en réservation
 - réhabilitation du survol de l'individu pour voir ses activites
-- modif de l'année académique en cours proposée par défaut
+- Famille: modif de l'année académique en cours proposée par défaut
 
 
 version  1.3.2.59 (30/11/2023)
