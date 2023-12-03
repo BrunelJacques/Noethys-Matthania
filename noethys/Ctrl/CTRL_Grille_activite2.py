@@ -299,14 +299,14 @@ if __name__ == '__main__':
     import datetime
     #wx.InitAllImageHandlers()
     frame_1 = MyFrame(None, -1,
-                      dictIndividus= {18912: {'IDcivilite': 90, 'civiliteAbrege': '', 'nom': 'AFOCAL',
+                      dictIndividus= {18912: {'IDcivilite': 90, 'civiliteAbrege': '', 'nom': 'AFNOM',
                                               'prenom': 'Secrétaire général', 'date_naiss': None,
                                               'age': None, 'IDcategorie': 1, 'titulaire': 1,
                                               'inscriptions': [{'IDinscription': 21362, 'IDactivite': 678, 'IDgroupe': 1866,'IDcategorie_tarif': 1513, 'nomCategorie_tarif': 'Tarif PENSION COMPLETE'},
                                                                {'IDinscription': 23660, 'IDactivite': 736, 'IDgroupe': 2248,'IDcategorie_tarif': 1635,'nomCategorie_tarif': 'Tarif PENSION COMPLETE'},
                                                               ]
                                               },
-                                      20644: {'IDcivilite': 90, 'civiliteAbrege': '', 'nom': 'AFOCAL ALSACE LORRAINE',
+                                      20644: {'IDcivilite': 90, 'civiliteAbrege': '', 'nom': 'ALSACE LORRAINE',
                                               'prenom': '-', 'date_naiss': None, 'age': None, 'IDcategorie': 1,
                                               'titulaire': 1,
                                               'inscriptions': [{'IDinscription': 21362, 'IDactivite': 678, 'IDgroupe': 1866, 'IDcategorie_tarif': 1513, 'nomCategorie_tarif': 'Tarif PENSION COMPLETE'},

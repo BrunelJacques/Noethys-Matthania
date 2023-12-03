@@ -617,7 +617,7 @@ class DB(GestionDB.DB):
             except Exception as err:
                 return " filtre de conversion %s | " % ".".join(
                     [str(x) for x in versionFiltre]) + str(err)
-        """
+
         versionFiltre = (1, 3, 2, 40)
         if versionData < versionFiltre:
             try:
@@ -627,6 +627,7 @@ class DB(GestionDB.DB):
             except Exception as err:
                 return " filtre de conversion %s | " % ".".join(
                     [str(x) for x in versionFiltre]) + str(err)
+        """
         return True
 
 def ConversionLocalReseau(nomFichier="", nouveauFichier="", fenetreParente=None):

@@ -210,13 +210,13 @@ class MyFrame(wx.Frame):
         sizer_1.Add(panel, 1, wx.ALL|wx.EXPAND)
         self.SetSizer(sizer_1)
         self.myOlv = CTRL(panel, IDfamille=8578,dictIndividus={
-                                        18912: {'IDcivilite': 90, 'civiliteAbrege': '', 'nom': 'AFOCAL',
+                                        18912: {'IDcivilite': 90, 'civiliteAbrege': '', 'nom': 'AFNOM',
                                               'prenom': 'Secrétaire général', 'date_naiss': None,
                                               'age': None, 'IDcategorie': 1, 'titulaire': 1,
                                               'inscriptions': []},
                                         20644: {'IDcivilite': 90,
                                                'civiliteAbrege': '',
-                                               'nom': 'AFOCAL ALSACE LORRAINE',
+                                               'nom': 'ALSACE LORRAINE',
                                                'prenom': '-',
                                                'date_naiss': None,
                                                'age': None,
