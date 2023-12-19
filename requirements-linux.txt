@@ -14,14 +14,13 @@ paramiko
 psutil
 pycryptodome
 pystrich
-python_dateutil
+python-dateutil
 pyttsx
 pytz
-pywin32
 reportlab
 setuptools
 sqlalchemy
 Twisted
 xlrd
 XlsxWriter
-wxPython
+

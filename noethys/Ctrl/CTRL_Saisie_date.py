@@ -40,9 +40,8 @@ ID_ANNEE_SUIVANTE = 320
 datePattern = re.compile(
     r"(?P<jour>[\d]{1,2})/(?P<mois>[\d]{1,2})/(?P<annee>[\d]{4})")
 
-def Beep(frequency=440,duration=1000):
-    # works seulement pour windows
-    winsound.Beep(frequency, duration)
+def Beep():
+    print('\a')
 
 
 def ValideDate(texte, date_min="01/01/1900", date_max="01/01/2999", avecMessages=True):
@@ -209,7 +208,7 @@ class Date(wx.TextCtrl):
             if a in '0123456789':
                 if len(lstParties[ixPartie]) < lstNbChiffres[ixPartie]:
                     lstParties[ixPartie] += a
-                else: Beep(duration=200)
+                else: Beep()
         new = self.separateur.join(lstParties)
         self.SetValue(new)
         self.SetInsertionPoint(position)
@@ -617,7 +616,7 @@ class Periode(wx.Panel):
         debut, fin = self.GetDateDebut(), self.GetDateFin()
         # incohérences dates saisies
         if fin < debut:
-            Beep(duration=500)
+            Beep()
             if self.periode[0] == debut:
                 # début inchangé, on l'aligne sur la fin
                 self.periode = (fin, fin)

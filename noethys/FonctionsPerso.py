@@ -38,9 +38,10 @@ def Nz(valeur, type = "int"):
         valeur = int(valeur)
     return valeur
 
-def Beep(frequency=440,duration=1000):
+def Beep():
+    print('\a')
     # works seulement pour windows
-    winsound.Beep(frequency, duration)
+    #winsound.Beep(frequency, duration)
 
 def NoPunctuation(txt = ''):
     if not txt: return ''
