@@ -14,7 +14,6 @@ import GestionDB
 import datetime
 import os
 import codecs
-import winsound
 from Utils import UTILS_Fichiers
 
 # ---- Fonctions usuelles-------------------------------
