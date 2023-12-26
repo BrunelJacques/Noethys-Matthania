@@ -10,16 +10,10 @@
 
 
 import wx
-from Ctrl import CTRL_Bouton_image
 from wx.lib.wordwrap import wordwrap
 
-if 'phoenix' in wx.PlatformInfo:
-    from wx import Control
-else :
-    from wx import PyControl as Control
 
-
-class Newsticker(Control):
+class Newsticker(wx.Control):
     def __init__(self, 
             parent, 
             id=-1, 
@@ -36,7 +30,7 @@ class Newsticker(Control):
             style=wx.NO_BORDER, 
             name="Newsticker"
         ):
-        Control.__init__(self, parent, id=id, pos=pos, size=size, style=style, name=name)
+        wx.Control.__init__(self, parent, id=id, pos=pos, size=size, style=style, name=name)
         self.timer = wx.Timer(self, -1)
         self.timerPause = wx.Timer(self, -1)
         self.textSize = (-1, -1) 
@@ -98,7 +92,7 @@ class Newsticker(Control):
     def Start(self):
         """Starts the text moving"""
         if not self.timer.IsRunning():
-            self.timer.Start(1000 / self._fps)
+            self.timer.Start(int(1000 / self._fps))
     
     def IsTicking(self):
         """Is the ticker ticking? ie, is the text moving?"""
