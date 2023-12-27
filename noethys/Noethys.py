@@ -19,7 +19,7 @@ import GestionDB
 import UpgradeDB
 import FonctionsPerso
 import random
-import wx.lib.agw.aui as aui
+from Patchs import aui
 import wx.lib.agw.advancedsplash as AS
 import wx.lib.agw.toasterbox as Toaster
 from Utils.UTILS_Traduction import _

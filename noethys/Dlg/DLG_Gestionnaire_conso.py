@@ -16,7 +16,7 @@ import wx
 from Ctrl import CTRL_Bouton_image
 import datetime
 import time
-import wx.lib.agw.aui as aui
+from Patchs import aui
 import wx.html as html
 # import wx.lib.agw.hyperlink as Hyperlink
 

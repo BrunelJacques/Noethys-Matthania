@@ -14,7 +14,7 @@ from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
 import datetime
-import wx.lib.agw.aui as aui
+from Patchs import aui
 import wx.html as html
 
 from Utils import UTILS_Config

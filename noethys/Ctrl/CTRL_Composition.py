@@ -16,7 +16,6 @@ import FonctionsPerso as fp
 from Utils import UTILS_SaisieAdresse
 import sys
 import datetime
-from wx.adv import PseudoDC
 
 import wx.lib.agw.supertooltip as STT
 import wx.lib.agw.hypertreelist as HTL
@@ -512,12 +511,16 @@ class CadreIndividu():
             xBmpConso, yBmpConso = x+largeur-5-32, y+5
             self.dc.DrawBitmap(bmpConso, int(xBmpConso), int(yBmpConso))
 
+        # Symboles de l'individu
+        xSymbole = x + paddingCadre
+        ySymbole = y + paddingCadre + 2
+
         # Dessin du symbole TITULAIRE
-        if self.titulaire == 1:
-            bmpTitulaire = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Titulaire.png"),wx.BITMAP_TYPE_ANY)
-            xBmpTitulaire, yBmpTitulaire = x + int(largeur) - 5 - 32, y + 5
-            self.dc.DrawBitmap(bmpTitulaire, x + paddingCadre,
-                               y + paddingCadre + 2)
+        if self.titulaire == 1 :
+            bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Titulaire.png"), wx.BITMAP_TYPE_ANY)
+            self.dc.DrawBitmap(bmp, int(xSymbole), int(ySymbole))
+            xSymbole += 16
+
 
         # Mémorisation dans le dictionnaire d'objets
         self.dc.SetIdBounds(self.IDobjet, wx.Rect(int(x), int(y), int(largeur), int(hauteur)))
@@ -620,7 +623,7 @@ class CTRL_Graphique(wx.ScrolledWindow):
         
         
         # create a PseudoDC to record our drawing
-        self.pdc = PseudoDC()
+        self.pdc = wx.adv.PseudoDC()
         self.dictIDs = {}
 ##        self.DoDrawing(self.pdc)
 
@@ -675,8 +678,7 @@ class CTRL_Graphique(wx.ScrolledWindow):
         """ Creation du dessin dans le PseudoDC """
         dc.RemoveAll()
         #dc.BeginDrawing()
-        tailleDC = self.GetSize()[0], self.GetSize()[1]
-                
+        tailleDC = self.GetSize()
         # Calcul des positions horizontales des cases
         largeurCase = self.largeurCaseDefaut
         largeurBloc = (3*largeurCase)+self.espaceHorizontalDefautCol1+self.espaceHorizontalDefautCol2
@@ -812,8 +814,8 @@ class CTRL_Graphique(wx.ScrolledWindow):
             # Dessin des liens de filiation
             index = 0
             for listeParents, listeEnfants in dictParents.items() :
-                posXLigneParents = posCentrale[index]
-                posXLigneEnfants = posXLigneParents
+                posXLigneParents = int(posCentrale[index])
+                posXLigneEnfants = int(posXLigneParents)
                 
                 # Dessine les liens ENFANTS
                 listeYenfants = []

@@ -167,7 +167,7 @@ class ObjectListView(OLV.ObjectListView):
         else :
             proportion = 2
         try :
-            self.stEmptyListMsg.SetSize(0, sz.GetHeight()/proportion, sz.GetWidth(), sz.GetHeight()) # J'ai mis 2 a la place de 3
+            self.stEmptyListMsg.SetSize(0, int(sz.GetHeight()/proportion), sz.GetWidth(), sz.GetHeight()) # J'ai mis 2 a la place de 3
         except :
             self.stEmptyListMsg.SetDimensions(0, sz.GetHeight() / proportion, sz.GetWidth(), sz.GetHeight())  # J'ai mis 2 a la place de 3
 

@@ -14,7 +14,7 @@ from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
-import wx.lib.agw.aui as aui
+from Patchs import aui
 from wx.lib.floatcanvas import FloatCanvas, GUIMode
 import wx.lib.colourselect as csel
 if 'phoenix' in wx.PlatformInfo:

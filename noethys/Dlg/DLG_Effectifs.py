@@ -12,7 +12,7 @@
 import Chemins
 from Utils.UTILS_Traduction import _
 import wx
-import wx.lib.agw.aui as aui
+from Patchs import aui
 
 from Dlg import DLG_Remplissage
 from Dlg import DLG_Nbre_groupe
