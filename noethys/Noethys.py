@@ -47,7 +47,6 @@ from Dlg import DLG_Enregistrement
 from Ctrl import CTRL_Toaster
 from Ctrl import CTRL_Portail_serveur
 from Ctrl import CTRL_TaskBarIcon
-from urllib.request import urlopen
 from Crypto.Hash import SHA256
 
 if "linux" in sys.platform:

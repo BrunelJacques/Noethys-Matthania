@@ -1505,8 +1505,45 @@ class Messages(wx.Frame):
         else:
             return None,None
 
+class TestBase():
+    def __init__(self):
+        # Module Imports
+        password = input("Mot de passe")
+        kwd = {
+        'user':"operateur",
+        'password':password,
+        'host':"192.168.1.43",
+        'port':3306,
+        'database':"matthania_data"
+        }
+        cur = self.GetCurMaria(**kwd)
+        if cur:
+            self.GetDonnees(cur)
+
+
+    def GetCurMaria(self,**kwd):
+        import mariadb
+        import sys
+        # Connect to MariaDB Platform
+        try:
+            conn = mariadb.connect(**kwd)
+        except mariadb.Error as e:
+            print(f"Error connecting to MariaDB Platform: {e}")
+            sys.exit(1)
+        # Get Cursor
+        cur = conn.cursor()
+        print(cur)
+        return cur
+
+    def GetDonnees(self,cur):
+        cur.execute("SELECT * FROM activites LIMIT 10")
+        for activite in cur:
+            print(activite[:5])
+
+
+
 if __name__ == "__main__":
     app = wx.App()
     gdb = GestionBase()#nomFichier=u'3306;192.168.1.43;root;motdepasse[RESEAU]information_schema',suffixe=None
-    print(gdb.db.GetDateFacture(0,738,datetime.date.today()))
-
+    #print(gdb.db.GetDateFacture(0,738,datetime.date.today()))
+    TestBase()
