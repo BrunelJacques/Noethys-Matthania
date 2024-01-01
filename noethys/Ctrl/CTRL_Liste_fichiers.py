@@ -81,7 +81,7 @@ class FirstColumnRenderer(object):
                         
         textWidth, textHeight = dc.GetTextExtent(self.text)
         dc.SetTextForeground(wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNTEXT))
-        dc.DrawText(self.text, rect.x+bmpWidth+10, rect.y+(rect.height - textHeight)/4)
+        dc.DrawText(self.text, rect.x+bmpWidth+10, rect.y+(rect.height - textHeight)//4)
 
         if not self.description:
             return
@@ -90,7 +90,7 @@ class FirstColumnRenderer(object):
 
         textWidth, textHeight = dc.GetTextExtent(self.description)
         dc.SetTextForeground(self.greyColour)
-        dc.DrawText(self.description, rect.x+bmpWidth+10, rect.y+3*(rect.height - textHeight)/4)
+        dc.DrawText(self.description, rect.x+bmpWidth+10, rect.y+3*(rect.height - textHeight)//4)
         
 
     def GetLineHeight(self):
@@ -140,18 +140,18 @@ class SecondColumnRenderer(object):
             dummy1, dummy2= dc.GetTextExtent(_("Date modif.: "))
             textWidth, textHeight = dc.GetTextExtent(self.date)
             dc.SetTextForeground(self.greyColour)
-            dc.DrawText("Date modif.: ", rect.x+5, rect.y+(rect.height - textHeight)/4)
+            dc.DrawText("Date modif.: ", rect.x+5, rect.y+(rect.height - textHeight)//4)
             dc.SetTextForeground(wx.BLACK)
-            dc.DrawText(self.date, rect.x+dummy1+5, rect.y+(rect.height - textHeight)/4)
+            dc.DrawText(self.date, rect.x+dummy1+5, rect.y+(rect.height - textHeight)//4)
         else :
             textWidth, textHeight = 0, 0
 
         if self.size :
             dummy1, dummy2= dc.GetTextExtent("Taille: ")
             dc.SetTextForeground(self.greyColour)
-            dc.DrawText("Taille: ", rect.x+5, rect.y+3*(rect.height - textHeight)/4)
+            dc.DrawText("Taille: ", rect.x+5, rect.y+3*(rect.height - textHeight)//4)
             dc.SetTextForeground(wx.BLACK)
-            dc.DrawText(self.size, rect.x+dummy1+5, rect.y+3*(rect.height - textHeight)/4)
+            dc.DrawText(self.size, rect.x+dummy1+5, rect.y+3*(rect.height - textHeight)//4)
         
 
     def GetLineHeight(self):

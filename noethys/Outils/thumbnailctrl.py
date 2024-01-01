@@ -1749,11 +1749,11 @@ class ScrolledThumbnail(wx.ScrolledWindow):
             txtcolour = "#7D7D7D"
             dc.SetTextForeground(txtcolour) 
             
-            tx = x + (self._tWidth - sw)/2
+            tx = x + (self._tWidth - sw)//2
             if hh >= self._tHeight:
-                ty = y + self._tHeight + (self._tTextHeight - sh)/2 + 3
+                ty = y + self._tHeight + (self._tTextHeight - sh)//2 + 3
             else:
-                ty = y + hh + (self._tHeight-hh)/2 + (self._tTextHeight - sh)/2 + 3
+                ty = y + hh + (self._tHeight-hh)//2 + (self._tTextHeight - sh)//2 + 3
 
             dc.DrawText(mycaption, tx, ty)
             

@@ -165,12 +165,12 @@ class CaseStandard(GridCellRenderer):
             
             heure_debut = str(self.case.heure_debut)
             largeurFinaleTexte = dc.GetTextExtent(heure_debut)[0]
-            xTexte = rect[0] + ((rect[2] - largeurFinaleTexte) / 2.0)
+            xTexte = int(rect[0] + ((rect[2] - largeurFinaleTexte) / 2.0))
             dc.DrawText(heure_debut, xTexte-6, rect[1]+5)
             
             heure_fin = str(self.case.heure_fin)
             largeurFinaleTexte = dc.GetTextExtent(heure_fin)[0]
-            xTexte = rect[0] + ((rect[2] - largeurFinaleTexte) / 2.0)
+            xTexte = int(rect[0] + ((rect[2] - largeurFinaleTexte) / 2.0))
             dc.DrawText(heure_fin, xTexte-6, rect[1]+3 + tailleFont + 5)
 
         # Ecrit la quantité si c'est une conso QUANTITE
@@ -196,7 +196,7 @@ class CaseStandard(GridCellRenderer):
                     dc.SetFont(wx.Font(6, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, 'Arial'))
                     nomGroupe = self.AdapteTailleTexte(dc, nomGroupe, rect[2]-6)
                     largeurFinaleTexte = dc.GetTextExtent(nomGroupe)[0]
-                    xTexte = rect[0] + ((rect[2] - largeurFinaleTexte) / 2.0)
+                    xTexte = rect[0] + ((rect[2] - largeurFinaleTexte) // 2)
                     dc.DrawText(nomGroupe, xTexte, rect.y + rect.height - 12)
                     dc.SetTextForeground("BLACK")
         

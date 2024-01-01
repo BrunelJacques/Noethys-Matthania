@@ -240,7 +240,7 @@ class CaseRenderer(GridCellRenderer):
 
             # Texte
             xTexte = int(xRond + largeurRond / 2.0 - largeurTexte / 2.0)
-            yTexte = yRond + hauteurRond / 2.0 - hauteurTexte / 2.0
+            yTexte = int(yRond + hauteurRond / 2.0 - hauteurTexte / 2.0)
             dc.DrawText(texte, xTexte, yTexte)
 
             # dc.SetTextForeground(wx.Colour(180, 180, 180))
@@ -256,7 +256,7 @@ class CaseRenderer(GridCellRenderer):
         if "numerique" in self.case.categorieColonne:
             dc.SetFont(wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, 'Arial'))
             largeurTexte, hauteurTexte = dc.GetTextExtent(texte)
-            dc.DrawText(texte, rect.x + rect.width - 10 - largeurTexte, rect.y + rect.height/2.0 - hauteurTexte/2.0)
+            dc.DrawText(texte, rect.x + rect.width - 10 - largeurTexte, rect.y + rect.height//2 - hauteurTexte//2)
 
         if "texte" in self.case.categorieColonne:
             tailleFont = 7

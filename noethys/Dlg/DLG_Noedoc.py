@@ -1436,9 +1436,9 @@ class CTRL_Style(OwnerDrawnComboBox):
             # for painting the items in the popup
             dc.DrawText(self.GetString( item ),
                         r.x + 3,
-                        (r.y + 0) + ( (r.height/2) - dc.GetCharHeight() )/2
+                        (r.y + 0) + ( (r.height//2) - dc.GetCharHeight() )//2
                         )
-            dc.DrawLine( r.x+5, r.y+((r.height/4)*3)+1, r.x+r.width - 5, r.y+((r.height/4)*3)+1 )
+            dc.DrawLine( r.x+5, r.y+((r.height//4)*3)+1, r.x+r.width - 5, r.y+((r.height//4)*3)+1 )
            
     def OnDrawBackground(self, dc, rect, item, flags):
         # If the item is selected, or its item # iseven, or we are painting the

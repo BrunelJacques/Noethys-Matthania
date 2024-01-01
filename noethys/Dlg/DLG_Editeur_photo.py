@@ -148,8 +148,8 @@ class ImgBox(wx.Window):
             largeurDC, hauteurDC = self.GetClientSize()
         else :
             largeurDC, hauteurDC = self.GetClientSizeTuple()
-        self.posxCadre = (largeurDC / 2.0) - (self.tailleCadre[0] / 2.0)
-        self.posyCadre = (hauteurDC / 2.0) - (self.tailleCadre[1] / 2.0)
+        self.posxCadre = int((largeurDC / 2) - (self.tailleCadre[0] / 2))
+        self.posyCadre = int((hauteurDC / 2.0) - (self.tailleCadre[1] / 2.0))
         
         # Mémorise la sélection de la photo avant de dessiner le cadre
         self.selection = dc.GetAsBitmap((self.posxCadre, self.posyCadre, self.tailleCadre[0], self.tailleCadre[1]))
