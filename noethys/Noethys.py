@@ -19,7 +19,8 @@ import GestionDB
 import UpgradeDB
 import FonctionsPerso
 import random
-from Patchs import aui
+#from Patchs import aui # modif temporaire pb version aui dupliqué
+import wx.lib.agw.aui as aui
 import wx.lib.agw.advancedsplash as AS
 import wx.lib.agw.toasterbox as Toaster
 from Utils.UTILS_Traduction import _

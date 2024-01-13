@@ -13,7 +13,7 @@ from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 import datetime
-from Patchs import aui
+import wx.lib.agw.aui as aui
 from Dlg.DLG_Noedoc import Panel_canvas
 from Ctrl import CTRL_Bouton_image
 from Utils import UTILS_Dialogs
