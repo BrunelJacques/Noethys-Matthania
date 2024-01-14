@@ -8,7 +8,6 @@
 # Licence:         Licence GNU GPL
 #-----------------------------------------------------------
 
-
 import Chemins
 from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
@@ -17,23 +16,25 @@ from Ctrl import CTRL_Bouton_image
 import datetime
 from Crypto.Hash import SHA256
 
-
-class CTRL(wx.SearchCtrl):
+# L'attribut TE_PASSWORD ne fonctionnait pas sous Ubuntu, SearchCtrl remplacé par TextCtrl
+#class CTRL(wx.SearchCtrl):
+class CTRL(wx.TextCtrl):
     def __init__(self, parent, listeUtilisateurs=[], size=(-1, -1), modeDLG=False):
-        wx.SearchCtrl.__init__(self, parent, size=size, style=wx.TE_PROCESS_ENTER | wx.TE_PASSWORD)
+        #wx.SearchCtrl.__init__(self, parent, size=size, style=wx.TE_PROCESS_ENTER | wx.TE_PASSWORD)
+        wx.TextCtrl.__init__(self, parent, size=size, style=wx.TE_PROCESS_ENTER | wx.TE_PASSWORD)
         self.parent = parent
         self.listeUtilisateurs = listeUtilisateurs
         self.modeDLG = modeDLG
-        self.SetDescriptiveText(u"   ")
 
-        # Options
-        self.ShowSearchButton(True)
-        self.SetCancelBitmap(wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Interdit.png"), wx.BITMAP_TYPE_PNG))
-        self.SetSearchBitmap(wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Cadenas.png"), wx.BITMAP_TYPE_PNG))
+        # Options SearchCtrl
+        #self.SetDescriptiveText(u"   ")
+        #self.ShowSearchButton(True)
+        #self.SetCancelBitmap(wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Interdit.png"), wx.BITMAP_TYPE_PNG))
+        #self.SetSearchBitmap(wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Cadenas.png"), wx.BITMAP_TYPE_PNG))
         
         # Binds
-        self.Bind(wx.EVT_SEARCHCTRL_SEARCH_BTN, self.OnSearch)
-        self.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.OnCancel)
+        #self.Bind(wx.EVT_SEARCHCTRL_SEARCH_BTN, self.OnSearch) # Options SearchCtrl
+        #self.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.OnCancel) # Options SearchCtrl
         self.Bind(wx.EVT_TEXT_ENTER, self.OnDoSearch)
         self.Bind(wx.EVT_TEXT, self.OnDoSearch)
 
@@ -57,7 +58,6 @@ class CTRL(wx.SearchCtrl):
     def Recherche(self):
         txtSearch = self.GetValue()
         mdpcrypt = SHA256.new(txtSearch.encode('utf-8')).hexdigest()
-        #self.ShowCancelButton(len(txtSearch))
         if self.modeDLG == True :
             listeUtilisateurs = self.listeUtilisateurs
         else:
@@ -80,27 +80,6 @@ class CTRL(wx.SearchCtrl):
                         break
         self.Refresh() 
     
-
-
-
-# ----------------- FRAME DE TEST ----------------------------------------------------------------
-
-class MyFrame(wx.Frame):
-    def __init__(self, *args, **kwds):
-        wx.Frame.__init__(self, *args, **kwds)
-        panel = wx.Panel(self, -1)
-        sizer_1 = wx.BoxSizer(wx.VERTICAL)
-        sizer_1.Add(panel, 1, wx.ALL|wx.EXPAND)
-        self.SetSizer(sizer_1)
-        self.myOlv = CTRL(panel)
-        self.myOlv2 = wx.TextCtrl(panel, -1, "test")
-        sizer_2 = wx.BoxSizer(wx.VERTICAL)
-        sizer_2.Add(self.myOlv, 0, wx.ALL|wx.EXPAND, 10)
-        sizer_2.Add(self.myOlv2, 0, wx.ALL|wx.EXPAND, 10)
-        panel.SetSizer(sizer_2)
-        self.SetSize((500, 150))
-        self.Layout()
-        self.CenterOnScreen()
 
 # --------------------------- DLG de saisie de mot de passe ----------------------------
 
@@ -172,16 +151,43 @@ class Dialog(wx.Dialog):
     
     def GetDictUtilisateur(self):
         return self.dictUtilisateur
-    
+
+# ---------------------------------------------------------------------------------------
+
+class TestDlg(wx.Dialog):
+    def __init__(self, parent, title= "test"):
+        wx.Dialog.__init__(self,parent, -1, title, name="DLG_test")
 
 
-# ----------------------------------------------------------------------------------------------------------------------
+        # Create a panel
+        panel = wx.Panel(self)
+
+        # Create a TextCtrl with TE_PASSWORD style
+        textLabel = wx.StaticText(panel, -1, "Avec TextCtrl")
+        text_ctrl = wx.TextCtrl(panel, style=wx.TE_PASSWORD)
+
+        # Create a SearchCtrl with TE_PASSWORD style
+        searchLabel = wx.StaticText(panel, -1, "Avec SearchCtrl")
+        search_ctrl = wx.SearchCtrl(panel, style=wx.TE_PASSWORD)
+
+        # Add controls to a sizer for layout
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(textLabel, 0, wx.EXPAND | wx.ALL, 10)
+        sizer.Add(text_ctrl, 0, wx.EXPAND | wx.ALL, 10)
+        sizer.Add(searchLabel, 0, wx.EXPAND | wx.ALL, 10)
+        sizer.Add(search_ctrl, 0, wx.EXPAND | wx.ALL, 10)
+
+        panel.SetSizer(sizer)
+
+    def GetDictUtilisateur(self):
+        return 'fin'
+
 if __name__ == '__main__':
     app = wx.App(0)
-    #wx.InitAllImageHandlers()
-##    frame_1 = MyFrame(None, -1, "GroupListView")
-    dlg = Dialog(None, listeUtilisateurs=[])
+    #dlg = Dialog(None, listeUtilisateurs=[])
+    dlg = TestDlg(None,title="wxPython TE_PASSWORD Example")
     app.SetTopWindow(dlg)
     dlg.ShowModal()
     print(dlg.GetDictUtilisateur())
     app.MainLoop()
+

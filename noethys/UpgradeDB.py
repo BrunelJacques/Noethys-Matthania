@@ -354,8 +354,11 @@ class DB(GestionDB.DB):
             return (False, None)
         # Recherche des noms de champs de la table
         req = "SELECT * FROM %s" % nomTable
-        cursor.execute(req)
-        listeDonneesTmp = cursor.fetchall()
+        try:
+            cursor.execute(req)
+            listeDonneesTmp = cursor.fetchall()
+        except:
+            return (False, None)
         listeNomsChamps = []
         for fieldDesc in cursor.description:
             listeNomsChamps.append(fieldDesc[0])
