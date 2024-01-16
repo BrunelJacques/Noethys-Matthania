@@ -3,24 +3,25 @@ Installer Noethys sur Linux
 L'installation de Noethys sur Linux se fait obligatoirement depuis les sources.
 Vous devez télécharger le code source depuis Github et installer les dépendances.
 
-
-Installation facile sur Ubuntu 20.04
+Installation facile sur Ubuntu 22.04
 ------------------
-
 Lancez dans votre console Linux les commandes suivantes :
+
 ```
-sudo mkdir /home/noegest
-sudo mkdir /home/noegest/Noethys-Matthania
 sudo groupadd noegest
-sudo adduser myname noegest 
+sudo mkdir /home/noegest
+sudo useradd matthania noegest
 sudo chgrp -R noegest /home/noegest
-cd /home/noegest/Noethys-Matthania
-sudo apt-get install git curl libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0 python3-pip python3-pyscard python3-dev default-libmysqlclient-dev build-essential
-sudo apt install pkg-config
-pip3 install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04 wxPython
+sudo chown -R matthania /home/noegest
+su matthania
+cd /home/noegest
+apt-get install git curl libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0 python3-pip python3-pyscard python3-dev default-libmysqlclient-dev build-essential
+apt install pkg-config
+pip3 install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04 wxPython
 git clone https://github.com/BrunelJacques/Noethys-Matthania
-pip3 install -r Noethys/requirements.txt
-python3 Noethys/noethys/Noethys.py
+cd Noethys-Matthania
+pip3 install -r requirements.txt
+python3 noethys/Noethys.py
 ```
 
 

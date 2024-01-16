@@ -27,7 +27,4 @@ python3 Noethys/noethys/Noethys.py
 ```
 pour plus de détail voir 'noethys/Doc/install_linux.md'
 
-Installation depuis les sources
-------------------
-S
 

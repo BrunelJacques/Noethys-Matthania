@@ -158,9 +158,9 @@ class TestDlg(wx.Dialog):
     def __init__(self, parent, title= "test"):
         wx.Dialog.__init__(self,parent, -1, title, name="DLG_test")
 
-
         # Create a panel
         panel = wx.Panel(self)
+        self.SetMinSize((200,400))
 
         # Create a TextCtrl with TE_PASSWORD style
         textLabel = wx.StaticText(panel, -1, "Avec TextCtrl")
