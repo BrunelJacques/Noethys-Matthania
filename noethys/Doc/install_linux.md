@@ -3,7 +3,7 @@ Installer Noethys sur Linux
 L'installation de Noethys sur Linux se fait obligatoirement depuis les sources.
 Vous devez télécharger le code source depuis Github et installer les dépendances.
 
-Installation facile sur Ubuntu 22.04
+Installation pas à pas sur Ubuntu 22.04
 ------------------
 Lancez dans votre console Linux les commandes suivantes :
 
@@ -20,10 +20,14 @@ apt install pkg-config
 pip3 install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04 wxPython
 git clone https://github.com/BrunelJacques/Noethys-Matthania
 cd Noethys-Matthania
+pip3 install --upgrade pip
 pip3 install -r requirements.txt
+cp noethys/doc/lanceur_linux.sh /home/noegest/lancer_noethys.sh
+cp noethys/doc/lancer_noethys.desktop  ~/.local/share/applications/
+chmod +x /home/noegest/lancer_noethys.sh
 python3 noethys/Noethys.py
 ```
-
+ou lancer par le desktop accessible dans les applications vues par Gnome
 
 Installation manuelle sur Linux
 ------------------
@@ -32,13 +36,13 @@ si échec du 'git clone' télécharger les sources et extraire les fichiers
 pour wxpython existe aussi la version ubuntu-22
 extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04 wxPython
 
-si echec des accès mysql
+Si echec pip3 install mysqlclient
 ```
 sudo apt-get install python-mysqldb
 pip3 install mysql-connector-python
 ```
 
-préconisation Noethys:
+préconisation Noethys original:
 Téléchargez le code source de Noethys depuis Github puis installez les dépendances suivantes :
 - python 3+ 
 - python-wxgtk3.0 (Bibliothèque graphique wxPython)
@@ -75,29 +79,4 @@ pip install icalendar
 ```
 Pour lancer Noethys, lancez le terminal de Linux, placez-vous dans le répertoire d'installation de Noethys, puis saisissez la commande "python Noethys.py"
 - - - -
-
-
-
-## Obsolète: instructions à suivre uniquement sur d'anciennes versions de debian ou ubuntu ##
-
-Dans le cas où votre version de debian ou d'ubuntu ne proposerait pas python-wxgtk3.0 (ce qui est le cas pour ubuntu LTS 14.04 et toute distribution basée sur cette version), la commande précédente retourne une erreur.
-
-Exécutez alors la commande suivante:
-```
-apt-get install python-wxgtk2.8 libjpeg62 libwxgtk3.0-0
-```
-
-Puis téléchargez les paquets de la bibliothèque graphique correspondant à votre architecture (32 ou 64 bits), wxpython et wxwidgets, ainsi que libtiff4.
-
-Vous trouverez ces fichiers sur le site de Noethys : **Menu Assistance > Ressources communautaires > Liste des ressources > Divers**.
-
-Puis exécutez la commande suivante:
-```
-dpkg -i dossier/wxwidget*****.deb dossier/wxpython*****.deb dossier/libtiff4*****.deb
-```
-
-**dossier**: le dossier dans lequel vous avez téléchargé la bibliothèque
-**wxwidget\*****.deb, wxpython\*****.deb et libtiff4\*****.deb** sont les fichiers correspondant à votre architecture que vous avez téléchargés.
-
-**Vérifiez que vous avez choisi la version correspondant à votre architecture (32 ou 64 bits).**
 
