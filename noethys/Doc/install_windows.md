@@ -1,23 +1,15 @@
-Installer Noethys sur Windows
+Installer Noethys-Matthania sur Windows
 ==================
-Si vous souhaitez juste utiliser Noethys, il suffira de télécharger la version compilée.
-Mais si vous souhaitez étudier le code de Noethys ou y effectuer des modifications, il 
-vous faudra effectuer une installation depuis les sources.
+Télécharger 
 
-
-Installer une version compilée
-------------------
-
-Allez dans la rubrique Téléchargements du site www.noethys.com pour télécharger la version compilée pour Windows.
-
-
-Installer depuis les sources
-------------------
 Sur Windows, vous devez aller sur les sites des auteurs pour 
 rechercher et installer les bibliothèques suivantes.
-
-- Python 2.7 ou 3+ (http://www.python.org/)
+- Python 3+ avec pip (http://www.python.org/)
 - wxPython 3+ - version unicode (http://www.wxpython.org/)
+
+dans un terminal shell lancez 'pip install -r requirements.txt'
+
+Liste des modules quidoivent être chargés
 - dateutil (http://pypi.python.org/pypi/python-dateutil)
 - MySQLdb (http://sourceforge.net/projects/mysql-python/)
 - NumPy (http://new.scipy.org/download.html)
@@ -35,3 +27,6 @@ rechercher et installer les bibliothèques suivantes.
 - Paramiko (https://pypi.python.org/pypi/paramiko)
 - Lxml (https://pypi.python.org/pypi/lxml)
 - pystrich (https://pypi.org/project/pyStrich/)
+
+En installant PyCharm Community Edition on peut facilement créer un environnement 
+et vérifier les modules qui ont été chargés 

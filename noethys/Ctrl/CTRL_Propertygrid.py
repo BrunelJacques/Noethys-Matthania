@@ -8,6 +8,8 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
+# dans l'original Noethys sous Ubuntu remplacer LABEL_AS_NAME par StringProperty pour fonctionner.
+# Dans Noethys-Matthania j'ai supprimé la compatibilité python2 donc pas de LABEL_AS_NAME
 
 import Chemins
 from Utils import UTILS_Adaptations

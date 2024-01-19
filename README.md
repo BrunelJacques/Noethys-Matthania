@@ -1,12 +1,13 @@
 Noethys-Matthania
 ==================
-Le célébre outil de gestion Noethys a été repris par Matthania pour ses besoin de gestion de camps.
+Le célébre outil de gestion Noethys a été repris par Matthania pour ses besoins de gestion de camps.
 Les spécificités ajoutées permettent de gérer des articles et des tarifs avec des modules de réductions spécifiques.
 L'autre particularité est de gérer des pièces changeant d'état: Devis, Réservation, Commande, Facture, Avoir.
 
-Plus d'infos sur les fonctions de base de Noethys sur : www.noethys.com
+Pour connaître le produit original et son fonctionnement initial se reporter à : www.noethys.com
 
-Les premières modification ont été apportées à partir de Noethys 2016, à l'occasion de la transposition en python3 un merge a été fait à partir de Noethys 1.3.0.8 (30/03/2022)
+Les premières modification ont été apportées à partir de Noethys 2016.
+A l'occasion de la transposition en python3 un merge a été fait à partir de Noethys 1.3.0.8 (30/03/2022)
 Par simplification La compatibilité avec Python27 n'est plus assurée, ni la traduction dans une autre langue.
 
 Installation sur Windows

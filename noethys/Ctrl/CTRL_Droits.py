@@ -362,10 +362,10 @@ class RendererCase(GridCellRenderer):
         if bmp != None :
             tailleImage = 16
             paddingImage = 3
-            dc.DrawBitmap(bmp, rect[0] + ((rect[2] - tailleImage) / 2.0), rect[1] + ((rect[3] - tailleImage) / 2.0))
+            dc.DrawBitmap(bmp, rect[0] + ((rect[2] - tailleImage) // 2.0), rect[1] + ((rect[3] - tailleImage) // 2))
         
         # Mémorisation pour infobulle
-        self.bmp = bmp
+        self.bmp = bm
         self.couleurFond = couleurFond
         
         # Ecrit les restrictions

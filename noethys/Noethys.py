@@ -1650,7 +1650,7 @@ class MainFrame(wx.Frame):
                 resultat, message, titre, style = UpdateDB(versionData)
 
         elif versionData > versionLogiciel:
-            import DLG_Release
+            from Dlg import DLG_Release
             dlg = DLG_Release.Dialog(self, VERSION_DATA, VERSION_LOGICIEL_DATE)
             resultat = dlg.ShowModal()
             majFaite = dlg.majFaite
