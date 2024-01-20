@@ -10,10 +10,11 @@ Lancez dans votre terminal Linux les commandes suivantes :
 ```
 sudo groupadd noegest
 sudo mkdir /home/noegest
-sudo useradd matthania noegest
+sudo useradd matthania -g noegest
+sudo usermod -aG sudo matthania 
 sudo chgrp -R noegest /home/noegest
 sudo chown -R matthania /home/noegest
-su matthania
+su -p matthania
 cd /home/noegest
 apt-get install git curl libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0 python3-pip python3-pyscard python3-dev default-libmysqlclient-dev build-essential
 apt install pkg-config
