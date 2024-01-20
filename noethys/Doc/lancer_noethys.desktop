@@ -1,5 +1,5 @@
 [Desktop Entry]
 Type=Application
 Name=Noethys-Matthania
-Exec=/home/noegest/lancer_noethys.sh
-Icon=/chemin/vers/votre/icône.png
+Exec=/home/noegest/Noethys-Matthania/lancer_noethys.sh
+Icon=/home/noegest/Noethys-Matthania/noethys/Static/Images/icone.ico
