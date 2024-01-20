@@ -23,8 +23,8 @@ cd Noethys-Matthania
 pip3 install --upgrade pip
 pip3 install -r requirements.txt
 cp noethys/Doc/lanceur_linux.sh /home/noegest/Noethys-Matthania/lancer_noethys.sh
-cp noethys/Doc/lancer_noethys.desktop  ~/.local/share/applications/
-chmod +x /home/noegest/lancer_noethys.sh
+sudo cp noethys/Doc/lancer_noethys.desktop  /usr/local/share/applications/
+chmod +x /home/noegest/Noethys-Matthania/lancer_noethys.sh
 python3 noethys/Noethys.py
 ```
 ou lancer par le desktop accessible dans les applications vues par Gnome
