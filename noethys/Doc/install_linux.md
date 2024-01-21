@@ -8,14 +8,19 @@ Installation pas à pas sur Ubuntu 22.04
 Lancez dans votre terminal Linux les commandes suivantes :
 
 ```
+# creation d'un groupe pour les applications de gestion et autorisation rwx au groupe
 sudo groupadd noegest
+sudo usermod -aG noegest <myname>
 sudo mkdir /home/noegest
-sudo useradd matthania -g noegest
-sudo usermod -aG sudo matthania 
 sudo chgrp -R noegest /home/noegest
-sudo chown -R matthania /home/noegest
-su -p matthania
+sudo 775 -R /home/noegest
 cd /home/noegest
+# creation d'un environnement de travail selon ma version de python
+sudo apt install python3.10-venv
+python3 -m venv envnoethys
+source envnoethys/bin/activate
+# le prompt affiche l'environnement activé
+# installation des paquets
 apt-get install git curl libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0 python3-pip python3-pyscard python3-dev default-libmysqlclient-dev build-essential
 apt install pkg-config
 pip3 install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04 wxPython
@@ -26,6 +31,9 @@ pip3 install -r requirements.txt
 cp noethys/Doc/lanceur_linux.sh /home/noegest/Noethys-Matthania/lancer_noethys.sh
 sudo cp noethys/Doc/lancer_noethys.desktop  /usr/local/share/applications/
 chmod +x /home/noegest/Noethys-Matthania/lancer_noethys.sh
+deactivate
+# lancement de noethys
+source ../envnoethys/bin/activate
 python3 noethys/Noethys.py
 ```
 ou lancer par le desktop accessible dans les applications vues par Gnome
