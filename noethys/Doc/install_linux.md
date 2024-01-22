@@ -1,10 +1,10 @@
 Installer Noethys sur Linux
-==================
+===========================
 L'installation de Noethys sur Linux se fait obligatoirement depuis les sources.
 Ci-dessous vous allez cloner le code source depuis Github et installer les dépendances.
 
-Installation pas à pas sur Ubuntu 22.04
-------------------
+Installation pas à pas sur Ubuntu 22.04 Noethys-Matthania
+---------------------------------------------------------
 Lancez dans votre terminal Linux les commandes suivantes :
 
 ```
@@ -39,53 +39,19 @@ python3 noethys/Noethys.py
 ou lancer par le desktop accessible dans les applications vues par Gnome
 
 Installation manuelle sur Linux
-------------------
+-------------------------------
 si échec du 'git clone' télécharger les sources et extraire les fichiers
 
-pour wxpython existe aussi la version ubuntu-22
-extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04 wxPython
+pour wxpython existe aussi la version ubuntu-20
+extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04 wxPython
 
+'mysqlclient' peut être enlevé de requirements.txt pour installer le reste.
 Si echec pip3 install mysqlclient
 ```
 sudo apt-get install python-mysqldb
 pip3 install mysql-connector-python
 ```
 
-préconisation Noethys original:
-Téléchargez le code source de Noethys depuis Github puis installez les dépendances suivantes :
-- python 3+ 
-- python-wxgtk3.0 (Bibliothèque graphique wxPython)
-- python-mysqldb (Pour l'utilisation en mode réseau)
-- python-dateutil (Manipulation des dates)
-- python-numpy (Calculs avancés)
-- python-pil (Traitement des photos)
-- python-reportlab (Création des PDF)
-- python-matplotlib (Création de graphes)
-- python-xlrd (Traitement de fichiers Excel)
-- python-crypto (pour crypter les sauvegardes)
-- python-xlsxwriter (pour les exports format excel)
-- python-pyscard (pour pouvoir configurer les procédures de badgeage)
-- python-opencv (pour la détection automatique des visages)
-- python-pip (qui permet d'installer pyttsx et icalendar)
-- python-espeak (pour la synthèse vocale, associé à pyttsx)
-- python-appdirs (pour rechercher les répertoires de stockage des données)
-- python-psutil (infos système)
-- python-paramiko (Prise en charge SSH)
-- python-lxml (Validation XSD des bordereaux PES)
-- python-pystrich (Génération de datamatrix)
-
-Ils s'installent depuis la console Linux avec la commande (**à exécuter si besoin avec sudo**):
-```
-apt-get install python-mysqldb python-dateutil python-numpy python-pil python-reportlab python-matplotlib 
-python-xlrd python-xlsxwriter python-pip python-espeak python-pyscard python-opencv python-crypto python-appdirs
-python-wxgtk3.0 python-sqlalchemy libcanberra-gtk-module python-psutil python-paramiko python-lxml
-```
-
-Et pour pyttsx et icalendar il faut avoir installé python-pip (ce qui a ét fait dans l'étape précédente) et les installer par:
-```
-pip install pyttsx
-pip install icalendar
-```
-Pour lancer Noethys, lancez le terminal de Linux, placez-vous dans le répertoire d'installation de Noethys, puis saisissez la commande "python Noethys.py"
-- - - -
+préconisations Noethys original master:
+https://github.com/Noethys/Noethys/tree/master/noethys/Doc
 
