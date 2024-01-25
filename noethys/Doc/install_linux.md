@@ -28,15 +28,22 @@ pip3 install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubunt
 git clone https://github.com/BrunelJacques/Noethys-Matthania
 cd Noethys-Matthania
 pip3 install -r requirements.txt
-cp noethys/Doc/lanceur_linux.sh /home/noegest/Noethys-Matthania/lancer_noethys.sh
-sudo cp noethys/Doc/lancer_noethys.desktop  /usr/local/share/applications/
-chmod +x /home/noegest/Noethys-Matthania/lancer_noethys.sh
+cp noethys/Doc/lanceur_linux.sh ./lancer_noethys.sh
+chmod +x ./lancer_noethys.sh
 deactivate
 # lancement de noethys
 source ../envnoethys/bin/activate
 python3 noethys/Noethys.py
 ```
-ou lancer par le desktop accessible dans les applications vues par Gnome
+pour une recherche par la barre 'activités'
+```
+sudo mkdir /usr/local/share/applications
+sudo cp /home/noestion/Noethys-Matthania/noethys/Doc/lancer_noethys.desktop  /usr/local/share/applications/
+sudo chmod +x /usr/local/share/applications/lancer_noethys.desktop
+sudo chgrp noegest /usr/local/share/applications/lancer_noethys.desktop
+```
+Chaque user pourra ainsi 'voir' Noethys-Matthania et le mettre dans les favoris
+ou lancer comme un programme '/home/noegest/Noethys-Matthania/lancer_noethys.sh'
 
 Installation manuelle sur Linux
 -------------------------------
