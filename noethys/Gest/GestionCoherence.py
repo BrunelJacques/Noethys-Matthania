@@ -175,7 +175,12 @@ def GET_PARAMS_POINTEURS(dictPieces,dictPrestations,dictConsommations,dictInscri
         [dictInscriptions,"IDinscription","IDcategorie_tarif", dictConsommations,"IDcategorie_tarif"],
     ]
 
-# Appel de toutes les données. Sous forme de lignes de table en ddd: IDfamille-IDtable-dRecord
+def HarmonisationPiece(dPiece):
+    dPiece["IDfamille"] = dPiece["pieIDfamille"]
+    mtTransport = Nz(dPiece["piePrixTranspAller"]) + Nz(dPiece["piePrixTranspRetour"])
+    dPiece["montant"] = round(mtTransport + Nz(dPiece["SUM(ligMontant)"]), 2)
+
+    # Appel de toutes les données. Sous forme de lignes de table en ddd: IDfamille-IDtable-dRecord
 class DiagDonnees():
     def __init__(self,DB,famille,**kw):
         self.params = kw.pop("params",None)
@@ -289,6 +294,29 @@ class DiagDonnees():
             where = "TRUE"
         return where
 
+    def GetOneMatPieces(self,IDnumPiece):
+        # ----------- préparation de l'appel de matPieces --------------------------------------------------------------
+        table = "matPieces"
+        lstChamps = ["pieIDnumPiece","pieIDfamille","pieIDcompte_payeur","pieIDprestation","pieIDactivite",
+                     "pieIDindividu","pieIDinscription","pieIDcategorie_tarif","pieIDgroupe","pieNature",
+                     "pieNoFacture","pieNoAvoir","pieComptaFac","pieComptaAvo",
+                     "piePrixTranspAller","piePrixTranspRetour","SUM(ligMontant)","COUNT(ligIDnumLigne)"]
+        leftJoin = "LEFT JOIN matPiecesLignes ON matPieces.pieIDnumPiece = matPiecesLignes.ligIDnumPiece"
+        groupBy = "GROUP BY %s"%(", ".join(lstChamps[:-2]))
+
+        # Gestion du filtre pieces sur envoyé à la compta
+        where = """
+                WHERE (pieIDnumPiece = %d)"""%(IDnumPiece)
+
+        # appel des pièces dans matPieces et matPiecesLignes
+        dddPieces = self.GetDictUneTable(table,lstChamps,where,leftJoin,groupBy)
+        dictPiece = None
+        for IDfamille, ddPieces in dddPieces.items():
+            if IDfamille == "nomTable": continue
+            dictPiece = ddPieces[IDnumPiece]
+            HarmonisationPiece(dictPiece)
+        return dictPiece
+
     def GetMatPieces(self):
         # ----------- préparation de l'appel de matPieces --------------------------------------------------------------
         table = "matPieces"
@@ -355,9 +383,7 @@ class DiagDonnees():
                 if dPiece["pieIDindividu"] > 0:
                     self.lstIDinscriptions.append(dPiece["pieIDinscription"])
                 # harmonisation utile pour comparer les familles lors des test pointeurs
-                dPiece["IDfamille"] = dPiece["pieIDfamille"]
-                mtTransport = Nz(dPiece["piePrixTranspAller"]) + Nz(dPiece["piePrixTranspRetour"])
-                dPiece["montant"] = round(mtTransport + Nz(dPiece["SUM(ligMontant)"]),2)
+                HarmonisationPiece(dPiece)
         return dictPieces,dictPiecesMax
 
     def GetPrestations(self):
@@ -998,27 +1024,6 @@ class Diagnostic():
             return True
         return False
 
-    def Get_InscriptionPiece(self,IDfamille,IDinscription):
-        # rappel de toutes les pièces et inscriptions de la famille pour élargir le champ de recherche
-        self.diagDonnees.withCompta = {"inCpta":True,"noInCpta":True}
-        self.diagDonnees.famille = IDfamille
-        dictPieces = self.diagDonnees.GetMatPieces()
-        if self.diagDonnees.echecGet != "ok": return False
-        # l'appel des pièces à regénéré lstIDinscriptions
-        dictInscriptions = self.diagDonnees.GetInscriptions()
-        dictDonnees = dictInscriptions[IDfamille]["dictDon"][IDinscription]
-        if self.diagDonnees.echecGet != "ok": return False
-        #natures
-        # détermine la pièce concernée par l'IDinscription
-        trouve = False
-        for pieIDnumPiece, dPiece in dictPieces[IDfamille]["dictDon"].items():
-            if dPiece["pieIDinscription"] == IDinscription:
-                IDnumPiece = dPiece["pieIDnumPiece"]
-                trouve = True
-                break
-        # cas d'une inscription orpheline de pièce on abandonne
-        if not trouve: return False
-
     def RebuildConsommations(self,IDfamille,dLigne):
         # Regénération des lignes de consommations à partir de l'inscription
         IDinscription = dLigne["IDinscription"]
@@ -1341,9 +1346,9 @@ class Diagnostic():
             def rechercheElargie(tblCible,IDcible):
                 mess = "GetionCoherence.rechercheElargie table %s" % tblCible
                 dLigne= DATA_Tables.GetDictRecord(self.DB,tblCible,IDcible,mess)
-                if len(dLigne)>0:
-                    return dLigne
-                return None
+                if tblCible == 'matPieces':
+                    dLigne = self.diagDonnees.GetOneMatPieces(IDcible)
+                return dLigne
 
             # -------------------------- Cohérence des pointeurs principaux --------------------------------------------
             for IDfamille, ddTblOrig in dddTblOrig.items():
@@ -1360,7 +1365,6 @@ class Diagnostic():
                     # éluder les pièces familles pour cible inscription
                     if nomOrig == "matPieces" and cleOrig == "pieIDinscription" and  dict["pieIDindividu"] == 0:
                             continue
-
                     # presence de clé dans la cible
                     if tblCible and IDcible and IDcible in tblCible["dictDon"]:
                         dictCible = tblCible["dictDon"][IDcible]
@@ -1477,7 +1481,7 @@ class Diagnostic():
                         if IDinscription in self.dictPiecesMax:
                             IDmax = self.dictPiecesMax[dict["pieIDinscription"]]
                             if ID != IDmax: continue
-                    # ---- Fin des exceptions - analyse des accès  -----------------------------------------------------
+                    # ---- Fin des exceptions - analyse des accès -----------------------------------------------------
                     if not dictCible:
                         if not tblCible:
                             ajoutAnomalie("NoTbl",IDcible,attendu,messNoTbl(ID,IDcible))
@@ -1653,5 +1657,5 @@ class DLG_Diagnostic():
 
 if __name__ == '__main__':
     app = wx.App(0)
-    f = DLG_Diagnostic(OneFamille=7830)
+    f = DLG_Diagnostic(OneFamille=169)
     print((f.coherence))
