@@ -27,6 +27,7 @@ sudo apt install pkg-config
 pip3 install --upgrade pip
 pip3 install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04 wxPython
 git clone https://github.com/BrunelJacques/Noethys-Matthania
+chgrp -R noegest Noethys-Matthania
 cd Noethys-Matthania
 pip3 install -r requirements.txt
 cp noethys/Doc/lanceur_linux.sh ./lancer_noethys.sh
@@ -49,7 +50,9 @@ ou lancer comme un programme '/home/noegest/Noethys-Matthania/lancer_noethys.sh'
 pour un update de Noethys-Matthania
 ```
 cp /home/noegest/Noethys-Matthania
-git pull https://github.com/BrunelJacques/Noethys-Matthania
+source ../envnoethys/bin/activate
+git pull
+chgrp -R noegest *.*
 ```
 
 Installation manuelle sur Linux
