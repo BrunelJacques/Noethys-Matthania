@@ -1,9 +1,9 @@
-Installer Noethys sur Linux
-===========================
+Installer Noethys-Matthania sur Linux 
+=====================================
 L'installation de Noethys sur Linux se fait obligatoirement depuis les sources.
 Ci-dessous vous allez cloner le code source depuis Github et installer les dépendances.
 
-Installation pas à pas sur Ubuntu 22.04 Noethys-Matthania
+Installation pas à pas sur Ubuntu 22.04
 ---------------------------------------------------------
 Lancez dans votre terminal Linux les commandes suivantes :
 
@@ -46,7 +46,7 @@ sudo chgrp noegest /usr/local/share/applications/lancer_noethys.desktop
 Chaque user pourra ainsi 'voir' Noethys-Matthania et le mettre dans les favoris
 ou lancer comme un programme '/home/noegest/Noethys-Matthania/lancer_noethys.sh'
 
-pour un update
+pour un update de Noethys-Matthania
 ```
 cp /home/noegest/Noethys-Matthania
 git pull https://github.com/BrunelJacques/Noethys-Matthania
