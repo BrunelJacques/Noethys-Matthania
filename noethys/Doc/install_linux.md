@@ -13,11 +13,12 @@ sudo groupadd noegest
 sudo usermod -aG noegest <myname>
 sudo mkdir /home/noegest
 sudo chgrp -R noegest /home/noegest
-sudo 775 -R /home/noegest
+sudo cdmod 775 -R /home/noegest
 cd /home/noegest
 # creation d'un environnement de travail selon ma version de python
 sudo apt install python3.10-venv
-python3 -m venv envnoethys
+sudo python3 -m venv envnoethys
+sudo chgrp noegest envnoethys
 source envnoethys/bin/activate
 # le prompt affiche l'environnement activé
 # installation des paquets
@@ -38,12 +39,18 @@ python3 noethys/Noethys.py
 pour une recherche par la barre 'activités'
 ```
 sudo mkdir /usr/local/share/applications
-sudo cp /home/noestion/Noethys-Matthania/noethys/Doc/lancer_noethys.desktop  /usr/local/share/applications/
+sudo cp /home/noegest/Noethys-Matthania/noethys/Doc/lancer_noethys.desktop  /usr/local/share/applications/
 sudo chmod +x /usr/local/share/applications/lancer_noethys.desktop
 sudo chgrp noegest /usr/local/share/applications/lancer_noethys.desktop
 ```
 Chaque user pourra ainsi 'voir' Noethys-Matthania et le mettre dans les favoris
 ou lancer comme un programme '/home/noegest/Noethys-Matthania/lancer_noethys.sh'
+
+pour un update
+```
+cp /home/noegest/Noethys-Matthania
+git pull https://github.com/BrunelJacques/Noethys-Matthania
+```
 
 Installation manuelle sur Linux
 -------------------------------
