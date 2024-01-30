@@ -286,11 +286,11 @@ class CTRL(wx.Panel):
         self.Bind(wx.EVT_TOOL, self.ctrl_canvas.OnOutil_deplacer, id=ID_OUTIL_DEPLACER)
 
         ID_OUTIL_ZOOM_OUT = wx.Window.NewControlId()
-        tbar.AddSimpleTool(ID_OUTIL_ZOOM_OUT, _("Zoom arrière"), wx.Bitmap(Chemins.GetStaticPath("Images/32x32/zoom_moins.png"), wx.BITMAP_TYPE_ANY), _("Zoom arrière"), aui.ITEM_RADIO)
+        tbar.AddSimpleTool(ID_OUTIL_ZOOM_OUT, _("Zoom arrière"), wx.Bitmap(Chemins.GetStaticPath("Images/32x32/Zoom_moins.png"), wx.BITMAP_TYPE_ANY), _("Zoom arrière"), aui.ITEM_RADIO)
         self.Bind(wx.EVT_TOOL, self.ctrl_canvas.OnOutil_zoom_moins, id=ID_OUTIL_ZOOM_OUT)
 
         ID_OUTIL_ZOOM_IN = wx.Window.NewControlId()
-        tbar.AddSimpleTool(ID_OUTIL_ZOOM_IN, _("Zoom avant"), wx.Bitmap(Chemins.GetStaticPath("Images/32x32/zoom_plus.png"), wx.BITMAP_TYPE_ANY), _("Zoom avant"), aui.ITEM_RADIO)
+        tbar.AddSimpleTool(ID_OUTIL_ZOOM_IN, _("Zoom avant"), wx.Bitmap(Chemins.GetStaticPath("Images/32x32/Zoom_plus.png"), wx.BITMAP_TYPE_ANY), _("Zoom avant"), aui.ITEM_RADIO)
         self.Bind(wx.EVT_TOOL, self.ctrl_canvas.OnOutil_zoom_plus, id=ID_OUTIL_ZOOM_IN)
 
         tbar.AddSeparator()

@@ -311,9 +311,9 @@ class CTRL(wx.Panel):
         self.ctrl_tableau = CTRL_Tableau(self)
         self.ctrl_infos_1 = CTRL_Infos(self, titre=_("POSITION"), min_size=(-1, 20), style=wx.BORDER_THEME)
         self.ctrl_infos_2 = CTRL_Infos(self, titre=_("SELECTION"), min_size=(-1, 20), style=wx.BORDER_THEME)
-        self.image_zoom_moins = wx.StaticBitmap(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/zoom_moins.png"), wx.BITMAP_TYPE_ANY))
+        self.image_zoom_moins = wx.StaticBitmap(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Zoom_moins.png"), wx.BITMAP_TYPE_ANY))
         self.slider_largeur = wx.Slider(self, -1,  value=self.dict_options["case_largeur"], minValue=25, maxValue=1000, size=(-1, -1), style=wx.SL_HORIZONTAL)
-        self.image_zoom_plus = wx.StaticBitmap(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/zoom_plus.png"), wx.BITMAP_TYPE_ANY))
+        self.image_zoom_plus = wx.StaticBitmap(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Zoom_plus.png"), wx.BITMAP_TYPE_ANY))
 
         self.slider_largeur.SetMinSize((200, -1))
         self.Bind(wx.EVT_SCROLL, self.OnSliderLargeur, self.slider_largeur)

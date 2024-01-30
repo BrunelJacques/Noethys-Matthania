@@ -416,7 +416,7 @@ class ListView(FastObjectListView):
 
         # Item Détail
         item = wx.MenuItem(menuPop, 20, _("Détail de la mensualité"))
-        bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/zoom_plus.png"), wx.BITMAP_TYPE_PNG)
+        bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Zoom_plus.png"), wx.BITMAP_TYPE_PNG)
         item.SetBitmap(bmp)
         menuPop.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.Detail, id=20)

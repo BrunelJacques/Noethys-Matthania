@@ -115,9 +115,9 @@ class MyFrame(wx.Frame):
 
         outils = UTILS_Adaptations.ToolBar(self, -1, style = wx.TB_HORIZONTAL | wx.NO_BORDER)
         outils.AddLabelTool(ID_EXIT, _("Fermer l'aperçu"), wx.Bitmap(Chemins.GetStaticPath("Images/32x32/Fermer.png"), wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, _("Fermer"), "")
-        outils.AddLabelTool(ID_PLUS, _("Agrandir"), wx.Bitmap(Chemins.GetStaticPath("Images/32x32/zoom_plus.png"), wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, _("Agrandir"), "")
+        outils.AddLabelTool(ID_PLUS, _("Agrandir"), wx.Bitmap(Chemins.GetStaticPath("Images/32x32/Zoom_plus.png"), wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, _("Agrandir"), "")
         outils.AddLabelTool(ID_UNDO, _("Taille originale"), wx.Bitmap(Chemins.GetStaticPath("Images/32x32/zoom_init.png"), wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, _("Taille originale"), "")
-        outils.AddLabelTool(ID_MOINS, _("Diminuer"), wx.Bitmap(Chemins.GetStaticPath("Images/32x32/zoom_moins.png"), wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, _("Diminuer"), "")
+        outils.AddLabelTool(ID_MOINS, _("Diminuer"), wx.Bitmap(Chemins.GetStaticPath("Images/32x32/Zoom_moins.png"), wx.BITMAP_TYPE_ANY), wx.NullBitmap, wx.ITEM_NORMAL, _("Diminuer"), "")
         outils.Realize()
         self.SetToolBar(outils)
 
