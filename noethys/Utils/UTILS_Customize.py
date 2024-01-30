@@ -48,7 +48,7 @@ LISTE_DONNEES = [
 
 
 def GetNomFichier(nomFichier="Customize.ini"):
-    return UTILS_Fichiers.GetRepUser(nomFichier)
+    return UTILS_Fichiers.GetRepUtilisateur(nomFichier)
 
 
 class Customize():
