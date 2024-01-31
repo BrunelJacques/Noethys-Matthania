@@ -37,7 +37,7 @@ deactivate
 source ../envnoethys/bin/activate
 python3 noethys/Noethys.py
 ```
-pour une recherche par la barre 'activités'
+pour un lien dans la barre 'activités'
 ```
 sudo mkdir /usr/local/share/applications
 sudo cp /home/noegest/Noethys-Matthania/noethys/Doc/lancer_noethys.desktop  /usr/local/share/applications/
@@ -51,6 +51,10 @@ pour un update de Noethys-Matthania
 ```
 cp /home/noegest/Noethys-Matthania
 source ../envnoethys/bin/activate
+# supprime d'éventuelles modifs locales
+git stash
+git reset --hard
+# update proprement dit
 git pull
 chgrp -R noegest *.*
 ```
