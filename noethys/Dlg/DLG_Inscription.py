@@ -58,7 +58,7 @@ class Choix_famille(wx.Choice):
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
 class ListBox(wx.ListBox):
-    def __init__(self, parent, type="activites", IDindividu=None, IDcondition=None):
+    def __init__(self, parent, type="activites",IDindividu=None,IDcondition=None):
         wx.ListBox.__init__(self, parent, id=-1, choices=[])
         self.parent = parent
         self.IDindividu = IDindividu
@@ -69,7 +69,7 @@ class ListBox(wx.ListBox):
         self.Bind(wx.EVT_LISTBOX, self.OnSelection,)
 
     
-    def MAJ(self, IDcondition=None):
+    def MAJ(self, IDcondition=None,campeur=None,IDgroupe=None):
         if IDcondition != None : 
             self.IDcondition = IDcondition
         self.listeDonnees = []
@@ -85,7 +85,8 @@ class ListBox(wx.ListBox):
                 self.GetParent().SetAgeInconnu(False)
                 self.GetParent().ageConnu = True
             self.Importation_groupes()
-        if self.type == "categories" : self.Importation_categories()
+        if self.type == "categories" : self.Importation_categories(campeur=campeur,
+                                                                   IDgroupe=IDgroupe)
         listeItems = []
         if len(self.listeDonnees) > 0 :
             for dictValeurs in self.listeDonnees :
@@ -111,7 +112,10 @@ class ListBox(wx.ListBox):
             IDactivite = self.parent.IDactivite
             selection = self.GetSelection()
             self.parent.ctrl_groupes.campeur = self.listeDonnees[selection]["campeur"]
-            self.parent.ctrl_categories.MAJ((IDactivite,self.listeDonnees[selection]["campeur"]))
+            IDgroupe = self.parent.GetIDgroupe()
+            self.parent.ctrl_categories.MAJ(IDactivite,
+                                             campeur=self.listeDonnees[selection]["campeur"],
+                                             IDgroupe=IDgroupe)
         return
 
     def Importation_activites(self):
@@ -172,28 +176,37 @@ class ListBox(wx.ListBox):
                 valeurs = { "ID" : IDgroupe, "nom" : nom ,"campeur":campeur,"conditionAge": conditionAge}
                 self.listeDonnees.append(valeurs)
 
-    def Importation_categories(self):
+    def Importation_categories(self,campeur = None, IDgroupe=None):
         if self.IDcondition == None : return
         DB = GestionDB.DB()
-
-        IDactivite, campeur = self.IDcondition  # ID condition doit être un tuple d'IDs
+        IDactivite = self.IDcondition  # ID condition doit être un tuple d'IDs
         if campeur == None:
             conditionCampeur = "true"
         elif campeur == 1:
             conditionCampeur = "campeur in (0,1)"
         elif campeur in (0,1,2) :
-            conditionCampeur = "campeur=%d"%campeur
+            conditionCampeur = "categories_tarifs.campeur=%d"%campeur
         else:
             conditionCampeur = "true"
 
         # Recherche des catégories
-        req = """SELECT IDcategorie_tarif, nom, campeur
-        FROM categories_tarifs 
-        WHERE IDactivite=%d AND %s
-        ORDER BY nom; """ % (IDactivite, conditionCampeur)
+        if not IDgroupe:
+            req = """SELECT IDcategorie_tarif, nom, campeur
+            FROM categories_tarifs 
+            WHERE IDactivite=%d AND %s
+            ORDER BY nom; """ % (IDactivite, conditionCampeur)
+        else:
+            req = """
+            SELECT categories_tarifs.IDcategorie_tarif, categories_tarifs.nom, categories_tarifs.campeur
+            FROM categories_tarifs 
+            INNER JOIN matTarifs ON (categories_tarifs.IDactivite = matTarifs.trfIDactivite)
+                AND (categories_tarifs.IDcategorie_tarif = matTarifs.trfIDcategorie_tarif)
+            WHERE (((categories_tarifs.[IDactivite]) = %d) 
+                AND (%s) AND ((matTarifs.trfIDgroupe)=%d))
+            ORDER BY categories_tarifs.nom;"""% (IDactivite, conditionCampeur,IDgroupe)
+
         DB.ExecuterReq(req,MsgBox="DLG_Inscription")
         listeCategories = DB.ResultatReq()
-
         for IDcategorie_tarif, nom, campeur in listeCategories :
             valeurs = { "ID" : IDcategorie_tarif, "nom" : nom, "campeur":campeur}
             self.listeDonnees.append(valeurs)
