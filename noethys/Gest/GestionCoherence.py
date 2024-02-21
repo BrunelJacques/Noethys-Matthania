@@ -888,7 +888,9 @@ class Diagnostic():
                 lstDonnees = [("IDcontrat",dPiece["pieIDnumPiece"]),("categorie","consommation")]
                 return self.ReqMAJ(dLigne,"prestations",lstDonnees,"IDprestation",dLigne["ID"])
 
-        if dPrestation["IDindivdu"] == 0 or dPrestation["IDactivite"] == 0:
+        if (not ("IDindividu" in dPrestation.keys())) or (not ("IDactivite" in dPrestation.keys())):
+            return False
+        if dPrestation["IDindividu"] == 0 or dPrestation["IDactivite"] == 0:
             return False
 
         # cas: dernière recherche floue on cherche une correspondance activité-individu

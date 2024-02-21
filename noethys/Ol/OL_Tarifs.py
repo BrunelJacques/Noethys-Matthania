@@ -313,7 +313,7 @@ class ListView(FastObjectListView):
                 donnees = [self.IDactivite,IDgroupe,IDcateg,nomCateg,dictGroupe['nom'],codeTarif,nomTarif,prix,cumul]
 
                 # filtrage de corresponndance entre les types campeur des groupes et categories_tarifs
-                if dictGroupe['campeur'] != campeurCateg and campeurCateg != 0:
+                if dictGroupe['campeur'] != campeurCateg: # and campeurCateg != 0:
                     continue
                 track = Track(donnees,self.champs)
                 tracksOLV.append(track)
