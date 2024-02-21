@@ -662,9 +662,9 @@ class Dialog(wx.Dialog):
 
 
 # --------------------------- DLG de saisie du nouveau mot de passe ----------------------------
-
 class DLG_Saisie_mdp(wx.Dialog):
-    def __init__(self, parent, titre="", intro=""):
+    def __init__(self, parent, titre="Modification du mot de passe",
+                 intro="Veuillez saisir un nouveau mot de passe complexe:"):
         wx.Dialog.__init__(self, parent, id=-1, name="DLG_nouveau_mdp_utilisateur")
         self.parent = parent
         self.SetTitle(titre)
@@ -672,7 +672,7 @@ class DLG_Saisie_mdp(wx.Dialog):
         self.staticbox = wx.StaticBox(self, -1, "")
         self.label = wx.StaticText(self, -1, intro)
         self.label_mdp = wx.StaticText(self, -1, _("Mot de passe :"))
-        self.ctrl_mdp = wx.TextCtrl(self, -1, "", style=wx.TE_PASSWORD)
+        self.ctrl_mdp = wx.TextCtrl(self, -1, "",style=wx.TE_PROCESS_ENTER | wx.TE_PASSWORD)
         self.label_confirmation = wx.StaticText(self, -1, _("Confirmation :"))
         self.ctrl_confirmation = wx.TextCtrl(self, -1, "", style=wx.TE_PASSWORD)
 
@@ -683,11 +683,12 @@ class DLG_Saisie_mdp(wx.Dialog):
         self.__do_layout()
 
         self.Bind(wx.EVT_BUTTON, self.OnBoutonOk, self.bouton_ok)
-
         self.ctrl_mdp.SetFocus()
+        #self.ctrl_mdp.Bind(wx.EVT_TEXT_ENTER,self.OnEnterMdp)
+        self.ctrl_mdp.Bind(wx.EVT_KILL_FOCUS, self.OnEnterMdp)
 
     def __set_properties(self):
-        self.ctrl_mdp.SetToolTip(wx.ToolTip(_("Saisissez un mot de passe")))
+        self.ctrl_mdp.SetToolTip(wx.ToolTip(_("Saisissez un mot de passe, mini 6 car, dont 1 Maj, 1Min, 1Maj")))
         self.ctrl_confirmation.SetToolTip(wx.ToolTip(_("Confirmez le mot de passe en le saisissant une nouvelle fois")))
         self.bouton_ok.SetToolTip(wx.ToolTip(_("Cliquez ici pour valider")))
         self.bouton_annuler.SetToolTip(wx.ToolTip(_("Cliquez ici pour annuler")))
@@ -732,10 +733,7 @@ class DLG_Saisie_mdp(wx.Dialog):
 
     def OnBoutonOk(self, event):
         """ Validation des données saisies """
-        if len(self.ctrl_mdp.GetValue()) == 0:
-            dlg = wx.MessageDialog(self, _("Vous devez obligatoirement saisir un mot de passe valide !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
-            dlg.ShowModal()
-            dlg.Destroy()
+        if not self.Security(self.ctrl_mdp.GetValue()):
             self.ctrl_mdp.SetFocus()
             return False
 
@@ -756,14 +754,39 @@ class DLG_Saisie_mdp(wx.Dialog):
         # Fermeture
         self.EndModal(wx.ID_OK)
 
+    def OnEnterMdp(self,event):
+        mdp = self.GetMdp()
+        self.ctrl_confirmation.SetFocus()
+        if len(mdp) > 0 and not self.Security(mdp):
+            self.ctrl_mdp.SetFocus()
+        event.Skip()
 
-
-
+    def Security(self,txt):
+        nbdigit, nbupper,nblower =0, 0,0
+        nbcar = len(txt)
+        for a in txt:
+            if a.isdigit(): nbdigit +=1
+            if a.isupper(): nbupper +=1
+            if a.islower(): nblower +=1
+        if nbcar>=6 and (nbdigit * nbupper * nblower >0):
+            return True
+        mess = "Mot de passe insatisfaisant\n\n"
+        if nbcar < 6: mess += "n'a pas au moins 6 caractères\n"
+        if nbdigit == 0: mess += "ne contient pas de chiffre\n"
+        if nbupper == 0: mess += "ne contient pas de majuscule\n"
+        if nblower == 0: mess += "ne contient pas de minuscule\n"
+        ret = wx.MessageBox(mess,"Resaisir", style=wx.CANCEL | wx.ICON_INFORMATION)
+        if ret == wx.CANCEL:
+            self.ctrl_mdp.SetValue("")
+            self.ctrl_confirmation.SetFocus()
+            return True
+        return False
 
 if __name__ == "__main__":
     app = wx.App(0)
     #wx.InitAllImageHandlers()
     dialog_1 = Dialog(None, IDutilisateur=10)
+    #dialog_1 = DLG_Saisie_mdp(None )
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()
     app.MainLoop()
