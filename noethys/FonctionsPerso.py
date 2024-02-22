@@ -715,7 +715,9 @@ def GetVersionLogiciel(datee=False):
         mode='r')
     txtVersion = fichierVersion.readlines()[0]
     fichierVersion.close()
-    pos_debut_numVersion = txtVersion.find("n")
+    pos_debut_numVersion = txtVersion.find("version")+7
+    if pos_debut_numVersion < 7:
+        return "???????"
     if datee:
         pos_fin_numVersion = txtVersion.find(")") + 1
     else:
@@ -731,7 +733,8 @@ def ConvertVersionTuple(txtVersion=""):
     texteVersion = ChiffresSeuls(txtVersion)
     tupleTemp = []
     for num in texteVersion.split(".") :
-        tupleTemp.append(int(num))
+        if num.isdigit():
+            tupleTemp.append(int(num))
     return tuple(tupleTemp)
 
 def CompareVersions(versionApp="", versionMaj=""):

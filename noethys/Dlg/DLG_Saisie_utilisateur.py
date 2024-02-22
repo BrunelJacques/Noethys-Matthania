@@ -8,7 +8,6 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
 import Chemins
 from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
@@ -21,8 +20,6 @@ from Crypto.Hash import SHA256
 from Utils import UTILS_Internet
 from Utils import UTILS_Parametres
 from Ctrl import CTRL_Compte_internet
-
-
 
 LISTE_IMAGES = [
 
@@ -82,9 +79,10 @@ LISTE_IMAGES = [
         ]],
 
     ]
-
-
-
+NBCARMDP = 6
+NBDIGMDP = 1
+NBUPPMDP = 1
+NBLOWMDP = 1
 
 class Hyperlien(Hyperlink.HyperLinkCtrl):
     def __init__(self, parent, id=-1, label="", infobulle="", URL=""):
@@ -469,10 +467,11 @@ class Dialog(wx.Dialog):
         else :
             titre = _("Modification du mot de passe")
             intro = _("Veuillez saisir un nouveau mot de passe :")
-        dlg = DLG_Saisie_mdp(self, titre=titre, intro=intro)
+        dlg = DLG_Saisie_mdp(self,titre=titre,intro=intro,IDutilisateur=self.IDutilisateur)
         if dlg.ShowModal() == wx.ID_OK:
-            self.mdp = dlg.GetMdp()
-            self.mdpcrypt = dlg.GetMdpCrypt()
+            if dlg.UniciteMdp():
+                self.mdp = dlg.GetMdp()
+                self.mdpcrypt = dlg.GetMdpCrypt()
         dlg.Destroy()
         self.MAJboutonMdp()
         self.grid_sizer_acces.Layout()
@@ -492,25 +491,11 @@ class Dialog(wx.Dialog):
             dlg.Destroy()
             return
 
-        # Vérifie que le code d'accès n'est pas déjà utilisé
         if self.IDutilisateur == None :
             IDutilisateurTmp = 0
         else:
             IDutilisateurTmp = self.IDutilisateur
-        DB = GestionDB.DB()
-        req = """SELECT IDutilisateur, sexe, nom, prenom, mdp, mdpcrypt, profil, actif
-        FROM utilisateurs 
-        WHERE mdpcrypt='%s' AND IDutilisateur<>%d
-        ;""" % (self.mdpcrypt, IDutilisateurTmp)
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
-        listeDonnees = DB.ResultatReq()
-        DB.Close()
-        if len(listeDonnees) > 0 :
-            dlg = wx.MessageDialog(self, _("Le code d'accès que vous avez saisi est déjà attribué !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
-            dlg.ShowModal()
-            dlg.Destroy()
-            return
-        
+
         # Vérifie qu'il reste au moins un administrateur dans la base de données
         if self.radio_droits_admin.GetValue() == False :
             DB = GestionDB.DB()
@@ -663,11 +648,14 @@ class Dialog(wx.Dialog):
 
 # --------------------------- DLG de saisie du nouveau mot de passe ----------------------------
 class DLG_Saisie_mdp(wx.Dialog):
-    def __init__(self, parent, titre="Modification du mot de passe",
+    def __init__(self, parent,IDutilisateur=None,
+                 titre="Modification du mot de passe",
                  intro="Veuillez saisir un nouveau mot de passe complexe:"):
         wx.Dialog.__init__(self, parent, id=-1, name="DLG_nouveau_mdp_utilisateur")
         self.parent = parent
+        self.IDutilisateur = IDutilisateur
         self.SetTitle(titre)
+        self.testMdp = ""
 
         self.staticbox = wx.StaticBox(self, -1, "")
         self.label = wx.StaticText(self, -1, intro)
@@ -757,36 +745,94 @@ class DLG_Saisie_mdp(wx.Dialog):
     def OnEnterMdp(self,event):
         mdp = self.GetMdp()
         self.ctrl_confirmation.SetFocus()
-        if len(mdp) > 0 and not self.Security(mdp):
-            self.ctrl_mdp.SetFocus()
+        if len(mdp) > 0 and mdp != self.testMdp:
+            self.Security(mdp)
+        self.testMdp = mdp
         event.Skip()
 
-    def Security(self,txt):
-        nbdigit, nbupper,nblower =0, 0,0
-        nbcar = len(txt)
-        for a in txt:
+    def UniciteMdp(self):
+        # Vérifie que le code d'accès n'est pas déjà utilisé
+        IDutilisateur = self.IDutilisateur
+        if not IDutilisateur: IDutilisateur = 0
+        DB = GestionDB.DB()
+        req = """SELECT IDutilisateur, sexe, nom, prenom, mdp, mdpcrypt, profil, actif
+        FROM utilisateurs 
+        WHERE (mdp LIKE '%s%%' OR mdpcrypt='%s') AND IDutilisateur<>%d
+        ;""" % (self.GetMdp()[:NBCARMDP], self.GetMdpCrypt(), IDutilisateur)
+        ret = DB.ExecuterReq(req, MsgBox="DLG_Saisie_utilisateur.UniciteMdp")
+        listeDonnees = []
+        if ret == 'ok':
+            listeDonnees = DB.ResultatReq()
+        DB.Close()
+        if len(listeDonnees) > 0:
+            mess = "Désolé, mot impossible\n\n"
+            mess +="La racine '%s' a déja été utilisée, il faut en utiliser une autre"%self.GetMdp()[:NBCARMDP]
+            dlg = wx.MessageDialog(self,mess,"Erreur de saisie", wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return False
+        if ret =='ok':
+            return True
+        return False
+
+    def Security(self,mdp, mute=False):
+        if not self.UniciteMdp():
+            return False
+        # Test sur les exigences de complexité
+        nbdigit, nbupper,nblower =0,0,0
+        nbcar = len(mdp)
+        for a in mdp:
             if a.isdigit(): nbdigit +=1
             if a.isupper(): nbupper +=1
             if a.islower(): nblower +=1
-        if nbcar>=6 and (nbdigit * nbupper * nblower >0):
+
+        condCase = nbdigit >= NBDIGMDP and nbupper >= NBUPPMDP and nblower >= NBLOWMDP
+        if nbcar>=NBCARMDP and condCase:
             return True
-        mess = "Mot de passe insatisfaisant\n\n"
-        if nbcar < 6: mess += "n'a pas au moins 6 caractères\n"
-        if nbdigit == 0: mess += "ne contient pas de chiffre\n"
-        if nbupper == 0: mess += "ne contient pas de majuscule\n"
-        if nblower == 0: mess += "ne contient pas de minuscule\n"
-        ret = wx.MessageBox(mess,"Resaisir", style=wx.CANCEL | wx.ICON_INFORMATION)
-        if ret == wx.CANCEL:
-            self.ctrl_mdp.SetValue("")
-            self.ctrl_confirmation.SetFocus()
-            return True
+        else:
+            mess = "Mot de passe insatisfaisant\n\n"
+            if nbcar < 6: mess += "n'a pas au moins 6 caractères\n"
+            if nbdigit < NBDIGMDP: mess += "ne contient pas assez de chiffre\n"
+            if nbupper < NBUPPMDP: mess += "ne contient pas assez de majuscule\n"
+            if nblower < NBLOWMDP: mess += "ne contient pas assez de minuscule\n"
+            if not mute:
+                ret = wx.MessageBox(mess,"Resaisir", style=wx.CANCEL | wx.ICON_INFORMATION)
+                if ret == wx.CANCEL:
+                    self.ctrl_mdp.SetValue("")
+                    self.ctrl_confirmation.SetFocus()
+                    return True
         return False
+
+    def SaveModifPassword(self,IDutilisateur=None):
+        if IDutilisateur:
+            self.IDutilisateur = IDutilisateur
+        else: IDutilisateur = self.IDutilisateur
+        ret = "Le nouveau mot de passe ne satisfait les exigences"
+        if not IDutilisateur:
+            ret = "Problème programmation, pas d'IDutilisateur en 'SaveModifPassword'"
+        if self.Security(self.GetMdp(),mute=True):
+            DB = GestionDB.DB()
+            listeDonnees = [
+                    ("mdp", self.GetMdp()),
+                    ("mdpcrypt", self.GetMdpCrypt()),
+            ]
+            ret = DB.ReqMAJ("utilisateurs", listeDonnees, "IDutilisateur",
+                            IDutilisateur)
+            DB.Close()
+        if ret == 'ok':
+            mess = "Mot de passe enregistré !\n\nà utiliser lors de la prochaine connection"
+            style = wx.ICON_INFORMATION
+        else:
+            mess = "Mot de passe inchangé!\n\n%s\nChangement redemandé à la prochaine connection"%ret
+            style =wx.ICON_EXCLAMATION
+        wx.MessageBox(mess,'Changement MDP',style=style)
 
 if __name__ == "__main__":
     app = wx.App(0)
     #wx.InitAllImageHandlers()
-    dialog_1 = Dialog(None, IDutilisateur=10)
-    #dialog_1 = DLG_Saisie_mdp(None )
+    dialog_1 = Dialog(None, IDutilisateur=7)
+    #dialog_2 = DLG_Saisie_mdp(None )
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()
+    #dialog_2.SaveModifPassword(IDutilisateur=123654)
     app.MainLoop()

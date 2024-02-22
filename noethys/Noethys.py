@@ -274,7 +274,7 @@ class MainFrame(wx.Frame):
             nomFichier = _("Fichier réseau : %s | %s | %s") % (nomFichier, hote, user)
         if nomFichier != "":
             nomFichier = " - [" + nomFichier + "]"
-        titreFrame = NOM_APPLICATION + " v" + VERSION_LOGICIEL + nomFichier
+        titreFrame = NOM_APPLICATION + " Version " + VERSION_LOGICIEL + nomFichier
         self.SetTitle(titreFrame)
 
     def GetFichierConfig(self):
@@ -1534,8 +1534,6 @@ class MainFrame(wx.Frame):
         # les versions correspondent: on passe
         if versionData == versionLogiciel:
             return True
-
-
         # synchronisation des versions
         resultat = True
 
@@ -1574,10 +1572,14 @@ class MainFrame(wx.Frame):
             return resultat, message, titre, style
 
         message = "Base de donnée inchangée!\n\nAbandon du traitement"
-        titre = "Abandon"
+        titre = "Abandon versioning"
         style = wx.OK | wx.ICON_INFORMATION
         # Compare les versions par les tuples
-        if versionData[:2] != versionLogiciel[:2]:
+        if len(versionLogiciel) < 3:
+            message = "Numéro Version incorrect : %s"% VERSION_LOGICIEL
+            wx.MessageBox(message,titre,style=wx.ICON_INFORMATION)
+            return True
+        elif versionData[:2] != versionLogiciel[:2]:
             # Changement majeur, réserve l'action aux admins (version python?)
             mess = "INCOHERENCE VERSIONS\n\n"
             mess += "Version logiciel '%s' - Version base de donnée '%s'\n" % (

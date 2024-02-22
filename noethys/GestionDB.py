@@ -437,6 +437,10 @@ class DB():
                 serieVal = tuple(valeurs)
                 self.cursor.execute(req, serieVal)
                 self.Commit()
+                if self.cursor.rowcount == 0:
+                    self.retourReq = "Auncun enregistrement n'était concerné par la modif\n\n%s\n%s"%(req,str(serieVal))
+                    if MsgBox != None:
+                        wx.MessageBox(self.retourReq,style=wx.ICON_INFORMATION)
             except Exception as err:
                 mess = self.ErrCursor(req, err)
                 if MsgBox != None and mess:
