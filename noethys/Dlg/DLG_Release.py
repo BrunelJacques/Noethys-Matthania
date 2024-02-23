@@ -434,7 +434,7 @@ class Dialog(wx.Dialog):
     def __set_properties(self):
         self.choice_baseDonnees.Select(0)
         self.check_maj.SetValue(True)
-        self.check_stocke.SetValue(True)
+        self.check_stocke.SetValue(False)
         self.txt_base.SetToolTip(wx.ToolTip("Choix de la base de donnée qui conserve les versions"))
         self.choice_baseDonnees.SetToolTip(wx.ToolTip("Base de donnée qui conserve les différentes versions"))
         self.check_maj.SetToolTip(wx.ToolTip("Pour mettre à jour l'application sur votre station de travail"))

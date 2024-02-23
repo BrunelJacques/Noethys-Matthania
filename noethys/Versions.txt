@@ -1,5 +1,6 @@
-
-- mots de passe contrôlés
+version  1.3.2.64 (23/02/2024)
+- validité des mots de passe contrôlés à l'entrée
+- ajout d'un changement de son mot de passe au menu
 - test versioning gère l'absence de no version
 
 version  1.3.2.63 (21/02/2024)

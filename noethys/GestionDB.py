@@ -214,7 +214,6 @@ class DB():
                 self.Close()
 
     def GetNomFichierDefaut(self):
-        nomFichier = ""
         try :
             topWindow = wx.GetApp().GetTopWindow()
             nomWindow = topWindow.GetName()

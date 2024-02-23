@@ -8,12 +8,9 @@
 # Licence:         Licence GNU GPL
 #-----------------------------------------------------------
 
-import Chemins
-from Utils import UTILS_Adaptations
-from Utils.UTILS_Traduction import _
 import wx
+import DLG_Saisie_utilisateur
 from Ctrl import CTRL_Bouton_image
-import datetime
 from Crypto.Hash import SHA256
 
 # L'attribut TE_PASSWORD ne fonctionnait pas sous Ubuntu, SearchCtrl remplacé par TextCtrl
@@ -50,11 +47,7 @@ class CTRL(wx.TextCtrl):
     def OnDoSearch(self, event):
         self.Recherche()
         event.Skip() 
-    
-    def GetPasse(self, txtSearch=""):
-        passe = str(int(datetime.datetime.today().strftime("%d%m%Y"))//3)
-        return passe
-        
+
     def Recherche(self):
         txtSearch = self.GetValue()
         mdpcrypt = SHA256.new(txtSearch.encode('utf-8')).hexdigest()
@@ -63,28 +56,46 @@ class CTRL(wx.TextCtrl):
         else:
             listeUtilisateurs = self.GetGrandParent().listeUtilisateurs
         # Recherche de l'utilisateur
+        okMdp = False
         for dictUtilisateur in listeUtilisateurs :
-            IDutilisateur = dictUtilisateur["IDutilisateur"]
-            if txtSearch == dictUtilisateur["mdp"] or mdpcrypt == dictUtilisateur["mdpcrypt"] or (txtSearch == self.GetPasse(txtSearch) and dictUtilisateur["profil"] == "administrateur") : # txtSearch == dictUtilisateur["mdp"] or à retirer plus tard
-                # Version pour la DLG du dessous
-                if self.modeDLG == True :
-                    self.GetParent().ChargeUtilisateur(dictUtilisateur)
-                    self.SetValue("")
-                    break
-                # Version pour la barre Identification de la page d'accueil
-                if self.modeDLG == False :
-                    mainFrame = self.GetGrandParent()
-                    if mainFrame.GetName() == "general" :
-                        mainFrame.ChargeUtilisateur(dictUtilisateur)
-                        self.SetValue("")
-                        break
-        self.Refresh() 
+            if (txtSearch == dictUtilisateur["mdp"] or mdpcrypt == dictUtilisateur["mdpcrypt"]) : # txtSearch == dictUtilisateur["mdp"] or à retirer plus tard
+                okMdp = True
+                break
+
+        # Fin de la recherche si ok, on contrôle la validité
+        if okMdp:
+            IDutilisateur = dictUtilisateur['IDutilisateur']
+            titre = "CHANGEZ VOTRE MOT DE PASSE"
+            intro = "Veuillez saisir un NOUVEAU mot de passe plus complexe:"
+            intro += "\n\n (minima: %d caractères, %d majuscule, %d minuscule, %d chiffre)"%DLG_Saisie_utilisateur.EXIGEMDP
+            dlg = DLG_Saisie_utilisateur.DLG_Saisie_mdp(self,IDutilisateur,titre,intro)
+            if not dlg.Security(txtSearch,mute=True):
+                mess = ("La sécurité a été renforcée\n\nCe mot de passe est trop simple")
+                wx.MessageBox(mess,"CHANGEMENT",style=wx.ICON_INFORMATION)
+                dlg.ctrl_mdp.SetValue(txtSearch)
+                ret = dlg.ShowModal()
+                if ret == wx.ID_OK:
+                    dlg.SaveModifPassword()
+                else:
+                    mess = "Abandon non encore bloquant!\n\nLe process sera redemandé à la prochaine connection"
+                    wx.MessageBox(mess, 'ABANDON du Changement MDP', style=wx.ICON_ERROR)
+            dlg.Destroy()
+            # Version pour la DLG du dessous
+            if self.modeDLG == True :
+                self.GetParent().ChargeUtilisateur(dictUtilisateur)
+            # Version pour la barre Identification de la page d'accueil
+            if self.modeDLG == False :
+                mainFrame = self.GetGrandParent()
+                if mainFrame.GetName() == "general" :
+                    mainFrame.ChargeUtilisateur(dictUtilisateur)
+            self.SetValue("")
+            self.Refresh()
     
 
 # --------------------------- DLG de saisie de mot de passe ----------------------------
 
 class Dialog(wx.Dialog):
-    def __init__(self, parent, id=-1, title=_("Identification"), listeUtilisateurs=[], nomFichier=None):
+    def __init__(self, parent, id=-1, title="Identification", listeUtilisateurs=[], nomFichier=None):
         wx.Dialog.__init__(self, parent, id, title, name="DLG_mdp")
         self.parent = parent
         self.listeUtilisateurs = listeUtilisateurs
@@ -92,20 +103,20 @@ class Dialog(wx.Dialog):
         self.dictUtilisateur = None
         
         if self.nomFichier != None :
-            self.SetTitle(_("Ouverture du fichier %s") % self.nomFichier)
+            self.SetTitle("Ouverture du fichier %s" % self.nomFichier)
             
         self.staticbox = wx.StaticBox(self, -1, "")
-        self.label = wx.StaticText(self, -1, _("Veuillez saisir votre code d'identification personnel :"))
+        self.label = wx.StaticText(self, -1, "Veuillez saisir votre code d'identification personnel :")
         self.ctrl_mdp = CTRL(self, listeUtilisateurs=self.listeUtilisateurs, modeDLG=True)
         
         # Texte pour rappeller mot de passe du fichier Exemple
-        self.label_exemple = wx.StaticText(self, -1, _("Le mot de passe des fichiers exemples est 'aze'"))
+        self.label_exemple = wx.StaticText(self, -1, "Le mot de passe des fichiers exemples est 'aze'")
         self.label_exemple.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL))
         self.label_exemple.SetForegroundColour((130, 130, 130))
         if nomFichier == None or nomFichier.startswith("EXEMPLE_") == False :
             self.label_exemple.Show(False)
         
-        self.bouton_annuler = CTRL_Bouton_image.CTRL(self, id=wx.ID_CANCEL, texte=_("Annuler"), cheminImage="Images/32x32/Annuler.png")
+        self.bouton_annuler = CTRL_Bouton_image.CTRL(self, id=wx.ID_CANCEL, texte="Annuler", cheminImage="Images/32x32/Annuler.png")
         
         self.__set_properties()
         self.__do_layout()
@@ -113,7 +124,7 @@ class Dialog(wx.Dialog):
         self.ctrl_mdp.SetFocus() 
         
     def __set_properties(self):
-        self.bouton_annuler.SetToolTip(wx.ToolTip(_("Cliquez ici pour annuler")))
+        self.bouton_annuler.SetToolTip(wx.ToolTip("Cliquez ici pour annuler"))
         self.ctrl_mdp.SetMinSize((300, -1))
 
     def __do_layout(self):
@@ -184,8 +195,8 @@ class TestDlg(wx.Dialog):
 
 if __name__ == '__main__':
     app = wx.App(0)
-    #dlg = Dialog(None, listeUtilisateurs=[])
-    dlg = TestDlg(None,title="wxPython TE_PASSWORD Example")
+    dlg = Dialog(None, listeUtilisateurs=[])
+    #dlg = TestDlg(None,title="wxPython TE_PASSWORD Example")
     app.SetTopWindow(dlg)
     dlg.ShowModal()
     print(dlg.GetDictUtilisateur())

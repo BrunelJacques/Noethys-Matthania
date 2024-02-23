@@ -537,6 +537,7 @@ class MainFrame(wx.Frame):
         self.ctrl_identification = CTRL_Identification.CTRL(tb,
                                                             listeUtilisateurs=self.listeUtilisateurs,
                                                             size=(80, -1))
+        self.ctrl_identification.SetToolTip(wx.ToolTip("Changement d'utilisateur, tapez son mot de passe"))
         tb.AddControl(self.ctrl_identification)
         tb.AddSimpleTool(ID_TB_UTILISATEUR, "xxxxxxxxxxxxxxxxxxxxxxxxxxxx",
                          wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Homme.png"),
@@ -1350,14 +1351,12 @@ class MainFrame(wx.Frame):
             nomFichierTmp = nomFichier[nomFichier.index("[RESEAU]"):] + " - %s" % hote
         else:
             nomFichierTmp = nomFichier
-        if self.Identification(listeUtilisateursFichier, nomFichierTmp) == False:
-            return False
-        self.listeUtilisateurs = listeUtilisateursFichier
-
-        # Applique le changement de fichier en cours
         ancienFichier = self.userConfig["nomFichier"]
         self.userConfig["nomFichier"] = nomFichier
-
+        if self.Identification(listeUtilisateursFichier, nomFichierTmp) == False:
+            self.userConfig["nomFichier"] = ancienFichier
+            return False
+        self.listeUtilisateurs = listeUtilisateursFichier
         # Vérifie si la version du fichier est à jour
         if nomFichier != "":
             if self.ValidationVersionFichier(nomFichier) == False:

@@ -107,6 +107,10 @@ def GetListItemsMenu(self,menuTransports):
              "image": "Images/16x16/Mecanisme.png",
              "action": self.On_param_preferences},
             "-",
+            {"code": "change_mdp", "label": _("Changer mon mot de passe"),
+             "infobulle": _("Ici vous pouvez changer de mot de passe"),
+             "image": "Images/16x16/Cadenas.png",
+             "action": self.On_param_change_mdp},
             {"code": "utilisateurs", "label": _("Utilisateurs"),
              "infobulle": _("Paramétrage des utilisateurs"),
              "image": "Images/16x16/Personnes.png",
@@ -1609,6 +1613,18 @@ class Menu(object):
         from Dlg import DLG_Enregistrement
         dlg = DLG_Enregistrement.Dialog(self.parent)
         dlg.ShowModal()
+        dlg.Destroy()
+
+    def On_param_change_mdp(self, event):
+        from Dlg import DLG_Saisie_utilisateur
+        IDutilisateur = self.parent.dictUtilisateur['IDutilisateur']
+        dlg = DLG_Saisie_utilisateur.DLG_Saisie_mdp(self.parent, IDutilisateur)
+        ret = dlg.ShowModal()
+        if ret == wx.ID_OK:
+            dlg.SaveModifPassword()
+        else:
+            mess = "Abandon à votre demande!\n\nVous conservez l'ancien mot de passe"
+            wx.MessageBox(mess, 'ABANDON du Changement MDP', style=wx.ICON_ERROR)
         dlg.Destroy()
 
     def On_param_utilisateurs(self, event):

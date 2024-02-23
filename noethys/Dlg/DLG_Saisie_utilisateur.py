@@ -83,6 +83,7 @@ NBCARMDP = 6
 NBDIGMDP = 1
 NBUPPMDP = 1
 NBLOWMDP = 1
+EXIGEMDP = ( NBCARMDP, NBUPPMDP, NBLOWMDP, NBDIGMDP,)
 
 class Hyperlien(Hyperlink.HyperLinkCtrl):
     def __init__(self, parent, id=-1, label="", infobulle="", URL=""):
@@ -104,8 +105,6 @@ class Hyperlien(Hyperlink.HyperLinkCtrl):
         self.parent.ctrl_image.ContextMenu()
         self.UpdateLink()
 
-
-# ---------------------------------------------------------------------------------------------------------------------------------
 
 class CTRL_Image(wx.StaticBitmap):
     def __init__(self, parent, nomImage="Automatique", style=wx.SUNKEN_BORDER):
@@ -195,10 +194,8 @@ class CTRL_Image(wx.StaticBitmap):
         
     def GetImage(self):
         return self.nomImage
-    
-    
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+# ----------------------------------------------------------------------------------------
 class CTRL_Modeles_droits(wx.Choice):
     def __init__(self, parent):
         wx.Choice.__init__(self, parent, -1) 
@@ -241,11 +238,210 @@ class CTRL_Modeles_droits(wx.Choice):
         else :
             return self.dictDonnees[index]
 
-# -------------------------------------------------------------------------------------------------------------------------
+# --------------------------- DLG de saisie du nouveau mot de passe ---------------------
+class DLG_Saisie_mdp(wx.Dialog):
+    def __init__(self, parent,IDutilisateur=None, titre=None, intro=None):
+        if not titre: titre = "Modification du mot de passe"
+        if not intro:
+            intro = "Veuillez saisir un nouveau mot de passe :"
+            intro += "\n\n (avec %d caractères, %d majuscule, %d minuscule, %d chiffre)"%EXIGEMDP
 
+        wx.Dialog.__init__(self, parent, id=-1, name="DLG_nouveau_mdp_utilisateur",
+                           style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
+        self.parent = parent
+        self.IDutilisateur = IDutilisateur
+        self.SetTitle(titre)
+        self.intro = intro
+        self.testMdp = ""
+        self.checkHideValue = True
+        self.ctrl_mdp = wx.TextCtrl(self, -1, "",style= wx.TE_PASSWORD)
+        self.ctrl_confirm = wx.TextCtrl(self, -1, "", style=wx.TE_PASSWORD)
+        self.Init()
 
+    def Init(self):
+        self.staticbox = wx.StaticBox(self, -1, "")
+        self.label = wx.StaticText(self, -1, self.intro)
+        self.label_mdp = wx.StaticText(self, -1, _("Mot de passe :"))
+        self.label_confirmation = wx.StaticText(self, -1, _("Confirmation :"))
+        self.checkHideMdp = wx.CheckBox(self,-1,"Masquer la saisie ",)
+        self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"), cheminImage="Images/32x32/Valider.png")
+        self.bouton_annuler = CTRL_Bouton_image.CTRL(self, id=wx.ID_CANCEL, texte=_("Annuler"), cheminImage="Images/32x32/Annuler.png")
 
+        self.Set_properties()
+        self.Do_layout()
+        self.ctrl_mdp.SetFocus()
 
+    def Set_properties(self):
+        self.checkHideMdp.SetValue(self.checkHideValue)
+        self.checkHideMdp.SetToolTip(wx.ToolTip("Pour voir votre saisie décochez"))
+        self.ctrl_mdp.SetToolTip(wx.ToolTip(_("Saisissez un mot de passe, mini 6 car, dont 1 Maj, 1Min, 1Maj")))
+        self.ctrl_confirm.SetToolTip(wx.ToolTip(_("Confirmez le mot de passe en le saisissant une nouvelle fois")))
+        self.bouton_ok.SetToolTip(wx.ToolTip(_("Cliquez ici pour valider")))
+        self.bouton_annuler.SetToolTip(wx.ToolTip(_("Cliquez ici pour annuler")))
+        self.ctrl_mdp.SetMinSize((100, -1))
+        self.Bind(wx.EVT_BUTTON, self.OnBoutonOk, self.bouton_ok)
+        self.ctrl_mdp.Bind(wx.EVT_KILL_FOCUS, self.OnEnterMdp)
+        self.checkHideMdp.Bind(wx.EVT_CHECKBOX, self.OnCheckHideMdp)
+
+    def Do_layout(self):
+        grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=0, hgap=0)
+        grid_sizer_base.Add(self.label, 0, wx.ALL, 10)
+        # Staticbox
+        staticbox = wx.StaticBoxSizer(self.staticbox, wx.HORIZONTAL)
+        grid_sizer_contenu = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
+        grid_sizer_contenu.Add(self.label_mdp, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer_contenu.Add(self.ctrl_mdp, 0, wx.EXPAND, 0)
+        grid_sizer_contenu.Add(self.label_confirmation, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer_contenu.Add(self.ctrl_confirm, 0, wx.EXPAND, 0)
+        grid_sizer_contenu.AddGrowableCol(1)
+        staticbox.Add(grid_sizer_contenu, 1, wx.ALL | wx.EXPAND, 10)
+        grid_sizer_base.Add(staticbox, 1, wx.LEFT | wx.RIGHT | wx.EXPAND, 10)
+
+        # Boutons
+        grid_sizer_boutons = wx.FlexGridSizer(rows=1, cols=4, vgap=10, hgap=5)
+        grid_sizer_boutons.Add((1, 20), 0, 0, 0)
+        grid_sizer_boutons.Add(self.checkHideMdp, 0, wx.ALIGN_BOTTOM, 0)
+        grid_sizer_boutons.Add(self.bouton_ok, 0, 0, 0)
+        grid_sizer_boutons.Add(self.bouton_annuler, 0, 0, 0)
+        grid_sizer_boutons.AddGrowableCol(0)
+        grid_sizer_base.Add(grid_sizer_boutons, 1, wx.ALL | wx.EXPAND, 10)
+        grid_sizer_base.AddGrowableCol(0)
+
+        self.SetSizerAndFit(grid_sizer_base)
+        self.Layout()
+        self.CentreOnScreen()
+
+    def GetMdpCrypt(self):
+        return SHA256.new(self.ctrl_mdp.GetValue().encode('utf-8')).hexdigest()
+
+    def GetMdp(self):
+        return self.ctrl_mdp.GetValue()
+
+    def OnBoutonOk(self, event):
+        """ Validation des données saisies """
+        if (not self.UniciteMdp()) or  (not self.Security(self.ctrl_mdp.GetValue())):
+            self.ctrl_mdp.SetFocus()
+            return False
+
+        if len(self.ctrl_confirm.GetValue()) == 0:
+            dlg = wx.MessageDialog(self, _("Vous devez obligatoirement saisir la confirmation du mot de passe !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            self.ctrl_confirm.SetFocus()
+            return False
+
+        if self.ctrl_mdp.GetValue() != self.ctrl_confirm.GetValue():
+            dlg = wx.MessageDialog(self, _("La confirmation du mot de passe ne correspond pas au mot de passe saisi !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            self.ctrl_confirm.SetFocus()
+            return False
+
+        # Fermeture
+        self.EndModal(wx.ID_OK)
+
+    def OnEnterMdp(self,event):
+        mdp = self.GetMdp()
+        if len(mdp) == 0:
+            return
+        self.ctrl_confirm.SetFocus()
+        if len(mdp) > 0 and mdp != self.testMdp:
+            self.UniciteMdp()
+            self.Security(mdp)
+        self.testMdp = mdp
+
+    def OnCheckHideMdp(self,event):
+        mdp = self.ctrl_mdp.GetValue()
+        confirm = self.ctrl_confirm.GetValue()
+        self.Sizer.Clear()
+        if self.checkHideMdp.GetValue():
+            self.checkHideValue = True
+            self.ctrl_mdp = wx.TextCtrl(self, -1, "",style=wx.TE_PROCESS_ENTER|wx.TE_PASSWORD)
+            self.ctrl_confirm = wx.TextCtrl(self, -1, "", style=wx.TE_PASSWORD)
+        else:
+            self.checkHideValue = False
+            self.ctrl_mdp = wx.TextCtrl(self, -1, "",style=wx.TE_PROCESS_ENTER)
+            self.ctrl_confirm = wx.TextCtrl(self, -1, "", style=0)
+        self.ctrl_mdp.SetValue(mdp)
+        self.ctrl_confirm.SetValue(confirm)
+        self.Init()
+        self.ctrl_mdp.SetFocus()
+
+    def UniciteMdp(self):
+        # Vérifie que le code d'accès n'est pas déjà utilisé
+        IDutilisateur = self.IDutilisateur
+        if not IDutilisateur: IDutilisateur = 0
+        DB = GestionDB.DB()
+
+        req = """SELECT IDutilisateur, sexe, nom, prenom, mdp, mdpcrypt, profil, actif
+        FROM utilisateurs 
+        WHERE (mdp LIKE '%s%%' OR mdpcrypt='%s') AND IDutilisateur<>%d
+        ;""" % (self.GetMdp()[:NBCARMDP], self.GetMdpCrypt(), IDutilisateur)
+        ret = DB.ExecuterReq(req, MsgBox="DLG_Saisie_utilisateur.UniciteMdp")
+        listeDonnees = []
+        if ret == 'ok':
+            listeDonnees = DB.ResultatReq()
+        DB.Close()
+        if len(listeDonnees) >= NBCARMDP:
+            mess = "Désolé, mot impossible\n\n"
+            mess +="La racine '%s' a déja été utilisée, il faut en utiliser une autre"%self.GetMdp()[:NBCARMDP]
+            dlg = wx.MessageDialog(self,mess,"Erreur de saisie", wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return False
+        if ret =='ok':
+            return True
+        return False
+
+    def Security(self,mdp, mute=False):
+        # Test sur les exigences de complexité
+        nbdigit, nbupper,nblower =0,0,0
+        nbcar = len(mdp)
+        for a in mdp:
+            if a.isdigit(): nbdigit +=1
+            if a.isupper(): nbupper +=1
+            if a.islower(): nblower +=1
+
+        condCase = nbdigit >= NBDIGMDP and nbupper >= NBUPPMDP and nblower >= NBLOWMDP
+        if nbcar>=NBCARMDP and condCase:
+            return True
+        else:
+            mess = "Mot de passe insatisfaisant\n\n"
+            if nbcar < 6: mess += "n'a pas au moins 6 caractères\n"
+            if nbdigit < NBDIGMDP: mess += "ne contient pas assez de chiffre\n"
+            if nbupper < NBUPPMDP: mess += "ne contient pas assez de majuscule\n"
+            if nblower < NBLOWMDP: mess += "ne contient pas assez de minuscule\n"
+            if not mute:
+                ret = wx.MessageBox(mess,"Resaisir", style=wx.CANCEL | wx.ICON_INFORMATION)
+                if ret == wx.CANCEL:
+                    self.ctrl_mdp.SetValue("")
+                    self.ctrl_confirm.SetFocus()
+                    return True
+        return False
+
+    def SaveModifPassword(self):
+        IDutilisateur = self.IDutilisateur
+        ret = "Le mot de passe ne satisfait pas les exigences"
+        if not IDutilisateur:
+            raise Exception("Pas d'IDutilisateur en 'SaveModifPassword'")
+        if self.UniciteMdp() and self.Security(self.GetMdp(),mute=True):
+            DB = GestionDB.DB()
+            listeDonnees = [
+                    ("mdp", self.GetMdp()),
+                    ("mdpcrypt", self.GetMdpCrypt()),
+            ]
+            ret = DB.ReqMAJ("utilisateurs", listeDonnees, "IDutilisateur",
+                            IDutilisateur)
+            DB.Close()
+        if ret == 'ok':
+            mess = "Mot de passe enregistré !\n\nà utiliser lors de la prochaine connection"
+            style = wx.ICON_INFORMATION
+        else:
+            mess = "Mot de passe inchangé!\n\n%s\nChangement redemandé à la prochaine connection"%ret
+            style =wx.ICON_EXCLAMATION
+        wx.MessageBox(mess,'Changement MDP',style=style)
+
+# --------------------------- DLG de saisie d'un utilisateur  ----------------------------
 class Dialog(wx.Dialog):
     def __init__(self, parent, IDutilisateur=None):
         wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
@@ -465,8 +661,8 @@ class Dialog(wx.Dialog):
             titre = _("Saisie du mot de passe")
             intro = _("Veuillez saisir un mot de passe :")
         else :
-            titre = _("Modification du mot de passe")
-            intro = _("Veuillez saisir un nouveau mot de passe :")
+            titre = None
+            intro = None
         dlg = DLG_Saisie_mdp(self,titre=titre,intro=intro,IDutilisateur=self.IDutilisateur)
         if dlg.ShowModal() == wx.ID_OK:
             if dlg.UniciteMdp():
@@ -645,194 +841,13 @@ class Dialog(wx.Dialog):
         # Droits
         self.ctrl_droits.Sauvegarde(IDutilisateur=self.IDutilisateur)
 
-
-# --------------------------- DLG de saisie du nouveau mot de passe ----------------------------
-class DLG_Saisie_mdp(wx.Dialog):
-    def __init__(self, parent,IDutilisateur=None,
-                 titre="Modification du mot de passe",
-                 intro="Veuillez saisir un nouveau mot de passe complexe:"):
-        wx.Dialog.__init__(self, parent, id=-1, name="DLG_nouveau_mdp_utilisateur")
-        self.parent = parent
-        self.IDutilisateur = IDutilisateur
-        self.SetTitle(titre)
-        self.testMdp = ""
-
-        self.staticbox = wx.StaticBox(self, -1, "")
-        self.label = wx.StaticText(self, -1, intro)
-        self.label_mdp = wx.StaticText(self, -1, _("Mot de passe :"))
-        self.ctrl_mdp = wx.TextCtrl(self, -1, "",style=wx.TE_PROCESS_ENTER | wx.TE_PASSWORD)
-        self.label_confirmation = wx.StaticText(self, -1, _("Confirmation :"))
-        self.ctrl_confirmation = wx.TextCtrl(self, -1, "", style=wx.TE_PASSWORD)
-
-        self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"), cheminImage="Images/32x32/Valider.png")
-        self.bouton_annuler = CTRL_Bouton_image.CTRL(self, id=wx.ID_CANCEL, texte=_("Annuler"), cheminImage="Images/32x32/Annuler.png")
-
-        self.__set_properties()
-        self.__do_layout()
-
-        self.Bind(wx.EVT_BUTTON, self.OnBoutonOk, self.bouton_ok)
-        self.ctrl_mdp.SetFocus()
-        #self.ctrl_mdp.Bind(wx.EVT_TEXT_ENTER,self.OnEnterMdp)
-        self.ctrl_mdp.Bind(wx.EVT_KILL_FOCUS, self.OnEnterMdp)
-
-    def __set_properties(self):
-        self.ctrl_mdp.SetToolTip(wx.ToolTip(_("Saisissez un mot de passe, mini 6 car, dont 1 Maj, 1Min, 1Maj")))
-        self.ctrl_confirmation.SetToolTip(wx.ToolTip(_("Confirmez le mot de passe en le saisissant une nouvelle fois")))
-        self.bouton_ok.SetToolTip(wx.ToolTip(_("Cliquez ici pour valider")))
-        self.bouton_annuler.SetToolTip(wx.ToolTip(_("Cliquez ici pour annuler")))
-        self.ctrl_mdp.SetMinSize((300, -1))
-
-    def __do_layout(self):
-        grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=0, hgap=0)
-
-        # Intro
-        grid_sizer_base.Add(self.label, 0, wx.ALL, 10)
-
-        # Staticbox
-        staticbox = wx.StaticBoxSizer(self.staticbox, wx.HORIZONTAL)
-        grid_sizer_contenu = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
-        grid_sizer_contenu.Add(self.label_mdp, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer_contenu.Add(self.ctrl_mdp, 0, wx.EXPAND, 0)
-        grid_sizer_contenu.Add(self.label_confirmation, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer_contenu.Add(self.ctrl_confirmation, 0, wx.EXPAND, 0)
-        grid_sizer_contenu.AddGrowableCol(1)
-        staticbox.Add(grid_sizer_contenu, 1, wx.ALL | wx.EXPAND, 10)
-        grid_sizer_base.Add(staticbox, 1, wx.LEFT | wx.RIGHT | wx.EXPAND, 10)
-
-        # Boutons
-        grid_sizer_boutons = wx.FlexGridSizer(rows=1, cols=3, vgap=10, hgap=10)
-        grid_sizer_boutons.Add((20, 20), 0, 0, 0)
-        grid_sizer_boutons.Add(self.bouton_ok, 0, 0, 0)
-        grid_sizer_boutons.Add(self.bouton_annuler, 0, 0, 0)
-        grid_sizer_boutons.AddGrowableCol(0)
-        grid_sizer_base.Add(grid_sizer_boutons, 1, wx.ALL | wx.EXPAND, 10)
-
-        self.SetSizer(grid_sizer_base)
-        grid_sizer_base.AddGrowableCol(0)
-        grid_sizer_base.Fit(self)
-        self.Layout()
-        self.CentreOnScreen()
-
-    def GetMdpCrypt(self):
-        return SHA256.new(self.ctrl_mdp.GetValue().encode('utf-8')).hexdigest()
-
-    def GetMdp(self):
-        return self.ctrl_mdp.GetValue()
-
-    def OnBoutonOk(self, event):
-        """ Validation des données saisies """
-        if not self.Security(self.ctrl_mdp.GetValue()):
-            self.ctrl_mdp.SetFocus()
-            return False
-
-        if len(self.ctrl_confirmation.GetValue()) == 0:
-            dlg = wx.MessageDialog(self, _("Vous devez obligatoirement saisir la confirmation du mot de passe !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
-            dlg.ShowModal()
-            dlg.Destroy()
-            self.ctrl_confirmation.SetFocus()
-            return False
-
-        if self.ctrl_mdp.GetValue() != self.ctrl_confirmation.GetValue():
-            dlg = wx.MessageDialog(self, _("La confirmation du mot de passe ne correspond pas au mot de passe saisi !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
-            dlg.ShowModal()
-            dlg.Destroy()
-            self.ctrl_confirmation.SetFocus()
-            return False
-
-        # Fermeture
-        self.EndModal(wx.ID_OK)
-
-    def OnEnterMdp(self,event):
-        mdp = self.GetMdp()
-        self.ctrl_confirmation.SetFocus()
-        if len(mdp) > 0 and mdp != self.testMdp:
-            self.Security(mdp)
-        self.testMdp = mdp
-        event.Skip()
-
-    def UniciteMdp(self):
-        # Vérifie que le code d'accès n'est pas déjà utilisé
-        IDutilisateur = self.IDutilisateur
-        if not IDutilisateur: IDutilisateur = 0
-        DB = GestionDB.DB()
-        req = """SELECT IDutilisateur, sexe, nom, prenom, mdp, mdpcrypt, profil, actif
-        FROM utilisateurs 
-        WHERE (mdp LIKE '%s%%' OR mdpcrypt='%s') AND IDutilisateur<>%d
-        ;""" % (self.GetMdp()[:NBCARMDP], self.GetMdpCrypt(), IDutilisateur)
-        ret = DB.ExecuterReq(req, MsgBox="DLG_Saisie_utilisateur.UniciteMdp")
-        listeDonnees = []
-        if ret == 'ok':
-            listeDonnees = DB.ResultatReq()
-        DB.Close()
-        if len(listeDonnees) > 0:
-            mess = "Désolé, mot impossible\n\n"
-            mess +="La racine '%s' a déja été utilisée, il faut en utiliser une autre"%self.GetMdp()[:NBCARMDP]
-            dlg = wx.MessageDialog(self,mess,"Erreur de saisie", wx.OK | wx.ICON_EXCLAMATION)
-            dlg.ShowModal()
-            dlg.Destroy()
-            return False
-        if ret =='ok':
-            return True
-        return False
-
-    def Security(self,mdp, mute=False):
-        if not self.UniciteMdp():
-            return False
-        # Test sur les exigences de complexité
-        nbdigit, nbupper,nblower =0,0,0
-        nbcar = len(mdp)
-        for a in mdp:
-            if a.isdigit(): nbdigit +=1
-            if a.isupper(): nbupper +=1
-            if a.islower(): nblower +=1
-
-        condCase = nbdigit >= NBDIGMDP and nbupper >= NBUPPMDP and nblower >= NBLOWMDP
-        if nbcar>=NBCARMDP and condCase:
-            return True
-        else:
-            mess = "Mot de passe insatisfaisant\n\n"
-            if nbcar < 6: mess += "n'a pas au moins 6 caractères\n"
-            if nbdigit < NBDIGMDP: mess += "ne contient pas assez de chiffre\n"
-            if nbupper < NBUPPMDP: mess += "ne contient pas assez de majuscule\n"
-            if nblower < NBLOWMDP: mess += "ne contient pas assez de minuscule\n"
-            if not mute:
-                ret = wx.MessageBox(mess,"Resaisir", style=wx.CANCEL | wx.ICON_INFORMATION)
-                if ret == wx.CANCEL:
-                    self.ctrl_mdp.SetValue("")
-                    self.ctrl_confirmation.SetFocus()
-                    return True
-        return False
-
-    def SaveModifPassword(self,IDutilisateur=None):
-        if IDutilisateur:
-            self.IDutilisateur = IDutilisateur
-        else: IDutilisateur = self.IDutilisateur
-        ret = "Le nouveau mot de passe ne satisfait les exigences"
-        if not IDutilisateur:
-            ret = "Problème programmation, pas d'IDutilisateur en 'SaveModifPassword'"
-        if self.Security(self.GetMdp(),mute=True):
-            DB = GestionDB.DB()
-            listeDonnees = [
-                    ("mdp", self.GetMdp()),
-                    ("mdpcrypt", self.GetMdpCrypt()),
-            ]
-            ret = DB.ReqMAJ("utilisateurs", listeDonnees, "IDutilisateur",
-                            IDutilisateur)
-            DB.Close()
-        if ret == 'ok':
-            mess = "Mot de passe enregistré !\n\nà utiliser lors de la prochaine connection"
-            style = wx.ICON_INFORMATION
-        else:
-            mess = "Mot de passe inchangé!\n\n%s\nChangement redemandé à la prochaine connection"%ret
-            style =wx.ICON_EXCLAMATION
-        wx.MessageBox(mess,'Changement MDP',style=style)
+# ----------------------------------------------------------------------------------------
 
 if __name__ == "__main__":
     app = wx.App(0)
-    #wx.InitAllImageHandlers()
     dialog_1 = Dialog(None, IDutilisateur=7)
-    #dialog_2 = DLG_Saisie_mdp(None )
-    app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()
-    #dialog_2.SaveModifPassword(IDutilisateur=123654)
+    #dialog_2 = DLG_Saisie_mdp(None,)
+    #dialog_2.ShowModal()
+    #dialog_2.SaveModifPassword()
     app.MainLoop()
