@@ -1635,7 +1635,7 @@ class MainFrame(wx.Frame):
         elif versionData < versionLogiciel:
             if not "192.168" in nomFichier:
                 mess = "Base de donnée d'un niveau inférieur\n\n"
-                mess += "Faut-il mettre à jour la base de donnée distante?"
+                mess += "Faut-il convertir la base de donnée distante?"
                 dlg = wx.MessageDialog(self, mess, "Confirmation",
                                        wx.YES_NO | wx.YES_DEFAULT | wx.ICON_WARNING)
                 reponse = dlg.ShowModal()
@@ -1643,7 +1643,7 @@ class MainFrame(wx.Frame):
                 if reponse != wx.ID_YES:
                     resultat = False
             if resultat == True:
-                # Fait la conversion de la base par updateDB
+                # Fait la conversion de la base par updateDB si pas de pb avant
                 info = "Lancement de la conversion %s -> %s..." % (
                 VERSION_DATA, VERSION_LOGICIEL)
                 self.SetStatusText(info)
