@@ -227,7 +227,7 @@ class CTRL_AfficheVersion(wx.TextCtrl):
             mess += "La %s est la plus récente stockée\nla votre %s semble plus récente\n\n" % (
                 version_choix, self.version_logiciel)
             mess += "Vous pouvez installer un fichier !"
-            ret = wx.MessageBox(mess, style=wx.YES | wx.ICON_INFORMATION)
+            ret = wx.MessageBox(mess, style=wx.OK | wx.ICON_INFORMATION)
             return
         if version_choix > self.version_logiciel:
             self.parent.check_maj.SetValue(True)

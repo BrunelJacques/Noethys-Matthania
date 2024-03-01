@@ -1642,7 +1642,7 @@ class MainFrame(wx.Frame):
             dlg.Destroy()
             if not majFaite:
                 self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
-                message = "Votre station n'est pas à jour!\n\n"
+                message = "Votre station n'est pas synchronisée!\n\n"
                 message += "installez la version '%s.xxx' la plus récente ." % VERSION_LOGICIEL[
                                                                                :3]
                 titre = "Erreur"
