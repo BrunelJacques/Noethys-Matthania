@@ -1578,6 +1578,8 @@ class MainFrame(wx.Frame):
             message = "Numéro Version incorrect : %s"% VERSION_LOGICIEL
             wx.MessageBox(message,titre,style=wx.ICON_INFORMATION)
             return True
+        elif versionData == versionLogiciel:
+            return True
         elif versionData[:2] != versionLogiciel[:2]:
             # Changement majeur, réserve l'action aux admins (version python?)
             mess = "INCOHERENCE VERSIONS\n\n"
@@ -1632,25 +1634,7 @@ class MainFrame(wx.Frame):
                 style = wx.OK | wx.ICON_ERROR
                 resultat = False
 
-        elif versionData < versionLogiciel:
-            if not "192.168" in nomFichier:
-                mess = "Base de donnée d'un niveau inférieur\n\n"
-                mess += "Faut-il convertir la base de donnée distante?"
-                dlg = wx.MessageDialog(self, mess, "Confirmation",
-                                       wx.YES_NO | wx.YES_DEFAULT | wx.ICON_WARNING)
-                reponse = dlg.ShowModal()
-                dlg.Destroy()
-                if reponse != wx.ID_YES:
-                    resultat = False
-            if resultat == True:
-                # Fait la conversion de la base par updateDB si pas de pb avant
-                info = "Lancement de la conversion %s -> %s..." % (
-                VERSION_DATA, VERSION_LOGICIEL)
-                self.SetStatusText(info)
-                print(info)
-                resultat, message, titre, style = UpdateDB(versionData)
-
-        elif versionData > versionLogiciel:
+        else:
             from Dlg import DLG_Release
             dlg = DLG_Release.Dialog(self, VERSION_DATA, VERSION_LOGICIEL_DATE)
             resultat = dlg.ShowModal()

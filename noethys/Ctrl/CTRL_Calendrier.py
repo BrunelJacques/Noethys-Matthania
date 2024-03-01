@@ -481,10 +481,10 @@ class Calendrier(wx.ScrolledWindow):
                 
                 if jour != 0:
                     # Crée les données de la case
-                    x = xMois+(largCase*numJour) 
-                    y = yMois+(hautCase*numSemaine)
-                    l = largCase - self.ecartCases
-                    h = hautCase - self.ecartCases
+                    x = int(xMois+(largCase*numJour))
+                    y = int(yMois+(hautCase*numSemaine))
+                    l = int(largCase - self.ecartCases)
+                    h = int(hautCase - self.ecartCases)
                     texteDate = datetime.date(annee, mois, jour)
 
                     # Enregistrement des données dans une liste     
@@ -558,10 +558,10 @@ class Calendrier(wx.ScrolledWindow):
         # Dessin du texte
         texte = listeMois[mois-1] + " " + str(annee)      
         largTexte, hautTexte = self.GetTextExtent(texte)
-        dc.DrawText(texte, xMois+(largMois//2)-(largTexte//2), yMois+(hautHeader//2)-(hautTexte//2))
+        dc.DrawText(texte, int(xMois+(largMois//2)-(largTexte//2)), int(yMois+(hautHeader//2)-(hautTexte//2)))
         # Dessin de la ligne
         dc.SetPen(wx.Pen((210, 210, 210), 1))
-        dc.DrawLine(xMois+2, yMois+hautHeader-2, xMois+largMois-2, yMois+hautHeader-2)
+        dc.DrawLine(int(xMois+2), int(yMois+hautHeader-2), int(xMois+largMois-2), int(yMois+hautHeader-2))
         
         return hautMois-hautHeader, yMois+hautHeader
 

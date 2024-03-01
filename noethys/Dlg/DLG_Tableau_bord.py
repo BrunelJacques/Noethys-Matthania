@@ -88,6 +88,8 @@ class Remplissage(object):
 
     def MajDates(self,DB,dteEquiv):
         dp, mp, yp = dteEquiv.day, dteEquiv.month, dteEquiv.year
+        if mp==2 and dp==29:
+            dp=28
         equivN1 = datetime.date(yp-1,mp,dp)
         equivN2 = datetime.date(yp-2,mp,dp)
         debExN,finExN = DB.GetExercice(dteEquiv,alertes=False,approche=True)
@@ -589,7 +591,7 @@ class Remplissage(object):
                                            wx.BITMAP_TYPE_ANY))
         wx.Yield()        # export (code noms) des activites
 
-        self.MajParams(DB,lstIDactivites=lstIDactivites)
+        self.MajParams(DB,lstIDactivites=lstIDactivites,dteEquiv=dteEquiv)
         donnees,dddGroupesFamillesInscriptions = self.GetDonnees(DB)
         if len(list(dddGroupesFamillesInscriptions.keys())) >0:
             self.RechercheAcomptes(DB,donnees,dddGroupesFamillesInscriptions)

@@ -223,13 +223,16 @@ class CTRL_AfficheVersion(wx.TextCtrl):
             wx.MessageBox(mess, "Impossible", style=wx.ICON_ERROR)
             return
         if version_choix < self.version_logiciel:
-            mess = "Rétropédalage à confirmer\n\n"
-            mess += "La %s remontée sera antérieure\nà l'actuelle %s\n\n" % (
+            mess = "Votre version est postérieure à celles stockées\n\n"
+            mess += "La %s est la plus récente stockée\nla votre %s semble plus récente\n\n" % (
                 version_choix, self.version_logiciel)
-            mess += "Certaines nouvelles modifications pourront rester en place"
-            ret = wx.MessageBox(mess, style=wx.YES_NO | wx.ICON_INFORMATION)
-            if ret != wx.YES:
-                return
+            mess += "Vous pouvez installer un fichier !"
+            ret = wx.MessageBox(mess, style=wx.YES | wx.ICON_INFORMATION)
+            return
+        if version_choix > self.version_logiciel:
+            self.parent.check_maj.SetValue(True)
+        else: self.parent.check_maj.SetValue(False)
+
         # Enregistrement de la validation
         self.parent.tplVersionChoix = tplVersionChoix
         self.version_choix = version_choix
@@ -433,7 +436,10 @@ class Dialog(wx.Dialog):
 
     def __set_properties(self):
         self.choice_baseDonnees.Select(0)
-        self.check_maj.SetValue(True)
+        if self.version_data <= self.version_logiciel:
+            self.check_maj.SetValue(False)
+        else:
+            self.check_maj.SetValue(True)
         self.check_stocke.SetValue(False)
         self.txt_base.SetToolTip(wx.ToolTip("Choix de la base de donnée qui conserve les versions"))
         self.choice_baseDonnees.SetToolTip(wx.ToolTip("Base de donnée qui conserve les différentes versions"))
@@ -625,7 +631,7 @@ class Dialog(wx.Dialog):
 if __name__ == "__main__":
     app = wx.App(0)
     FonctionsPerso.GetPathRoot()
-    dialog_1 = Dialog(None,"1.3.1.12","version 1.3.1.14 (15/06/2022)")
+    dialog_1 = Dialog(None)
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()
     app.MainLoop()
