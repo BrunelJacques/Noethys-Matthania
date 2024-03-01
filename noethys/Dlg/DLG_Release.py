@@ -605,10 +605,12 @@ class Dialog(wx.Dialog):
                 UTILS_Fichiers.ExtractAll(self.ctrl_affiche.zipFile,pathRoot)
                 mess = "Le processus de mise à jour est terminé."
                 self.majFaite = True
+        if self.version_logiciel == self.version_data:
+            self.majFaite = True
 
         mess = "Fin d'opération\n\n-\t%s\n-\t%s" % (messStockage, mess)
         style = wx.OK
-        if self.majFaite:
+        if self.majFaite and self.version_logiciel != self.version_data:
             mess += "\n\nRedémarrage de Noethys pour prendre en compte la version à jour?"
             mess += "\nSans redémarrage les anciens programmes restent chargés."
             style = wx.YES_NO
