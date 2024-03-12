@@ -602,8 +602,8 @@ class Calendrier(wx.ScrolledWindow):
                 dc.SetBrush(wx.Brush(self.couleurSelect))
         
         # Dessin de la case
-        dc.DrawRectangle(x, y, l, h)
-        
+        dc.DrawRectangle(int(x), int(y), int(l), int(h))
+
         # Dessin du symbole Aujourd'hui
         if texteDate == datetime.date.today() :
             dc.SetBrush(wx.Brush((255, 0, 0)))
@@ -623,7 +623,7 @@ class Calendrier(wx.ScrolledWindow):
         font = self.GetFont()
         font.SetPointSize(self.tailleFont(l, h))
         dc.SetFont(font)
-        dc.DrawText(str(texteDate.day), x + 3, y + 2)
+        dc.DrawText(str(texteDate.day), int(x + 3), int(y + 2))
 
         # Traitement pour le PseudoDC
         r = wx.Rect(int(x), int(y), int(l), int(h))
