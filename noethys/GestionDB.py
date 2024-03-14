@@ -799,7 +799,7 @@ class DB():
                 value = recordset[0][0]
         return value
 
-    def SetParam(self, param= None, value= None, type= "string", user= None, unique=False):
+    def SetParam(self, param= None, value= None, type= "string", user= None, unique=True):
         # tentative d'insertion puis MAJ avec Clé unique en couple données [0] puis clé primair double [:2]
         if user == None:
             user = self.UtilisateurActuel()

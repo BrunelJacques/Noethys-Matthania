@@ -468,7 +468,7 @@ def PrixJournee(DB,saison,annee):
             prixJour=30
         else:
             if float(prixJour) > 0:
-                DB.SetParam(param=texte,value=float(prixJour),type="float",user="Any")
+                DB.SetParam(param=texte,value=float(prixJour),type="float",user="Any",unique=False)
     return prixJour
 
 def GetListeDictLignesFact(DB,dictDonnees,modele):

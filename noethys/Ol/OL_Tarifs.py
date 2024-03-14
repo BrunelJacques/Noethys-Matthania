@@ -313,8 +313,8 @@ class ListView(FastObjectListView):
                 donnees = [self.IDactivite,IDgroupe,IDcateg,nomCateg,dictGroupe['nom'],codeTarif,nomTarif,prix,cumul]
 
                 # filtrage de corresponndance entre les types campeur des groupes et categories_tarifs
-                if dictGroupe['campeur'] != campeurCateg: # and campeurCateg != 0:
-                    continue
+                if dictGroupe['campeur'] != campeurCateg and campeurCateg != 0:
+                    continue # un animateur '0' peut être mis dans un groupe campeurs '1'
                 track = Track(donnees,self.champs)
                 tracksOLV.append(track)
         db.Close()
@@ -535,7 +535,7 @@ class MyFrame(wx.Frame):
         sizer_1.Add(panel, 1, wx.ALL|wx.EXPAND)
         self.SetSizer(sizer_1)
         panel.ctrl_categories = ListView(self)
-        self.myOlv = ListView(panel, IDactivite=401, id=-1, name="OL_test",
+        self.myOlv = ListView(panel, IDactivite=805, id=-1, name="OL_test",
                               style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         self.myOlv.MAJ() 
         sizer_2 = wx.BoxSizer(wx.VERTICAL)

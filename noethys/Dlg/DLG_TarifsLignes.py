@@ -150,7 +150,7 @@ class PanelAffectations(wx.Panel):
     def __init__(self, parent, IDfamille=None):
         wx.Panel.__init__(self, parent, id=-1, name="panel_quotients", style=wx.TAB_TRAVERSAL)
         self.parent = parent
-        self.staticbox_Affectations = wx.StaticBox(self, -1, _("Lignes d'Affectations"))
+        self.staticbox_Affectations = wx.StaticBox(self, -1, _("Affectations en consultation seulement, pour modif passer par l'activité"))
         self.ctrl_code = parent.ctrl_code
         self.ctrl_annee = parent.ctrl_annee
         self.ctrl_listview = OL_TarifsLignesAffectations.ListView(self, id=-1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
@@ -161,8 +161,9 @@ class PanelAffectations(wx.Panel):
         self.__do_layout()
 
     def __set_properties(self):
-        self.ctrl_listview.SetToolTip(_("Un clic sur la coche pour ajouter l'Affectation au tarif."))
+        self.ctrl_listview.SetToolTip(_("En consultation seulement"))
         self.SetMinSize((800, 600))
+        self.ctrl_listview.Enable(False)
 
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=1, cols=1, vgap=5, hgap=5)

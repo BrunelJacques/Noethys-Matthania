@@ -1620,7 +1620,7 @@ class Forfaits():
                 # suppression de la facture et stockage du numéro
                 if pGest.DestroyFacture(dictDonnees["noFacture"],dictDonnees["IDcompte_payeur"]):
                     DB.SetParam(param = str(dictDonnees["noFacture"]),value= dictDonnees["noFacture"],user = "NoLibre",
-                                type = "integer")
+                                type = "integer",unique=False)
                     ligneComm = " Suppression Facture %s " % dictDonnees['noFacture']
                     action = "SuppressionFacturation"
             else:
@@ -1678,7 +1678,8 @@ class Forfaits():
             if pGest.FactureMonoPiece(dictDonnees["noAvoir"],dictDonnees["IDnumPiece"]):
                 # suppression de l'avoir et stockage du numéro
                 if pGest.DestroyFacture(dictDonnees["noAvoir"],dictDonnees["IDcompte_payeur"]):
-                    DB.SetParam(param = str(dictDonnees["noFacture"]),value= dictDonnees["noAvoir"],user = "NoLibre",type = "integer")
+                    DB.SetParam(param = str(dictDonnees["noFacture"]),value= dictDonnees["noAvoir"],
+                                user = "NoLibre",type = "integer",unique=False)
                     ligneComm = " Suppression Avoir %s " % dictDonnees['noAvoir']
                     action = "SuppressionFacturation"
             else:

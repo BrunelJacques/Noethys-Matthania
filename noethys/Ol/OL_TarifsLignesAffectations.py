@@ -145,6 +145,8 @@ class ListView(FastObjectListView):
         #fin AppelDonnees
     
     def SauveDonnees(self,listeCoches):
+        pass
+        """
         tarif = str(self.parent.ctrl_code.GetValue())
         if len(tarif) > 0 :
             DB = GestionDB.DB()
@@ -161,6 +163,7 @@ class ListView(FastObjectListView):
                         retour = DB.ReqMAJcles("matTarifs",listeDonnees[3:],listeDonnees[:3],
                                                MsgBox="OL_TarifsLignesAffectations.SauveDonnees Modif")
             DB.Close()
+        """
 
     def MAJ(self, ID=None):
          self.InitObjectListView()

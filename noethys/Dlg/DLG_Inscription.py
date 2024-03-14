@@ -179,6 +179,8 @@ class ListBox(wx.ListBox):
         IDactivite, campeur = self.IDcondition  # ID condition doit être un tuple d'IDs
         if campeur == None:
             conditionCampeur = "true"
+        elif campeur == 1:
+            conditionCampeur = "campeur in (0,1)" # un animateur '0' peut être mis dans un groupe campeurs '1'
         elif campeur in (0,1,2) :
             conditionCampeur = "campeur=%d"%campeur
         else:

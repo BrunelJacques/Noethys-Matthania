@@ -300,8 +300,6 @@ class CTRL(ULC.UltimateListCtrl):
             else:
                 nbreStaff = nbreInscrits
             limiteAge = LimitesAge()
-            if IDgroupe == 1923:
-                pass
 
             if not IDgroupe in list(dictGroupesTemp.keys()):
                 dictGroupesTemp[IDgroupe] = {"IDgroupe" : IDgroupe, "nomGrp" : nomGrp,"abregeGrp" : abregeGrp,
@@ -337,7 +335,8 @@ class CTRL(ULC.UltimateListCtrl):
         # tri des lignes par rappel de l'ordre dans select
         for key in lstKeys:
             dictGroupe = dictGroupesTemp[key]
-            listeGroupesTemp.append(dictGroupe)
+            if not dictGroupe in listeGroupesTemp:
+                listeGroupesTemp.append(dictGroupe)
         # Pour éviter l'actualisation de l'affichage si aucune modification des données
         if self.listeGroupes != listeGroupesTemp or forcerActualisation == True :
             self.listeGroupes = listeGroupesTemp
@@ -350,7 +349,6 @@ class CTRL(ULC.UltimateListCtrl):
         self.dictRenderers = {}
         index = 0
         for dictGroupe in self.listeGroupes :
-            
             # Colonne Activité
             label = " " + dictGroupe["nomAct"]
             self.InsertStringItem(index,label )
