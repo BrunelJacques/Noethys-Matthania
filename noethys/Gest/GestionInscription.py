@@ -327,24 +327,30 @@ class Forfaits():
         return ligneRetour
 
     # Outil correctif : Mise en cohérence des autres tables aller retour en devis
-    def ChangeNaturePiece(self,parent,dPiece,natureNew):
+    def ChangeNaturePiece(self,parent,dictPiece,natureNew):
         # dPpiece ne contient que les éléments de base pour trouver la pièce complète
         liste_codesNaturePiece = ["DEV","RES","COM","FAC","AVO"]
-        # appel de la pièce en intégral
-        if dPiece["IDindividu"] > 0:
+        # complète la pièce, getPieceModif alimente self.dictPiece
+        if dictPiece["IDindividu"] > 0:
             niveau = "individu"
-            ret = self.GetPieceModif(parent,dPiece["IDindividu"],dPiece["IDactivite"],
-                                      IDnumPiece=dPiece["IDnumPiece"],DB=self.DB)
+            ret = self.GetPieceModif(parent,dictPiece["IDindividu"],dictPiece["IDactivite"],
+                                      IDnumPiece=dictPiece["IDnumPiece"],DB=self.DB)
             if ret == False:
                 return "Echec GetPiece"
-            dictPiece = self.dictPiece
+            self.dictPiece.update(dictPiece)
+            # Priorité aux données transmises
+            dictPiece.update(self.dictPiece)
+
         else:
             # pièce niveau famille
             niveau = "famille"
-            lstPieces = self.GetPieceModif999(parent,dPiece["IDcompte_payeur"],dPiece["IDinscription"],
-                                               dPiece["IDnumPiece"])
-            dictPiece = lstPieces[0]
-    
+            lstPieces = self.GetPieceModif999(parent,dictPiece["IDcompte_payeur"],dictPiece["IDinscription"],
+                                               dictPiece["IDnumPiece"])
+            dicOrigine = lstPieces[0]
+            dicOrigine.update(dictPiece)
+            # Priorité aux données transmises
+            dictPiece.update(dicOrigine)
+            
         etatPiece = dictPiece["etat"]
         natureOld = dictPiece["nature"]
         if not natureOld in ("DEV","RES","COM"):
@@ -362,38 +368,41 @@ class Forfaits():
         commentaire = "%s"%(GestionDB.Decod(dictPiece["commentaire"]))
         commentaire = str(datetime.date.today()) + " Nature: " + natureOld + "\n" + commentaire
         dictPiece["commentaire"] = commentaire
+        newPiece = {}
+        newPiece.update(dictPiece)
         listeDonnees = [("nature", natureNew),
                         ("etat", etatPiece),]
+        if natureNew in ("DEV","RES"):
+            listeDonnees.append(("IDprestation", None))
         for champ, valeur in listeDonnees :
-            dictPiece[champ] = valeur
-        ret = self.ModifiePiece(parent,dictPiece)
-    
+            newPiece[champ] = valeur
+        ret = self.ModifiePiece(parent,newPiece)
         ajout = True
         # gestion des autres tables liées
         if natureOld == "DEV":
             if natureNew == "RES" and niveau == "individu":
-                ajout = self.AjoutConsommations(parent,dictPiece)
+                ajout = self.AjoutConsommations(parent,newPiece)
             if natureNew == "COM":
                 if  niveau == "individu":
-                    ajout = self.AjoutConsommations(parent,dictPiece)
-                IDprestation = self.AjoutPrestation(parent,dictPiece,modif=True)
+                    ajout = self.AjoutConsommations(parent,newPiece)
+                IDprestation = self.AjoutPrestation(parent,newPiece,modif=True)
                 if IDprestation > 0:
-                    dictPiece["IDprestation"] = IDprestation
-                self.ModifieConsoCree(parent,dictPiece)
-                self.ModifiePieceCree(parent,dictPiece)
+                    newPiece["IDprestation"] = IDprestation
+                self.ModifieConsoCree(parent,newPiece)
+                self.ModifiePieceCree(parent,newPiece)
         if natureOld == "RES":
             if natureNew == "DEV" and niveau == "individu":
-                retDel = self.DelConsommations(parent,dictPiece)
+                retDel = self.DelConsommations(parent,newPiece)
             if natureNew == "COM":
                 if niveau == "individu":
-                    IDprestation = self.AjoutPrestation(parent,dictPiece,modif=True)
+                    IDprestation = self.AjoutPrestation(parent,newPiece,modif=True)
                 else:
-                    IDprestation = self.AjoutPrestation999(parent,dictPiece,modif=False)
+                    IDprestation = self.AjoutPrestation999(parent,newPiece,modif=False)
                 if IDprestation > 0:
-                    dictPiece["IDprestation"] = IDprestation
+                    newPiece["IDprestation"] = IDprestation
                 if niveau == "individu":
-                    self.ModifieConsoCree(parent,dictPiece)
-                self.ModifiePieceCree(parent,dictPiece)
+                    self.ModifieConsoCree(parent,newPiece)
+                self.ModifiePieceCree(parent,newPiece)
         if natureOld == "COM":
             if natureNew == "DEV":
                 if niveau == "individu":
@@ -405,7 +414,7 @@ class Forfaits():
         if natureNew == "RES":
             self.DelPrestations(parent,dictDonnees=dictPiece)
         if not ajout: ret = "ko"
-        dictPiece["nature"] = natureNew
+        dictPiece.update(newPiece)
         return ret
         # fin ChangeNaturePiece
     
@@ -1140,15 +1149,10 @@ class Forfaits():
 
     # Modif de la pièce famille et de toutes ses dépendances
     def ModifiePiece999(self,parent,dictDonnees,nature):
-
-        dictDonnees["nature"] = nature
         if len(dictDonnees['lignes_piece']) == 0:
             return  self.Suppression999(dictDonnees)
 
-        lstIDlignesOrigine = [lig['IDnumLigne'] for lig in dictDonnees['lignes_pieceOrigine']]
-        lstIDlignes = [lig['IDnumLigne'] for lig in dictDonnees['lignes_piece']]
         # à supprimer toutes les lignes plus présentes
-
         lstLignesDel = [lig for lig in dictDonnees['lignes_pieceOrigine'] if not lig in dictDonnees['lignes_piece']]
         lstIDlignesDel = [lig['IDnumLigne'] for lig in lstLignesDel]
 
@@ -1177,13 +1181,8 @@ class Forfaits():
         # la nature héritée de la pièce individu,a pu changer celle de la piece
         if 'pieceOrigine' in dictDonnees:
             natureOld = dictDonnees['pieceOrigine']['nature']
-            dictDonnees["nature"] = natureOld
             if natureOld != nature:
                 ret = self.ChangeNaturePiece(self,dictDonnees,nature)
-                if ret == True:
-                    return
-
-
         # actions prestation
         if mttOrigine != mttNew:
             ret = self.ModifPrestationVentilation999(self.DB,dictDonnees)
@@ -1195,7 +1194,6 @@ class Forfaits():
                                      datetime.date.today())
         # recherche date d'échéance
         if dictDonnees["nature"] in  ('FAC','AVO'):
-            dd = None
             dictActivite = self.GetActivite(dictDonnees["IDactivite"])
             dd = dictActivite["date_debut"]
             try:
@@ -1407,22 +1405,6 @@ class Forfaits():
                 self.DB.ReqDEL("ventilation", "IDprestation", IDprestation)
                 self.DB.ReqDEL("prestations", "IDprestation", IDprestation)
         #fin SuppressionInscription
-
-    def GetNatureDevis(self,IDfamille):
-        #retourne la liste des pieces non facturées
-        lstPieces = []
-        req =  """
-            SELECT COUNT(pieIDnumPiece) AS nombre,pieNature 
-            FROM matPieces 
-            WHERE pieNature in ('DEV','RES','COM') AND pieIDfamille = %d
-            GROUP BY pieNature
-            ORDER BY nombre DESC """%(IDfamille)
-        retour = self.DB.ExecuterReq(req,MsgBox="GestionInscription.GetNatureDevis")
-        if retour == "ok" :
-            recordset = self.DB.ResultatReq()
-            if len(recordset) == 1:
-                return recordset[0][1]
-        return "COM"
 
     def GetPieceSupprime(self,parent,IDinscription,IDindividu,IDactivite):
         #retourne False pour abandon, None pour suppresion sans piece, True pour self.dictPiece alimentée

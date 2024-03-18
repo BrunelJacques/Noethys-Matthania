@@ -55,6 +55,17 @@ class Forfaits():
         self.fGest = GestionInscription.Forfaits(self.parent,DB=DB)
         self.IDuser = DB.IDutilisateurActuel()
 
+    def GetListePiecesEnCours(self,db,IDfamille):
+        # récup des pieces non facturées ou avoirs
+        condition = """
+                ((matPieces.pieIDfamille = %d) 
+                    AND (matPieces.pieNature in ('DEV','RES','COM')))"""%IDfamille
+        return DATA_Tables.GetDdRecords(db,
+                                         "matPieces",
+                                         condition,
+                                         mess="GestionPieces.GetListePiecesEnCours"
+                                         )
+
     def AjoutInscription(self,dictDonnees) :
         # anomalie de perte d'inscription à recreer à partir de pièce
         self.listeDonneesInscriptions = []

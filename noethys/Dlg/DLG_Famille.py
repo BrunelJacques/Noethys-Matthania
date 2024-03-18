@@ -646,7 +646,8 @@ class Dialog(wx.Dialog):
         self.Sauvegarde()
         from Dlg import DLG_Grille
         dlg = DLG_Grille.Dialog(self, IDfamille=self.IDfamille, selectionTous=True)
-        if dlg.ShowModal() == wx.ID_OK:
+        ret = dlg.ShowModal()
+        if ret == wx.ID_OK:
             self.MAJpageActive() 
         try :
             dlg.Destroy()
@@ -910,7 +911,7 @@ if __name__ == "__main__":
     heure_debut = time.time()
     # ramel 567; perez marc 1724; bartoOliv 1861; branco 4499;  bourrel 6191
     #7735 parrainage; 8107 multifactures; 709 Brunel jacques
-    dialog_1 = Dialog(None, IDfamille= 2212)
+    dialog_1 = Dialog(None, IDfamille= 2456)
     print("Temps de chargement fiche famille =", time.time() - heure_debut)
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()

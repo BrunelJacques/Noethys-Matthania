@@ -1021,8 +1021,11 @@ class DB():
         # recherche la date début et fin d'exercice de dateInput
         if not isinstance(dateInput, datetime.date):
             mess = "La valeur %s n'est pas une date : %s " % (labelDate,str(dateInput))
-            if alertes : wx.MessageBox(mess)
-            return (None,None)
+            if not approche:
+                if alertes : wx.MessageBox(mess,"RECHERCHE EXERCICE")
+                return (None,None)
+            mess = ("Date non fournie\n\ndates par défaut: date du jour ou dernier exercice ouvert")
+            if alertes: wx.MessageBox(mess, "RECHERCHE EXERCICE")
         req = """SELECT date_debut, date_fin
                 FROM compta_exercices;
                 """
@@ -1038,15 +1041,16 @@ class DB():
             for dd, df in recordset:
                 ddebut = ut.DateEngEnDateDD(dd)
                 dfin = ut.DateEngEnDateDD(df)
-                if (ddebut <= dateInput) and (dfin >= dateInput) :
+                if not dateInput:
+                    dateDebut = ddebut
+                    dateFin = dfin
+                elif (ddebut <= dateInput) and (dfin >= dateInput) :
                     dateDebut = ddebut
                     dateFin = dfin
                 if dfin >lastFin :
                     lastDeb = ddebut
                     lastFin = dfin
-        if dateDebut == None:
-            mess = "Il n'y a pas d'exercice ouvert pour la date %s: %s \n Vérifiez la date comptable" % (labelDate,str(dateInput))
-            if alertes : wx.MessageBox(mess)
+        if dateDebut == None :
             if approche and lastDeb != None :
                 if dateInput.month >= lastDeb.month : 
                     anneeDeb = dateInput.year
@@ -1058,6 +1062,9 @@ class DB():
                 dateDebut = datetime.date(anneeDeb,lastDeb.month,lastDeb.day)
                 dateFin = datetime.date(anneeFin,lastFin.month,lastFin.day)
             else :
+                mess = "Il n'y a pas d'exercice ouvert pour la date %s: %s \n Vérifiez la date comptable" % (
+                labelDate, str(dateInput))
+                if alertes: wx.MessageBox(mess, "RECHERCHE EXERCICE")
                 return (None,None)
         if str(dateFin) > str(dateDebut):
             return (dateDebut,dateFin)

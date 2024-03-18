@@ -917,8 +917,8 @@ class LabelLigneStandard(glr.GridLabelRenderer):
 
         dc.SetFont(wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD))
         tailleTexte = dc.GetTextExtent(texte)
-        x = rect.x + rect.width/2.0 - tailleTexte[0]/2.0
-        y = rect.y + rect.height/2.0 - tailleTexte[1]/2.0
+        x = int(rect.x + rect.width/2 - tailleTexte[0]/2)
+        y = int(rect.y + rect.height/2 - tailleTexte[1]/2)
         dc.DrawText(texte, x, y)
 
         # Indicateur date du jour

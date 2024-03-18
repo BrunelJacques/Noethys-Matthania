@@ -2115,7 +2115,7 @@ def GetChamps_DATA_Tables(nomTable=None):
             lstChamps.append(nom)
     return lstChamps
 
-def GetComplementInscription(DB,where,mess=None):
+def GetComplementInscription(db,where,mess=None):
     # appel de natures
     wherePiece = where.replace("inscriptions", "matPieces")
     for champ in ("IDinscription","IDcompte_payeur","IDfamille"):
@@ -2125,10 +2125,10 @@ def GetComplementInscription(DB,where,mess=None):
         SELECT pieIDinscription,pieNature
         FROM matPieces 
         WHERE %s ;"""%(wherePiece)
-    ret = DB.ExecuterReq(req,MsgBox=mess)
+    ret = db.ExecuterReq(req,MsgBox=mess)
     dicRetour = {}
     if ret == "ok" :
-        recordset = DB.ResultatReq()
+        recordset = db.ResultatReq()
         for IDinscription,nature in recordset:
             if not IDinscription in dicRetour:
                 dicRetour[IDinscription] = {'natures':"",'nbreConsos':0, 'parti':0}
@@ -2145,9 +2145,9 @@ def GetComplementInscription(DB,where,mess=None):
         FROM consommations
         WHERE %s
         GROUP BY IDinscription;"""%(whereConsos)
-    ret = DB.ExecuterReq(req,MsgBox=mess)
+    ret = db.ExecuterReq(req,MsgBox=mess)
     if ret == "ok" :
-        recordset = DB.ResultatReq()
+        recordset = db.ResultatReq()
         for IDinscription,nbreConsos in recordset:
             if not IDinscription in dicRetour:
                 dicRetour[IDinscription] = {'natures':"",'nbreConsos':0, 'parti':0}
@@ -2163,18 +2163,18 @@ def GetComplementInscription(DB,where,mess=None):
         WHERE %s
         GROUP BY IDindividu, IDactivite
         HAVING COUNT(IDinscription) > 1 ;"""%(where)
-    ret = DB.ExecuterReq(req,MsgBox=mess)
+    ret = db.ExecuterReq(req,MsgBox=mess)
     if ret == "ok" :
-        tplDoublons = DB.ResultatReq()
+        tplDoublons = db.ResultatReq()
         for IDindividu, IDactivite, nbreInscr in tplDoublons:
             req = """
                 SELECT IDinscription,IDactivite
                 FROM inscriptions
                 WHERE IDindividu = %d AND IDactivite = %d 
                 ;"""%(IDindividu,IDactivite)
-            ret = DB.ExecuterReq(req,MsgBox=mess)
+            ret = db.ExecuterReq(req,MsgBox=mess)
             if ret == "ok" :
-                tplInscriptions = DB.ResultatReq()
+                tplInscriptions = db.ResultatReq()
                 maxID = 0
                 for IDinscription,IDactivite in tplInscriptions:
                     if IDinscription > maxID:
@@ -2185,17 +2185,17 @@ def GetComplementInscription(DB,where,mess=None):
             else: return {}
     return dicRetour
 
-def GetDictRecord(DB,nomTable,ID,mess=None):
+def GetDictRecord(db,nomTable,ID,mess=None):
     # retrourne le dictionnaire du record d'une table
     lstChamps = GetChamps_DATA_Tables(nomTable)
     req = """
         SELECT * 
         FROM %s 
         WHERE %s = %d ;"""%(nomTable,lstChamps[0],ID)
-    ret = DB.ExecuterReq(req,MsgBox=mess)
+    ret = db.ExecuterReq(req,MsgBox=mess)
     dicRetour = {}
     if ret == "ok" :
-        recordset = DB.ResultatReq()
+        recordset = db.ResultatReq()
         if len(recordset) > 0:
             for ix in range(len(lstChamps)):
                 dicRetour[lstChamps[ix]] = recordset[0][ix]
@@ -2203,22 +2203,22 @@ def GetDictRecord(DB,nomTable,ID,mess=None):
     if nomTable == "inscriptions":
         # ajout de natures et nbconsos
         where = "IDinscription = %d"%ID
-        ddCompl = GetComplementInscription(DB,where,mess)
+        ddCompl = GetComplementInscription(db,where,mess)
         if ID in ddCompl:
             dicRetour.update(ddCompl[ID])
     return dicRetour
 
-def GetDdRecords(DB,nomTable,where,lstChamps=None,mess=None):
+def GetDdRecords(db,nomTable,where,lstChamps=None,mess=None):
     # retourne les dictionnaires des records d'une table filtrée par where
     if lstChamps and not isinstance(lstChamps,list):
         raise Exception("lstChamp type not list! : %s"%str(lstChamps))
     if not lstChamps:
         lstChamps = GetChamps_DATA_Tables(nomTable)
     req = """SELECT %s FROM %s WHERE %s ;"""%(", ".join(lstChamps),nomTable,where)
-    ret = DB.ExecuterReq(req,MsgBox=mess)
+    ret = db.ExecuterReq(req,MsgBox=mess)
     ddRetour = {}
     if ret == "ok" :
-        recordset = DB.ResultatReq()
+        recordset = db.ResultatReq()
         for record in recordset:
             dicOne = {}
             for ix in range(len(lstChamps)):
@@ -2228,7 +2228,7 @@ def GetDdRecords(DB,nomTable,where,lstChamps=None,mess=None):
     if nomTable == "inscriptions":
         # ajout de natures et nbconsos
         mess = "DATA_Tables.GetDdRecords/GetComplementInscription"
-        ddComplements = GetComplementInscription(DB,where,mess)
+        ddComplements = GetComplementInscription(db,where,mess)
         for IDinscription, dic in ddComplements.items():
             if not IDinscription in ddRetour:
                 # inscription de matPiece ou consommations non connue dans inscriptions

@@ -19,11 +19,10 @@ def Nz(valeur):
         valeur = 0.0
     return valeur
 
-# foonctions lancées par RepareIncoherences via DICT_PARAMS
+# fonctions lancées par RepareIncoherences via DICT_PARAMS
 def Corr_ptnPrinc(parent,IDfamille, dLigne, **kw):
 
     def actionPrestation():
-
         # Changements incomplets: réalignement des données sur la pièce mère
         if dLigne["champ"] in ("IDactivite", "IDcategorie_tarif","IDindividu"):
             return parent.RebuildPrestation(IDfamille,dLigne)
@@ -90,6 +89,7 @@ def Corr_ptnPrinc(parent,IDfamille, dLigne, **kw):
     if dLigne["table"] in ("factures"):
         return actionFacture()
     return corr
+
 def Corr_ptIsNull(parent,IDfamille, dLigne, **kw):
     corr = False
     # Si la pièce a perdu sa prestation plusieurs actions pour les commandes
@@ -102,6 +102,7 @@ def Corr_ptIsNull(parent,IDfamille, dLigne, **kw):
         return parent.RebuildPiece(IDfamille,dLigne)
     return corr
     # La pièce a perdu sa prestation on essaie de la raccrocher à
+
 def Corr_ptNoNull(parent,IDfamille, dLigne, **kw):
     corr = False
 
@@ -116,6 +117,7 @@ def Corr_ptNoNull(parent,IDfamille, dLigne, **kw):
         if ret == "ok" : return True
         return False
     return corr
+
 DICT_PARAMS = {
     "ptnPrinc": Corr_ptnPrinc,
     "mpFamPay": None,   # correction immédiate effectuée
@@ -123,7 +125,6 @@ DICT_PARAMS = {
     "ptIsNull": Corr_ptIsNull,
     "ptNoNull": Corr_ptNoNull,
 }
-
 
 # paramétrage des pointeurs de tables principales:[tblOrig,cleOrig,champOrig,tblCible,champCible,flou]
 def GET_PARAMS_POINTEURS(dictPieces,dictPrestations,dictConsommations,dictInscriptions,dictFactures,dictNumeros):
@@ -181,6 +182,7 @@ def HarmonisationPiece(dPiece):
     dPiece["montant"] = round(mtTransport + Nz(dPiece["SUM(ligMontant)"]), 2)
 
     # Appel de toutes les données. Sous forme de lignes de table en ddd: IDfamille-IDtable-dRecord
+
 class DiagDonnees():
     def __init__(self,DB,famille,**kw):
         self.params = kw.pop("params",None)
@@ -408,9 +410,7 @@ class DiagDonnees():
             
         where = setFiltrePrestations()
         where += """
-            AND (categorie LIKE 'conso%%')
-            AND (pieNature IN ('FAC','AVO','COM')
-                OR (pieNature IS NULL))"""
+            AND (categorie LIKE 'conso%%')"""
 
         # appel des prestations
         dddPrestations = self.GetDictUneTable(table,lstChamps,where,leftJoin)
@@ -650,6 +650,13 @@ class Diagnostic():
         if ret == "ok" : return True
         return False
 
+    def ReqDEL(self,dLigne,nomTable, nomChampID, ID,MsgBox=None):
+        # Mise à jour d'une table sur une clé
+        ret = self.DB.ReqDEL(nomTable, nomChampID, ID,MsgBox=MsgBox)
+        dLigne["mess"] += "\nReqDEL(%s.%d"%(nomTable,ID)
+        if ret == "ok" : return True
+        return False
+
     def MaxPieceInscription(self,IDinscription,mess):
         req = """
             SELECT pieIDinscription,MAX(pieIDnumPiece)
@@ -833,9 +840,18 @@ class Diagnostic():
         where = """
                         IDfamille = %d"""%IDfamille
         ddPrestations = DATA_Tables.GetDdRecords(self.DB,"prestations",where,mess=mess)
-        dPrestation = ddPrestations[dLigne["ID"]]
-        IDprestation = dLigne["ID"]
-        IDnumPiece = dPrestation["IDcontrat"]
+        try:
+            dPrestation = ddPrestations[dLigne["ID"]]
+            IDprestation = dLigne["ID"]
+            IDnumPiece = dPrestation["IDcontrat"]
+        except:
+            return False
+        if dLigne["ssType"] == "ToDel" and not dPrestation['compta']:
+            # Reliquat de la prestation, avec la pièce en réservation non transféré
+            ret = self.fGest.DelPrestations(self, {"IDprestation": IDprestation,
+                                                   'IDnumPiece': None})
+            dLigne["mess"] += "\nReqDEL('prestations'.%d" % (IDprestation)
+            if ret == "ok": return True
         if not IDnumPiece:
             return False
         mess = "DLGFacPie.Corr_ptnPrinc prest orpheline"
@@ -887,11 +903,12 @@ class Diagnostic():
                 # la piece a changé d'ID mais elle pointe toujours la prestation on réactualise le numero contrat
                 lstDonnees = [("IDcontrat",dPiece["pieIDnumPiece"]),("categorie","consommation")]
                 return self.ReqMAJ(dLigne,"prestations",lstDonnees,"IDprestation",dLigne["ID"])
-
         if (not ("IDindividu" in dPrestation.keys())) or (not ("IDactivite" in dPrestation.keys())):
             return False
         if dPrestation["IDindividu"] == 0 or dPrestation["IDactivite"] == 0:
-            return False
+            # il s'agit d'un niveau famille, sans pièce: on supprime la prestation
+            mess = "DLGFacPie.CheckPrestationToPiece1"
+            return self.ReqDEL(dLigne,"prestations","IDprestation",dPrestation["IDprestation"],MsgBox=mess)
 
         # cas: dernière recherche floue on cherche une correspondance activité-individu
         req = """SELECT pieIDnumPiece,IDprestation FROM matPieces WHERE pieIDactivite = %d and pieIDindividu = %d
@@ -1397,7 +1414,7 @@ class Diagnostic():
                             wx.MessageBox("Le champ origine: '%s' pas dans %s"%(champOrig,nomOrig),"Arret program")
                             raise Exception(str(("Cf Orig paramsPtnPrinc:",nomOrig,cleOrig,
                                                  champOrig,nomCible,champCible)))
-                    # cas général, définit l'attendu de la pièce orginie
+                    # cas général, définit l'attendu de la pièce origine
                     else:
                         attendu = dict[champOrig]
                         if not attendu or attendu == 0:
@@ -1418,9 +1435,17 @@ class Diagnostic():
                     # exception pour les prestations absentes des devis et reservations
                     if nomCible == "prestations" and dict["pieNature"] in ("DEV","RES"):
                         continue
+
                     # exception pour les consoavoir dont l'IDprestation n'est pas dans la pièce désignée par IDcontrat
                     if nomOrig == "prestations":
                         if champCible == "pieIDprestation":
+                            # exception pour les prestations résiduelle de devis et reservations
+                            if dictCible["pieNature"]  in ("DEV", "RES"):
+                                attendu = "FAC ou AVO"
+                                trouve = dictCible["pieNature"]
+                                ajoutAnomalie("ToDel", IDcible, attendu,
+                                              messNonAttendu(ID, IDcible,attendu,trouve))
+                                continue
                             if dict["categorie"] == "consoavoir":
                                 continue
                         elif champCible == "IDfacture":

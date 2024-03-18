@@ -22,6 +22,7 @@ import GestionDB
 from Dlg import DLG_ChoixLigne
 from Dlg import DLG_FacturationPieces
 from Dlg import DLG_ValidationPiece
+from Dlg import DLG_Choix
 from Gest import GestionArticle
 from Gest import GestionInscription
 from Gest import GestionPieces
@@ -106,7 +107,7 @@ def GetLignes999(parent,DB):
         pGest.CoherenceParrainages(parent.IDpayeur,DB=DB)
 
     fGest = GestionInscription.Forfaits(parent.parent,DB=DB)
-    listePieces = fGest.GetPieceModif999(parent,parent.IDpayeur,parent.exerciceFin.year,facture=parent.facture)
+    listePieces = fGest.GetPieceModif999(parent,parent.IDpayeur,parent.annee,facture=parent.facture)
     presence999 = len(listePieces)
     # rassemble les lignes des pièces existantes pour l'exercice
     lignes999 = None # cas d'absence de pièce
@@ -350,14 +351,14 @@ class CTRL_Solde(wx.Panel):
 
 # ---Gestion écran tarification --------------------------------------------------------------
 class OLVtarification(FastObjectListView):
-    def __init__(self,parent,DB,IDpayeur, exerciceFin, facture=False, *args, **kwds):
+    def __init__(self,parent,DB,IDpayeur, periode, facture=False, *args, **kwds):
         self.DB = DB
         self.name = kwds.pop('name','noName')
         self.parent = parent
         self.facture = facture
         self.IDpayeur = IDpayeur
-        self.exerciceFin = exerciceFin
-        self.annee = self.exerciceFin.year
+        self.periode = periode
+        self.annee = periode[1].year
         self.lstIDprestationsOrigine = []
         self.lstOLVmodele = []
         FastObjectListView.__init__(self, parent, *args, **kwds)
@@ -380,7 +381,7 @@ class OLVtarification(FastObjectListView):
                             "IDinscription":datetime.date.today().year, #ajout 10/09/2021
                             "db":DB,
                             "annee": self.annee,
-                            "exercice": self.exerciceFin
+                            "periode":(self.periode)
                             }
 
         self.InitModel()
@@ -534,6 +535,7 @@ class DlgTarification(wx.Dialog):
         if not 'IDactivite' in list(self.dictDonneesParent.keys()):
             self.dictDonneesParent['IDactivite'] = None
         self.exerciceDeb,self.exerciceFin = GestionArticle.AnneeAcad(self.DB,IDactivite = dictDonneesParent["IDactivite"])
+        self.periode = (self.exerciceDeb,self.exerciceFin)
         self.annee = self.exerciceFin.year
         self.IDcompte_payeur = dictDonneesParent["IDcompte_payeur"]
         # Verrouillage utilisateurs
@@ -554,11 +556,11 @@ class DlgTarification(wx.Dialog):
         # conteneur des données
         self.staticbox_facture = wx.StaticBox(self, -1, _("Déjà facturé..."))
         self.staticbox_nonFacture = wx.StaticBox(self, -1, _("Non facturé modifiable ..."))
-        self.resultsOlv = OLVtarification(self,self.DB,self.IDcompte_payeur, self.exerciceFin, facture=False,id=1,
+        self.resultsOlv = OLVtarification(self,self.DB,self.IDcompte_payeur, self.periode, facture=False,id=1,
                                           name="OLV_Saisie",
                                           style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.LC_HRULES | wx.LC_VRULES)
         self.ctrl_recherche = CTRL_Outils(self, listview=self.resultsOlv)
-        self.resultsOlvFact = OLVtarification(self,self.DB,self.IDcompte_payeur, self.exerciceFin, facture=True, id=2,
+        self.resultsOlvFact = OLVtarification(self,self.DB,self.IDcompte_payeur, self.periode, facture=True, id=2,
                                               name="OLV_Facture",
                                               style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.LC_HRULES | wx.LC_VRULES)
         self.ctrl_solde = CTRL_Solde(self)
@@ -737,6 +739,43 @@ class DlgTarification(wx.Dialog):
         self.Layout()
         self.CenterOnScreen()
 
+    def ChoixNatureOrigine(self, dictDonnees):
+        if dictDonnees["origine"] == "modif":
+            pGest = GestionPieces.Forfaits(self)
+            ddPieces = pGest.GetListePiecesEnCours(self.DB, dictDonnees["IDfamille"])
+            nature = dictDonnees['nature']
+            lstOptions = []
+            for IDpiece, dictPiece in ddPieces.items():
+                if dictDonnees['nature'] != dictPiece['pieNature']:
+                    nature = False
+                    if not dictPiece['pieNature'] in lstOptions:
+                        lstOptions.append(dictPiece['pieNature'])
+            if not nature:
+                # des choix sont possibles
+                if not dictDonnees['nature'] in lstOptions:
+                    lstOptions.append(dictDonnees['nature'])
+                listeBoutons = []
+                for code in lstOptions:
+                    if code == "DEV": txt = "Devis sans réservation"
+                    elif code == "RES": txt = "Réservation sans prestation"
+                    elif code == "COM": txt = "Commande due par le client"
+                    listeBoutons.append((code,txt))
+                if len(listeBoutons) == 0:
+                    nature == dictDonnees['nature']
+                else:
+                    titre = "Quelle nature pour cette pièce famille, choisissez!"
+                    intro = "Cliquez sur la nature souhaitée"
+                    dlg = DLG_Choix.Dialog(self, titre=titre, listeBoutons=listeBoutons,
+                                           intro=intro)
+                    ret = dlg.ShowModal()
+                    dlg.Destroy()
+                    if ret != wx.ID_CANCEL:
+                        nature = listeBoutons[ret][0]
+            return nature
+        else:
+            # une création n'a pas de nature d'origine
+            return False
+
     def Final(self):       
         self.IDuser = self.DB.IDutilisateurActuel()
         dictDonnees = self.resultsOlv.dictDonnees
@@ -747,12 +786,13 @@ class DlgTarification(wx.Dialog):
         # détermination de la prochaine nature
         if self.fromIndividu and not self.fromAvoir:
             # nature héritée de l'activité si non avoir
-            nature = self.dictDonneesParent["nature"]
-        elif dictDonnees["origine"] == "modif":
+            dictDonnees['nature'] = self.dictDonneesParent["nature"]
+        nature = dictDonnees['nature']
+        ret = self.ChoixNatureOrigine(dictDonnees)
+        if ret:
             # reprise de la nature de la pièce qui préexistait
-            nature = dictDonnees["pieceOrigine"]["nature"]
-        else:
-            nature = fGest.GetNatureDevis(dictDonnees["IDfamille"])
+            nature = ret
+
         if dictDonnees["origine"] == "ajout" and len(lstNonNull) > 0:
             # Enregistre dans Pieces
             dDonnees = fGest.AjoutPiece999(self,dictDonnees["IDfamille"],self.IDcompte_payeur,
@@ -834,7 +874,7 @@ class DlgTarification(wx.Dialog):
 
     def ActionAjout(self, listeLignes,forcer = False):
         # Ajout d'une ligne article
-        fOLV = OLVtarification(self,self.DB,self.IDcompte_payeur,self.exerciceDeb, self.exerciceFin)
+        fOLV = OLVtarification(self,self.DB,self.IDcompte_payeur,self.periode)
         listeLignesPlus = fOLV.EnrichirDonnees(listeLignes, forcer = True)
         if len(listeLignesPlus)>0:
             lstCodeArt = []

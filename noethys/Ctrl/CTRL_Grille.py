@@ -207,7 +207,7 @@ def CreationImage(largeur, hauteur, couleur=None):
     dc.SetBackground(wx.Brush("black")) 
     dc.Clear() 
     dc.SetBrush(wx.Brush(couleur)) 
-    y = hauteur / 2.0 - largeur / 2.0
+    y = int(hauteur / 2 - largeur / 2)
     dc.DrawRectangle(0, y, largeur, largeur)
     dc.SelectObject(wx.NullBitmap) 
     b.SetMaskColour("black") 

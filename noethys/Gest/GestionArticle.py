@@ -264,42 +264,6 @@ def NbreJoursActivite(DB,IDactivite, IDgroupe, IDinscription=None, IDindividu=No
     return float(nbreJours)
     #fin NbreJoursActivite
 
-def NbreJoursAnnee(DB,IDfamille,IDactivite,IDinscription):
-    nbreJours = 0
-    # determination de l'année selon le niveau famille ou activité
-    if IDactivite == 0:
-        annee = IDinscription 
-    else:
-       dateDeb,dateFin = DebutFin_Activite(DB,IDactivite) 
-       annee = dateFin.year()
-    # constitution de la liste des inscriptions à tester
-    listeInscriptions=[]
-    periode = (datetime.date(annee,1,1),datetime.date(annee,12,31))
-    listePieces = GetListePieces(DB,periode,IDfamille)
-    for piece in listePieces:
-        if piece[1]["IDactivite"] > 0:
-            IDactivite = piece[1]["IDactivite"]
-            type = GroupeActivite(DB,IDactivite)
-            if not type[:1] in ["7","8"]:
-                IDinscription = piece[1]["IDinscription"]
-                if not IDinscription in listeInscriptions :
-                    listeInscriptions.append(IDinscription)
-    # recherche des jours consommés par la famille
-    if len(listeInscriptions) > 0 :
-        strInscriptions = "( "
-        for inscription in listeInscriptions:
-            strInscriptions += (str(inscription)+", ")
-        strInscriptions = strInscriptions[:-2] + " )"
-        req = """SELECT count(IDconso)
-            FROM consommations
-            WHERE IDinscription IN %s 
-            ;""" % strInscriptions
-        DB.ExecuterReq(req,MsgBox="GestionArticle.NbreJoursAnnee")
-        recordset = DB.ResultatReq()
-        nbreJours = recordset[0][0]
-    return nbreJours
-    #fin NbreJoursAnnee
-
 def GroupeActivite(DB,IDactivite):
     # Il s'agit du code compta analytique de l'activité qui à l'origine était dans le groupe d'activité
     req = """SELECT activites.code_comptable, activites.code_transport, activites.nom
@@ -369,43 +333,6 @@ def PersonnePhysique(DB,IDfamille):
                 pp=True
     return pp
     #fin PersonnePhysique
-
-def GetListePieces(DB,periode,IDfamille):
-    #récup des champs de matPiece et ajout des dates
-    dicoDB = DATA_Tables.DB_DATA
-    listeChamps = []
-    for descr in dicoDB["matPieces"]:
-        nomChamp = descr[0]
-        listeChamps.append(nomChamp)
-    listeChamps.append("date_debut")
-    listeChamps.append("date_fin")
-    #listeChamps.append("montant")
-    condition = " ((activites.date_fin Between '%s' And '%s') AND (matPieces.pieIDfamille = %d)) " %(periode[0],periode[1],IDfamille)
-    req = """SELECT matPieces.*, activites.date_debut, activites.date_fin
-            FROM matPieces
-            INNER JOIN activites ON matPieces.pieIDactivite = activites.IDactivite
-            WHERE %s ;
-            """ %condition
-    DB.ExecuterReq(req,MsgBox = "GestionArticle.GetListePieces")
-    retour = DB.ResultatReq()
-    #composition du début de l'info listePieces
-    listeDictPieces = GestionInscription.RecordsToListeDict(listeChamps,retour)
-    listeRetenues = []
-    for IDpiece, dictPiece in listeDictPieces :
-        req = """SELECT SUM(ligMontant)
-                FROM matPiecesLignes
-                WHERE ligIDnumPiece = '%d' ;""" %IDpiece
-        DB.ExecuterReq(req,MsgBox = "GestionArticle.GetListePieces2")
-        retour = DB.ResultatReq()
-        montant = 0.0
-        for mtt in retour :
-            if mtt[0] != None:
-                montant = float(mtt[0])
-        dictPiece["montant"] = montant
-        if dictPiece["montant"] != 0.0 :
-            if dictPiece["nature"] != "AVO" :
-                listeRetenues.append((IDpiece,dictPiece))
-    return listeRetenues
 
 def GetListePiecesFam(DB,exercice,IDfamille):
     #récup des champs de matPiece et ajout des dates

@@ -73,7 +73,7 @@ class ListView(FastObjectListView):
         """     CALCULS DES MONTANTS COMPTA PAR DATE DE TRANSFERTS      """
 
         # Recherche les bornes de l'exercice
-        self.dateDeb, self.dateFin = DB.GetExercice(datetime.date.today(), alertes=True, approche=True)
+        self.dateDeb, self.dateFin = DB.GetExercice(self.dateFin, alertes=True, approche=True)
         strDateMin = str(self.dateDeb)
         strDateMax = str(self.dateFin)
         # conditions de ruptures sur dates d'écritures
