@@ -328,6 +328,7 @@ class Forfaits():
 
     # Outil correctif : Mise en cohérence des autres tables aller retour en devis
     def ChangeNaturePiece(self,parent,dictPiece,natureNew):
+        dictOldPiece = {}
         # dPpiece ne contient que les éléments de base pour trouver la pièce complète
         liste_codesNaturePiece = ["DEV","RES","COM","FAC","AVO"]
         # complète la pièce, getPieceModif alimente self.dictPiece
@@ -337,8 +338,10 @@ class Forfaits():
                                       IDnumPiece=dictPiece["IDnumPiece"],DB=self.DB)
             if ret == False:
                 return "Echec GetPiece"
+            natureOld = self.dictPiece["nature"]
+            dictOldPiece.update(self.dictPiece)
             self.dictPiece.update(dictPiece)
-            # Priorité aux données transmises
+            # Priorité aux données transmises après récup d'éventuels champs manquants
             dictPiece.update(self.dictPiece)
 
         else:
@@ -346,15 +349,16 @@ class Forfaits():
             niveau = "famille"
             lstPieces = self.GetPieceModif999(parent,dictPiece["IDcompte_payeur"],dictPiece["IDinscription"],
                                                dictPiece["IDnumPiece"])
-            dicOrigine = lstPieces[0]
-            dicOrigine.update(dictPiece)
-            # Priorité aux données transmises
-            dictPiece.update(dicOrigine)
+            dictOri = lstPieces[0]
+            natureOld = dictOri["nature"]
+            dictOldPiece.update(dictOri)
+            # Priorité aux données transmises, mais on récupére des clés manquantes
+            dictOri.update(dictPiece)
+            dictPiece.update(dictOri)
             
         etatPiece = dictPiece["etat"]
-        natureOld = dictPiece["nature"]
         if not natureOld in ("DEV","RES","COM"):
-            messStr = "Changement de nature %s non prevu!!!"%natureOld
+            messStr = "Changement de nature %s non prevu ici!!!"%natureOld
             wx.MessageBox(messStr,"Pb de programmation, non géré")
             raise Exception(messStr)
     
@@ -368,53 +372,54 @@ class Forfaits():
         commentaire = "%s"%(GestionDB.Decod(dictPiece["commentaire"]))
         commentaire = str(datetime.date.today()) + " Nature: " + natureOld + "\n" + commentaire
         dictPiece["commentaire"] = commentaire
-        newPiece = {}
-        newPiece.update(dictPiece)
+        dictNewPiece = {}
+        dictNewPiece.update(dictPiece)
         listeDonnees = [("nature", natureNew),
                         ("etat", etatPiece),]
         if natureNew in ("DEV","RES"):
             listeDonnees.append(("IDprestation", None))
         for champ, valeur in listeDonnees :
-            newPiece[champ] = valeur
-        ret = self.ModifiePiece(parent,newPiece)
+            dictNewPiece[champ] = valeur
+        ret = self.ModifiePiece(parent,dictNewPiece)
         ajout = True
         # gestion des autres tables liées
         if natureOld == "DEV":
             if natureNew == "RES" and niveau == "individu":
-                ajout = self.AjoutConsommations(parent,newPiece)
+                ajout = self.AjoutConsommations(parent,dictNewPiece)
             if natureNew == "COM":
                 if  niveau == "individu":
-                    ajout = self.AjoutConsommations(parent,newPiece)
-                IDprestation = self.AjoutPrestation(parent,newPiece,modif=True)
+                    ajout = self.AjoutConsommations(parent,dictNewPiece)
+                IDprestation = self.AjoutPrestation(parent,dictNewPiece,modif=True)
                 if IDprestation > 0:
-                    newPiece["IDprestation"] = IDprestation
-                self.ModifieConsoCree(parent,newPiece)
-                self.ModifiePieceCree(parent,newPiece)
+                    dictNewPiece["IDprestation"] = IDprestation
+                self.ModifieConsoCree(parent,dictNewPiece)
+                self.ModifiePieceCree(parent,dictNewPiece)
         if natureOld == "RES":
             if natureNew == "DEV" and niveau == "individu":
-                retDel = self.DelConsommations(parent,newPiece)
+                retDel = self.DelConsommations(parent,dictNewPiece)
             if natureNew == "COM":
                 if niveau == "individu":
-                    IDprestation = self.AjoutPrestation(parent,newPiece,modif=True)
+                    IDprestation = self.AjoutPrestation(parent,dictNewPiece,modif=True)
                 else:
-                    IDprestation = self.AjoutPrestation999(parent,newPiece,modif=False)
+                    IDprestation = self.AjoutPrestation999(parent,dictNewPiece,modif=False)
                 if IDprestation > 0:
-                    newPiece["IDprestation"] = IDprestation
+                    dictNewPiece["IDprestation"] = IDprestation
+                    dictPiece['IDprestation'] = IDprestation
                 if niveau == "individu":
-                    self.ModifieConsoCree(parent,newPiece)
-                self.ModifiePieceCree(parent,newPiece)
+                    self.ModifieConsoCree(parent,dictNewPiece)
+                self.ModifiePieceCree(parent,dictNewPiece)
         if natureOld == "COM":
             if natureNew == "DEV":
                 if niveau == "individu":
-                    retDel = self.DelConsommations(parent,dictPiece)
+                    retDel = self.DelConsommations(parent,dictOldPiece)
                     if retDel != "ok": ret = retDel
-                retDel = self.DelPrestations(parent,dictDonnees=dictPiece)
+                retDel = self.DelPrestations(parent,dictDonnees=dictOldPiece)
                 if retDel != "ok": ret = retDel
     
         if natureNew == "RES":
-            self.DelPrestations(parent,dictDonnees=dictPiece)
+            self.DelPrestations(parent,dictDonnees=dictOldPiece)
         if not ajout: ret = "ko"
-        dictPiece.update(newPiece)
+        dictPiece.update(dictNewPiece)
         return ret
         # fin ChangeNaturePiece
     
@@ -902,53 +907,6 @@ class Forfaits():
             GestionDB.MessageBox(parent,retour)
         return retour
 
-    def ModifieNbreJours(self,parent,dictDonnees):
-        # le nombre de jours a été forcé et stocké provisoirement dans dictDonnees
-        # modification de l'inscription
-        if "nbreJours" not in dictDonnees :
-            return
-        if dictDonnees["nbreJours"] == None  :
-            return
-        listeDon = [("jours", dictDonnees["nbreJours"]),]
-        retour = self.DB.ReqMAJ("inscriptions", listeDon,"IDinscription",dictDonnees["IDinscription"],MsgBox="GestionInscription.ModifieNbreJours")
-        if retour != "ok" :
-            GestionDB.MessageBox(parent,retour)
-            return
-        if dictDonnees["nature"] != "DEV":
-            # Vérif des nbre consommations
-            def CompteurConsos(dictDonnees):
-                req = """SELECT COUNT(*),IDunite
-                       FROM consommations
-                       WHERE IDinscription = %d
-                       GROUP BY IDunite ; """ % dictDonnees["IDinscription"]
-                retour = self.DB.ExecuterReq(req,MsgBox="GestionInscription.ModifieNbreJours")
-                if retour != "ok" :
-                    GestionDB.MessageBox(self.parent,retour)
-                    return
-                retour = self.DB.ResultatReq()
-                if len(retour) > 0:
-                    (nbConso,unite) = retour[0]
-                else: nbConso = 0.0
-                return nbConso
-            nbConso = CompteurConsos(dictDonnees)
-            if nbConso == dictDonnees["nbreJours"]:
-                return
-            #lance la saisie des consommations
-            from Dlg import DLG_Grille
-            dlg = DLG_Grille.Dialog(self.parent, IDfamille=dictDonnees["IDfamille"],selectionIndividus= [dictDonnees["IDindividu"]], selectionTous=False,IDactivite=dictDonnees["IDactivite"])
-            dlg.ShowModal()
-            try :
-                dlg.Destroy()
-            except :
-                pass
-            #nouvelle vérif
-            nbConso = CompteurConsos(dictDonnees)
-            if nbConso == dictDonnees["nbreJours"]:
-                return
-            else :
-                GestionDB.MessageBox(self.parent,"Le nombre de jours de l'inscription est de %s !\nLe nombre de consommations est de %s" % (str(dictDonnees["nbreJours"]),str(nbConso)), titre="Il faut modifier l'un ou l'autre")
-        return
-
     def RazTransport(self,parent,dictDonnees,sens = "deux"):
         # supprime dans les tables transports et matPiece les références transports
         # conserve les montants facturés
@@ -1048,20 +1006,18 @@ class Forfaits():
                 else: # on ne garde pas
                     DB.ReqDEL('ventilation','IDventilation',IDventil,MsgBox="GestionInscription DEL ventilation %d"%IDventil )
 
-    # Modif de la pièce et de ses lignes, sans changement de nature
+    # Modif de la pièce et de ses lignes
     def ModifiePiece(self,parent,dictDonnees):
         # recherche date d'échéance
         if dictDonnees["nature"] in  ('FAC','AVO'):
             # gestion des dates de pièce
             dateFact = self.DB.GetDateFacture(dictDonnees["IDinscription"],dictDonnees["IDactivite"],datetime.date.today())
-            dd = None
             dictActivite = self.GetActivite(dictDonnees["IDactivite"])
             dd = dictActivite["date_debut"]
             try:
                 echeance = max(dd + datetime.timedelta(-30),datetime.date.today() + datetime.timedelta(10))
             except:
                 echeance = datetime.date.today() + datetime.timedelta(10)
-                pass
         else:
             echeance = datetime.date.today() + datetime.timedelta(10)
         dictDonnees["dateEcheance"] = str(echeance)
@@ -1075,7 +1031,7 @@ class Forfaits():
             dictDonnees["noFacture"] = None
             dictDonnees["dateAvoir"] = None
             dictDonnees["noAvoir"] = None
-            
+
         # composition des valeurs matPiece à mettre à jour
         listeDonnees = [
             ("pieIDinscription", dictDonnees["IDinscription"]),
@@ -1200,7 +1156,6 @@ class Forfaits():
                 echeance = max(dd + datetime.timedelta(-30),datetime.date.today() + datetime.timedelta(10))
             except:
                 echeance = datetime.date.today() + datetime.timedelta(10)
-                pass
         else:
             echeance = datetime.date.today() + datetime.timedelta(10)
         dictDonnees["dateEcheance"] = str(echeance)
@@ -1821,6 +1776,7 @@ class Forfaits():
         #fin GetDictDonnees
 
     def ModifDictDonnees(self,parent,listeDonnees):
+        # Enrichissement de dictDonnees par liste de tuples
         dictDonnees = parent.dictDonnees
         for donnee in listeDonnees :
             champ = donnee[0]

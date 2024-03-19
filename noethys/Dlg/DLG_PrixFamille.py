@@ -648,8 +648,9 @@ class DlgTarification(wx.Dialog):
             nbrePieces = self.DB.ResultatReq()
             if nbrePieces == 0:
                 GestionDB.MessageBox(self,"Aucune inscription n'existe : Impossible de facturer même un complement",titre = "DLG_Famille.Init" )
-                fGest = GestionInscription.Forfaits(self)
+                fGest = GestionInscription.Forfaits(self,self.DB)
                 fGest.NeutraliseReport(self.IDcompte_payeur,None,None)
+                self.DB.Close()
                 self.Destroy()
                 return
         self.obj = None
@@ -741,8 +742,9 @@ class DlgTarification(wx.Dialog):
 
     def ChoixNatureOrigine(self, dictDonnees):
         if dictDonnees["origine"] == "modif":
-            pGest = GestionPieces.Forfaits(self)
+            pGest = GestionPieces.Forfaits(self,self.DB)
             ddPieces = pGest.GetListePiecesEnCours(self.DB, dictDonnees["IDfamille"])
+            del pGest
             nature = dictDonnees['nature']
             lstOptions = []
             for IDpiece, dictPiece in ddPieces.items():
@@ -792,6 +794,7 @@ class DlgTarification(wx.Dialog):
         if ret:
             # reprise de la nature de la pièce qui préexistait
             nature = ret
+            dictDonnees["nature"] = nature
 
         if dictDonnees["origine"] == "ajout" and len(lstNonNull) > 0:
             # Enregistre dans Pieces
@@ -809,6 +812,7 @@ class DlgTarification(wx.Dialog):
         # enregistrement de la pièce et de ses prolongements prestation
         ret = fGest.ModifiePiece999(self,dictDonnees,nature)
         self.dictDonnees =  dictDonnees
+        del fGest
         return ret
         #fin Final
 
@@ -841,11 +845,12 @@ class DlgTarification(wx.Dialog):
                         if ligne["montant"] != 0.0:
                             mtt += abs(ligne["montant"])
                         else: mtt += abs(Nz(ligne["quantite"]) * Nz(ligne["prixUnit"]))
-                    pGest = GestionPieces.Forfaits(self)
+                    pGest = GestionPieces.Forfaits(self,self.DB)
                     pGest.AugmenteFacture(self.dictDonneesParent["noAvoir"],-mtt,self.dictDonnees["IDprestation"])
                     dlg = DLG_FacturationPieces.Dialog(self,self.IDcompte_payeur)
                     dlg.ShowModal()
                     del dlg
+                    del pGest
             self.Sortie()
 
     def OnBoutonAnnuler(self, event):

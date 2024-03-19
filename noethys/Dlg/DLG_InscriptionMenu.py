@@ -216,10 +216,6 @@ class DlgMenu(wx.Dialog):
                     self.dictDonnees["nature"] = "DEV"
                     fGest.ModifiePieceCree(self,self.dictDonnees)
 
-            # Gestion du nombre de jours modifié
-            if "nbreJours" in self.dictDonnees:
-                fGest.ModifieNbreJours(self,self.dictDonnees)
-
             # Gestion des compléments transport cotisation et reduction famille
             fTransp = DLG_InscriptionComplements.DlgTransports(self.dictDonnees)
             transports =fTransp.ShowModal()
@@ -287,12 +283,13 @@ class DlgMenu(wx.Dialog):
             return
         select = self.selection[0]
         self.IDinscription = select.IDinscription
-        fGest = GestionInscription.Forfaits(self)
+        fGest = GestionInscription.Forfaits(self,self.DB)
         reqPiece = fGest.GetPieceModif(self,select.IDindividu,select.IDactivite,DB=self.DB)
         # GetPieceModif False pour abandon, None pour absence de piece, True pour self.dictPiece alimentée
         if reqPiece == None:
             GestionDB.MessageBox(self, _("Pas de pièce associée à cette inscription!\nLa modification est impossible"))
             fGest.NeutraliseReport(select.IDfamille, select.IDindividu, select.IDactivite)
+
             return
         if reqPiece == False:
             return

@@ -124,8 +124,9 @@ class Dialog(wx.Dialog):
         self.dictDonnees = {}
         self.listeNoms = []
         self.listeFamille = []
-        self.dictFamillesRattachees = self.parent.dictFamillesRattachees
-
+        if hasattr(self.parent,"dictFamillesRattachees"):
+            self.dictFamillesRattachees = self.parent.dictFamillesRattachees
+        else: self.dictFamillesRattachees = {}
         #alimente Choice des listeInfo
         self.listeChamps = sorted(self.dictDonneesOrigine.keys())
         for champ in self.listeChamps:
@@ -410,8 +411,7 @@ class Dialog(wx.Dialog):
     def On_famille(self, event):
         self.ctrl_nom_famille.Enable(True)
         self.nom_famille = ""
-        DB = GestionDB.DB()
-        fGest = GestionInscription.Forfaits(self.parent,DB=DB)
+        fGest = GestionInscription.Forfaits(self.parent)
         #dlg = DLG_Inscription.Dialog(self)
         appel = fGest.GetFamille(self)
         if not appel:
@@ -419,8 +419,12 @@ class Dialog(wx.Dialog):
             msg.Box(message = "Pour ajouter des familles associées à un individu il faut entrer dans la famille manquante et créer des rattachements !")
             msg.Destroy()
             return
+        fGest.DB.Close()
+        del fGest
         self.IDcompte_payeur = fGest.GetPayeurFamille(self,self.IDfamille)
+        DB = self.DB()
         self.nom_famille = DB.GetNomFamille( self.IDcompte_payeur)
+        DB.Close()
         self.nom_payeur = self.nom_famille
         self.ctrl_nom_famille.SetValue(self.nom_famille)
         self.ctrl_nom_payeur.SetValue(self.nom_payeur)
@@ -433,12 +437,11 @@ class Dialog(wx.Dialog):
             ("nom_payeur", self.nom_payeur),
             ]
         self.dictDonnees = fGest.ModifDictDonnees(self,self.listeDonnees)
-        DB.Close()
         self.modifPrestations = True
         self.modifConsommations = True
         self.modifInscriptions = True
         self.modifPieces = True
-        fGest.DB.Close()
+
 
     def On_activite(self, event):
         self.ctrl_nom_activite.Enable(True)
@@ -604,58 +607,55 @@ class Dialog(wx.Dialog):
         self.Destroy()
 
     def OnBoutonOkDirect(self, event):
-        fGest = GestionInscription.Forfaits(self)
+        # ne passe pas par les transports
         self.dictDonnees["IDprestation"] = None
         if not self.rw:
+            fGest = GestionInscription.Forfaits(self)
             # Enregistre dans Pieces pour les commentaires modifiés seulement
             fGest.ModifiePiece(self, self.dictDonnees)
-            self.Destroy()
+            fGest.DB.Close()
+            del fGest
             return
-        fGest.DB.Close()
-        del fGest
         self.Final()
 
     def OnBoutonOk(self, event):
+        # Passe par transports
         self.dictDonnees["IDprestation"] = None
         if not self.rw:
             fTransp = DLG_InscriptionComplements.DlgTransports(self.dictDonnees,modeVirtuel = True)
             transports = fTransp.ShowModal()
-            self.Destroy()
-            return
-        # Gestion des compléments de facturation
-        fTransp = DLG_InscriptionComplements.DlgTransports(self.dictDonnees)
-        transports = fTransp.ShowModal()
-        self.dictDonnees = fTransp.CompleteDictDonnees(self.dictDonnees)
-        if transports != wx.ID_OK:
-            self.dictDonnees["IDtranspAller"] = self.dictDonneesOrigine["IDtranspAller"]
-            self.dictDonnees["IDtranspRetour"] = self.dictDonneesOrigine["IDtranspRetour"]
-            self.dictDonnees["prixTranspAller"] = self.dictDonneesOrigine["prixTranspAller"]
-            self.dictDonnees["prixTranspRetour"] = self.dictDonneesOrigine["prixTranspRetour"]
+        else:
+            # Gestion des compléments de facturation
+            fTransp = DLG_InscriptionComplements.DlgTransports(self.dictDonnees)
+            transports = fTransp.ShowModal()
+            self.dictDonnees = fTransp.CompleteDictDonnees(self.dictDonnees)
+            if transports != wx.ID_OK:
+                self.dictDonnees["IDtranspAller"] = self.dictDonneesOrigine["IDtranspAller"]
+                self.dictDonnees["IDtranspRetour"] = self.dictDonneesOrigine["IDtranspRetour"]
+                self.dictDonnees["prixTranspAller"] = self.dictDonneesOrigine["prixTranspAller"]
+                self.dictDonnees["prixTranspRetour"] = self.dictDonneesOrigine["prixTranspRetour"]
+            if (self.dictDonnees["prixTranspAller"],
+                self.dictDonnees["prixTranspRetour"]) != (self.dictDonneesOrigine["prixTranspAller"],
+                                                          self.dictDonneesOrigine["prixTranspRetour"]):
+                self.modifPrestations = True
         fTransp.Destroy()
-        if (self.dictDonnees["prixTranspAller"],self.dictDonnees["prixTranspRetour"]) != (self.dictDonneesOrigine["prixTranspAller"],self.dictDonneesOrigine["prixTranspRetour"]):
-            self.modifPrestations = True
         self.Final()
 
-    def NbreJours(self,fGest):
-        # Gestion du nombre de jours modifié
-        if "nbreJours" in self.dictDonnees:
-            fGest.ModifieNbreJours(self,self.dictDonnees)
-        return
-
     def Final(self):
+        if not self.rw:
+            self.Sortie(wx.ID_CANCEL)
+            return
         fGest = GestionInscription.Forfaits(self)
+        # Enregistrement de la pièce modifiée
+        fGest.ChangeNaturePiece(self, self.dictDonnees, self.dictDonnees["nature"])
         # Enregistre l'inscription façon noethys
         if self.modifInscriptions == True:
             fGest.ModifieInscription(self,self.dictDonnees)
-
-        # Enregistre dans Pieces
-        fGest.ModifiePiece(self,self.dictDonnees)
 
         # arret du traitement si seulement devis
         if self.naturePiece == "DEV":
             fGest.DelConsommations(self)
             fGest.DelPrestations(self)
-            self.NbreJours(fGest)
             self.EndModal(wx.ID_OK)
             fGest.DB.Close()
             self.Destroy()
@@ -667,34 +667,31 @@ class Dialog(wx.Dialog):
             if not ajout :
                 self.dictDonnees["nature"] = "DEV"
                 id = fGest.ModifiePieceCree(self,self.dictDonnees)
-                self.NbreJours(fGest)
                 self.EndModal(wx.ID_OK)
                 fGest.DB.Close()
                 self.Destroy()
                 return
-        self.NbreJours(fGest)
         # arret du traitement si seulement réservation
         if self.naturePiece not in ("COM","FAC","AVO"):
             fGest.DelPrestations(self)
             fGest.DB.Close()
-            self.EndModal(wx.ID_OK)
-            self.Destroy()
+            self.Sortie(wx.ID_OK)
             return
         # Enregistre la prestation
-        self.dictDonnees["IDprestation"] = self.dictDonneesOrigine["IDprestation"]
-        if self.modifPrestations == True:
+        if self.modifPrestations == True and not self.dictDonneesOrigine["IDprestation"]:
             IDprestation = fGest.AjoutPrestation(self,self.dictDonnees,modif=True)
-            if IDprestation > 0:
-                self.dictDonnees["IDprestation"] = IDprestation
+            self.dictDonnees["IDprestation"] = IDprestation
             fGest.ModifieConsoCree(self,self.dictDonnees)
             fGest.ModifiePieceCree(self,self.dictDonnees)
-        else:
-            fGest.ModifiePieceCree(self,self.dictDonnees)
-        self.EndModal(wx.ID_OK)
         fGest.DB.Close()
         del fGest
-        self.Destroy()
+        self.Sortie()
         #fin final
+
+    def Sortie(self,ID=wx.ID_OK):
+        self.EndModal(ID)
+        self.Destroy()
+
 
 if __name__ == "__main__":
     app = wx.App(0)
