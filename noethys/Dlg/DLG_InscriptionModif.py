@@ -411,7 +411,8 @@ class Dialog(wx.Dialog):
     def On_famille(self, event):
         self.ctrl_nom_famille.Enable(True)
         self.nom_famille = ""
-        fGest = GestionInscription.Forfaits(self.parent)
+        DB = self.DB()
+        fGest = GestionInscription.Forfaits(self.parent,self.DB)
         #dlg = DLG_Inscription.Dialog(self)
         appel = fGest.GetFamille(self)
         if not appel:
@@ -419,12 +420,8 @@ class Dialog(wx.Dialog):
             msg.Box(message = "Pour ajouter des familles associées à un individu il faut entrer dans la famille manquante et créer des rattachements !")
             msg.Destroy()
             return
-        fGest.DB.Close()
-        del fGest
         self.IDcompte_payeur = fGest.GetPayeurFamille(self,self.IDfamille)
-        DB = self.DB()
         self.nom_famille = DB.GetNomFamille( self.IDcompte_payeur)
-        DB.Close()
         self.nom_payeur = self.nom_famille
         self.ctrl_nom_famille.SetValue(self.nom_famille)
         self.ctrl_nom_payeur.SetValue(self.nom_payeur)
@@ -441,6 +438,9 @@ class Dialog(wx.Dialog):
         self.modifConsommations = True
         self.modifInscriptions = True
         self.modifPieces = True
+        del fGest
+        DB.Close()
+
 
 
     def On_activite(self, event):

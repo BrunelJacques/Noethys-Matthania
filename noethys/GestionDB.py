@@ -7,7 +7,6 @@
 #------------------------------------------------------------------------
 
 import Chemins
-from Utils.UTILS_Traduction import _
 import sqlite3
 import datetime
 import wx
@@ -37,13 +36,18 @@ except Exception as err :
 # import mysql.connector
 try :
     import mysql.connector
-    from mysql.connector.constants import FieldType
-    from mysql.connector import conversion
     IMPORT_MYSQLCONNECTOR_OK = True
     if IMPORT_MYSQLDB_OK == False:
         INTERFACE_MYSQL = "mysql.connector"
 except Exception as err :
     IMPORT_MYSQLCONNECTOR_OK = False
+
+# Interface pour Mysql = "mysql.connector" ou "mysqldb"
+# Est modifié automatiquement lors du lancement de Noethys selon les préférences (Menu Paramétrage > Préférences)
+# Peut être également modifié manuellement ici dans le cadre de tests sur des fichiers indépendamment de l'interface principale
+INTERFACE_MYSQL = "mysqldb"
+POOL_MYSQL = 5
+
 
 def SetInterfaceMySQL(nom="mysqldb", pool_mysql=5):
     """ Permet de sélectionner une interface MySQL """
@@ -123,7 +127,7 @@ class DB():
             # On ajoute le préfixe de type de fichier et l'extension du fichier
             if MODE_TEAMWORKS == True and suffixe not in ("", None):
                 if suffixe[0] != "T":
-                    suffixe = _("T%s") % suffixe
+                    suffixe = "T%s" % suffixe
 
             if suffixe != None :
                 self.nomFichier += "_%s" % suffixe
@@ -264,7 +268,7 @@ class DB():
         return champs,valeurs
 
     def AfficheErr(self,parent,retour):
-        dlgErr = wx.MessageDialog(parent, _(retour), _("Retour SQL !"), wx.OK | wx.ICON_EXCLAMATION)
+        dlgErr = wx.MessageDialog(parent, retour, "Retour SQL !", wx.OK | wx.ICON_EXCLAMATION)
         dlgErr.ShowModal()
         dlgErr.Destroy()
         return
@@ -554,7 +558,7 @@ class DB():
         self.retourReq = "ok"
         try:
             self.cursor.execute(req)
-            DICT_CONNEXIONS[self.IDconnexion].append(MsgBox)
+            DICT_CONNEXIONS[self.IDconnexion].append(req)
             if commit: self.Commit()
         except Exception as err:
             self.retourReq = self.ErrCursor(req,err)
@@ -624,7 +628,7 @@ class DB():
         """ Dulpliquer un enregistrement d'une table :
              Ex : nomTable="modeles", nomChampCle="IDmodele", ID=22,
              conditions = "IDmodele=12 AND IDtruc>34",
-             dictModifications={"nom" : _("Copie de modele"), etc...}
+             dictModifications={"nom" : "Copie de modele" etc...}
              renvoieCorrespondance = renvoie un dict de type {ancienID : newID, etc...}
              IDmanuel = Attribue le IDprécédent de la table + 1 (pour parer au bug de la table tarifs_ligne
         """
@@ -1321,11 +1325,11 @@ def TestConnexionMySQL(typeTest="fichier", nomFichier=""):
                 cursor.execute("SHOW TABLES;")
                 listeTables = cursor.fetchall()
                 if not listeTables:
-                    dictResultats["fichier"] = (False, _("La base de données est vide."))
+                    dictResultats["fichier"] = (False, "La base de données est vide.")
                 else:
                     dictResultats["fichier"] =  (True, None)
             else:
-                dictResultats["fichier"] = (False, _("Accès au fichier impossible."))
+                dictResultats["fichier"] = (False, "Accès au fichier impossible.")
         except Exception as err:
             dictResultats["fichier"] = (False, err)
 
@@ -1384,31 +1388,31 @@ def ImporterFichierDonnees() :
 def CreationBaseAnnonces():
     """ Création de la base de données sqlite pour les Annonces """
     DB_DATA_ANNONCES = {
-            "annonces_aleatoires":[             ("IDannonce", "INTEGER PRIMARY KEY AUTOINCREMENT", _("ID Annonce")),
-                                                            ("image", "VARCHAR(200)", _("Nom de l'image")),
-                                                            ("titre", "VARCHAR(300)", _("Titre")),
-                                                            ("texte_html", "VARCHAR(500)", _("Texte HTML")),
-                                                            ("texte_xml", "VARCHAR(500)", _("texte XML")),
+            "annonces_aleatoires":[             ("IDannonce", "INTEGER PRIMARY KEY AUTOINCREMENT", "ID Annonce"),
+                                                            ("image", "VARCHAR(200)", "Nom de l'image"),
+                                                            ("titre", "VARCHAR(300)", "Titre"),
+                                                            ("texte_html", "VARCHAR(500)", "Texte HTML"),
+                                                            ("texte_xml", "VARCHAR(500)", "texte XML"),
                                                             ],
 
-            "annonces_dates":[                   ("IDannonce", "INTEGER PRIMARY KEY AUTOINCREMENT", _("ID Annonce")),
-                                                            ("date_debut", "DATE", _("Date de début")),
-                                                            ("date_fin", "DATE", _("Date de fin")),
-                                                            ("image", "VARCHAR(200)", _("Nom de l'image")),
-                                                            ("titre", "VARCHAR(300)", _("Titre")),
-                                                            ("texte_html", "VARCHAR(500)", _("Texte HTML")),
-                                                            ("texte_xml", "VARCHAR(500)", _("texte XML")),
+            "annonces_dates":[                   ("IDannonce", "INTEGER PRIMARY KEY AUTOINCREMENT", "ID Annonce"),
+                                                            ("date_debut", "DATE", "Date de début"),
+                                                            ("date_fin", "DATE", "Date de fin"),
+                                                            ("image", "VARCHAR(200)", "Nom de l'image"),
+                                                            ("titre", "VARCHAR(300)", "Titre"),
+                                                            ("texte_html", "VARCHAR(500)", "Texte HTML"),
+                                                            ("texte_xml", "VARCHAR(500)", "texte XML"),
                                                             ],
 
-            "annonces_periodes":[              ("IDannonce", "INTEGER PRIMARY KEY AUTOINCREMENT", _("ID Annonce")),
-                                                            ("jour_debut", "INTEGER", _("Jour début")),
-                                                            ("mois_debut", "INTEGER", _("Mois début")),
-                                                            ("jour_fin", "INTEGER", _("Jour fin")),
-                                                            ("mois_fin", "INTEGER", _("Mois fin")),
-                                                            ("image", "VARCHAR(200)", _("Nom de l'image")),
-                                                            ("titre", "VARCHAR(300)", _("Titre")),
-                                                            ("texte_html", "VARCHAR(500)", _("Texte HTML")),
-                                                            ("texte_xml", "VARCHAR(500)", _("texte XML")),
+            "annonces_periodes":[              ("IDannonce", "INTEGER PRIMARY KEY AUTOINCREMENT", "ID Annonce"),
+                                                            ("jour_debut", "INTEGER", "Jour début"),
+                                                            ("mois_debut", "INTEGER", "Mois début"),
+                                                            ("jour_fin", "INTEGER", "Jour fin"),
+                                                            ("mois_fin", "INTEGER", "Mois fin"),
+                                                            ("image", "VARCHAR(200)", "Nom de l'image"),
+                                                            ("titre", "VARCHAR(300)", "Titre"),
+                                                            ("texte_html", "VARCHAR(500)", "Texte HTML"),
+                                                            ("texte_xml", "VARCHAR(500)", "texte XML"),
                                                             ],
 
         }
@@ -1431,7 +1435,7 @@ def AfficheConnexionsOuvertes(msgFin="fin"):
             texte = ""
             for msg in msgs:
                 if msg:
-                    texte += "%s / "%msg
+                    texte += "%s / "%msg[:120]
             print(">> IDconnexion = %d (%d requêtes) : %s" % (IDconnexion, len(msgs), texte))
     else: print(msgFin)
 
@@ -1480,9 +1484,9 @@ def Decod(valeur):
 
 def MessageBox(self,mess,titre = "Erreur Bloquante !",YesNo = False):
     if YesNo :
-        dlg = wx.MessageDialog(self, _(mess),_(titre) , wx.YES_NO|wx.NO_DEFAULT|wx.CANCEL| wx.ICON_EXCLAMATION)
+        dlg = wx.MessageDialog(self, mess,titre , wx.YES_NO|wx.NO_DEFAULT|wx.CANCEL| wx.ICON_EXCLAMATION)
     else :
-        dlg = wx.MessageDialog(self, _(mess),_(titre) , wx.OK | wx.ICON_EXCLAMATION)
+        dlg = wx.MessageDialog(self, mess,titre, wx.OK | wx.ICON_EXCLAMATION)
     ret = dlg.ShowModal()
     dlg.Destroy()
     return ret
