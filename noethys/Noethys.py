@@ -49,6 +49,8 @@ from Ctrl import CTRL_Toaster
 from Ctrl import CTRL_Portail_serveur
 from Ctrl import CTRL_TaskBarIcon
 from Crypto.Hash import SHA256
+#from Cryptodome.Hash import SHA256 # possible avec $ pip install pycryptodomex
+
 
 if "linux" in sys.platform:
     UTILS_Linux.AdaptationsDemarrage()
@@ -76,8 +78,10 @@ ID_TB_UTILISATEUR = wx.Window.NewControlId()
 
 class MainFrame(wx.Frame):
     def __init__(self, parent):
-        wx.Frame.__init__(self, parent, -1, title=_("Noethys-Matthania"), name="general",
-                          style=wx.DEFAULT_FRAME_STYLE)
+        if 'gtk3' in wx.PlatformInfo:
+            wx.Frame.__init__(self, parent, -1, title=_(u"Noethys"), name="general", style=wx.DEFAULT_FRAME_STYLE,size=(40,40))
+        else:
+            wx.Frame.__init__(self, parent, -1, title=_(u"Noethys"), name="general", style=wx.DEFAULT_FRAME_STYLE)
 
         theme = CUSTOMIZE.GetValeur("interface", "theme", "Vert")
         self.halt = False
@@ -2008,6 +2012,7 @@ class MyApp(wx.App):
 class Redirect(object):
     def __init__(self, nomJournal=""):
         self.filename = open(nomJournal, "a")
+        self.flush = self.filename.flush
 
     def write(self, text):
         if self.filename.closed:

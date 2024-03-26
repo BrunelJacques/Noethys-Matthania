@@ -45,8 +45,8 @@ DB_DATA = {
                 ("IDpays_naiss", "INTEGER", "ID du Pays de naissance de la personne"),
                 ("cp_naiss", "VARCHAR(10)", "Code postal du lieu de naissance de la personne"),
                 ("ville_naiss", "VARCHAR(100)", "Ville du lieu de naissance de la personne"),
-                ("deces", "INTEGER", "Est décédé (0/1)"),
-                ("annee_deces", "INTEGER", "Année de décès"),
+                ("deces", "INTEGER", "Changement de famille (0/1)"),# recyclage notion de décès jamais à jour
+                ("annee_deces", "INTEGER", "Année du changement de la famille"),
 
                 ("adresse_auto", "INTEGER", "IDindividu dont l'adresse est à reporter"),
                 ("rue_resid", "VARCHAR(255)", "Adresse de la personne"),
