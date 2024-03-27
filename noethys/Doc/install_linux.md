@@ -50,7 +50,7 @@ ou lancer comme un programme '/home/noegest/Noethys-Matthania/lancer_noethys.sh'
 
 pour un update de Noethys-Matthania
 ```
-cp /home/noegest/Noethys-Matthania
+cd /home/noegest/Noethys-Matthania
 source ../envnoethys/bin/activate
 # supprime d'éventuelles modifs locales
 git stash

@@ -786,9 +786,11 @@ class DlgTarification(wx.Dialog):
         lstNonNull = [ x for x in lstLignesPiece if (x["prixUnit"] * x["quantite"]) + x["montant"] != 0]
         
         # détermination de la prochaine nature
-        if self.fromIndividu and not self.fromAvoir:
+        if self.fromIndividu and (not self.fromAvoir) and "nature" in self.dictDonneesParent:
             # nature héritée de l'activité si non avoir
             dictDonnees['nature'] = self.dictDonneesParent["nature"]
+        if (not 'nature' in dictDonnees) or not dictDonnees['nature'] :
+            dictDonnees['nature'] = "COM"
         nature = dictDonnees['nature']
         ret = self.ChoixNatureOrigine(dictDonnees)
         if ret:
