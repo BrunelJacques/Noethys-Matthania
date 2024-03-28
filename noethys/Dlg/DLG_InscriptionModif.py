@@ -441,8 +441,6 @@ class Dialog(wx.Dialog):
         del fGest
         DB.Close()
 
-
-
     def On_activite(self, event):
         self.ctrl_nom_activite.Enable(True)
         self.ctrl_nom_groupe.Enable(True)
@@ -607,20 +605,18 @@ class Dialog(wx.Dialog):
         self.Destroy()
 
     def OnBoutonOkDirect(self, event):
-        # ne passe pas par les transports
-        self.dictDonnees["IDprestation"] = None
+        fGest = GestionInscription.Forfaits(self)
         if not self.rw:
-            fGest = GestionInscription.Forfaits(self)
             # Enregistre dans Pieces pour les commentaires modifiés seulement
             fGest.ModifiePiece(self, self.dictDonnees)
-            fGest.DB.Close()
-            del fGest
+            self.Destroy()
             return
+        fGest.DB.Close()
+        del fGest
         self.Final()
 
     def OnBoutonOk(self, event):
         # Passe par transports
-        self.dictDonnees["IDprestation"] = None
         if not self.rw:
             fTransp = DLG_InscriptionComplements.DlgTransports(self.dictDonnees,modeVirtuel = True)
             transports = fTransp.ShowModal()
@@ -678,7 +674,7 @@ class Dialog(wx.Dialog):
             self.Sortie(wx.ID_OK)
             return
         # Enregistre la prestation
-        if self.modifPrestations == True and not self.dictDonneesOrigine["IDprestation"]:
+        if self.modifPrestations == True:
             IDprestation = fGest.AjoutPrestation(self,self.dictDonnees,modif=True)
             self.dictDonnees["IDprestation"] = IDprestation
             fGest.ModifieConsoCree(self,self.dictDonnees)
