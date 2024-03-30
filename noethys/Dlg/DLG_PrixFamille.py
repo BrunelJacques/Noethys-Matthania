@@ -105,7 +105,7 @@ def GetLignes999(parent,DB):
     if not parent.facture:
         pGest = GestionPieces.Forfaits(parent,DB=DB)
         pGest.CoherenceParrainages(parent.IDpayeur,DB=DB)
-
+        del pGest
     fGest = GestionInscription.Forfaits(parent.parent,DB=DB)
     listePieces = fGest.GetPieceModif999(parent,parent.IDpayeur,parent.annee,facture=parent.facture)
     presence999 = len(listePieces)
@@ -181,8 +181,8 @@ def GetArticles(annee,dictDonnees):
     # Parrainages: renseigner les inscriptions parrainées dans la piece en cours de modif
     lstArtParr = []
     lstInscrParr = []
-    if "dicParrainages" in list(dictDonnees.keys()):
-        for (inscr,dicParr) in list(dictDonnees["dicParrainages"].items()):
+    if 'dicParrainages' in list(dictDonnees.keys()):
+        for (inscr,dicParr) in list(dictDonnees['dicParrainages'].items()):
             if not dicParr['IDligneParrain']: continue
             # seules les IDlignes de la pièce en cours sont renseignées ds dicParr
             lstInscrParr.append(inscr)

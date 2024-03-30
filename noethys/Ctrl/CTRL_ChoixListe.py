@@ -958,7 +958,8 @@ class DialogLettrage(wx.Dialog):
                 self.lstLibels[i] += "/%s"%item
             i +=1
         # le code est le dernier mot du libellé de la colonne, sans accent et en minuscule
-        self.lstCodes = [fp.Supprime_accent(x.split("/")[0].strip()).lower() for x in self.lstLibels]
+        self.lstCodes = [x.lower() for x in self.lstLibels]
+        self.lstCodes = [fp.Supprime_accent(x.split("/")[0].strip()) for x in self.lstCodes]
         # vérif unicité code
         lstano = [x for x in self.lstCodes if self.lstCodes.count(x)>1]
         if len(lstano)>0:
@@ -995,15 +996,16 @@ class DialogLettrage(wx.Dialog):
                 valMtt = 0.0
                 for i in range(nbval):
                     if "montant" in champs[i].lower():
-                        valMtt = item[i]
+                        valMtt = item[champs[i]]
                         continue
-                    donnee[ixVal] = item[i]
-                    if isinstance(item[i],(str)):
-                        lg = len(item[i])
-                    else: lg = len(str(item[i]))
+                    donnee[ixVal] = item[champs[i]]
+                    if isinstance(item[champs[i]],(str)):
+                        lg = len(item[champs[i]])
+                    else: lg = len(str(item[champs[i]]))
                     if self.lstWidth[ixVal] < lg*multiwidth + 10:
                         self.lstWidth[ixVal] = min(250,lg*multiwidth + 10)
                     ixVal += 1
+
                 # ajout du montant à droite
                 donnee[ixMtt] = valMtt
                 self.lstDonnees.append(donnee)

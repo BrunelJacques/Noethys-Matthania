@@ -46,6 +46,13 @@ def Supprime_accent(self, texte):
         texte = texte.replace(a.upper(), b.upper())
     return texte
 
+def DateSQLenFR(dateSQL):
+    if len(dateSQL) < 10: return ""
+    aa = dateSQL[:4]
+    mm = dateSQL[5:7]
+    jj = dateSQL[8:10]
+    return "%s/%s/%s"%(jj,mm,aa)
+
 # Forfaits dans le sens de definition des consommations forfaitisées par un prix de camp
 class Forfaits():
     def __init__(self,parent,DB=None):
@@ -96,8 +103,9 @@ class Forfaits():
         # recherche des parrainages acquis dans les pièces de la famille, forcer passe en mode muet
         self.forcerGestion = forcerGestion
         req = """
-            SELECT  matPieces.pieIDinscription, min(matPieces.pieDateCreation), min(matPieces.pieIDfamille), individus.nom, 
-                    individus.prenom, Sum(matPiecesLignes.ligMontant), activites.abrege
+            SELECT  matPieces.pieIDinscription, min(matPieces.pieDateCreation), min(matPieces.pieIDfamille),
+                    activites.abrege, CONCAT(individus.nom,' ',individus.prenom), 
+                    Sum(matPiecesLignes.ligMontant)
             FROM    (matPieces 
                     LEFT JOIN individus ON matPieces.pieIDindividu = individus.IDindividu) 
                     LEFT JOIN matPiecesLignes ON matPieces.pieIDnumPiece = matPiecesLignes.ligIDnumPiece
@@ -109,19 +117,19 @@ class Forfaits():
             """ %(IDfamille,IDfamille)
         retour = DB.ExecuterReq(req, MsgBox="GestionPiece.CoherenceParrainages1")
         dicInscriptions = {}
-        lstInscr = []
-        lstChampsInscr = ["date", "famille", "activite", "nom", "prenom", "montant"]
+        lstChampsInscr = ["IDinscription","date", "IDfamille", "activite","nom", "montant"]
         if retour == "ok":
             recordset = DB.ResultatReq()
-            for IDinscription, dteInscr, IDfamilleInscr, nom, prenom, mttInscr, activite in recordset:
-                dicInscriptions[IDinscription] = [dteInscr, IDfamille, activite, nom, prenom,  mttInscr]
-                lstInscr.append(str(IDinscription))
+            dicInscriptions = GestionInscription.RecordsetToDict(lstChampsInscr, recordset)
+        lstInscr = [x for x in dicInscriptions.keys()]
+
 
         # recherche des parrainages imputés dans les lignes de pièces
         req = """
-            SELECT  matPiecesLignes.ligIDnumLigne, matPieces.pieDateCreation, matPieces.pieDateFacturation, matPieces.pieNature, 
+            SELECT  matPiecesLignes.ligIDnumLigne,matPieces.pieIDfamille,matPieces.pieIDnumPiece,
+                    matPieces.pieDateCreation, matPieces.pieDateFacturation, matPieces.pieNature, 
                     matPiecesLignes.ligCodeArticle, matPiecesLignes.ligLibelle, matPiecesLignes.ligMontant
-            FROM    matPiecesLignes 
+            FROM    matPiecesLignes
                     INNER JOIN matPieces ON matPiecesLignes.ligIDnumPiece = matPieces.pieIDnumPiece
             WHERE ((matPiecesLignes.ligCodeArticle Like '$$PARR%%') OR (matPiecesLignes.ligLibelle Like '%%parrain%%'))
                     AND (matPieces.pieIDfamille= %d) 
@@ -132,12 +140,11 @@ class Forfaits():
         lstChampsLigne = None
         if retour == "ok":
             recordset2 = DB.ResultatReq()
-            lstChampsLigne = ["date", "nature", "article", "libelle", "montant"]
-            for IDnumLigne,dteCrea, dteFact, nature, article, libelle, mttLigne in recordset2:
-                if not dteFact or len(dteFact) == 0:
-                    dteFact = dteCrea
-                dicLignes[IDnumLigne] = [dteFact, nature, article, libelle, mttLigne]
-
+            lstChampsLigne = ["IDligne","IDparrain","IDpiece","dteInsc","date", "nature", "article", "libelle", "montant"]
+            dicLignes = GestionInscription.RecordsetToDict(lstChampsLigne,recordset2)
+            for ID,dic in dicLignes.items():
+                if not dic["date"]:
+                    dic["date"] = dic["dteInsc"]
         # recherche de lettrages des inscriptions des pièces parrainées dans matParrainages
         lstLignes = [str(x) for x in list(dicLignes.keys())]
         req = """
@@ -158,10 +165,48 @@ class Forfaits():
                     dicLettrages[IDinscription] = []
                 dicLettrages[IDinscription].append((IDligne,solde))
                 lstLignes.append(IDligne)
-
+        #-------------- fin de l'acquisition des données, début ctrl ----------
+        def annuleLigne(IDligne,dLigne):
+            # Supprime une ligne de paramétrage indue
+            mess = "Suppression de ligne\n\n%s\nde la pièce '%d' client '%d'"%(
+                dLigne['libelle'],dLigne['IDpiece'],dLigne['IDparrain'])
+            ret = None
+            if dLigne['nature'] in ('DEV','RES','COM'):
+                ret = DB.ReqDEL('matPiecesLignes','ligIDnumLigne',IDligne,MsgBox=mess)
+            if ret != 'ok':
+                date = dLigne['dteInsc']
+                if dLigne['date'] and len(dLigne['date']) > 0:
+                    date = dLigne['date']
+                mess = "Parrainage indument déduit\n\n"
+                mess += "Dans la pièce en date du %s avec le libellé ci-dessous.\n"%DateSQLenFR(date)
+                mess += ("'%s'\nCe parrainage n'a plus lieu d'être.\n\n")%dLigne['libelle']
+                mess += "Pour supprimer ce message, refacturez et relettrez les parrainages."
+                wx.MessageBox(mess,'A Faire',style=wx.ICON_EXCLAMATION)
+                return
+            # modif de la prestation
+            if dLigne['nature']== 'COM':
+                dPiece = DATA_Tables.GetDictRecord(DB,'matPieces',dLigne['IDpiece'],
+                                          "CoherenceParrainages dpiece")
+                if not dPiece['pieIDprestation']:
+                    wx.MessageBox('Anomalie sur la prestation du parrainage')
+                    return
+                dPrestation = DATA_Tables.GetDictRecord(DB,'prestations',dPiece['pieIDprestation'],
+                                          "CoherenceParrainages dprestation")
+                mtt = dPrestation['montant'] - dLigne['montant']
+                lstDon = [('montant_initial',mtt),('montant',mtt)]
+                ret = DB.ReqMAJ('prestations',lstDon, 'IDprestation',dPiece['pieIDprestation'],
+                          "CoherenceParrainages modifPrestation")
+            del dicLignes[IDligne]
+            del dicLettrages[dPiece['pieIDinscription']]
         # Liste des parrainages correctement affectés
         lstInscrOK = []
         lstLigneOK = []
+        # vérif si des inscriptions ont été annulées
+        for IDinscription, lstParr in dicLettrages.items():
+            for IDligne, user in lstParr:
+                if not IDinscription in dicInscriptions:
+                    annuleLigne(IDligne,dicLignes[IDligne])
+        # Vérif des inscriptions parrainées
         for IDinscription in list(dicInscriptions.keys()):
             if IDinscription in list(dicLettrages.keys()):
                 #inscription dans lettrage
@@ -187,8 +232,11 @@ class Forfaits():
                 for mot in mots:
                     mot = mot.strip().upper()
                     for IDnumLigne in lstLigneKO:
-                        dteFact, nature, article, libelle, mttLigne = dicLignes[IDnumLigne]
-                        if mot in libelle.upper() and dteInscr <= dteFact:
+                        dLigne = dicLignes[IDnumLigne]
+                        date = dLigne['dteInsc']
+                        if dLigne['date'] and len(dLigne['date']) > 0:
+                            date = dLigne['date']
+                        if mot in dLigne['libelle'].upper() and dteInscr <= date:
                             # l'affectation est postérieure et contient le prénom
                             newLettres.append((IDinscription,IDnumLigne))
                             if not IDinscription in list(dicLettrages.keys()):
@@ -229,8 +277,8 @@ class Forfaits():
         if len(lstLigneKO) >0:
             mess1 += "\n\nREDUCTIONS ORPHELINES d'un parrainage :"
             for ID in lstLigneKO:
-                dteFact, nature, article, libelle, mttLigne = dicLignes[ID]
-                mess1 += "\n     - %s" % libelle
+                dLigne = dicLignes[ID]
+                mess1 += "\n     - %s" % dLigne['libelle']
         ret = wx.ID_ABORT
         if mess1 != "" and not self.forcerGestion:
             mess1 += '\n\nVoulez-vous voir les parrainages et les lettrages?'
@@ -241,21 +289,26 @@ class Forfaits():
         for IDinscription, lstLigneSolde in dicLettrages.items():
             for IDligne, solde in lstLigneSolde:
                 lstLettrages.append((IDinscription, IDligne, solde))
-        intro = "Le délettrage dissocie des débits et crédits qui n'auraient pas dû l'être, "
-        intro += "le lettrage permet de classer les lignes qui n'apparaîtront plus après facturation des réductions."
-        lstLettragesOrigine = [x for x in lstLettrages]
-        dlg = CTRL_ChoixListe.DialogLettrage(self, dicInscriptions, lstChampsInscr, dicLignes, lstChampsLigne,
-                                              lstLettrages, columnSort=5,
-                                              intro=intro,
-                                              titre="Lettrage des parrainages",
-                                              minSize=(1100, 700))
         # appel du programme de lettrage
+
         if ret == wx.ID_OK or self.forcerGestion:
             # Action de lettrage manuel
+            intro = "Le délettrage dissocie des débits et crédits qui n'auraient pas dû l'être, "
+            intro += "le lettrage permet de classer les lignes qui n'apparaîtront plus après facturation des réductions."
+            dlg = CTRL_ChoixListe.DialogLettrage(self,
+                                                 dicInscriptions, lstChampsInscr[-5:],
+                                                 dicLignes, lstChampsLigne[-5:],
+                                                 lstLettrages,
+                                                 columnSort=5,intro=intro,
+                                                 titre="Lettrage des parrainages",
+                                                 minSize=(1100, 700))
+
             ret = dlg.ShowModal()
 
-        # interventions sur les données
-        if ret == wx.ID_OK or self.forcerGestion:
+            # interventions sur les données
+            if ret != wx.ID_OK or self.forcerGestion:
+                dlg.Destroy()
+                return
             lstLettragesNew = dlg.GetLettrage()
             # Suppression des anciennes associations inscription%réduction
             for lettre in lstLettrages :
@@ -266,10 +319,11 @@ class Forfaits():
             # Ajout des parrainages associés par lettrage
             for IDinscription, IDnumLigne, affecte in lstLettragesNew :
                 self.AssocieParrainage(DB,IDinscription, IDnumLigne, affecte)
-        dlg.Destroy()
+            dlg.Destroy()
         #fin coherenceParrainages
 
     def AssocieParrainage(self,DB,IDinscription,IDnumLigne, affecte):
+        # Utilisé en remise en cohérence
         if not IDnumLigne: IDnumLigne = 0
         if not IDinscription: IDinscription = 0
         lstDonnees = [('parIDinscription', IDinscription),
@@ -327,8 +381,8 @@ class Forfaits():
             chaine = chaine[:-1]
             return chaine
         numero = GestionInscription.GetNoFactureSuivant()
+
         DB = GestionDB.DB()
-        self.IDuser = DB.IDutilisateurActuel()
         transports = Nz(dictDonnees["prixTranspAller"])+Nz(dictDonnees["prixTranspRetour"])
         montant = 0.00
         listeLignes = dictDonnees["lignes_piece"]
@@ -368,6 +422,7 @@ class Forfaits():
         IDnumAvoir = DB.newID
         if retour != "ok" :
             GestionDB.MessageBox(self,retour)
+            DB.Close()
             return wx.ID_ABORT
         dictDonnees["IDnumAvoir"] = IDnumAvoir
         dictDonnees["noAvoir"] = numero
@@ -437,6 +492,7 @@ class Forfaits():
             if  ixChoix != None:
                 if ixChoix == 1:
                     self.fGest.RazTransport(self,dictDonnees,sens)
+        DB.Close()
         return end
         #fin GenereAvoir
 

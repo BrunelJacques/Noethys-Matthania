@@ -23,6 +23,7 @@ import GestionDB
 from Dlg import DLG_ChoixLigne
 from Dlg import DLG_ValidationPiece
 from Gest import GestionArticle
+
 from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
 
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
@@ -83,7 +84,7 @@ class CTRL_Solde(wx.Panel):
         wx.Panel.__init__(self, parent, id=-1, name="panel_solde", style=wx.SUNKEN_BORDER | wx.TAB_TRAVERSAL,
                           size=(100, 40))
         self.parent = parent
-
+        self.value = 0.0
         # Solde du compte
         self.ctrl_solde = wx.StaticText(self, -1, "0.00 %s " % SYMBOLE)
         font = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
@@ -111,6 +112,7 @@ class CTRL_Solde(wx.Panel):
             label = "- %.2f %s" % (-montant, SYMBOLE)
             self.SetBackgroundColour("#F81515")  # Rouge
         self.ctrl_solde.SetLabel(label)
+        self.value = montant
         self.Layout()
         self.Refresh()
 
@@ -298,8 +300,8 @@ class OLVtarification(FastObjectListView):
         return listeOLV
         #fin EnrichirDonnees
 
-    def AjoutParrain(self,sens):
-        if sens:
+    def AjoutParrain(self,checked):
+        if checked:
             DB = self.dictDonnees['db']
             # Apel article parrain
             req = """SELECT matArticles.artCodeArticle, matArticles.artLibelle, matArticles.artPrix1, matArticles.artPrix1, matArticles.artPrix2,matArticles.artCodeBlocFacture as lfaTypeLigne, 'Sans', 'AbParrain', 0 as foorce
@@ -307,10 +309,13 @@ class OLVtarification(FastObjectListView):
                     WHERE (matArticles.artCodeArticle = '$$PARRAIN');
                     """
             retour = DB.ExecuterReq(req,MsgBox="ExecuterReq")
-            if retour != "ok" : DB.AfficheErr(self,retour)
+            if retour != "ok" :
+                DB.AfficheErr(self,retour)
             else:
                 recordset = DB.ResultatReq()
                 if len(recordset) > 0:
+                    # suppression d'une éventuelle ligne précédente
+                    self.parent.data = [x for x in self.parent.data if x.codeArticle != "$$PARRAIN"]
                     lignes = []
                     lignes = self.AjoutDonneesOLV(recordset,lignes)
                     for ligne in lignes:
@@ -340,8 +345,6 @@ class DlgTarification(wx.Dialog):
         # DB sera utilisé dans tous les enfants via dictDonnees
         self.DB = GestionDB.DB()
         self.dictDonnees['db'] = self.DB
-        DB = self.DB
-
         self.GetTrfPrix() # alimente la clé trfPrix dans dictDonnees
         self.SetTitle(_("DLG_PrixActivite"))
         self.IDfamille = dictDonnees["IDfamille"]
@@ -411,12 +414,12 @@ class DlgTarification(wx.Dialog):
                 INNER JOIN individus AS individus_1 ON rattachements_1.IDindividu = individus_1.IDindividu
                 WHERE (((individus.IDindividu)=%d) AND ((rattachements_1.IDcategorie)<>3));
              """ % (self.IDindividu)
-        retour = DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        retour = self.DB.ExecuterReq(req,MsgBox="ExecuterReq")
         if "dateCreation" in dictDonnees:
             annee = dictDonnees["dateCreation"][:4]
         else: annee = str(datetime.date.today())[:4]
-        if retour != "ok" : DB.AfficheErr(self,retour)
-        recordset = DB.ResultatReq()
+        if retour != "ok" : self.DB.AfficheErr(self,retour)
+        recordset = self.DB.ResultatReq()
         self.prenomNom =""
         if len(recordset)>0:
             for (creationIndividu,nom,prenom) in recordset:
@@ -515,24 +518,6 @@ class DlgTarification(wx.Dialog):
         self.Layout()
         self.CenterOnScreen()
 
-    def OnAbandonFilleul(self,event):
-        if self.ctrl_abandon.IsChecked():
-            if len(self.ctrl_nom_parrain.Value) < 3 :
-                GestionDB.MessageBox(self, "Pas de Parrain, pas de crédit à son filleul...", titre = "Refus d'action")
-                self.ctrl_abandon.SetValue(False)
-                self.parrainAbandon = False
-            self.resultsOlv.AjoutParrain(True)
-            self.parrainAbandon = True
-        if not self.ctrl_abandon.IsChecked():
-            self.resultsOlv.AjoutParrain(False)
-            self.ctrl_nom_parrain.Enable(True)
-            self.bouton_parrain.Enable(True)
-            self.parrainAbandon = False
-        self.resultsOlv.SetObjects(self.data)
-        self.CalculSolde()
-        if "IDinscription" in self.dictDonnees:
-            self.ModifParrain()
-
     def OnBoutonOk(self, event):
         # Validation du montant
         if self.dictDonnees["origine"] != "modif" :
@@ -613,13 +598,30 @@ class DlgTarification(wx.Dialog):
         if choix:
             self.ctrl_nom_parrain.SetValue(dlg.nomChoix)
             self.IDparrain = dlg.IDchoix
-            self.dictDonnees["IDparrain"] = self.IDparrain
             if self.IDparrain == None:
                 self.ctrl_abandon.SetValue(False)
                 self.OnAbandonFilleul(None)
-            if "IDinscription" in self.dictDonnees:
-                self.ModifParrain()
+            self.GetDictParrain()
         dlg.Close()
+
+    def OnAbandonFilleul(self, event):
+        testok =  self.GetDictParrain()
+        if self.ctrl_abandon.IsChecked() and testok:
+            if len(self.ctrl_nom_parrain.Value) < 3:
+                GestionDB.MessageBox(self,
+                                     "Pas de Parrain, pas de crédit à son filleul...",
+                                     titre="Refus d'action")
+                self.ctrl_abandon.SetValue(False)
+                self.parrainAbandon = False
+            self.resultsOlv.AjoutParrain(True)
+            self.parrainAbandon = True
+        if not self.ctrl_abandon.IsChecked():
+            self.resultsOlv.AjoutParrain(False)
+            self.ctrl_nom_parrain.Enable(True)
+            self.bouton_parrain.Enable(True)
+            self.parrainAbandon = False
+        self.resultsOlv.SetObjects(self.data)
+        self.CalculSolde()
 
     def AjouteLigne(self, typeLigne):
         if typeLigne == "article":
@@ -752,36 +754,44 @@ class DlgTarification(wx.Dialog):
             dlg.Destroy()
         return nomChoix
 
-    def ModifParrain(self):
-        #modification des seuls paramètres parrainage même en cas de non rw
-        DB = self.DB
-        req = """SELECT matPieces.pieIDfamille
+    def GetDictParrain(self):
+        if not 'IDinscription' in self.dictDonnees or not self.dictDonnees['IDinscription']:
+            return
+        #préparation des seuls paramètres parrainage
+        lstOldIDpar = []
+        req = """SELECT matPieces.pieIDfamille, matParrainages.parIDligneParr
                 FROM matParrainages 
                     INNER JOIN matPiecesLignes ON matParrainages.parIDligneParr = matPiecesLignes.ligIDnumLigne 
                     INNER JOIN matPieces ON matPiecesLignes.ligIDnumPiece = matPieces.pieIDnumPiece
                 WHERE parIDinscription = %d
             """ % self.dictDonnees["IDinscription"]
-        retour = DB.ExecuterReq(req,MsgBox="ExecuterReq")
-        if retour != "ok" : DB.AfficheErr(self,retour)
-        else:
-            recordset = DB.ResultatReq()
-            if len(recordset) > 0 and recordset[0][0]:
-                dlgErr = wx.MessageDialog(self,"Cette inscription a déjà fait l'objet d'une réduction pour la famille %d,\n supprimez-la d'abord."%recordset[0][0] , _("MODIFCATION IMPOSSIBLE !"), wx.OK | wx.ICON_EXCLAMATION)
-                dlgErr.ShowModal()
-                dlgErr.Destroy()
-            else:
-                self.dictDonnees["IDparrain"]=self.IDparrain
-                self.dictDonnees["parrainAbandon"]=self.parrainAbandon
-                listeDonnees = [
-                    ("pieIDparrain",self.IDparrain),
-                    ("pieParrainAbandon",self.parrainAbandon),
-                    ]
-                retour = DB.ReqMAJ("matPieces", listeDonnees,"pieIDnumPiece",self.dictDonnees["IDnumPiece"],MsgBox="ModifiePiece")
-                if retour != "ok" : DB.AfficheErr(self,retour)
+        retour = self.DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        if retour == "ok":
+            recordset = self.DB.ResultatReq()
+            for IDparrain, IDligne in recordset:
+                if IDparrain != self.dictDonnees['IDfamille']:
+                    dlgErr = wx.MessageDialog(self,
+                                              "Cette inscription a déjà fait l'objet d'une réduction pour la famille %d,\n supprimez-la d'abord."%IDparrain ,
+                                              "MODIFCATION IMPOSSIBLE !", wx.OK | wx.ICON_EXCLAMATION)
+                    self.dictDonnees['parrainAbandon'] = False
+                    self.ctrl_abandon.SetValue(False)
+                    dlgErr.ShowModal()
+                    dlgErr.Destroy()
+
+                else:
+                    lstOldIDpar.append(IDligne)
+        self.dictDonnees['selfParrainage'] = {}
+        self.dictDonnees['selfParrainage']['codeArticle'] = '$$PARRAIN'
+        self.dictDonnees['selfParrainage']['parIDligneParr'] = None
+        self.dictDonnees['selfParrainage']['lstIDoldPar'] = lstOldIDpar
+        self.dictDonnees['selfParrainage']['parIDinscription'] = self.dictDonnees['IDinscription']
+        self.dictDonnees['selfParrainage']['parAbandon'] = int(self.parrainAbandon)
+        self.dictDonnees["IDparrain"] = self.IDparrain
+        self.dictDonnees["parrainAbandon"] = self.parrainAbandon
+        return True
 
     def GetTrfPrix(self):
         # récupération du prix de base séjour dans matTarifs, mis dans dictDonnees
-        DB = self.DB
         req = """
                 SELECT trfPrix
                 FROM matTarifs
@@ -789,9 +799,9 @@ class DlgTarification(wx.Dialog):
                 ;""" % (str(self.dictDonnees["IDactivite"]),
                         str(self.dictDonnees["IDgroupe"]),
                         str(self.dictDonnees["IDcategorie_tarif"]))
-        retour = DB.ExecuterReq(req,MsgBox="ExecuterReq")
-        if retour != "ok" : DB.AfficheErr(self,retour)
-        recordset = DB.ResultatReq()
+        retour = self.DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        if retour != "ok" : self.DB.AfficheErr(self,retour)
+        recordset = self.DB.ResultatReq()
         trfPrix = None
         if len(recordset) == 1:
             trfPrix = recordset[0][0]

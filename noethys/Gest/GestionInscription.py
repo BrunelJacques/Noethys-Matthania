@@ -1069,6 +1069,9 @@ class Forfaits():
         
         # Purge les lignes précédentes
         ret = self.DB.ReqDEL("matPiecesLignes", "ligIDNumPiece",dictDonnees["IDnumPiece"])
+        if 'selfParrainage' in dictDonnees:
+            for IDligne in dictDonnees['selfParrainage']['lstIDoldPar']:
+                self.DB.ReqDEL("matParrainages", "parIDlignePar", IDligne)
         # Enregistre dans PiecesLignes
         listeInit = [
             ("ligIDnumPiece", dictDonnees["IDnumPiece"]),
@@ -1095,11 +1098,11 @@ class Forfaits():
                 if not isinstance(IDnumLigne,int):
                     GestionDB.MessageBox(parent,self.DB.retour)
                     return None
-                if 'dicParrainages' in list(dictDonnees.keys()):
-                    for IDinscription, dicParr in dictDonnees['dicParrainages'].items():
-                        if dicParr['codeArticle'] == ligne['codeArticle']:
-                            dicParr['parIDligneParr'] = IDnumLigne
-                            self.InsertParrain(self,dicParr)
+                if 'selfParrainage' in dictDonnees:
+                    dicParr = dictDonnees['selfParrainage']
+                    if dicParr['codeArticle'] == ligne['codeArticle']:
+                        dicParr['parIDligneParr'] = IDnumLigne
+                        self.InsertParrain(self,dicParr)
         return retour
         #fin ModifiePiece
 
@@ -1309,14 +1312,16 @@ class Forfaits():
             return False
         return True
 
-    def InsertParrain(self,parent, dicParrainage):
+    def InsertParrain(self, parent, dictParrain):
         # enregistre dans la table matParainages
-        lstChamps = ['parIDinscription','parIDligneParr','parSolde','parAbandon']
-        listeDonnees = DictToListeTuples(lstChamps,dicParrainage)
+        lstChamps = ['parIDinscription','parIDligneParr','parAbandon']
+        listeDonnees = DictToListeTuples(lstChamps, dictParrain)
+        IDuser = self.DB.IDutilisateurActuel()
+        listeDonnees.append(('parSolde',7000 + IDuser))
         ret = self.DB.ReqInsert("matParrainages",listeDonnees,retourID=False)
         if ret != "ok" :
             del listeDonnees[0]
-            ret = self.DB.ReqMAJ("matParrainages", listeDonnees, 'parIDinscription',dicParrainage['parIDinscription'])
+            ret = self.DB.ReqMAJ("matParrainages", listeDonnees, 'parIDinscription', dictParrain['parIDinscription'])
             if ret != "ok":
                 GestionDB.MessageBox("Modif matParrainages",ret)
         return

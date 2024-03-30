@@ -577,7 +577,7 @@ class Dialog(wx.Dialog):
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("famille_factures", "creer") == False : return
         # Vérification de la ventilation
         from Gest import GestionPieces
-        pGest = GestionPieces.Forfaits(self)
+        pGest = GestionPieces.Forfaits(self,self.DB)
         ret = pGest.CoherenceParrainages(IDfamille=self.IDfamille,forcerGestion=True,DB=self.DB)
         del pGest
 
@@ -666,6 +666,7 @@ class Dialog(wx.Dialog):
         dlg = DLG_PrixFamille.DlgTarification(self,dictDonnees)
         dlg.ShowModal()
         self.MAJpageActive()
+        dlg.DB.Close()
         try :
             dlg.Destroy()
         except :
@@ -911,7 +912,7 @@ if __name__ == "__main__":
     heure_debut = time.time()
     # ramel 567; perez marc 1724; bartoOliv 1861; branco 4499;  bourrel 6191
     #7735 parrainage; 8107 multifactures; 709 Brunel jacques
-    dialog_1 = Dialog(None, IDfamille= 8808)
+    dialog_1 = Dialog(None, IDfamille= 9489)
     print("Temps de chargement fiche famille =", time.time() - heure_debut)
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()

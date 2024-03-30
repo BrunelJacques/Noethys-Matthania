@@ -24,7 +24,6 @@ from Dlg import DLG_PrixActivite
 from Gest import GestionInscription
 from Dlg import DLG_ValidationPiece
 from Dlg import DLG_InscriptionComplements
-from Data import DATA_Tables
 from Ctrl import CTRL_Bandeau
 
 def Cchaine(valeur):

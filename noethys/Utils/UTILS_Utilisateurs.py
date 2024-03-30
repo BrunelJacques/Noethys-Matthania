@@ -176,7 +176,9 @@ def IsAdmin(afficheMessage=True):
 def AfficheDLGInterdiction():
     import wx.lib.dialogs as dialogs
     image = wx.Bitmap(Chemins.GetStaticPath("Images/32x32/Droits.png"), wx.BITMAP_TYPE_ANY)
-    dlg = dialogs.MultiMessageDialog(None, _("Votre profil utilisateur ne vous permet pas d'accéder à cette fonctionnalité !"), caption=_("Accès non autorisé"), style=wx.ICON_ERROR | wx.OK, icon=image, btnLabels={wx.ID_OK : _("Ok")})
+    dlg = dialogs.MultiMessageDialog(None, _("Votre profil utilisateur ne vous permet pas d'accéder à cette fonctionnalité !"),
+                                     caption=_("Accès non autorisé"), style=wx.ICON_ERROR | wx.OK, icon=image,
+                                     btnLabels={wx.ID_OK : _("Ok")})
     dlg.ShowModal() 
     dlg.Destroy() 
 

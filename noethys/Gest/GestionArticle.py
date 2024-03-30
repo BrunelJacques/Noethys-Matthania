@@ -845,7 +845,7 @@ def MultiParrain(codeArticle,dictDonnees,listeOLV):
         DB.ExecuterReq(req,MsgBox = "GestionArticle.MultiParrain")
         retPieces = DB.ResultatReq()
         listeParrainages = []
-        dicParrainages = {}
+        dictDonnees['dicParrainages'] = {}
         # déroulement des pièces parrainées afin de vérifier leur règlement
         for IDnumPieceFilleul, parIDinscription, IDfilleul, nomFilleul, prenomFilleul, nomActiviteFilleul, \
             IDprestationFilleul,IDligneParrain in retPieces:
@@ -853,8 +853,8 @@ def MultiParrain(codeArticle,dictDonnees,listeOLV):
                 wx.MessageBox("Le filleul potentiel '%s' n'a pas d'inscription valide"%(prenomFilleul + " "+nomFilleul))
                 continue
             if parIDinscription == None: parIDinscription = 0
-            if parIDinscription in list(dicParrainages.keys()):
-                dicParr = dicParrainages[parIDinscription]
+            if parIDinscription in list(dictDonnees['dicParrainages'].keys()):
+                dicParr = dictDonnees['dicParrainages'][parIDinscription]
             else:
                 dicParr = {}
                 dicParr['parIDinscription'] = parIDinscription
@@ -890,16 +890,16 @@ def MultiParrain(codeArticle,dictDonnees,listeOLV):
                 dicParr["ligneChoix"]= alert + libelle
                 dicParr["parLibelle"]= prefixe + libelle
                 dicParr['parSolde'] = solde
-            dicParrainages[parIDinscription] = dicParr
+            dictDonnees['dicParrainages'][parIDinscription] = dicParr
         choixPossible = False
         i=0
-        for parIDinscription, dicParr in list(dicParrainages.items()):
+        for parIDinscription, dicParr in list(dictDonnees['dicParrainages'].items()):
             listeParrainages.append((i+1, dicParr['ligneChoix']))
             choixPossible = True
             dicParr["ixLigneChoix"] = i+1
             i +=1
 
-        # affichage et choix des lignes à imputer, suppression dans dicParrainages des parrainages non retenus
+        # affichage et choix des lignes à imputer, suppression dans 'dicParrainages' des parrainages non retenus
         if choixPossible :
             if dictDonnees['origine'] == 'verif':
                 # lors de la vérif on prend tous les parrainages possibles
@@ -920,16 +920,15 @@ def MultiParrain(codeArticle,dictDonnees,listeOLV):
                     # seuls les parrainages retenus sont stockés, enregistrement lors de la validation de la pièce
                     # stockage repris lors de l'enregistrement de la pièce  pour modifier parIDligneParr quand connu
                     if not item in choix:
-                        for key, dicParr in list(dicParrainages.items()):
+                        for key, dicParr in list(dictDonnees['dicParrainages'].items()):
                             if dicParr['ixLigneChoix'] == item[0]:
-                                del dicParrainages[key]
-                dictDonnees['dicParrainages'] = dicParrainages
+                                del dictDonnees['dicParrainages'][key]
             else :
                 choixPossible = False
         # ici on calcule le montant de la réduction pour chaque ligne
         if choixPossible :
             i = 0
-            for dicParr in list(dicParrainages.values()):
+            for dicParr in list(dictDonnees['dicParrainages'].values()):
                 nbj = NbreJoursActivite(DB,None,None,IDinscription=dicParr['parIDinscription'])
                 qte = 0
                 if nbj > 6 : qte = 1
@@ -1144,8 +1143,8 @@ def ArticlePreExist(article, ligne, dictDonnees):
                 supprimer = True
         """
         # recherce dans le dicParr
-        dicParrainages = dictDonnees['dicParrainages']
-        for IDinscr, dicParr in list(dicParrainages.items()):
+        dicParrainage = dictDonnees['dicParrainages']
+        for IDinscr, dicParr in list(dicParrainage.items()):
             if ligne.IDnumLigne and article.IDinscription:
                 if ligne.IDnumLigne == dicParr[
                     'IDligneParrain'] and article.IDinscription == IDinscr:

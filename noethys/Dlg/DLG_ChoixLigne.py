@@ -123,7 +123,8 @@ class DlgChoixFamille(wx.Dialog):
         """Constructor"""
         self.SetTitle("DLG_ChoixLigne :Choix d'une famille")
         self.parent = parent
-        self.choix = None
+        self.IDchoix = None
+        self.nomChoix = " "
         self.label_famille = wx.StaticText(self, -1, _("Famille choisie :"))
         self.olv_famille = OLVchoixFamille(self)
         self.olv_famille.Select(0)
@@ -161,11 +162,24 @@ class DlgChoixFamille(wx.Dialog):
         self.CenterOnScreen()
 
     def OnBoutonOk(self, event):
-        self.IDchoix = self.olv_famille.GetSelectedObjects()[0].IDfamille
-        if self.IDchoix == None: self.nomChoix = " "
-        else : self.nomChoix = self.olv_famille.GetSelectedObjects()[0].designation + " / "+str(self.olv_famille.GetSelectedObjects()[0].ville)
+        self.IDchoix = None
+        self.nomChoix = " "
+        designation = None
+        ville = None
+        selection = None
+        if len(self.olv_famille.GetSelectedObjects()) > 0 :
+            selection = self.olv_famille.GetSelectedObjects()[0]
+        else:
+            nblignes = len(self.olv_famille.GetFilteredObjects())
+            if nblignes == 1:
+                selection = self.olv_famille.GetFilteredObjects()[0]
+        if selection:
+            self.IDchoix = selection.IDfamille
+            designation = selection.designation
+            ville = str(selection.ville)
+        if designation:
+            self.nomChoix = designation + " / "+ ville
         self.EndModal(wx.ID_OK)
-
 
 # ----Choix d'un article -------------------------------------------------------------------
 class Track(object):
@@ -391,6 +405,6 @@ if __name__ == '__main__':
     app = wx.App(0)
     f = DlgChoixFamille(None)
     app.SetTopWindow(f)
-    if f.ShowModal() == wx.ID_OK:
-        print("OK")
+    print('ret:',f.ShowModal())
+    print('ID,nom :',f.IDchoix,'/',f.nomChoix,'/')
     app.MainLoop()
