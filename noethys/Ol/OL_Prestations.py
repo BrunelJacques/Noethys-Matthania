@@ -530,7 +530,7 @@ class ListView(ObjectListView):
 
         if track.categorie == "consommation":
             dlg = wx.MessageDialog(self, _(
-                "Pour %s la prestation d'une consommation, allez directement dans la gestion de l'inscription !"%verbe),
+                "Pour %s la prestation d'une consommation, allez dans Facturation ou gérez l'inscription!"%verbe),
                                    _("Information"), wx.OK | wx.ICON_EXCLAMATION)
             dlg.ShowModal()
             dlg.Destroy()
@@ -690,15 +690,17 @@ class ListView(ObjectListView):
             if valide == True:
                 req = """ SELECT * FROM matPieces WHERE pieIDprestation = %d ; """ % track.IDprestation
                 DB.ExecuterReq(req,MsgBox = True)
-                retour = DB.ResultatReq()
-                if len(retour) >0:
-                    if retour[0][0]!= None:
+                recordset = DB.ResultatReq()
+                for record in recordset:
                         ret = []
                         fGest = GestionInscription.Forfaits(self)
                         # Ne gère que les prestations niveau famille
                         if track.IDactivite == 0:
-                            ret = fGest.GetPieceModif999(self,track.IDcompte_payeur, None, IDnumPiece = retour[0][0])
-                            if len(ret) == 0: ret = fGest.GetPieceModif999(self,track.IDcompte_payeur, None, IDnumPiece = track.IDcontrat )
+                            ret = fGest.GetPieceModif999(self,track.IDcompte_payeur,
+                                                 None, IDnumPiece = record[0])
+                            if len(ret) == 0:
+                                ret = fGest.GetPieceModif999(self,track.IDcompte_payeur,
+                                            None, IDnumPiece = track.IDcontrat )
                         if len(ret) > 0:
                             for piece in ret:
                                 dictDonnees = piece
@@ -706,7 +708,7 @@ class ListView(ObjectListView):
                                 if not suppressible :
                                     GestionDB.MessageBox(self, "Piece associée bloquée, ne peut pas être supprimée!\nElle est consultable et peut faire l'objet d'un avoir")
                                     return
-                                fGest.Suppression(self,dictDonnees)
+                                fGest.SuppressionPiece(self, dictDonnees)
                             self.MAJ()
              # Recherche si des consommations y sont attachées
             req = """

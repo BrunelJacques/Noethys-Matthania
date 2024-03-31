@@ -1366,6 +1366,7 @@ class Forfaits():
                 self.DB.ReqDEL("prestations", "IDprestation", IDprestation)
         #fin SuppressionInscription
 
+
     def GetPieceSupprime(self,parent,IDinscription,IDindividu,IDactivite):
         #retourne False pour abandon, None pour suppresion sans piece, True pour self.dictPiece alimentée
         self.dictPiece = {}
@@ -1401,7 +1402,12 @@ class Forfaits():
             return False
         #fin GetPieceSupprime
 
-    def Suppression(self,parent,dictDonnees,nbPiece=1):
+    def SupprLigneParrainage(self,IDligne):
+        # Tente Suppression d'un parrainage par la ligne de la pièce portant réduction
+        req = """
+            SELECT """
+
+    def SuppressionPiece(self, parent, dictDonnees):
         #suppression d'une pièce non facturée et de tout ce qui va avec
         IDinscription = dictDonnees["IDinscription"]
         IDprestation = dictDonnees["IDprestation"]
@@ -1413,29 +1419,23 @@ class Forfaits():
         self.SupprimeTransport(IDtranspAller)
         self.SupprimeTransport(IDtranspRetour)
 
-        # suppression des parrainages affectés au parrain
-        pGest = GestionPieces.Forfaits(self)
-        req = """SELECT matPiecesLignes.ligIDnumLigne 
-                    FROM matPiecesLignes
-                    INNER JOIN matParrainages ON matPiecesLignes.ligIDnumLigne = matParrainages.parIDligneParr 
-                    WHERE (matPiecesLignes.ligIDnumPiece = %d);
-            """ % IDnumPiece
-        ret = self.DB.ExecuterReq(req, MsgBox='GestionInscription.Suppression')
-        if ret == 'ok':
-            recordset = self.DB.ResultatReq()
-            if len(recordset)>0:
-                for record in recordset:
-                    IDnumLigne = record[0]
-                    ret = pGest.DissocieParrainage(self.DB,IDnumLigne=IDnumLigne)
+        # suppression du parrainage affecté
+        if dictDonnees['pieIDparrain'] >0:
+            mess = "GestionInscription.Suppression.recherche_parrainage"
+            where = "parIDinscription = %d"%IDinscription
+            ddParrainages = DATA_Tables.GetDdRecords(self.DB,
+                                                     'matParrainages',
+                                                     where=where,mess=mess)
+            for dictPar in ddParrainages:
+                ret = self.SupprLigneParrainage(dictPar['parIDligneParr'])
 
         # alerte suppression du parrainage
-        if IDinscription > 0:
-            if self.ParrainageIsImpute(self.DB,dictDonnees["IDinscription"]):
-                if not dictDonnees["IDparrain"]:
-                    dictDonnees["IDparrain"]=0
-                nomParrain = self.GetNomParrain(self.DB,dictDonnees['IDparrain'])
-                parrain = "Parrain : %d - %s\nRetournez sur sa fiche"%(dictDonnees["IDparrain"],nomParrain)
-                wx.MessageBox("Inscription parrainée!\n\n%s"%parrain)
+        if self.ParrainageIsImpute(self.DB, dictDonnees["IDinscription"]):
+            if not dictDonnees["IDparrain"]:
+                dictDonnees["IDparrain"]=0
+            nomParrain = self.GetNomParrain(self.DB,dictDonnees['IDparrain'])
+            parrain = "Parrain : %d - %s\nRetournez sur sa fiche"%(dictDonnees["IDparrain"],nomParrain)
+            wx.MessageBox("Inscription parrainée!\n\n%s"%parrain)
 
         # suppression de la pièce et de ses lignes
         self.DB.ReqDEL("matPiecesLignes", "ligIDNumPiece", IDnumPiece)
@@ -1448,12 +1448,9 @@ class Forfaits():
             self.DB.ReqDEL("prestations", "IDprestation", IDprestation)
 
         # supression des liens inscription, conso
-        if IDinscription != None and nbPiece == 1:
+        if IDinscription != None:
             self.DB.ReqDEL("consommations", "IDinscription", IDinscription)
             self.DB.ReqDEL("inscriptions", "IDinscription", IDinscription)
-
-        ret = pGest.DissocieParrainage(self.DB)
-        del pGest
 
         #fin Suppression
 

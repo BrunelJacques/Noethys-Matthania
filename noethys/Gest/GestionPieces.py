@@ -290,7 +290,6 @@ class Forfaits():
             for IDligne, solde in lstLigneSolde:
                 lstLettrages.append((IDinscription, IDligne, solde))
         # appel du programme de lettrage
-
         if ret == wx.ID_OK or self.forcerGestion:
             # Action de lettrage manuel
             intro = "Le délettrage dissocie des débits et crédits qui n'auraient pas dû l'être, "

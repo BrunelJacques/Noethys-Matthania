@@ -390,7 +390,7 @@ class DlgMenu(wx.Dialog):
                     dlg = wx.MessageDialog(self, _("Confirmez vous la suppression de %s  crée le %s par %s \n %s ")% (Decod(self.dictDonnees["nature"]),Decod(self.dictDonnees["dateCreation"]),Decod(self.dictDonnees["utilisateurCreateur"]),Decod(self.dictDonnees["commentaire"])), _("Suppression"), wx.YES_NO|wx.NO_DEFAULT|wx.CANCEL|wx.ICON_INFORMATION)
                     if dlg.ShowModal() != wx.ID_YES:
                         continue
-                    fGest.Suppression(self,self.dictDonnees)
+                    fGest.SuppressionPiece(self, self.dictDonnees)
                     self.Historise("SuppressionInscription")
                 # Vérifier pour confirmer les réductions liées aux inscriptions...
                 fFam = DLG_PrixFamille.DlgTarification(self,self.dictDonnees,fromIndividu=True)

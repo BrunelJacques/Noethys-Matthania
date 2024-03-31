@@ -644,15 +644,6 @@ class ListView(ObjectListView):
             return
         #pour chaque ligne cochée
         for obj in self.GetCheckedObjects():
-            #nombre de pieces pointées par la même inscription pour la supprimer si une seule piece
-            req = """ SELECT * FROM matPieces
-                        WHERE pieIDinscription = %s ;""" % (obj.IDinscription)
-            retour = self.DB.ExecuterReq(req,MsgBox="ExecuterReq")
-            if retour != "ok" :
-                GestionDB.MessageBox(self,retour)
-                return None
-            retour = self.DB.ResultatReq()
-            nbPieces = len(retour)
             dictDonnees =  obj.__dict__
             fGest = GestionInscription.Forfaits(self,self.DB)
             if dictDonnees['nature'] in ('FAC'):
@@ -660,7 +651,7 @@ class ListView(ObjectListView):
             elif dictDonnees['nature'] in ('AVO'):
                 fGest.RetroAvo(self.parent,dictDonnees)
             else:
-                fGest.Suppression(self,dictDonnees,nbPieces)
+                fGest.SuppressionPiece(self, dictDonnees)
 
         self.InitObjectListView()
         self.Refresh()
