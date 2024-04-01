@@ -94,6 +94,41 @@ class DlgMenu(wx.Dialog):
                 ret = wx.MessageBox(mess1,"Erreur provoquée",style=wx.ICON_ERROR)
                 raise Exception("IDinscription %d, IDtransport dans pièce non trouvé dans table transports" % IDinscription)
 
+    def GetPiece_Supprimer(self, parent, IDinscription, IDindividu, IDactivite):
+        #retourne False pour abandon, None pour suppression sans piece, True pour self.dictPiece alimentée
+        self.dictPiece = {}
+        listeChamps = ["pieIDnumPiece", "pieIDinscription", "pieIDprestation", "pieIDfamille","pieDateCreation", "pieUtilisateurCreateur", "pieNature", "pieNature", "pieEtat", "pieCommentaire"]
+        champs=" "
+        for item in listeChamps :
+            champs = champs + item +","
+        champs = champs[:-1]
+        conditions = "pieIDindividu= %d AND pieIDactivite = %d;" % (IDindividu,IDactivite)
+        req =  "SELECT" + champs + " FROM matPieces WHERE " + conditions
+        retour = self.DB.ExecuterReq(req,MsgBox="GestionInscription.GetPieceSupprime")
+        if retour != "ok" :
+            GestionDB.MessageBox(parent,retour)
+            return False
+        retour = self.DB.ResultatReq()
+        self.nbPieces = len(retour)
+        if self.nbPieces == 0 :
+            GestionDB.MessageBox(parent,"Anomalie : Rien dans matPieces pour cette inscription, pas de suppression de prestation")
+            return None
+        if self.nbPieces == 1:
+            if IDinscription == retour[0][1]:
+                reqPiece = self.GetPieceModif(self.parent,IDindividu,IDactivite)
+                if reqPiece: return True
+                else: return False
+            #la piece ne correspond pas à l'inscription
+            else:
+                dlg = GestionDB.MessageBox(parent, _("Suppression impossible car NoInscription dans piece différent "), titre = "Confirmation")
+                return False
+        else:
+            # On demande quelle piece supprimer  et on récupére l'IDinscription
+            reqPiece = self.GetPieceModif(self.parent,IDindividu,IDactivite)
+            if reqPiece : return True
+            return False
+        #fin GetPieceSupprime
+
     def ChoixInscription(self):
         # Choix de la famille si multi (ajouté pour forcer un choix si plusieurs possibles)
         fGest = GestionInscription.Forfaits(self,DB=self.DB)
@@ -170,36 +205,18 @@ class DlgMenu(wx.Dialog):
         return wx.ID_OK
         #fin SetInscription
 
-    def AppliquerTarif(self):
-        # Tarification MATTHANIA à la place de Saisie des forfaits_auto NOETHYS
+    def PrixActivite(self):
+        # En cas de création de nouvelle pièce, pas en modif
         fTar = DLG_PrixActivite.DlgTarification(self,self.dictDonnees)
-        tarification =fTar.ShowModal()
+        retPrix =fTar.ShowModal()
 
-        # récupération des lignes de l'inscription génération de la piece
-        self.naturePiece =fTar.codeNature
-        listeLignesPiece = fTar.listeLignesPiece
-        self.nbreJours = fTar.nbreJours
-
-        #recherche des codes nature pour calcul de l'état
-        listeCodesNature = []
-        for item in GestionArticle.LISTEnaturesPieces :
-            listeCodesNature.append(item[0])
-        if (tarification == wx.ID_OK) and (self.naturePiece in listeCodesNature):
-            etatPiece = "00000"
-            i = listeCodesNature.index(self.naturePiece)
-            # Mise à "1" du caractère en la position correspondant à la nature de la pièce (ex: FAC = 4eme)
-            etatPiece = etatPiece[:i]+"1"+ etatPiece[i+1:]
-            self.dictDonnees["nature"] = self.naturePiece
-            self.dictDonnees["etat"] = etatPiece
-            self.dictDonnees["lignes_piece"] = listeLignesPiece
-            self.dictDonnees["nbreJours"] = self.nbreJours
-            self.dictDonnees["IDprestation"] = None
-
+        if (retPrix == wx.ID_OK):
             # Enregistre l'inscription nouvelle
             if self.inscriptionChoisie :
                 self.SetInscription()
             self.dictDonnees["IDinscription"] = self.IDinscription
-
+            if 'selfParrainage' in self.dictDonnees:
+                self.dictDonnees['selfParrainage']['parIDinscription'] = self.IDinscription
             # Actualise l'affichage et pointe la nouvelle inscription
             self.parent.MAJ(self.IDinscription)
 
@@ -210,7 +227,7 @@ class DlgMenu(wx.Dialog):
             self.dictDonnees["noFacture"] = fGest.noFacture
 
             # Enregistre les consommations
-            if self.naturePiece != "DEV":
+            if self.dictDonnees['nature'] != "DEV":
                 ajout = fGest.AjoutConsommations(self,self.dictDonnees)
                 if not ajout :
                     self.dictDonnees["nature"] = "DEV"
@@ -230,7 +247,7 @@ class DlgMenu(wx.Dialog):
             fTransp.Destroy()
 
             # si seulement réservation on saute l'enregistrement de prestation
-            if self.naturePiece in ("COM","FAC"):
+            if self.dictDonnees['nature'] in ("COM","FAC"):
                 # Enregistre la prestation
                 IDprestation = fGest.AjoutPrestation(self,self.dictDonnees)
                 self.dictDonnees["IDprestation"] = IDprestation
@@ -252,7 +269,8 @@ class DlgMenu(wx.Dialog):
             return ret
         #la clé 'coches' précise s'il faut tout décocher les articles ou pas
         self.dictDonnees['coches'] = True
-        ret = self.AppliquerTarif()
+        # L'ance l'écran de tarification de l'activité
+        ret = self.PrixActivite()
         self.Historise("AjoutInscription")
         return ret
         #fin Ajouter
@@ -273,7 +291,7 @@ class DlgMenu(wx.Dialog):
             self.DB.ExecuterReq(req,commit=True,MsgBox = "AjouterPiece.razConsos")
         self.Historise("AjoutInscription")
         self.dictDonnees['coches'] = False
-        self.AppliquerTarif()
+        self.PrixActivite()
         #fin AjouterPiece
 
     def Modifier(self):
@@ -309,7 +327,6 @@ class DlgMenu(wx.Dialog):
         self.dictDonneesOrigine["origine"]= "modif"
         self.IDactivite = self.dictDonneesOrigine["IDactivite"]
         modifiable = fGest.PieceModifiable(self,self.dictDonneesOrigine)
-        fMod = DLG_InscriptionModif.Dialog(self,self.dictDonneesOrigine,self.dictFamillesRattachees)
         if not modifiable:
             texte = "Pb cette facture n'en est pas vraiment une! etat : %s nature %s" %(self.dictDonneesOrigine["etat"],self.dictDonneesOrigine["nature"])
             if len(self.dictDonneesOrigine["etat"]) > 3:
@@ -320,13 +337,14 @@ class DlgMenu(wx.Dialog):
                     texte = "Par 'Facturation' une rétrogradation en commande est possible"
             GestionDB.MessageBox(self, "Facturé : seules les notes sont modifiables!\n" + texte,titre="Information")
             self.dictDonneesOrigine["origine"]= "consult"
+
         #appel du dialogue de modification et récup de la saisie des données
+        fMod = DLG_InscriptionModif.Dialog(self,self.dictDonneesOrigine,self.dictFamillesRattachees)
         modif = fMod.ShowModal()
 
-        # retour sur validation des modifs
+        # retour sur validation des modifs, chaîne sur niveau famille
         if modif == wx.ID_OK:
             self.dictDonnees = fMod.dictDonnees
-            fMod.Destroy()
             self.Historise("ModificationInscription")
             # Vérifier pour confirmer les réductions liées aux inscriptions...
             fFam = DLG_PrixFamille.DlgTarification(self,self.dictDonnees,fromIndividu=True)
@@ -342,21 +360,21 @@ class DlgMenu(wx.Dialog):
                     self.parent.parent.parent.parent.Destroy()
                 except :
                     pass
-        #retour sur nouvelle pièce
 
+        #retour sur nouvelle pièce
         elif modif == wx.ID_APPLY:
             # Cas d'un ajout de lignes complémentaires à la facture principale de l'activité
             self.dictDonnees = fMod.dictDonnees
             self.AjouterPiece(razConsos=True)
 
+        # Cas de la génération d'un avoir global de la pièce
         elif modif == wx.ID_BOTTOM:
-            # Cas de la génération d'un avoir global de la pièce
             self.dictDonnees = fMod.dictDonnees
-            fMod.Destroy()
             self.Historise("AvoirGénéré")
             # Vérifier pour confirmer les réductions liées aux inscriptions...
             fFam = DLG_PrixFamille.DlgTarification(self,self.dictDonnees,fromIndividu=True,fromAvoir=True)
             ret = fFam.ShowModal()
+        fMod.Destroy()
         #fin Modifier
 
     def Supprimer(self):
@@ -366,7 +384,7 @@ class DlgMenu(wx.Dialog):
         for select in self.selection:
             # Gestion du type de suppression
             fGest = GestionInscription.Forfaits(self,DB=self.DB)
-            reqPiece = fGest.GetPieceSupprime(self,select.IDinscription,select.IDindividu,select.IDactivite)
+            reqPiece = fGest.GetPiece_Supprimer(self, select.IDinscription, select.IDindividu, select.IDactivite)
             #GetPieceSupprime retourne False pour abandon, None pour suppresion sans piece, True pour self.dictPiece alimentée
             if reqPiece == None:
                 # pas de pièce

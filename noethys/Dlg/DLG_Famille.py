@@ -915,5 +915,6 @@ if __name__ == "__main__":
     dialog_1 = Dialog(None, IDfamille= 9489)
     print("Temps de chargement fiche famille =", time.time() - heure_debut)
     app.SetTopWindow(dialog_1)
+
     dialog_1.ShowModal()
     app.MainLoop()

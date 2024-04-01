@@ -846,12 +846,14 @@ def MultiParrain(codeArticle,dictDonnees,listeOLV):
         retPieces = DB.ResultatReq()
         listeParrainages = []
         dictDonnees['dicParrainages'] = {}
+        alert = None
+        txtIDuser = "8"+("0000"+ str(DB.IDutilisateurActuel()))[-4:]
         # déroulement des pièces parrainées afin de vérifier leur règlement
         for IDnumPieceFilleul, parIDinscription, IDfilleul, nomFilleul, prenomFilleul, nomActiviteFilleul, \
             IDprestationFilleul,IDligneParrain in retPieces:
             if not IDprestationFilleul:
                 wx.MessageBox("Le filleul potentiel '%s' n'a pas d'inscription valide"%(prenomFilleul + " "+nomFilleul))
-                continue
+                alert = "SIMPLE DEVIS! "
             if parIDinscription == None: parIDinscription = 0
             if parIDinscription in list(dictDonnees['dicParrainages'].keys()):
                 dicParr = dictDonnees['dicParrainages'][parIDinscription]
@@ -860,36 +862,39 @@ def MultiParrain(codeArticle,dictDonnees,listeOLV):
                 dicParr['parIDinscription'] = parIDinscription
                 dicParr['IDligneParrain'] = IDligneParrain
                 dicParr['parAbandon']= False
-                dicParr['parSolde'] = 100
+                dicParr['parSolde'] = txtIDuser
                 dicParr["ligneChoix"]= ''
                 dicParr["parLibelle"]= ''
             # recherche si le parrainé est encaissé sur IDprestationFilleul
-            req = """SELECT prestations.montant, Sum(ventilation.montant)
-                    FROM prestations
-                    LEFT JOIN ventilation ON prestations.IDprestation = ventilation.IDprestation
-                    WHERE prestations.IDprestation = %d
-                    GROUP BY prestations.montant;
-                  """ % (IDprestationFilleul)
-            DB.ExecuterReq(req,MsgBox = "GestionArticle.CalParrain.ventilations")
-            retVentil = DB.ResultatReq()
-            solde = 0
-            if len(retVentil) > 0:
-                ventil =  retVentil[0][1]
-                if ventil == None :
-                    solde = 0
-                else:
-                    solde = int(100.0 * float(ventil) / float(retVentil[0][0]))
+            mttSolde = 0
+            if alert == None:
+                req = """SELECT prestations.montant, Sum(ventilation.montant)
+                        FROM prestations
+                        LEFT JOIN ventilation ON prestations.IDprestation = ventilation.IDprestation
+                        WHERE prestations.IDprestation = %d
+                        GROUP BY prestations.montant;
+                      """ % (IDprestationFilleul)
+                DB.ExecuterReq(req,MsgBox = "GestionArticle.CalParrain.ventilations")
+                retVentil = DB.ResultatReq()
+                if len(retVentil) > 0:
+                    ventil =  retVentil[0][1]
+                    if ventil == None :
+                        mttSolde = 0
+                    else:
+                        mttSolde = int(100.0 * float(ventil) / float(retVentil[0][0]))
             prefixe = "Parrainage "
-            if solde <= 90 :
+            if alert:
+                pass
+            elif mttSolde <= 90 :
                 alert = "NON REGLE! "
             else :
                 alert = "    ok     "
             libelle =  prenomFilleul + ' '+ nomFilleul+ ' / ' + nomActiviteFilleul
-            # combinaison avec d'éventuelles autres pièces de la même inscription
-            if (solde < dicParr['parSolde']) or  (dicParr["ligneChoix"] == ''):
+            # une seule pièce parrainée pour la même inscription
+            if (dicParr["ligneChoix"] == ''):
                 dicParr["ligneChoix"]= alert + libelle
                 dicParr["parLibelle"]= prefixe + libelle
-                dicParr['parSolde'] = solde
+                dicParr['parSolde'] = txtIDuser
             dictDonnees['dicParrainages'][parIDinscription] = dicParr
         choixPossible = False
         i=0

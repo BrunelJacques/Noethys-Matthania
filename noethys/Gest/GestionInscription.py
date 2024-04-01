@@ -873,6 +873,41 @@ class Forfaits():
         return listePieces
         #fin GetPieceModif999
 
+    def GetPiece_Supprimer(self, parent, IDinscription, IDindividu, IDactivite):
+        #retourne False pour abandon, None pour suppression sans piece, True pour self.dictPiece alimentée
+        self.dictPiece = {}
+        listeChamps = ["pieIDnumPiece", "pieIDinscription", "pieIDprestation", "pieIDfamille","pieDateCreation", "pieUtilisateurCreateur", "pieNature", "pieNature", "pieEtat", "pieCommentaire"]
+        champs=" "
+        for item in listeChamps :
+            champs = champs + item +","
+        champs = champs[:-1]
+        conditions = "pieIDindividu= %d AND pieIDactivite = %d;" % (IDindividu,IDactivite)
+        req =  "SELECT" + champs + " FROM matPieces WHERE " + conditions
+        retour = self.DB.ExecuterReq(req,MsgBox="GestionInscription.GetPieceSupprime")
+        if retour != "ok" :
+            GestionDB.MessageBox(parent,retour)
+            return False
+        retour = self.DB.ResultatReq()
+        self.nbPieces = len(retour)
+        if self.nbPieces == 0 :
+            GestionDB.MessageBox(parent,"Anomalie : Rien dans matPieces pour cette inscription, pas de suppression de prestation")
+            return None
+        if self.nbPieces == 1:
+            if IDinscription == retour[0][1]:
+                reqPiece = self.GetPieceModif(self.parent,IDindividu,IDactivite)
+                if reqPiece: return True
+                else: return False
+            #la piece ne correspond pas à l'inscription
+            else:
+                dlg = GestionDB.MessageBox(parent, _("Suppression impossible car NoInscription dans piece différent "), titre = "Confirmation")
+                return False
+        else:
+            # On demande quelle piece supprimer  et on récupére l'IDinscription
+            reqPiece = self.GetPieceModif(self.parent,IDindividu,IDactivite)
+            if reqPiece : return True
+            return False
+        #fin GetPieceSupprime
+
     # modif de la pièce dans matPièce seulement
     def ModifiePieceCree(self,parent,dictDonnees):
         # ne s'occupe pas des dépendances de la pièce ni de ses lignes
@@ -1071,7 +1106,7 @@ class Forfaits():
         ret = self.DB.ReqDEL("matPiecesLignes", "ligIDNumPiece",dictDonnees["IDnumPiece"])
         if 'selfParrainage' in dictDonnees:
             for IDligne in dictDonnees['selfParrainage']['lstIDoldPar']:
-                self.DB.ReqDEL("matParrainages", "parIDlignePar", IDligne)
+                ret = self.DB.ReqDEL("matParrainages", "parIDlignePar", IDligne)
         # Enregistre dans PiecesLignes
         listeInit = [
             ("ligIDnumPiece", dictDonnees["IDnumPiece"]),
@@ -1312,6 +1347,54 @@ class Forfaits():
             return False
         return True
 
+    def SupprReducParrainage(self, parIDligneParr,IDfamFilleul=None):
+        # Tente la suppression d'une ligne de réduction parrainage chez le parrain
+        if not parIDligneParr > 0:
+            return False
+        req = """
+            SELECT matPieces.pieIDnumPiece, matPieces.pieIDinscription, 
+                matPieces.pieNature, matPieces.pieIDfamille, familles.adresse_intitule, 
+                matPiecesLignes.ligLibelle, matPiecesLignes.ligMontant,
+                matPiecesLignes.ligIDnumLigne
+            FROM (matPiecesLignes 
+            INNER JOIN matPieces ON matPiecesLignes.ligIDnumPiece = matPieces.pieIDnumPiece) 
+            LEFT JOIN familles ON matPieces.pieIDfamille = familles.IDfamille
+            WHERE (matPiecesLignes.ligIDnumLigne = %d)
+            ;"""%parIDligneParr
+        ret = self.DB.ExecuterReq(req,MsgBox="GestionInscription.SupprLigneParrainage")
+        if ret != "ok" :
+            return False
+        recordset = self.DB.ResultatReq()
+        retDel = None
+        for IDpiece,IDinscription,nature,IDfamille,nom,libelle,montant,IDligne in recordset:
+            if nature == 'FAC' :
+                mess = "Réduction parrainage à annuler\n\n"
+                mess +="La famille %d %s a bénéficié d'une réduction de facture:\n"%(IDfamille,nom,)
+                mess += "%.2f¤ '%s'"%(montant,libelle)
+                mess += "Il convient de refacturer l'annulation de ce parrainage"
+                wx.MessageBox(mess,"A FAIRE",style=wx.ICON_WARNING)
+            elif nature == 'AVO':
+                # la réduc pratiquée a été annulée par l'avoir
+                pass
+            elif IDfamFilleul == IDfamille:
+                # c'était un abandon à filleul dans la pièce qui va être supprimée
+                pass
+            else:
+                # Suppression d'une ligne dans la pièce du parrain non facturée
+                retDel = self.DB.ReqDEL('matPiecesLignes','ligIDnumLigne',IDligne,
+                               MsgBox="SupprReducParrainage.matPiecesLignes")
+            self.DB.ReqDEL('matParrainages', 'parIDligneParr', IDligne,
+                           MsgBox="SupprReducParrainage.matParrainages")
+
+            mess = "Inscription parrainée\n\n"
+            mess += "La famille %d %s avait bénéficié d'une réduction de facture:\n" % (
+                IDfamille, nom,)
+            if retDel == 'ok':
+                mess += "Cette ligne de réduction a été enlevée"
+            else: mess += "Il FAUT REFACTURER LE parrain de cette annulation"
+            wx.MessageBox(mess, "INFO IMPORTANTE",style=wx.ICON_WARNING)
+        return True
+
     def InsertParrain(self, parent, dictParrain):
         # enregistre dans la table matParainages
         lstChamps = ['parIDinscription','parIDligneParr','parAbandon']
@@ -1325,6 +1408,35 @@ class Forfaits():
             if ret != "ok":
                 GestionDB.MessageBox("Modif matParrainages",ret)
         return
+
+    def GetNomParrain(self,DB,IDparrain):
+        # appel du nom de famille d'un parrain
+        nom = "Inconnu"
+        req = """SELECT familles.adresse_intitule
+                FROM familles
+                WHERE (familles.IDfamille = %d)
+                ;"""%IDparrain
+        ret = DB.ExecuterReq(req, MsgBox='GestionInscription.Suppression')
+        if ret == 'ok':
+            recordset = DB.ResultatReq()
+            for record in recordset:
+                nom = record[0]
+        return nom
+
+    def ParrainageIsImpute(self,DB,IDinscription):
+        # vérifie si un parrainage est imputé
+        test = False
+        req = """SELECT matParrainages.parIDligneParr
+                FROM matParrainages
+                WHERE (matParrainages.parIDinscription=%d);
+                """%IDinscription
+        ret = DB.ExecuterReq(req, MsgBox='GestionInscription.Suppression')
+        if ret == 'ok':
+            recordset = DB.ResultatReq()
+            for record in recordset:
+                if record[0]>0:
+                    test = True
+        return test
 
     def SuppressionInscription(self,IDinscription):
         #pour cette inscription suppression des consos et prestation éventuelle
@@ -1366,47 +1478,6 @@ class Forfaits():
                 self.DB.ReqDEL("prestations", "IDprestation", IDprestation)
         #fin SuppressionInscription
 
-
-    def GetPieceSupprime(self,parent,IDinscription,IDindividu,IDactivite):
-        #retourne False pour abandon, None pour suppresion sans piece, True pour self.dictPiece alimentée
-        self.dictPiece = {}
-        listeChamps = ["pieIDnumPiece", "pieIDinscription", "pieIDprestation", "pieIDfamille","pieDateCreation", "pieUtilisateurCreateur", "pieNature", "pieNature", "pieEtat", "pieCommentaire"]
-        champs=" "
-        for item in listeChamps :
-            champs = champs + item +","
-        champs = champs[:-1]
-        conditions = "pieIDindividu= %d AND pieIDactivite = %d;" % (IDindividu,IDactivite)
-        req =  "SELECT" + champs + " FROM matPieces WHERE " + conditions
-        retour = self.DB.ExecuterReq(req,MsgBox="GestionInscription.GetPieceSupprime")
-        if retour != "ok" :
-            GestionDB.MessageBox(parent,retour)
-            return False
-        retour = self.DB.ResultatReq()
-        self.nbPieces = len(retour)
-        if self.nbPieces == 0 :
-            GestionDB.MessageBox(parent,"Anomalie : Rien dans matPieces pour cette inscription, pas de suppression de prestation")
-            return None
-        if self.nbPieces == 1:
-            if IDinscription == retour[0][1]:
-                reqPiece = self.GetPieceModif(self.parent,IDindividu,IDactivite)
-                if reqPiece: return True
-                else: return False
-            #la piece ne correspond pas à l'inscription
-            else:
-                dlg = GestionDB.MessageBox(parent, _("Suppression impossible car NoInscription dans piece différent "), titre = "Confirmation")
-                return False
-        else:
-            # On demande quelle piece supprimer  et on récupére l'IDinscription
-            reqPiece = self.GetPieceModif(self.parent,IDindividu,IDactivite)
-            if reqPiece : return True
-            return False
-        #fin GetPieceSupprime
-
-    def SupprLigneParrainage(self,IDligne):
-        # Tente Suppression d'un parrainage par la ligne de la pièce portant réduction
-        req = """
-            SELECT """
-
     def SuppressionPiece(self, parent, dictDonnees):
         #suppression d'une pièce non facturée et de tout ce qui va avec
         IDinscription = dictDonnees["IDinscription"]
@@ -1420,14 +1491,14 @@ class Forfaits():
         self.SupprimeTransport(IDtranspRetour)
 
         # suppression du parrainage affecté
-        if dictDonnees['pieIDparrain'] >0:
+        if dictDonnees['IDparrain'] and dictDonnees['IDparrain'] > 0 :
             mess = "GestionInscription.Suppression.recherche_parrainage"
             where = "parIDinscription = %d"%IDinscription
             ddParrainages = DATA_Tables.GetDdRecords(self.DB,
                                                      'matParrainages',
                                                      where=where,mess=mess)
-            for dictPar in ddParrainages:
-                ret = self.SupprLigneParrainage(dictPar['parIDligneParr'])
+            for IDinscr,dictPar in ddParrainages.items():
+                ret = self.SupprReducParrainage(dictPar['parIDligneParr'],dictDonnees['IDfamille'])
 
         # alerte suppression du parrainage
         if self.ParrainageIsImpute(self.DB, dictDonnees["IDinscription"]):
@@ -1454,44 +1525,24 @@ class Forfaits():
 
         #fin Suppression
 
-    def GetNomParrain(self,DB,IDparrain):
-        # appel du nom de famille d'un parrain
-        nom = "Inconnu"
-        req = """SELECT familles.adresse_intitule
-                FROM familles
-                WHERE (familles.IDfamille = %d)
-                ;"""%IDparrain
-        ret = DB.ExecuterReq(req, MsgBox='GestionInscription.Suppression')
-        if ret == 'ok':
-            recordset = DB.ResultatReq()
-            for record in recordset:
-                nom = record[0]
-        return nom
-
-    def ParrainageIsImpute(self,DB,IDinscription):
-        # vérifie si un parrainage est imputé
-        test = False
-        req = """SELECT matParrainages.parIDligneParr
-                FROM matParrainages
-                WHERE (matParrainages.parIDinscription=%d);
-                """%IDinscription
-        ret = DB.ExecuterReq(req, MsgBox='GestionInscription.Suppression')
-        if ret == 'ok':
-            recordset = DB.ResultatReq()
-            for record in recordset:
-                if record[0]>0:
-                    test = True
-        return test
-
     def Suppression999(self,dictDonnees):
+        # suppression d'une pièce niveau famille
         if "IDnumPiece" in dictDonnees:
+            # suppression de la pièce et des parrainages qu'elle peut contenir
             IDnumPiece = dictDonnees["IDnumPiece"]
-            req = """UPDATE matPiecesLignes 
-                    INNER JOIN matParrainages ON matPiecesLignes.ligIDnumLigne = matParrainages.parIDligneParr 
-                    SET matParrainages.parIDligneParr = Null
-                    WHERE (((matPiecesLignes.ligIDnumPiece)=%d));
-                """ %IDnumPiece
-            self.DB.ExecuterReq(req,MsgBox='Annulation parrainages')
+            req = """
+                SELECT matParrainages.parIDligneParr
+                FROM matPieces 
+                INNER JOIN (matPiecesLignes 
+                    INNER JOIN matParrainages 
+                    ON matPiecesLignes.ligIDnumLigne = matParrainages.parIDligneParr) 
+                ON matPieces.pieIDnumPiece = matPiecesLignes.ligIDnumPiece
+                WHERE (matPiecesLignes.ligIDnumPiece = %d);""" %IDnumPiece
+            ret = self.DB.ExecuterReq(req,MsgBox='Suppression999')
+            if ret == "ok" :
+                records = self.DB.ResultatReq()
+                for ligIDnumLigne in records:
+                    self.DB.ReqDEL("matParrainages", "parIDligneParr", ligIDnumLigne)
             self.DB.ReqDEL("matPiecesLignes", "ligIDNumPiece", IDnumPiece)
             self.DB.ReqDEL("matPieces", "pieIDNumPiece", IDnumPiece)
         if "IDprestation" in dictDonnees:

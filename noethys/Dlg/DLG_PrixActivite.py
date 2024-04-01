@@ -7,7 +7,6 @@
 #  Derive de DLG_Appliquer_forfait.py
 # -----------------------------------------------------------
 
-from Utils.UTILS_Traduction import _
 import Chemins
 import wx
 import datetime
@@ -156,7 +155,7 @@ class OLVtarification(FastObjectListView):
             ColumnDefn("Forcé", "right", 100, "montant",typeDonnee="montant",stringConverter=Fmt2d),
             ]
         self.SetColumns(liste_Colonnes)
-        self.SetEmptyListMsg(_("Aucun tarif défini"))
+        self.SetEmptyListMsg("Aucun tarif défini")
         self.SetEmptyListMsgFont(wx.FFont(11, wx.DEFAULT, faceName="Tekton"))
         self.CreateCheckStateColumn()
         #self.SetSortColumn(self.columns[1])
@@ -341,12 +340,17 @@ class DlgTarification(wx.Dialog):
             self.rw = False
         self.parent = parent
         self.listeLignesPiece=[]
+        # dicDonnees ne sera mis à jour qu'en cas de succés
+        self.dDonneesOrig = dictDonnees
+        self.dictDonnees = {}
+        for key, don in dictDonnees.items():
+            self.dictDonnees[key] = don          
         self.dictDonnees = dictDonnees
         # DB sera utilisé dans tous les enfants via dictDonnees
         self.DB = GestionDB.DB()
         self.dictDonnees['db'] = self.DB
         self.GetTrfPrix() # alimente la clé trfPrix dans dictDonnees
-        self.SetTitle(_("DLG_PrixActivite"))
+        self.SetTitle("DLG_PrixActivite")
         self.IDfamille = dictDonnees["IDfamille"]
         self.IDindividu = dictDonnees["IDindividu"]
         self.IDactivite = dictDonnees["IDactivite"]
@@ -380,22 +384,22 @@ class DlgTarification(wx.Dialog):
         self.data = self.resultsOlv.listeOLV
         self.dataorigine = copy.deepcopy(self.data)
         # gestion du parrainage
-        self.parrain_staticbox = wx.StaticBox(self, -1, _("Parrainage"))
-        self.label_parrain = wx.StaticText(self, -1,  _("Parrain :"))
+        self.parrain_staticbox = wx.StaticBox(self, -1, "Parrainage")
+        self.label_parrain = wx.StaticText(self, -1,  "Parrain :")
         self.ctrl_nom_parrain = wx.TextCtrl(self, -1, "",size=(80, 20))
         self.bouton_parrain = wx.Button(self, -1, "...", size=(20, 20))
-        self.label_abandon = wx.StaticText(self, -1, _("Abandon à filleul :"))
+        self.label_abandon = wx.StaticText(self, -1, "Abandon à filleul :")
         self.ctrl_abandon = wx.CheckBox(self)
         # pour conteneur des actions en pied d'écran
-        self.pied_staticbox = wx.StaticBox(self, -1, _("Actions"))
-        self.hyper_tout = Hyperlien(self, label=_("Tout cocher"), infobulle=_("Cliquez ici pour tout cocher"),
+        self.pied_staticbox = wx.StaticBox(self, -1, "Actions")
+        self.hyper_tout = Hyperlien(self, label="Tout cocher", infobulle="Cliquez ici pour tout cocher",
                                     URL="tout")
-        self.hyper_rien = Hyperlien(self, label=_("Tout décocher"), infobulle=_("Cliquez ici pour tout décocher"),
+        self.hyper_rien = Hyperlien(self, label="Tout décocher", infobulle="Cliquez ici pour tout décocher",
                                     URL="rien")
-        self.hyper_ajoutArticle = Hyperlien(self, label=_("| Ajouter Ligne"), infobulle=_("Ajouter un article"), URL="article")
-        self.hyper_ajoutCommentaire = Hyperlien(self, label=_("| Commentaire"), infobulle=_("En Projet : ajouter un commentaire Libre"), URL="commentaire")
-        self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Choix Piece"), cheminImage="Images/32x32/Valider.png")
-        self.bouton_oj = CTRL_Bouton_image.CTRL(self, texte=_("Piece idem"), cheminImage="Images/BoutonsImages/Retour_L72.png")
+        self.hyper_ajoutArticle = Hyperlien(self, label="| Ajouter Ligne", infobulle="Ajouter un article", URL="article")
+        self.hyper_ajoutCommentaire = Hyperlien(self, label="| Commentaire", infobulle="En Projet : ajouter un commentaire Libre", URL="commentaire")
+        self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte="Choix Piece", cheminImage="Images/32x32/Valider.png")
+        self.bouton_oj = CTRL_Bouton_image.CTRL(self, texte="Piece idem", cheminImage="Images/BoutonsImages/Retour_L72.png")
         if self.rw :
             self.bouton_annuler = wx.BitmapButton(self, wx.ID_CANCEL,wx.Bitmap(Chemins.GetStaticPath("Images/BoutonsImages/Annuler_L72.png"), wx.BITMAP_TYPE_ANY))
         else:
@@ -405,7 +409,7 @@ class DlgTarification(wx.Dialog):
         self.ctrl_abandon.SetValue(self.parrainAbandon)
         self.ctrl_nom_parrain.SetValue(self.GetParrain(self.IDparrain))
         #Test du parrainage
-        self.parrainage = True
+        self.isParrainable = True
 
         req = """SELECT individus_1.date_creation,individus_1.nom,individus_1.prenom
                 FROM ((individus
@@ -425,12 +429,12 @@ class DlgTarification(wx.Dialog):
             for (creationIndividu,nom,prenom) in recordset:
                 if creationIndividu ==None:
                     #création ancienne
-                    self.parrainage = False
+                    self.isParrainable = False
                     self.prenomNom = prenom+" "+nom
                 elif creationIndividu[:4] < annee :
                     #individu de la famille pas de l'année de création de la pièce
                     self.prenomNom = prenom+" "+nom
-                    self.parrainage = False
+                    self.isParrainable = False
 
         self.__set_properties()
         self.__do_layout()
@@ -461,15 +465,15 @@ class DlgTarification(wx.Dialog):
             self.hyper_tout.Enable(False)
         if self.dictDonnees["origine"] in ("ajout","compl"):
             self.bouton_oj.Enable(False)
-        self.bouton_ok.SetToolTip(_("Cliquez ici pour chaîner sur le type de pièce"))
-        self.bouton_oj.SetToolTip(_("Cliquez ici pour valider sans changer le type de pièce"))
-        self.bouton_annuler.SetToolTip(_("Cliquez ici pour annuler"))
-        self.ctrl_solde.SetToolTip(_("Ne Saisissez pas le montant ici, mais sur les lignes cochées"))
-        self.ctrl_solde.ctrl_solde.SetToolTip(_("Ne Saisissez pas le montant ici, mais sur les lignes cochées"))
-        self.ctrl_nom_parrain.SetToolTip(_("Choisir le parrain avec le bouton à droite"))
-        self.bouton_parrain.SetToolTip(_("Choix du parrain prescripteur"))
-        self.label_abandon.SetToolTip(_("Cocher si le parrain renonce à son crédit au profit du filleul"))
-        self.ctrl_abandon.SetToolTip(_("Cocher si le parrain renonce à son crédit au profit du filleul"))
+        self.bouton_ok.SetToolTip("Cliquez ici pour chaîner sur le type de pièce")
+        self.bouton_oj.SetToolTip("Cliquez ici pour valider sans changer le type de pièce")
+        self.bouton_annuler.SetToolTip("Cliquez ici pour annuler")
+        self.ctrl_solde.SetToolTip("Ne Saisissez pas le montant ici, mais sur les lignes cochées")
+        self.ctrl_solde.ctrl_solde.SetToolTip("Ne Saisissez pas le montant ici, mais sur les lignes cochées")
+        self.ctrl_nom_parrain.SetToolTip("Choisir le parrain avec le bouton à droite")
+        self.bouton_parrain.SetToolTip("Choix du parrain prescripteur")
+        self.label_abandon.SetToolTip("Cocher si le parrain renonce à son crédit au profit du filleul")
+        self.ctrl_abandon.SetToolTip("Cocher si le parrain renonce à son crédit au profit du filleul")
 
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=5, cols=1, vgap=5, hgap=5)
@@ -519,7 +523,7 @@ class DlgTarification(wx.Dialog):
         self.CenterOnScreen()
 
     def OnBoutonOk(self, event):
-        # Validation du montant
+        # Choix de la nature de la pièce
         if self.dictDonnees["origine"] != "modif" :
             testSejour = True
         else : testSejour = False
@@ -532,12 +536,13 @@ class DlgTarification(wx.Dialog):
                 self.codeNature = dlg.codeNature
                 self.listeLignesPiece = []
                 dlg.Destroy()
-                if interroChoix == wx.ID_OK :
+                if interroChoix == wx.ID_OK and self.codeNature :
                     endModal = wx.ID_OK
                     self.FinSaisie(event)
-            self.Final(endModal)
+            self.Sortie(endModal)
 
     def OnBoutonOj(self, event):
+        # Piece idem, la nature reste en l'état, cas de modification pas de création
         if self.dictDonnees["origine"] != "compl" :
             testSejour = True
         else : testSejour = False
@@ -546,18 +551,38 @@ class DlgTarification(wx.Dialog):
             self.FinSaisie(event)
 
     def FinSaisie(self,event):
+        # oriente vers final avec cancel ou ok
         self.listeLignesPiece = self.ListeDict(self.resultsOlv)
         if event and event.Id == wx.ID_CANCEL:
-            self.Final(wx.ID_CANCEL)
+            self.Sortie(wx.ID_CANCEL)
         # Validation du montant
         endModal = wx.ID_CANCEL
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_factures", "creer")  :
             endModal= wx.ID_OK
-        self.Final(endModal)
+        self.Sortie(endModal)
         #fin FinSaisie
 
-    def Final(self,endModal):
+    def SauveDonnees(self):
+        # sauvegarde des données qui seront enregistrées par le parent
+        listeCodesNature = []
+        for item in GestionArticle.LISTEnaturesPieces :
+            listeCodesNature.append(item[0])
+        etatPiece = "00000"
+        i = listeCodesNature.index(self.codeNature)
+        # Mise à "1" du caractère en la position correspondant à la nature de la pièce (ex: FAC = 4eme)
+        etatPiece = etatPiece[:i] + "1" + etatPiece[i + 1:]
+        self.dictDonnees["nature"] = self.codeNature
+        self.dictDonnees["etat"] = etatPiece
+        self.dictDonnees["lignes_piece"] = self.listeLignesPiece
+        self.dictDonnees["nbreJours"] = self.nbreJours
+        self.dictDonnees["IDprestation"] = None
+        # enrichi le dictinnaire reçu
+        self.dDonneesOrig.update(self.dictDonnees)
+
+    def Sortie(self, endModal):
         self.DB.Close()
+        if self.codeNature and endModal == wx.ID_OK and len(self.codeNature)>0:
+            self.SauveDonnees()
         self.EndModal(endModal)
 
     def ListeDict(self,olv,):
@@ -587,7 +612,7 @@ class DlgTarification(wx.Dialog):
         GestionDB.MessageBox(self, "Saisir par le bouton de droite,\n afin de composer correctement un parrain existant...", titre = "Refus d'action")
 
     def OnParrain(self, typeLigne):
-        if not self.parrainage:
+        if not self.isParrainable:
             wx.MessageBox("%s pas 'nouveau client'\n\nLe parrainage n'est pas sensé être appliqué"%self.prenomNom +
                           " quand un représentant ou un enfant de la famille est connu, mais ce n'est pas bloquant")
         dlg = DLG_ChoixLigne.DlgChoixFamille(self)
@@ -756,7 +781,7 @@ class DlgTarification(wx.Dialog):
 
     def GetDictParrain(self):
         if not 'IDinscription' in self.dictDonnees or not self.dictDonnees['IDinscription']:
-            return
+            self.dictDonnees['IDinscription'] = 0
         #préparation des seuls paramètres parrainage
         lstOldIDpar = []
         req = """SELECT matPieces.pieIDfamille, matParrainages.parIDligneParr
@@ -766,18 +791,17 @@ class DlgTarification(wx.Dialog):
                 WHERE parIDinscription = %d
             """ % self.dictDonnees["IDinscription"]
         retour = self.DB.ExecuterReq(req,MsgBox="ExecuterReq")
-        if retour == "ok":
+        if retour == "ok" and self.dictDonnees['IDinscription'] > 0:
             recordset = self.DB.ResultatReq()
             for IDparrain, IDligne in recordset:
                 if IDparrain != self.dictDonnees['IDfamille']:
                     dlgErr = wx.MessageDialog(self,
-                                              "Cette inscription a déjà fait l'objet d'une réduction pour la famille %d,\n supprimez-la d'abord."%IDparrain ,
-                                              "MODIFCATION IMPOSSIBLE !", wx.OK | wx.ICON_EXCLAMATION)
+                        "Cette inscription a déjà fait l'objet d'une réduction pour la famille %d,\n supprimez-la d'abord."%IDparrain ,
+                        "MODIFCATION IMPOSSIBLE !", wx.ICON_EXCLAMATION)
                     self.dictDonnees['parrainAbandon'] = False
                     self.ctrl_abandon.SetValue(False)
                     dlgErr.ShowModal()
                     dlgErr.Destroy()
-
                 else:
                     lstOldIDpar.append(IDligne)
         self.dictDonnees['selfParrainage'] = {}
@@ -815,7 +839,7 @@ class BarreRecherche(wx.SearchCtrl):
         self.parent = parent
         self.rechercheEnCours = False
 
-        self.SetDescriptiveText(_("Rechercher un Bloc..."))
+        self.SetDescriptiveText("Rechercher un Bloc...")
         self.ShowSearchButton(True)
 
         self.listView = self.parent.resultsOlv

@@ -911,8 +911,8 @@ class Diagnostic():
             return self.ReqDEL(dLigne,"prestations","IDprestation",dPrestation["IDprestation"],MsgBox=mess)
 
         # cas: dernière recherche floue on cherche une correspondance activité-individu
-        req = """SELECT pieIDnumPiece,IDprestation FROM matPieces WHERE pieIDactivite = %d and pieIDindividu = %d
-                ;"""%(dPrestation["IDindivdu"],dPrestation["IDactivite"] )
+        req = """SELECT pieIDnumPiece,pieIDprestation FROM matPieces WHERE pieIDactivite = %d and pieIDindividu = %d
+                ;"""%(dPrestation["IDindividu"],dPrestation["IDactivite"] )
         mess = "DLGFacPie.CheckPrestationToPiece2"
         ret = self.DB.ExecuterReq(req, MsgBox=mess)
         if not ret == "ok":

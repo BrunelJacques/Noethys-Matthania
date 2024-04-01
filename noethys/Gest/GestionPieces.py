@@ -197,7 +197,8 @@ class Forfaits():
                 ret = DB.ReqMAJ('prestations',lstDon, 'IDprestation',dPiece['pieIDprestation'],
                           "CoherenceParrainages modifPrestation")
             del dicLignes[IDligne]
-            del dicLettrages[dPiece['pieIDinscription']]
+            if 'pieIDinscription' in dPiece and dPiece['pieIDinscription'] in dicLettrages:
+                del dicLettrages[dPiece['pieIDinscription']]
         # Liste des parrainages correctement affectés
         lstInscrOK = []
         lstLigneOK = []

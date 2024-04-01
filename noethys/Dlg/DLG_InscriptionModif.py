@@ -601,14 +601,12 @@ class Dialog(wx.Dialog):
     def OnBoutonCompl(self, event):
         # par le retour ID_APPLY le traitement  d'un complément sera lancé par DLG_InscriptionMenu
         self.EndModal(wx.ID_APPLY)
-        self.Destroy()
 
     def OnBoutonOkDirect(self, event):
         fGest = GestionInscription.Forfaits(self)
         if not self.rw:
             # Enregistre dans Pieces pour les commentaires modifiés seulement
             fGest.ModifiePiece(self, self.dictDonnees)
-            self.Destroy()
             return
         fGest.DB.Close()
         del fGest
@@ -653,7 +651,6 @@ class Dialog(wx.Dialog):
             fGest.DelPrestations(self)
             self.EndModal(wx.ID_OK)
             fGest.DB.Close()
-            self.Destroy()
             return
             # Enregistre les consommations
         if self.modifConsommations == True:
@@ -664,7 +661,6 @@ class Dialog(wx.Dialog):
                 id = fGest.ModifiePieceCree(self,self.dictDonnees)
                 self.EndModal(wx.ID_OK)
                 fGest.DB.Close()
-                self.Destroy()
                 return
         # arret du traitement si seulement réservation
         if self.naturePiece not in ("COM","FAC","AVO"):
@@ -685,7 +681,6 @@ class Dialog(wx.Dialog):
 
     def Sortie(self,ID=wx.ID_OK):
         self.EndModal(ID)
-        self.Destroy()
 
 
 if __name__ == "__main__":
