@@ -306,7 +306,7 @@ class Forfaits():
             ret = dlg.ShowModal()
 
             # interventions sur les données
-            if ret != wx.ID_OK or self.forcerGestion:
+            if ret != wx.ID_OK and  not self.forcerGestion:
                 dlg.Destroy()
                 return
             lstLettragesNew = dlg.GetLettrage()

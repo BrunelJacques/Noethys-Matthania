@@ -445,7 +445,7 @@ class DlgTarification(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnBoutonOj, self.bouton_oj)
         self.Bind(wx.EVT_BUTTON, self.FinSaisie, self.bouton_annuler)
         self.Bind(wx.EVT_CHECKBOX, self.OnAbandonFilleul, self.ctrl_abandon)
-        self.ctrl_nom_parrain.Bind(wx.EVT_SET_FOCUS, self.OnNomParrain)
+        self.ctrl_nom_parrain.Bind(wx.EVT_LEFT_DOWN, self.OnNomParrain)
 
         self.dataorigine = copy.deepcopy(self.data)
         self.lastObj = None
@@ -607,9 +607,8 @@ class DlgTarification(wx.Dialog):
         self.CalculSolde()
         self.resultsOlv.RefreshObjects(objects)
 
-    def OnNomParrain(self, event):
-        self.ctrl_nom_parrain.Enable(False)
-        GestionDB.MessageBox(self, "Saisir par le bouton de droite,\n afin de composer correctement un parrain existant...", titre = "Refus d'action")
+    def OnNomParrain(self,event):
+        self.OnParrain(event)
 
     def OnParrain(self, typeLigne):
         if not self.isParrainable:
@@ -630,6 +629,7 @@ class DlgTarification(wx.Dialog):
         dlg.Close()
 
     def OnAbandonFilleul(self, event):
+        self.parrainAbandon = self.ctrl_abandon.GetValue()
         testok =  self.GetDictParrain()
         if self.ctrl_abandon.IsChecked() and testok:
             if len(self.ctrl_nom_parrain.Value) < 3:

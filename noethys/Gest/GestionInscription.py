@@ -471,10 +471,15 @@ class Forfaits():
             if ligne["montant"] == 0:
                 ligne["montant"] = ligne["prixUnit"] * ligne["quantite"]
             listeDonnees.append(("ligMontant",ligne["montant"]))
-            retour = self.DB.ReqInsert("matPiecesLignes", listeDonnees,retourID = False)
+            IDnumLigne = self.DB.ReqInsert("matPiecesLignes", listeDonnees,retourID = True)
             if retour != "ok" :
                 GestionDB.MessageBox(parent,retour)
                 return None
+            if 'selfParrainage' in dictDonnees:
+                dicParr = dictDonnees['selfParrainage']
+                if dicParr['codeArticle'] == ligne['codeArticle']:
+                    dicParr['parIDligneParr'] = IDnumLigne
+                    self.InsertParrain(self, dicParr)
         return IDnumPiece
         # fin AjoutPiece
 

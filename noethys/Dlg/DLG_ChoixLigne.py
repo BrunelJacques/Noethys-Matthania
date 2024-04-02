@@ -33,10 +33,14 @@ class OLVchoixFamille(FastObjectListView):
         self.listeChampsTrack = ["IDfamille", "designation", "ville"]
         self.InitObjectListView()
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
+        self.Bind(wx.EVT_LEFT_DCLICK,self.OnItemDclick)
         #fin __init__
 
     def OnItemActivated(self,event):
         self.parent.OnBoutonOk(None)
+
+    def OnItemDclick(self,event):
+        pass
 
     def AppelDonnees(self):
             donnees= []
