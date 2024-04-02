@@ -1,3 +1,7 @@
+version  1.3.2.74 (02/04/2024)
+- Refonte des parrainages
+- nombreux utilitaires modifiés
+
 version  1.3.2.73 (28/03/2024)
 - Bug sur pièce activité
 
