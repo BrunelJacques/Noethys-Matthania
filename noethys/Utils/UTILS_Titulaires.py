@@ -410,6 +410,8 @@ def GetTitulaires(listeIDfamille=[], mode_adresse_facturation=False,
             # gestion de l'absence de titulaire en prenant l'ainé
             if nbreTitulaires == 0:
                 nbreTitulaires = 1
+                if aine == 0:
+                    print()
                 IDcivilite = dictIndividus[aine]["IDcivilite"]
                 if IDcivilite != None :
                     libCivilite = ("%s " % DICT_CIVILITES[IDcivilite]["civiliteAbrege"]).strip()
