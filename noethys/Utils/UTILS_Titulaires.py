@@ -371,17 +371,19 @@ def GetTitulaires(listeIDfamille=[], mode_adresse_facturation=False,
             listeIndividusFamilles = dictRattachements[IDfamille]
             listeTitulaires = []
             nbreTitulaires = 0
-            aine = 0
-            NaissanceAine = "9999-99-99"
+            IDolderInd = 0
+            NaissanceOlder = "9999-99-99"
             listeMembres = []
 
             # constitution d'un dictTitulaires
             for IDrattachement, IDindividuTmp, IDfamilleTmp, IDcategorie, titulaire in listeIndividusFamilles:
                 if IDindividuTmp in dictIndividus:
                     listeMembres.append(IDindividuTmp)
-                    if str(dictIndividus[IDindividuTmp]["date_naiss"]) < str(NaissanceAine):
-                        NaissanceAine = dictIndividus[IDindividuTmp]["date_naiss"]
-                        aine = IDindividuTmp
+                    if not dictIndividus[IDindividuTmp]["date_naiss"]:
+                        dictIndividus[IDindividuTmp]["date_naiss"] == NaissanceOlder
+                    if str(dictIndividus[IDindividuTmp]["date_naiss"]) >= str(NaissanceOlder):
+                        NaissanceOlder = dictIndividus[IDindividuTmp]["date_naiss"]
+                        IDolderInd = IDindividuTmp
                     if titulaire == 1:
                         nom = dictIndividus[IDindividuTmp]["nom"]
                         prenom = dictIndividus[IDindividuTmp]["prenom"]
@@ -408,25 +410,25 @@ def GetTitulaires(listeIDfamille=[], mode_adresse_facturation=False,
                         nbreTitulaires += 1
 
             # gestion de l'absence de titulaire en prenant l'ainé
-            if nbreTitulaires == 0:
+            if nbreTitulaires == 0 and IDolderInd > 0:
                 nbreTitulaires = 1
-                if aine == 0:
-                    print()
-                IDcivilite = dictIndividus[aine]["IDcivilite"]
+                IDcivilite = dictIndividus[IDolderInd]["IDcivilite"]
                 if IDcivilite != None :
                     libCivilite = ("%s " % DICT_CIVILITES[IDcivilite]["civiliteAbrege"]).strip()
                 else:
                     libCivilite = ""
-                nom = dictIndividus[aine]["nom"]
-                prenom = dictIndividus[aine]["prenom"]
-                dictIndividus[aine]["nomSansCivilite"] = "%s %s" % (nom, prenom)
-                dictIndividus[aine]["nomAvecCivilite"] = "%s%s %s" % (libCivilite, nom, prenom),
-                dictIndividus[aine]["civilite"] = "%s" % libCivilite
-                dictIndividus[aine]["IDindividu"] = aine
-                listeTitulaires.append(dictIndividus[aine])
+                nom = dictIndividus[IDolderInd]["nom"]
+                prenom = dictIndividus[IDolderInd]["prenom"]
+                dictIndividus[IDolderInd]["nomSansCivilite"] = "%s %s" % (nom, prenom)
+                nomAvecCivilite = "%s%s %s" %(libCivilite, nom, prenom),
+                dictIndividus[IDolderInd]["nomAvecCivilite"] = "%s%s %s" %(libCivilite, nom, prenom)
+                dictIndividus[IDolderInd]["civilite"] = "%s" % libCivilite
+                dictIndividus[IDolderInd]["IDindividu"] = IDolderInd
+                listeTitulaires.append(dictIndividus[IDolderInd])
 
             # Gestion de la désignation et adresse de la famille
             civilite = ComposeCivilites(listeTitulaires)
+
             if nbreTitulaires == 1:
                 nomsTitulaires = {
                     "IDcivilite": listeTitulaires[0]["IDcivilite"],
@@ -451,10 +453,12 @@ def GetTitulaires(listeIDfamille=[], mode_adresse_facturation=False,
                     # chacun a gardé son nom
                     nomsTitulaires = {
                         "IDcivilite": listeTitulaires[0]["IDcivilite"],
-                        "sansCivilite": _("%s et %s") % (
-                        listeTitulaires[0]["nomSansCivilite"], listeTitulaires[1]["nomSansCivilite"]),
-                        "avecCivilite": _("%s et %s") % (
-                        listeTitulaires[0]["nomAvecCivilite"], listeTitulaires[1]["nomAvecCivilite"]),
+                        "sansCivilite": "%s et %s" % (
+                            listeTitulaires[0]["nomSansCivilite"],
+                            listeTitulaires[1]["nomSansCivilite"]),
+                        "avecCivilite": "%s et %s"%(
+                            listeTitulaires[0]["nomAvecCivilite"],
+                            listeTitulaires[1]["nomAvecCivilite"]),
                         "civilite": civilite
                     }
             if nbreTitulaires > 2:
@@ -463,9 +467,10 @@ def GetTitulaires(listeIDfamille=[], mode_adresse_facturation=False,
                 for dictTemp in listeTitulaires[:-2]:
                     nomsAvecCivilite += "%s, " % dictTemp["nomAvecCivilite"]
                     nomsSansCivilite += "%s, " % dictTemp["nomSansCivilite"]
-                nomsAvecCivilite += _("%s et %s") % (
-                listeTitulaires[-2]["nomAvecCivilite"], listeTitulaires[-1]["nomAvecCivilite"])
-                nomsSansCivilite += _("%s et %s") % (
+                nomsAvecCivilite += "%s et %s"%(
+                    listeTitulaires[-2]["nomAvecCivilite"],
+                    listeTitulaires[-1]["nomAvecCivilite"])
+                nomsSansCivilite += "%s et %s"% (
                 listeTitulaires[-2]["nomSansCivilite"], listeTitulaires[-1]["nomSansCivilite"])
                 nomsTitulaires = {
                     "IDcivilite": listeTitulaires[0]["IDcivilite"],
