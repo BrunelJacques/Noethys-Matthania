@@ -154,6 +154,10 @@ class Attestations_fiscales():
                 autre = False
                 dictDonnee["{NUMERAIRE}"]= "X"
                 dictDonnee["{CHEQUE}"]= "X"
+            if "CB" in track.labelModeRegl:
+                autre = False
+                dictDonnee["{NUMERAIRE}"] = "X"
+                dictDonnee["{CHEQUE}"] = "X"
             if "Vir" in track.labelModeRegl:
                 autre = False
                 dictDonnee["{NUMERAIRE}"]= "X"
