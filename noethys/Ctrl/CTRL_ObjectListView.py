@@ -31,12 +31,6 @@ class Track():
         for nomColonne, total in dictTotaux.items() :
             setattr(self, nomColonne, total)
 
-class zzReportFormat(ReportFormat):
-    def __init__(self):
-        self.ListIntro = BlockFormat()
-        self.ColumnFooter = BlockFormat()
-        ReportFormat.__init__(self)
-
 class ObjectListView(OLV.ObjectListView):
     def __init__(self, *args, **kwargs):
         # Variables spéciales

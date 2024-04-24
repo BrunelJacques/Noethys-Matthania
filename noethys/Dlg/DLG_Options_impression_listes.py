@@ -93,7 +93,7 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL) :
 
         # Epaisseur de trait
         propriete = wxpg.FloatProperty(label=_("Epaisseur de trait"), name="grille_trait_epaisseur", value=0.25)
-        propriete.SetHelpString(_("Saisissez une épaisseur de trait (Par défaut '0.25')"))
+        propriete.SetHelpString(_("Saisissez une épaisseur de trait par un entier (Par défaut '1')"))
         propriete.SetAttribute("obligatoire", True)
         self.Append(propriete)
 
