@@ -12,13 +12,10 @@
 import Chemins
 from Utils.UTILS_Traduction import _
 import wx
-from Ctrl import CTRL_Bouton_image
 import datetime
-import copy
 
-from Utils import UTILS_Interface
 from Ctrl.CTRL_ObjectListView import ReportFormat
-from Outils import ListCtrlPrinter
+from ObjectListView import ListCtrlPrinter
 import GestionDB
 from Dlg import DLG_Options_impression_listes
 from Utils import UTILS_Dates
@@ -228,7 +225,7 @@ class ObjectListViewPrinter():
                 dictOptions[key] = valeur
                 
         # Préparation du printout
-        self.printer = ListCtrlPrinter.ListCtrlPrinter(self.listview, dictOptions["titre"])
+        self.printer = ListCtrlPrinter(self.listview, dictOptions["titre"])
         self.printer.printout.margins = (wx.Point(int(dictOptions["marge_gauche"]), int(dictOptions["marge_haut"])), wx.Point(int(dictOptions["marge_droite"]), int(dictOptions["marge_bas"])))
         self.printer.printout.printData.SetOrientation(dictOptions["orientation"])
         self.printer.printout.printData.SetQuality(int(dictOptions["qualite_impression"]))
@@ -250,7 +247,7 @@ class ObjectListViewPrinter():
         fmt.ListHeader.TextColor = dictOptions["titre_couleur"]
         fmt.ListHeader.Padding = (0, 12, 0, 10)
         fmt.ListHeader.TextAlignment = dictOptions["titre_alignement"]
-        fmt.ListHeader.Frame(wx.Pen(wx.BLACK, 0.25, wx.SOLID), space=10)
+        fmt.ListHeader.Frame(wx.Pen(wx.BLACK, 0, wx.SOLID), space=10)
         
         # Intro
         fmt.ListIntro.Font = wx.Font(int(dictOptions["intro_taille_texte"]), wx.SWISS, wx.NORMAL, int(dictOptions["intro_style"]), faceName="Arial")
@@ -266,14 +263,19 @@ class ObjectListViewPrinter():
         fmt.ColumnHeader.Background(dictOptions["titre_colonne_couleur_fond"])
         fmt.ColumnHeader.CellPadding = 5
         fmt.ColumnHeader.TextAlignment = dictOptions["titre_colonne_alignement"]
-        fmt.ColumnHeader.GridPen = wx.Pen(dictOptions["grille_trait_couleur"], dictOptions["grille_trait_epaisseur"], wx.SOLID)
+        couleur = dictOptions["grille_trait_couleur"]
+        epaisseur = int(dictOptions["grille_trait_epaisseur"])
+        if epaisseur <  dictOptions["grille_trait_epaisseur"]:
+            epaisseur += 1
+
+        fmt.ColumnHeader.GridPen = wx.Pen(couleur, epaisseur, wx.SOLID)
         fmt.ColumnHeader.SetAlwaysCenter(True)
         
         # Titre d'un groupe
         fmt.GroupTitle.Font = wx.FFont(10, wx.FONTFAMILY_SWISS, wx.FONTFLAG_BOLD, faceName="Arial")
         fmt.GroupTitle.Padding = (2, 10, 2, 2)
         fmt.GroupTitle.CellPadding = 12
-        fmt.GroupTitle.GridPen = wx.Pen(dictOptions["grille_trait_couleur"], dictOptions["grille_trait_epaisseur"], wx.SOLID)
+        fmt.GroupTitle.GridPen = wx.Pen(dictOptions["grille_trait_couleur"], epaisseur, wx.SOLID)
         
 ##        fmt.GroupTitle.TextColor = wx.BLUE
 ##        fmt.GroupTitle.Padding = (0, 12, 0, 12)
@@ -283,7 +285,7 @@ class ObjectListViewPrinter():
         fmt.Row.Font = wx.Font(int(dictOptions["ligne_taille_texte"]), wx.SWISS, wx.NORMAL, int(dictOptions["ligne_style"]), faceName="Arial")
         fmt.Row.TextColor = dictOptions["ligne_couleur"]
         fmt.Row.CellPadding = 5
-        fmt.Row.GridPen = wx.Pen(dictOptions["grille_trait_couleur"], dictOptions["grille_trait_epaisseur"], wx.SOLID)
+        fmt.Row.GridPen = wx.Pen(dictOptions["grille_trait_couleur"], epaisseur, wx.SOLID)
         fmt.Row.CanWrap = dictOptions["ligne_multilignes"]
         
         # Pied de page
@@ -299,7 +301,7 @@ class ObjectListViewPrinter():
         fmt.ColumnFooter.Background(dictOptions["pied_colonne_couleur_fond"])
         fmt.ColumnFooter.CellPadding = 5
         fmt.ColumnFooter.TextAlignment = dictOptions["pied_colonne_alignement"]
-        fmt.ColumnFooter.GridPen = wx.Pen(dictOptions["grille_trait_couleur"], dictOptions["grille_trait_epaisseur"], wx.SOLID)
+        fmt.ColumnFooter.GridPen = wx.Pen(dictOptions["grille_trait_couleur"], epaisseur, wx.SOLID)
 ##        fmt.ColumnFooter.SetAlwaysCenter(True)
 
         # Conclusion

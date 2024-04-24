@@ -15,12 +15,11 @@ import copy
 import os
 import decimal
 from Ctrl import CTRL_Footer
-from Utils.UTILS_Traduction import _
-import ListCtrlPrinter as LCP
 import ObjectListView as OLV
-import Filter, OLVEvent, CellEditor
+import Filter, OLVEvent
 
 from ObjectListView import AbstractVirtualObjectListView as Abstract
+from ObjectListView.ListCtrlPrinter import ReportFormat, BlockFormat
 
 def Nz(valeur):
     if not valeur:
@@ -32,11 +31,11 @@ class Track():
         for nomColonne, total in dictTotaux.items() :
             setattr(self, nomColonne, total)
 
-class ReportFormat(LCP.ReportFormat):
+class zzReportFormat(ReportFormat):
     def __init__(self):
-        self.ListIntro = LCP.BlockFormat()
-        self.ColumnFooter = LCP.BlockFormat()
-        LCP.ReportFormat.__init__(self)
+        self.ListIntro = BlockFormat()
+        self.ColumnFooter = BlockFormat()
+        ReportFormat.__init__(self)
 
 class ObjectListView(OLV.ObjectListView):
     def __init__(self, *args, **kwargs):
@@ -697,7 +696,7 @@ class ObjectListView(OLV.ObjectListView):
 
             # Item Tout cocher
             id = wx.Window.NewControlId()
-            item = wx.MenuItem(menu, id, _("Tout cocher"))
+            item = wx.MenuItem(menu, id, "Tout cocher")
             item.SetBitmap(wx.Bitmap(
                 Chemins.GetStaticPath("Images/16x16/Cocher.png"), wx.BITMAP_TYPE_PNG))
             menu.Append(item)
@@ -705,7 +704,7 @@ class ObjectListView(OLV.ObjectListView):
 
             # Item Tout décocher
             id = wx.Window.NewControlId()
-            item = wx.MenuItem(menu, id, _("Tout décocher"))
+            item = wx.MenuItem(menu, id, "Tout décocher")
             item.SetBitmap(wx.Bitmap(
                 Chemins.GetStaticPath("Images/16x16/Decocher.png"), wx.BITMAP_TYPE_PNG))
             menu.Append(item)
@@ -715,7 +714,7 @@ class ObjectListView(OLV.ObjectListView):
 
         # Apercu avant impression
         id = wx.Window.NewControlId()
-        item = wx.MenuItem(menu, id, _("Aperçu avant impression"))
+        item = wx.MenuItem(menu, id, "Aperçu avant impression")
         item.SetBitmap(wx.Bitmap(
             Chemins.GetStaticPath("Images/16x16/Apercu.png"), wx.BITMAP_TYPE_PNG))
         menu.Append(item)
@@ -723,7 +722,7 @@ class ObjectListView(OLV.ObjectListView):
 
         # Item Imprimer
         id = wx.Window.NewControlId()
-        item = wx.MenuItem(menu, id, _("Imprimer"))
+        item = wx.MenuItem(menu, id, "Imprimer")
         item.SetBitmap(wx.Bitmap(
             Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_PNG))
         menu.Append(item)
@@ -733,7 +732,7 @@ class ObjectListView(OLV.ObjectListView):
 
         # Item Export Texte
         id = wx.Window.NewControlId()
-        item = wx.MenuItem(menu, id, _("Exporter au format Texte"))
+        item = wx.MenuItem(menu, id, "Exporter au format Texte")
         item.SetBitmap(wx.Bitmap(
             Chemins.GetStaticPath("Images/16x16/Texte2.png"), wx.BITMAP_TYPE_PNG))
         menu.Append(item)
@@ -741,7 +740,7 @@ class ObjectListView(OLV.ObjectListView):
 
         # Item Export Excel
         id = wx.Window.NewControlId()
-        item = wx.MenuItem(menu, id, _("Exporter au format Excel"))
+        item = wx.MenuItem(menu, id, "Exporter au format Excel")
         item.SetBitmap(wx.Bitmap(
             Chemins.GetStaticPath("Images/16x16/Excel.png"), wx.BITMAP_TYPE_PNG))
         menu.Append(item)
@@ -758,7 +757,7 @@ class ObjectListView(OLV.ObjectListView):
 
                 # Envoyer des emails
                 id = wx.Window.NewControlId()
-                item = wx.MenuItem(menu, id, _("Envoyer un Email"))
+                item = wx.MenuItem(menu, id, "Envoyer un Email")
                 item.SetBitmap(wx.Bitmap(
                     Chemins.GetStaticPath("Images/16x16/Editeur_email.png"), wx.BITMAP_TYPE_PNG))
                 menu.Append(item)
@@ -807,10 +806,6 @@ class ColumnDefn(OLV.ColumnDefn):
         self.visible = kwargs.pop("visible", True)
         self.typeDonnee = kwargs.pop("typeDonnee", None)
         OLV.ColumnDefn.__init__(self, *args, **kwargs)
-
-class ListCtrlPrinter(LCP.ListCtrlPrinter):
-    def __init__(self, *args, **kwargs):
-        LCP.ListCtrlPrinter.__init__(self, *args, **kwargs)
 
 # -----------------------------------------------------------------------------------------------
         
@@ -1048,7 +1043,7 @@ class CTRL_Regroupement(wx.Choice):
 
         if self.listeLabels == []:
             self.dictDonnees = {}
-            self.listeLabels = [_("Aucun"), ]
+            self.listeLabels = ["Aucun", ]
             indexColonne = 0
             indexLigne = 1
             for titre in self.GetTitresColonnes(listview):
@@ -1097,7 +1092,7 @@ class CTRL_Outils(wx.Panel):
                                                    wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Filtre.png"), wx.BITMAP_TYPE_ANY))
 
         self.bouton_filtrer.SetToolTip(
-            wx.ToolTip(_("Cliquez ici pour filtrer cette liste")))
+            wx.ToolTip("Cliquez ici pour filtrer cette liste"))
 
         menu = wx.Menu()
         item = wx.MenuItem(menu, 10,
@@ -1124,7 +1119,7 @@ class CTRL_Outils(wx.Panel):
                                                           Chemins.GetStaticPath("Images/16x16/Cocher.png"),
                                                           wx.BITMAP_TYPE_ANY))
             self.bouton_cocher.SetToolTip(wx.ToolTip(
-                _("Cliquez ici pour cocher ou décocher rapidement tous les éléments de cette liste")))
+                "Cliquez ici pour cocher ou décocher rapidement tous les éléments de cette liste"))
 
             menu = wx.Menu()
             item = wx.MenuItem(menu, 20, "Tout cocher",
@@ -1156,7 +1151,7 @@ class CTRL_Outils(wx.Panel):
         # Regroupement
         if self.afficherRegroupement == True:
             self.label_regroupement = wx.StaticText(self, -1,
-                                                    _("Regroupement :"))
+                                                    "Regroupement :")
             self.ctrl_regroupement = CTRL_Regroupement(self)
             listview.ctrl_regroupement = self.ctrl_regroupement
 

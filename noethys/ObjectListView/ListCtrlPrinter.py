@@ -433,8 +433,8 @@ class ReportEngine(object):
         """
         # Initialize state
         self.currentPage = pageNumber
-        self.pageBounds = list(bounds)
-        self.workBounds = list(self.pageBounds)
+        self.pageBounds = [int(x) for x in bounds]
+        self.workBounds = [int(x) for x in self.pageBounds]
         self.SubtractDecorations(dc)
 
         # Print page adornments, including under-text decorations
@@ -701,6 +701,8 @@ class ReportFormat(object):
         """
         # Initialize the formats that control the various portions of the
         # report
+        self.ListIntro = BlockFormat()
+        self.ColumnFooter = BlockFormat()
         self.Page = BlockFormat()
         self.PageHeader = BlockFormat()
         self.ListHeader = BlockFormat()
@@ -1223,6 +1225,8 @@ class BlockFormat(object):
         """
         for x in self.decorations:
             bounds = x.SubtractFrom(dc, bounds)
+        for i in range(0,len(bounds)):
+            bounds[i] = int(bounds[i])
         return bounds
 
     def DrawDecorations(self, dc, bounds, block, over):
@@ -1276,6 +1280,8 @@ class Block(object):
         fmt = self.GetFormat()
         bounds = fmt.SubtractPadding(bounds)
         bounds = fmt.SubtractDecorations(dc, bounds)
+        for i in range(0,len(bounds)):
+            bounds[i] = int(bounds[i])
         return bounds
 
     def GetWorkBounds(self):
@@ -1396,9 +1402,11 @@ class Block(object):
         """
         Calculate the bounds of this block
         """
-        height = self.CalculateHeight(dc)
+        height = int(self.CalculateHeight(dc))
         bounds = list(self.GetWorkBounds())
         bounds = RectUtils.SetHeight(bounds, height)
+        for i in range(0,len(bounds)):
+            bounds[i] = int(bounds[i])
         return bounds
 
     def ChangeWorkBoundsBy(self, amt):
@@ -1469,11 +1477,11 @@ class Block(object):
 
         def _CalcBitmapPosition(r, height):
             if valignment == wx.ALIGN_TOP:
-                return RectUtils.Top(r)
+                return int(RectUtils.Top(r))
             elif valignment == wx.ALIGN_CENTER:
-                return RectUtils.CenterY(r) - height / 2
+                return int(RectUtils.CenterY(r) - height / 2)
             elif valignment == wx.ALIGN_BOTTOM:
-                return RectUtils.Bottom(r) - height
+                return int(RectUtils.Bottom(r) - height)
             else:
                 return RectUtils.Top(r)
 
@@ -1529,9 +1537,7 @@ class Block(object):
 
 #----------------------------------------------------------------------------
 
-
 class TextBlock(Block):
-
     """
     A TextBlock prints a string objects.
     """
@@ -1582,7 +1588,6 @@ class TextBlock(Block):
 #----------------------------------------------------------------------------
 
 class CellBlock(Block):
-
     """
     A CellBlock is a Block whose data is presented in a cell format.
     """
@@ -1718,6 +1723,8 @@ class CellBlock(Block):
         bounds = RectUtils.SetHeight(bounds, height)
         bounds = RectUtils.SetWidth(bounds, self.CalculateWidth(dc))
         bounds = RectUtils.MultiplyOrigin(bounds, 1 / self.scale)
+        for i in range(0,len(bounds)):
+            bounds[i] = int(bounds[i])
         return bounds
 
     # def CanFit(self, height):
@@ -1790,8 +1797,8 @@ class CellBlock(Block):
                 dc.DrawLine(right, top, right, bottom)
 
             # Draw the surrounding frame
-            left = RectUtils.Left(combined[0].cell)
-            right = RectUtils.Right(combined[-1].cell)
+            left = int(RectUtils.Left(combined[0].cell))
+            right = int(RectUtils.Right(combined[-1].cell))
             dc.DrawRectangle(left, top, right - left, bottom - top)
 
 
@@ -2637,6 +2644,8 @@ class RectangleDecoration(Decoration):
             return RectUtils.MoveTopBy(bounds, inset)
         if self.side == wx.BOTTOM:
             return RectUtils.MoveBottomBy(bounds, -inset)
+        for i in range(0,len(bounds)):
+            bounds[i] = int(bounds[i])
         return bounds
 
     def DrawDecoration(self, dc, bounds, block):
@@ -2690,7 +2699,8 @@ class RectangleDecoration(Decoration):
                 self.width,
                 RectUtils.Width(bounds),
                 self.width)
-
+        for i in range(0,len(bounds)):
+            bounds[i] = int(bounds[i])
         return bounds
 
 #----------------------------------------------------------------------------
@@ -2726,6 +2736,8 @@ class LineDecoration(Decoration):
             return RectUtils.MoveTopBy(bounds, inset)
         if self.side == wx.BOTTOM:
             return RectUtils.MoveBottomBy(bounds, -inset)
+        for i in range(0,len(bounds)):
+            bounds[i] = int(bounds[i])
         return bounds
 
     def DrawDecoration(self, dc, bounds, block):

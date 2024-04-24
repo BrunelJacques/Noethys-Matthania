@@ -13,9 +13,7 @@ import datetime
 import GestionDB
 from Dlg import DLG_InscriptionMenu
 
-from Gest import GestionInscription
-from Utils import UTILS_Historique
-from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, CTRL_Outils, ListCtrlPrinter
+from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter
 
 
 TAILLE_IMAGE = (40, 40)
