@@ -1194,7 +1194,11 @@ class Traitement():
 
     def Traitement_paiement_en_ligne(self):
         # Récupération des paramètres
-        IDmode_reglement = int(UTILS_Parametres.Parametres(mode="get", categorie="portail", nom="paiement_ligne_mode_reglement", valeur=None))
+        IDmode_reglement = UTILS_Parametres.Parametres(mode="get", categorie="portail", nom="paiement_ligne_mode_reglement", valeur=None)
+        if IDmode_reglement in ("None","",None):
+            IDmode_reglement = None
+        else:
+            IDmode_reglement = int(IDmode_reglement)
         if IDmode_reglement in (None, 0):
             dlg = wx.MessageDialog(self.parent, _("Vous devez obligatoirement commencer par renseigner un mode de règlement dans la configuration de Connecthys (Menu Outils > Connecthys > Rubrique Paiement en ligne) !"), _("Erreur"), wx.OK | wx.ICON_EXCLAMATION)
             dlg.ShowModal()

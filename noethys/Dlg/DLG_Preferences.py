@@ -542,7 +542,7 @@ class Email(wx.Panel):
 
     def Importation(self):
         valeur = UTILS_Parametres.Parametres(mode="get", categorie="email", nom="timeout", valeur=None)
-        if valeur == "":
+        if valeur in ("","None"):
             valeur = None
         self.SetValeur(valeur)
 

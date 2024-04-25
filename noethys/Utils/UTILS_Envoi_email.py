@@ -468,8 +468,9 @@ class Base_messagerie():
         if self.motdepasse == "" : self.motdepasse = None
 
         # Timeout
-        timeout = UTILS_Parametres.Parametres(mode="get", categorie="email", nom="timeout", valeur=None)
-        if timeout not in ("", None):
+        timeout = UTILS_Parametres.Parametres(mode="get", categorie="email",
+                                              nom="timeout", valeur=None)
+        if timeout not in ("", None,"None"):
             self.timeout = int(timeout)
 
         # Préparation de l'adresse d'expédition

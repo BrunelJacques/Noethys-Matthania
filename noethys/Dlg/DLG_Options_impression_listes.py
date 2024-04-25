@@ -10,21 +10,16 @@
 
 
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
-import GestionDB
 
-from Utils import UTILS_Config
 from Utils import UTILS_Parametres
 
 from Ctrl import CTRL_Bandeau
 from Ctrl import CTRL_Propertygrid
 import wx.propgrid as wxpg
 import copy
-
-
 
 
 class CTRL_Parametres(CTRL_Propertygrid.CTRL) :
@@ -345,11 +340,6 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL) :
         propriete.SetHelpString(_("Sélectionnez le type d'alignement"))
         propriete.SetAttribute("obligatoire", True)
         self.Append(propriete)
-
-
-
-
-
 
     def Validation(self):
         """ Validation des données saisies """

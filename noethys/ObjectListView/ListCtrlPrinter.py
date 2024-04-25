@@ -2906,8 +2906,6 @@ class Bucket(object):
 
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
-        i = self.cellWidth
-
 
     def __repr__(self):
         strs = ["%s=%r" % kv for kv in list(self.__dict__.items())]
