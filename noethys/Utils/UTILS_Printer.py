@@ -14,12 +14,12 @@ from Utils.UTILS_Traduction import _
 import wx
 import datetime
 
-from Ctrl.CTRL_ObjectListView import ReportFormat
-from ObjectListView import ListCtrlPrinter
+from ListCtrlPrinter import ListCtrlPrinter
 import GestionDB
 from Dlg import DLG_Options_impression_listes
 from Utils import UTILS_Dates
 
+from ListCtrlPrinter import ReportFormat
 
 
 

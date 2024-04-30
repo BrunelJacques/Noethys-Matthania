@@ -22,7 +22,6 @@ import GestionDB
 import FonctionsPerso
 from Dlg import DLG_Releve_prestations
 from Gest import GestionCoherence
-
 from Ctrl import CTRL_Composition
 from Dlg import DLG_Famille_informations
 from Dlg import DLG_Famille_prestations
@@ -912,7 +911,7 @@ if __name__ == "__main__":
     heure_debut = time.time()
     # ramel 567; perez marc 1724; bartoOliv 1861; branco 4499;  bourrel 6191
     #7735 parrainage; 8107 multifactures; 709 Brunel jacques
-    dialog_1 = Dialog(None, IDfamille= 9)
+    dialog_1 = Dialog(None, IDfamille= 6348)
     print("Temps de chargement fiche famille =", time.time() - heure_debut)
     app.SetTopWindow(dialog_1)
 

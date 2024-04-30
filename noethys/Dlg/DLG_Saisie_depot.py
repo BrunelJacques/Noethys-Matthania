@@ -20,6 +20,7 @@ from Ol import OL_Reglements_depots
 from Dlg import DLG_Saisie_depot_ajouter
 from Utils import UTILS_Titulaires
 
+import Chemins
 import GestionDB
 
 from Utils import UTILS_Config
@@ -566,14 +567,14 @@ class Dialog(wx.Dialog):
 
         # Item Apercu avant impression
         item = wx.MenuItem(menuPop, 20, _("Aperçu avant impression"))
-        bmp = wx.Bitmap("Static/Images/16x16/Apercu.png", wx.BITMAP_TYPE_PNG)
+        bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Apercu.png"), wx.BITMAP_TYPE_PNG)
         item.SetBitmap(bmp)
         menuPop.Append(item)
         self.Bind(wx.EVT_MENU, self.Apercu, id=20)
 
         # Item Imprimer
         item = wx.MenuItem(menuPop, 30, _("Imprimer"))
-        bmp = wx.Bitmap("Static/Images/16x16/Imprimante.png", wx.BITMAP_TYPE_PNG)
+        bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_PNG)
         item.SetBitmap(bmp)
         menuPop.Append(item)
         self.Bind(wx.EVT_MENU, self.Imprimer, id=30)

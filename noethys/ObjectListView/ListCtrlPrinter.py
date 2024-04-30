@@ -1494,7 +1494,7 @@ class Block(object):
                 bounds,
                 image.GetWidth() +
                 GAP_BETWEEN_IMAGE_AND_TEXT)
-        elif listCtrl and imageIndex >= 0:
+        elif listCtrl and  imageIndex and  imageIndex >= 0:
             imageList = listCtrl.GetImageList(wx.IMAGE_LIST_SMALL)
             y = _CalcBitmapPosition(bounds, imageList.GetSize(0)[1])
             imageList.Draw(

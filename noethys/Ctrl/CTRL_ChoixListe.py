@@ -15,8 +15,7 @@ import FonctionsPerso as fp
 from Ctrl import CTRL_Bouton_image
 from Utils import UTILS_Config
 import decimal
-from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, \
-    Filter, CTRL_Outils, PanelAvecFooter
+from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, CTRL_Outils, PanelAvecFooter
 from Ctrl import CTRL_Bandeau
 
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "€")

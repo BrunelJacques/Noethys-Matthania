@@ -19,7 +19,6 @@ import ObjectListView as OLV
 import Filter, OLVEvent
 
 from ObjectListView import AbstractVirtualObjectListView as Abstract
-from ObjectListView.ListCtrlPrinter import ReportFormat, BlockFormat
 
 def Nz(valeur):
     if not valeur:
