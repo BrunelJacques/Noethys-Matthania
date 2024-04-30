@@ -30,6 +30,7 @@ class Track():
         for nomColonne, total in dictTotaux.items() :
             setattr(self, nomColonne, total)
 
+
 class ObjectListView(OLV.ObjectListView):
     def __init__(self, *args, **kwargs):
         # Variables spéciales

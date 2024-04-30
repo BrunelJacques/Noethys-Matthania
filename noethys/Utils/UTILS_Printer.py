@@ -13,13 +13,11 @@ import Chemins
 from Utils.UTILS_Traduction import _
 import wx
 import datetime
-
-from ListCtrlPrinter import ListCtrlPrinter
 import GestionDB
+from ListCtrlPrinter import ListCtrlPrinter, ReportFormat
 from Dlg import DLG_Options_impression_listes
 from Utils import UTILS_Dates
 
-from ListCtrlPrinter import ReportFormat
 
 
 
@@ -237,11 +235,11 @@ class ObjectListViewPrinter():
         fmt = ReportFormat()
         
         # Entête de page
-    ##        fmt.PageHeader.Font = wx.FFont(10, wx.FONTFAMILY_DECORATIVE, wx.FONTFLAG_BOLD, face=headerFontName)
-    ##        fmt.PageHeader.TextColor = wx.WHITE
-    ##        fmt.PageHeader.Background(wx.GREEN, wx.RED, space=(16, 4, 0, 4))
-    ##        fmt.PageHeader.Padding = (0, 0, 0, 12)
-        
+        ##        fmt.PageHeader.Font = wx.FFont(10, wx.FONTFAMILY_DECORATIVE, wx.FONTFLAG_BOLD, face=headerFontName)
+        ##        fmt.PageHeader.TextColor = wx.WHITE
+        ##        fmt.PageHeader.Background(wx.GREEN, wx.RED, space=(16, 4, 0, 4))
+        ##        fmt.PageHeader.Padding = (0, 0, 0, 12)
+
         # Titre de liste
         fmt.ListHeader.Font = wx.Font(int(dictOptions["titre_taille_texte"]), wx.SWISS, wx.NORMAL, int(dictOptions["titre_style"]), faceName="Arial")
         fmt.ListHeader.TextColor = dictOptions["titre_couleur"]

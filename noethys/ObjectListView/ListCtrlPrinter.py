@@ -105,6 +105,10 @@ import wx
 from FonctionsPerso import Nz
 from WordWrapRenderer import WordWrapRenderer
 
+# Ajout Perso :
+LISTINTRO = ""
+LISTFOOTER=u""
+
 #----------------------------------------------------------------------------
 
 
@@ -118,6 +122,9 @@ class ListCtrlPrinter(object):
     def __init__(self, listCtrl=None, title="ListCtrl Printing"):
         """
         """
+        global LISTINTRO, LISTFOOTER
+        LISTINTRO = ""
+        LISTFOOTER=u""
         self.printout = ListCtrlPrintout(self)
         self.engine = ReportEngine()
         if listCtrl is not None:
@@ -700,15 +707,13 @@ class ReportFormat(object):
     def __init__(self):
         """
         """
-        # Initialize the formats that control the various portions of the
-        # report
-        self.ListIntro = BlockFormat()
-        self.ColumnFooter = BlockFormat()
+        # Initialize the formats that control the various portions of the report
         self.Page = BlockFormat()
         self.PageHeader = BlockFormat()
         self.ListHeader = BlockFormat()
         self.GroupTitle = BlockFormat()
         self.ColumnHeader = BlockFormat()
+        self.ColumnFooter = BlockFormat()
         self.Row = BlockFormat()
         self.ListFooter = BlockFormat()
         self.PageFooter = BlockFormat()
@@ -721,6 +726,10 @@ class ReportFormat(object):
 
         # Initialize the watermark format to default values
         self.WatermarkFormat()
+
+        # Ajout Noethys CTRL_ObjectListView
+        self.ListIntro = BlockFormat()
+        self.ColumnFooter = BlockFormat()
 
     #-------------------------------------------------------------------------
     # Accessing
@@ -801,6 +810,12 @@ class ReportFormat(object):
         fmt.ColumnHeader.Line(wx.BOTTOM, wx.Colour(192, 192, 192), 1, space=3)
         fmt.ColumnHeader.AlwaysCenter = True
 
+        fmt.ColumnFooter.Font = wx.FFont(14, wx.FONTFAMILY_DEFAULT, wx.FONTFLAG_BOLD, face=headerFontName)
+        fmt.ColumnFooter.Padding = (0, 12, 0, 12)
+        fmt.ColumnFooter.CellPadding = 5
+        fmt.ColumnFooter.Line(wx.BOTTOM, wx.Colour(192, 192, 192), 1, space=3)
+        fmt.ColumnFooter.AlwaysCenter = True
+
         fmt.Row.Font = wx.FFont(
             10,
             wx.FONTFAMILY_DEFAULT,
@@ -860,6 +875,13 @@ class ReportFormat(object):
         fmt.ColumnHeader.GridPen = wx.Pen(wx.WHITE, 1)
         fmt.ColumnHeader.Padding = (0, 0, 0, 12)
         fmt.ColumnHeader.AlwaysCenter = True
+
+        fmt.ColumnFooter.Font = wx.FFont(14, wx.FONTFAMILY_DEFAULT, wx.FONTFLAG_BOLD, faceName=headerFontName)
+        fmt.ColumnFooter.CellPadding = 2
+        fmt.ColumnFooter.Background(wx.Colour(192, 192, 192))
+        fmt.ColumnFooter.GridPen = wx.Pen(wx.WHITE, 1)
+        fmt.ColumnFooter.Padding = (0, 0, 0, 12)
+        fmt.ColumnFooter.AlwaysCenter = True
 
         fmt.Row.Font = wx.FFont(
             12,
@@ -1487,6 +1509,8 @@ class Block(object):
                 return RectUtils.Top(r)
 
         # Draw any image
+        if imageIndex == None :
+            imageIndex = 0
         if image:
             y = _CalcBitmapPosition(bounds, image.Height)
             dc.DrawBitmap(image, RectUtils.Left(bounds), y)
@@ -1842,13 +1866,10 @@ class ThreeCellBlock(CellBlock):
 
 #----------------------------------------------------------------------------
 
-
 class ReportBlock(Block):
-
     """
     A ReportBlock is boot strap Block that represents an entire report.
     """
-
     #-------------------------------------------------------------------------
     # Commands
 
@@ -1874,7 +1895,6 @@ class ReportBlock(Block):
 #----------------------------------------------------------------------------
 
 class PageHeaderBlock(ThreeCellBlock):
-
     """
     A PageHeaderBlock appears at the top of every page.
     """
@@ -2005,13 +2025,9 @@ class ListBlock(Block):
             if not first:
                 self.engine.AddBlock(PageBreakBlock())
             self.engine.AddBlock(ListHeaderBlock(self.lv, self.title))
-            self.engine.AddBlock(
-                ListSliceBlock(
-                    self.lv,
-                    left,
-                    right,
-                    cellWidths))
-            self.engine.AddBlock(ListFooterBlock(self.lv, ""))
+            self.engine.AddBlock(ListIntroBlock(self.lv, LISTINTRO))
+            self.engine.AddBlock(ListSliceBlock(self.lv, left, right, cellWidths))
+            self.engine.AddBlock(ListFooterBlock(self.lv, LISTFOOTER))
             first = False
 
         return True
@@ -2093,6 +2109,22 @@ class ListHeaderBlock(TextBlock):
 
 #----------------------------------------------------------------------------
 
+class ListIntroBlock(TextBlock):
+    """
+    Ajout perso !
+    """
+
+    def __init__(self, lv, text):
+        self.lv = lv
+        self.text = text
+
+    def GetText(self):
+        """
+        Return the text that will be printed in this block
+        """
+        return self.text
+
+#----------------------------------------------------------------------------
 
 class ListFooterBlock(TextBlock):
 
@@ -2191,6 +2223,11 @@ class ListSliceBlock(Block):
 
         if self.IsColumnHeadingsOnEachPage():
             self.engine.AddBlock(RunningBlockPusher(headerBlock, False))
+
+        # Colonne Footer
+        if self.lv.ctrl_footer != None :
+            columnFooterBlock = ColumnFooterBlock(self.lv, self.left, self.right, scale, self.allCellWidths)
+            self.engine.AddBlock(columnFooterBlock)
 
         return True
 
@@ -2318,6 +2355,20 @@ class ColumnHeaderBlock(ColumnBasedBlock):
         """
         return False
 
+
+
+class ColumnFooterBlock(ColumnBasedBlock):
+    def GetTexts(self):
+        return self.lv.ctrl_footer.GetDonneesImpression("texte")
+
+    def GetAlignments(self):
+        return self.lv.ctrl_footer.GetDonneesImpression("alignement")
+
+    def GetImages(self):
+        return []
+
+    def IsUseSubstitution(self):
+        return False
 
 #----------------------------------------------------------------------------
 
@@ -3049,3 +3100,79 @@ class RectUtils:
     @staticmethod
     def MultiplyOrigin(r, factor):
         return [r[0] * factor, r[1] * factor, r[2], r[3]]
+
+#----------------------------------------------------------------------------
+# TESTING ONLY
+#----------------------------------------------------------------------------
+
+if __name__ == '__main__':
+    import wx
+    from ObjectListView import ObjectListView, FastObjectListView, GroupListView, ColumnDefn
+
+    # Where can we find the Example module?
+    import sys
+    sys.path.append("wx.CURSOR_Examples")
+
+    import ExampleModel
+    import ExampleImages
+
+    class MyFrame(wx.Frame):
+        def __init__(self, *args, **kwds):
+            kwds["style"] = wx.DEFAULT_FRAME_STYLE
+            wx.Frame.__init__(self, *args, **kwds)
+
+            self.panel = wx.Panel(self, -1)
+            #self.lv = ObjectListView(self.panel, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+            self.lv = GroupListView(self.panel, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+            #self.lv = FastObjectListView(self.panel, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+
+            sizer_2 = wx.BoxSizer(wx.VERTICAL)
+            sizer_2.Add(self.lv, 1, wx.ALL|wx.EXPAND, 4)
+            self.panel.SetSizer(sizer_2)
+            self.panel.Layout()
+
+            sizer_1 = wx.BoxSizer(wx.VERTICAL)
+            sizer_1.Add(self.panel, 1, wx.EXPAND)
+            self.SetSizer(sizer_1)
+            self.Layout()
+
+            musicImage = self.lv.AddImages(ExampleImages.getMusic16Bitmap(), ExampleImages.getMusic32Bitmap())
+            artistImage = self.lv.AddImages(ExampleImages.getUser16Bitmap(), ExampleImages.getUser32Bitmap())
+
+            self.lv.SetColumns([
+                ColumnDefn("Title", "left", 200, "title", imageGetter=musicImage),
+                ColumnDefn("Artist", "left", 150, "artist", imageGetter=artistImage),
+                ColumnDefn("Last Played", "left", 100, "lastPlayed"),
+                ColumnDefn("Size", "center", 100, "sizeInBytes"),
+                ColumnDefn("Rating", "center", 100, "rating"),
+             ])
+
+            #self.lv.CreateCheckStateColumn()
+            self.lv.SetSortColumn(self.lv.columns[2])
+            self.lv.SetObjects(ExampleModel.GetTracks())
+
+            wx.CallLater(50, self.run)
+
+        def run(self):
+            printer = ListCtrlPrinter(self.lv, "Playing with ListCtrl Printing")
+            printer.ReportFormat = ReportFormat.Normal()
+            printer.ReportFormat.WatermarkFormat(over=True)
+            printer.ReportFormat.IsColumnHeadingsOnEachPage = True
+
+            #printer.ReportFormat.Page.Add(ImageDecoration(ExampleImages.getGroup32Bitmap(), wx.RIGHT, wx.BOTTOM))
+
+            #printer.PageHeader("%(listTitle)s") # nice idea but not possible at the moment
+            printer.PageHeader = "Playing with ListCtrl Printing"
+            printer.PageFooter = ("Bright Ideas Software", "%(date)s", "%(currentPage)d of %(totalPages)d")
+            printer.Watermark = "Sloth!"
+
+            #printer.PageSetup()
+            printer.PrintPreview(self)
+
+
+    app = wx.PySimpleApp(0)
+    wx.InitAllImageHandlers()
+    frame_1 = MyFrame(None, -1, "")
+    app.SetTopWindow(frame_1)
+    frame_1.Show()
+    app.MainLoop()
