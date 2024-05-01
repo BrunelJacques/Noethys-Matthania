@@ -8,7 +8,6 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
 import Chemins
 from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
@@ -17,16 +16,12 @@ import six
 import datetime
 import decimal
 import GestionDB
-from PIL import Image
 import os
 from Utils import UTILS_Titulaires
 from Utils import UTILS_Config
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 from Utils import UTILS_Interface
-from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, CTRL_Outils, PanelAvecFooter
-
-
-
+from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, PanelAvecFooter
 
 def DateEngFr(textDate):
     text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
@@ -44,9 +39,6 @@ def DateEngEnDateDD(dateEng):
     return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 
-        
-        
-    
 class ListView(FastObjectListView):
     def __init__(self, *args, **kwds):
         # Récupération des paramètres perso
@@ -326,19 +318,19 @@ class ListView(FastObjectListView):
 
         liste_Colonnes = [
             ColumnDefn(_("ID"), "left", 0, "IDreglement", typeDonnee="entier"),
-            ColumnDefn(_("Date"), 'left', 80, "date", typeDonnee="date", stringConverter=FormateDateCourt),
-            ColumnDefn(_("Mode"), 'left', 120, "nom_mode", typeDonnee="texte", imageGetter=GetImageMode),
-            ColumnDefn(_("Emetteur"), 'left', 145, "nom_emetteur", typeDonnee="texte", imageGetter=GetImageEmetteur),
-            ColumnDefn(_("Numéro"), 'left', 60, "numero_piece", typeDonnee="texte"),
-            ColumnDefn(_("Famille"), 'left', 160, "nomTitulaires", typeDonnee="texte"),
-            ColumnDefn(_("Payeur"), 'left', 160, "nom_payeur", typeDonnee="texte"),
-            ColumnDefn(_("Montant"), 'right', 80, "montant", typeDonnee="montant", stringConverter=FormateMontant),
-            ColumnDefn(_("Avis"), 'left', 110, "avis_depot", typeDonnee="date", stringConverter=FormateDateCourt, imageGetter=GetImageAvisDepot),
+            ColumnDefn(_("Date"), 'left', 70, "date", typeDonnee="date", stringConverter=FormateDateCourt),
+            ColumnDefn(_("Mode"), 'left', 75, "nom_mode", typeDonnee="texte", imageGetter=GetImageMode),
+            ColumnDefn(_("Emetteur"), 'left', 125, "nom_emetteur", typeDonnee="texte", imageGetter=GetImageEmetteur),
+            ColumnDefn(_("Numéro"), 'left', 65, "numero_piece", typeDonnee="texte"),
+            ColumnDefn(_("Famille"), 'left', 160, "adresse_intitule", typeDonnee="texte"),
+            ColumnDefn(_("Payeur"), 'left', 150, "nom_payeur", typeDonnee="texte"),
+            ColumnDefn(_("Montant"), 'right', 75, "montant", typeDonnee="montant", stringConverter=FormateMontant),
+            #ColumnDefn(_("Avis"), 'left', 110, "avis_depot", typeDonnee="date", stringConverter=FormateDateCourt, imageGetter=GetImageAvisDepot),
             ColumnDefn(_("Compte"), 'left', 100, "nom_compte", typeDonnee="texte"),
-            ColumnDefn(_("Différé"), 'left', 85, "date_differe", typeDonnee="date", stringConverter=FormateDateCourt), #, imageGetter=GetImageDiffere),
-            ColumnDefn(_("Attente"), 'left', 65, "encaissement_attente", typeDonnee="texte", stringConverter=FormateAttente), #, imageGetter=GetImageAttente),
-            ColumnDefn(_("Quittancier"), 'left', 75, "numero_quittancier", typeDonnee="texte"),
-            ColumnDefn(_("Observations"), 'left', 200, "observations", typeDonnee="texte"),
+            ColumnDefn(_("Différé"), 'left', 70, "date_differe", typeDonnee="date", stringConverter=FormateDateCourt), #, imageGetter=GetImageDiffere),
+            #ColumnDefn(_("Attente"), 'left', 65, "encaissement_attente", typeDonnee="texte", stringConverter=FormateAttente), #, imageGetter=GetImageAttente),
+            #ColumnDefn(_("Quittancier"), 'left', 75, "numero_quittancier", typeDonnee="texte"),
+            ColumnDefn(_("Observations"), 'left', 160, "observations", typeDonnee="texte"),
             ]
         
         self.rowFormatter = rowFormatter
@@ -469,14 +461,6 @@ class ListView(FastObjectListView):
         for track in self.GetFilteredObjects():
             listeID.append(track.IDreglement)
         return listeID
-
-
-
-
-
-
-
-
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 

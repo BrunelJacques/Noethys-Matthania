@@ -2225,7 +2225,7 @@ class ListSliceBlock(Block):
             self.engine.AddBlock(RunningBlockPusher(headerBlock, False))
 
         # Colonne Footer
-        if self.lv.ctrl_footer != None :
+        if hasattr(self.lv,"ctrl_footer") and  self.lv.ctrl_footer != None :
             columnFooterBlock = ColumnFooterBlock(self.lv, self.left, self.right, scale, self.allCellWidths)
             self.engine.AddBlock(columnFooterBlock)
 
@@ -2866,8 +2866,8 @@ class WatermarkDecoration(Decoration):
         cx, cy = RectUtils.Center(bounds)
         w, h = dc.GetTextExtent(self.text)
 
-        x = cx - w / 2
-        y = cy - h / 2 + (w / 2 * math.sin(math.radians(self.angle)))
+        x = int(cx - w / 2)
+        y = int(cy - h / 2 + (w / 2 * math.sin(math.radians(self.angle))))
 
         dc.DrawRotatedText(self.text, x, y, self.angle)
 
@@ -3113,8 +3113,6 @@ if __name__ == '__main__':
     import sys
     sys.path.append("wx.CURSOR_Examples")
 
-    import ExampleModel
-    import ExampleImages
 
     class MyFrame(wx.Frame):
         def __init__(self, *args, **kwds):
@@ -3123,8 +3121,7 @@ if __name__ == '__main__':
 
             self.panel = wx.Panel(self, -1)
             #self.lv = ObjectListView(self.panel, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-            self.lv = GroupListView(self.panel, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-            #self.lv = FastObjectListView(self.panel, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+            self.lv = FastObjectListView(self.panel, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
 
             sizer_2 = wx.BoxSizer(wx.VERTICAL)
             sizer_2.Add(self.lv, 1, wx.ALL|wx.EXPAND, 4)
@@ -3136,12 +3133,9 @@ if __name__ == '__main__':
             self.SetSizer(sizer_1)
             self.Layout()
 
-            musicImage = self.lv.AddImages(ExampleImages.getMusic16Bitmap(), ExampleImages.getMusic32Bitmap())
-            artistImage = self.lv.AddImages(ExampleImages.getUser16Bitmap(), ExampleImages.getUser32Bitmap())
-
             self.lv.SetColumns([
-                ColumnDefn("Title", "left", 200, "title", imageGetter=musicImage),
-                ColumnDefn("Artist", "left", 150, "artist", imageGetter=artistImage),
+                ColumnDefn("Title", "left", 200, "title" ),
+                ColumnDefn("Artist", "left", 150, "artist"),
                 ColumnDefn("Last Played", "left", 100, "lastPlayed"),
                 ColumnDefn("Size", "center", 100, "sizeInBytes"),
                 ColumnDefn("Rating", "center", 100, "rating"),
@@ -3149,7 +3143,6 @@ if __name__ == '__main__':
 
             #self.lv.CreateCheckStateColumn()
             self.lv.SetSortColumn(self.lv.columns[2])
-            self.lv.SetObjects(ExampleModel.GetTracks())
 
             wx.CallLater(50, self.run)
 

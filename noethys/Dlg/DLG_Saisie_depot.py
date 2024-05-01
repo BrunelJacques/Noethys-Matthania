@@ -8,7 +8,6 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
@@ -42,7 +41,6 @@ def DateComplete(dateDD):
 def DateEngEnDateDD(dateEng):
     if dateEng and not isinstance(dateEng,str): dateEng = str(dateEng)
     return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-
 
 
 class Choix_compte(wx.Choice):
@@ -94,7 +92,6 @@ class Choix_compte(wx.Choice):
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
-
 class CTRL_Infos(html.HtmlWindow):
     def __init__(self, parent, texte="", hauteur=32,  couleurFond=(255, 255, 255), style=0):
         html.HtmlWindow.__init__(self, parent, -1, style=style)#, style=wx.html.HW_NO_SELECTION | wx.html.HW_SCROLLBAR_NEVER | wx.NO_FULL_REPAINT_ON_RESIZE)
@@ -112,9 +109,7 @@ class CTRL_Infos(html.HtmlWindow):
         self.SetPage(u"""<BODY><FONT SIZE=2 COLOR='#000000'>%s</FONT></BODY>""" % texte)
         self.SetBackgroundColour(self.couleurFond)
     
-
 # ---------------------------------------------------------------------------------------------------------------------------------------
-
 
 class Track(object):
     def __init__(self, donnees):
@@ -152,7 +147,8 @@ class Track(object):
             self.montant_ventilation = 0.0
         self.nom_compte = donnees[24]
         self.IDfamille = donnees[25]
-        self.email_depots = donnees[26]
+        self.email_depots = ""
+        self.adresse_intitule = donnees[26]
         self.avis_depot = donnees[27]
         self.compta = donnees[28]
 
@@ -161,7 +157,6 @@ class Track(object):
             self.inclus = False
         else:
             self.inclus = True
-
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -328,7 +323,8 @@ class Dialog(wx.Dialog):
         date_saisie, IDutilisateur, 
         SUM(ventilation.montant) AS total_ventilation,
         comptes_bancaires.nom,
-        familles.IDfamille, familles.email_depots,
+        familles.IDfamille, 
+        familles.adresse_intitule,
         reglements.avis_depot,
         reglements.compta
         FROM reglements
@@ -711,11 +707,10 @@ class Dialog(wx.Dialog):
                 track.avis_depot = datetime.date.today()
                 self.ctrl_reglements.RefreshObject(track)
 
-
 if __name__ == "__main__":
     app = wx.App(0)
     #wx.InitAllImageHandlers()
-    dialog_1 = Dialog(None, IDdepot=3545)
+    dialog_1 = Dialog(None, IDdepot=3357)
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()
     app.MainLoop()

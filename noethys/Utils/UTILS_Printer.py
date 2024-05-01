@@ -15,6 +15,7 @@ import wx
 import datetime
 import GestionDB
 from ListCtrlPrinter import ListCtrlPrinter, ReportFormat
+import ListCtrlPrinter as LCP
 from Dlg import DLG_Options_impression_listes
 from Utils import UTILS_Dates
 
@@ -228,8 +229,8 @@ class ObjectListViewPrinter():
         self.printer.printout.printData.SetOrientation(dictOptions["orientation"])
         self.printer.printout.printData.SetQuality(int(dictOptions["qualite_impression"]))
         self.printer.PageFooter = (dictOptions["pied_page_texte_gauche"], dictOptions["pied_page_texte_milieu"], dictOptions["pied_page_texte_droite"])
-        ListCtrlPrinter.LISTINTRO = dictOptions["introduction"]
-        ListCtrlPrinter.LISTFOOTER = dictOptions["conclusion"]
+        LCP.LISTINTRO = dictOptions["introduction"]
+        LCP.LISTFOOTER = dictOptions["conclusion"]
         
         # Préparation du format
         fmt = ReportFormat()
