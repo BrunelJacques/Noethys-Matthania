@@ -14,7 +14,6 @@ import wx
 import datetime
 import GestionDB
 from ListCtrlPrinter import ListCtrlPrinter, ReportFormat
-import ListCtrlPrinter as LCP
 from Dlg import DLG_Options_impression_listes
 from Utils import UTILS_Dates
 

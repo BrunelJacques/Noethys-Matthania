@@ -1,3 +1,6 @@
+version  1.3.2.80 (02/05/2024)
+- Corrections mineures non diffusée
+
 version  1.3.2.79 (02/05/2024)
 - Bug sur message intro
 

@@ -250,6 +250,7 @@ class ObjectListView(wx.ListCtrl):
         # to (in the future) implement filtering or some other view-like capabilities.
         # Currently, for ObjectListView, these collections will be identical, but for a
         # GroupListView they are different.
+        self.ctrl_footer = None
         self.modelObjects = []
         self.innerList = []
         self.columns = []
