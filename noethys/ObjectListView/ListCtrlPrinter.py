@@ -106,8 +106,6 @@ from FonctionsPerso import Nz
 from WordWrapRenderer import WordWrapRenderer
 
 # Ajout Perso :
-LISTINTRO = ""
-LISTFOOTER=u""
 
 #----------------------------------------------------------------------------
 
@@ -122,9 +120,6 @@ class ListCtrlPrinter(object):
     def __init__(self, listCtrl=None, title="ListCtrl Printing"):
         """
         """
-        global LISTINTRO, LISTFOOTER
-        LISTINTRO = ""
-        LISTFOOTER=u""
         self.printout = ListCtrlPrintout(self)
         self.engine = ReportEngine()
         if listCtrl is not None:
@@ -1673,6 +1668,7 @@ class CellBlock(Block):
         for x in buckets:
             if x.cellWidth is None:
                 x.innerCellWidth = 0
+                x.cellWidth = 0
                 x.text = ''
             else:
                 x.innerCellWidth = max(
@@ -2025,9 +2021,9 @@ class ListBlock(Block):
             if not first:
                 self.engine.AddBlock(PageBreakBlock())
             self.engine.AddBlock(ListHeaderBlock(self.lv, self.title))
-            self.engine.AddBlock(ListIntroBlock(self.lv, LISTINTRO))
+            self.engine.AddBlock(ListIntroBlock(self.lv, self.lv.lstIntroduction))
             self.engine.AddBlock(ListSliceBlock(self.lv, left, right, cellWidths))
-            self.engine.AddBlock(ListFooterBlock(self.lv, LISTFOOTER))
+            self.engine.AddBlock(ListFooterBlock(self.lv, self.lv.lstConclusion))
             first = False
 
         return True

@@ -8,7 +8,6 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
 import Chemins
 from Utils.UTILS_Traduction import _
 import wx
@@ -18,8 +17,6 @@ from ListCtrlPrinter import ListCtrlPrinter, ReportFormat
 import ListCtrlPrinter as LCP
 from Dlg import DLG_Options_impression_listes
 from Utils import UTILS_Dates
-
-
 
 
 class PreviewControlBar(wx.PyPreviewControlBar):
@@ -159,8 +156,6 @@ class PreviewControlBar(wx.PyPreviewControlBar):
             self.ctrl_zoom.SetValue(zoom)
             self.preview.SetZoom(zoom)
 
-
-        
     
 class PreviewFrame(wx.PyPreviewFrame):
     def __init__(self, preview, parent, title=_("Aperçu avant impression"), orientation=wx.PORTRAIT):
@@ -229,8 +224,8 @@ class ObjectListViewPrinter():
         self.printer.printout.printData.SetOrientation(dictOptions["orientation"])
         self.printer.printout.printData.SetQuality(int(dictOptions["qualite_impression"]))
         self.printer.PageFooter = (dictOptions["pied_page_texte_gauche"], dictOptions["pied_page_texte_milieu"], dictOptions["pied_page_texte_droite"])
-        LCP.LISTINTRO = dictOptions["introduction"]
-        LCP.LISTFOOTER = dictOptions["conclusion"]
+        self.listview.lstIntroduction = dictOptions["introduction"]
+        self.listview.lstConclusion = dictOptions["conclusion"]
         
         # Préparation du format
         fmt = ReportFormat()
@@ -327,8 +322,6 @@ class ObjectListViewPrinter():
 ##        self.printer.printout.printData.SetQuality(wx.PRINT_QUALITY_MEDIUM)
 ##        dateJour = DateEngFr(str(datetime.date.today()))
 ##        self.printer.PageFooter = (dateJour, "%s - %s" % (self.titre, self.GetNomOrganisateur()), "%(currentPage)d / %(totalPages)d")
-##        ListCtrlPrinter.LISTINTRO = self.intro
-##        ListCtrlPrinter.LISTFOOTER = self.total
 ##        if format == "A" : self.printer.ReportFormat = self.GetFormatA()
         
     def PreviewStandard(self):
@@ -347,10 +340,8 @@ class ObjectListViewPrinter():
         printPreview = self.printer.printout.GetPrintPreview()
         printPreview.SetZoom(100)
 
-        frm = MyPreviewFrame(printPreview, None, _("Aperçu avant impression"))
+        frm = MyPreviewFrame(printPreview, None, "Aperçu avant impression")
         frm.Show(True)
-
-
 
     def GetFormatA(self):        
         """ Paramètres du format personnalisé pour objectlistview """
@@ -455,12 +446,10 @@ class MyPreviewFrame(wx.PreviewFrame):
         self.Initialize()
 
         # Récupération de la bar de contrôle
-        if 'phoenix' not in wx.PlatformInfo:
-            controlBar = self.GetControlBar()
-        else:
-            for ctrl in self.GetChildren():
-                if "ControlBar" in str(ctrl):
-                    controlBar = ctrl
+        controlBar = None
+        for ctrl in self.GetChildren():
+            if "ControlBar" in str(ctrl):
+                controlBar = ctrl
 
         liste_controles = controlBar.GetChildren()
 
@@ -475,18 +464,9 @@ class MyPreviewFrame(wx.PreviewFrame):
         liste_controles[10].SetToolTip(wx.ToolTip(_("Fermer")))
         liste_controles[10].SetLabel(_("Fermer"))
 
-        # Ajustement taille et position de la fenêtre
-        if 'phoenix' not in wx.PlatformInfo:
-            self.MakeModal(False)
-
         frame = wx.GetApp().GetTopWindow()
         self.SetPosition(frame.GetPosition())
         self.SetSize(frame.GetSize())
-
-
-
-
-        
 
 
 class FramePreview(wx.Frame):
@@ -560,14 +540,6 @@ class FramePreview(wx.Frame):
         # Initialisation des contrôles
         self.OnZoom(None)
 
-
-    def OnPageSetup(self, event): 
-        self.listCtrlPrinter.PageSetup()
-        self.RefreshPreview()
-
-    def OnPrint(self, event): 
-        self.listCtrlPrinter.Print()
-
     def OnPremierePage(self, event): # wxGlade: MyFrame.<event_handler>
         self.printPreview.SetCurrentPage(self.printPreview.GetMinPage())
 
@@ -592,5 +564,4 @@ class FramePreview(wx.Frame):
     
     def OnFermer(self, event):
         self.Destroy() 
-
 

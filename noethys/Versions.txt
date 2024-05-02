@@ -1,3 +1,6 @@
+version  1.3.2.79 (02/05/2024)
+- Bug sur message intro
+
 version  1.3.2.78 (01/05/2024)
 - Amélioration Impression des dépôts de chèques
 
