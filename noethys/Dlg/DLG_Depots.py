@@ -78,7 +78,8 @@ class Track(object):
         self.IDutilisateur = donnees[22]
         self.nom_compte = donnees[23]
         self.IDfamille = donnees[24]
-        self.email_depots = donnees[25]
+        self.email_depots = ""
+        self.adresse_intitule = donnees[25]
         self.avis_depot = donnees[26]
 
         # Etat
@@ -93,7 +94,6 @@ class Track(object):
             self.nomTitulaires = self.parent.dict_titulaires[self.IDfamille]["titulairesSansCivilite"]
         except :
             pass
-
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -241,7 +241,8 @@ class Dialog(wx.Dialog):
         reglements.IDdepot, depots.date, depots.nom, depots.verrouillage, 
         date_saisie, IDutilisateur,
         comptes_bancaires.nom,
-        familles.IDfamille, familles.email_depots,
+        familles.IDfamille, 
+        familles.adresse_intitule,
         reglements.avis_depot
         FROM reglements
         LEFT JOIN modes_reglements ON reglements.IDmode=modes_reglements.IDmode

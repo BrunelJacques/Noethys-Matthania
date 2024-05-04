@@ -1579,13 +1579,15 @@ class MainFrame(wx.Frame):
         style = wx.OK | wx.ICON_INFORMATION
         # Compare les versions par les tuples
         if len(versionLogiciel) < 3:
+            # numéro de version trop court
             message = "Numéro Version incorrect : %s"% VERSION_LOGICIEL
             wx.MessageBox(message,titre,style=wx.ICON_INFORMATION)
             return True
         elif versionData == versionLogiciel:
+            # pas de mise à jour nécessaire
             return True
         elif versionData[:2] != versionLogiciel[:2]:
-            # Changement majeur, réserve l'action aux admins (version python?)
+            # Changement majeur, réserve l'action aux admins
             mess = "INCOHERENCE VERSIONS\n\n"
             mess += "Version logiciel '%s' - Version base de donnée '%s'\n" % (
                 versionData[:2], versionLogiciel[:2])
@@ -1598,7 +1600,6 @@ class MainFrame(wx.Frame):
             self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
             self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(True)
             resultat = True
-
         elif versionData[:3] < versionLogiciel[:3]:
             # Changement de niveau version, nécessite MAJ_TablesEtChamps
             mess = "Base de donnée d'un niveau inférieur\n\n"
@@ -1639,16 +1640,19 @@ class MainFrame(wx.Frame):
                 resultat = False
 
         else:
+            # Lancement de la release ordinaire
             from Dlg import DLG_Release
             dlg = DLG_Release.Dialog(self, VERSION_DATA, VERSION_LOGICIEL_DATE)
             resultat = dlg.ShowModal()
             majFaite = dlg.majFaite
             dlg.Destroy()
-            if not majFaite:
+            if versionData < versionLogiciel:
+                self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
+                resultat = True
+            elif not majFaite:
                 self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
                 message = "Votre station n'est pas synchronisée!\n\n"
-                message += "installez la version '%s.xxx' la plus récente ." % VERSION_LOGICIEL[
-                                                                               :3]
+                message += "installez la version '%s.xxx' la plus récente ." % VERSION_LOGICIEL[:3]
                 titre = "Erreur"
                 style = wx.OK | wx.ICON_EXCLAMATION
             else:

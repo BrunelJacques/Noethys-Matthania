@@ -56,17 +56,16 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         wx.TextCtrl.__init__(self, parent, wx.ID_ANY, label, pos, size, style=style)
         self.parent = parent
         self.version_logiciel = self.parent.version_logiciel
+        self.version_data = self.parent.version_data
         self.version_choix = None
         # les deux premiers items affichés sont exprimés en texte comme préfixe
         self.invite = "\nActuellement: Version % s\n" % self.version_logiciel
         self.dbDoc, self.dbData = self.SetParamConnexion("")
 
         self.tplVersionLogiciel = FonctionsPerso.ConvertVersionTuple(self.version_logiciel)
-        self.version_data = self.parent.version_data
         self.zipFile = None # vient d'un fichier ou de la base (alors non re-stockable)
         self.nomFichier = None # signale un fichier valide - chargé - stockable
         self.tplVersionData = None
-
         self.MAJ(self.version_data)
 
     def MAJ(self,version_choix):
@@ -82,7 +81,7 @@ class CTRL_AfficheVersion(wx.TextCtrl):
                 if "disponible" in invite:
                     invite += ", ou une autre version."
                 self.SetValue(invite)
-        else:
+        elif self.version_choix > self.version_logiciel:
             nouveautes = self.GetNouveautes(self.zipFile)
             self.SetValue("%sVersions à installer :\n\n%s" % (self.invite, nouveautes))
         self.parent.EnableBoutons()
@@ -262,7 +261,7 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         except Exception as err:
             print(type(err), err)
             return
-        self.ValidationFile(zipFile,nomFichier)
+        return self.ValidationFile(zipFile,nomFichier)
 
     def GetFileInDocuments(self, tplVersion):
         # Ouvre le fichier zip-release de la base de donnée et affiche son contenu
@@ -387,6 +386,7 @@ class Dialog(wx.Dialog):
                            style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
         self.parent = parent
         self.majFaite = False
+        self.justChecked = False
         if not version_data or not version_logiciel_date:
             version_data, version_logiciel_date = self.GetVersions()
         posDeb = version_logiciel_date.find("n") +1
@@ -517,23 +517,27 @@ class Dialog(wx.Dialog):
             ok = True
         else: ok = False
         self.bouton_ok.Enable(ok)
-        self.check_maj.Enable(ok)
-        self.check_stocke.Enable(ok)
-        self.bouton_fichier.Enable(not ok)
+        self.bouton_fichier.Enable(True)
+        possible = self.version_data >= self.version_logiciel
+        if not self.justChecked:
+            self.check_maj.SetValue(possible)
+            self.check_maj.Enable(possible)
+            self.check_stocke.Enable(ok)
         self.choice_baseDonnees.Enable(not ok)
         self.bouton_versions.Enable(not ok)
+        self.justChecked = False
         if hasattr(self,"ctrl_donnees"):
             if not self.ctrl_affiche.nomFichier:
                 self.check_stocke.SetValue(False)
                 self.check_stocke.Enable(False)
         # porte dérobée pour dégriser l'accès aux autres versions
         if not self.check_maj.GetValue() and not self.check_stocke.GetValue():
-            self.bouton_fichier.Enable(True)
             self.choice_baseDonnees.Enable(True)
             self.bouton_versions.Enable(True)
 
     def OnCheck(self, event):
         # MAJ de l'affichage de la recherche par défaut
+        self.justChecked = True # à l'intention de EnableBoutons
         self.ctrl_affiche.MAJ(self.version_data)
         return
 
