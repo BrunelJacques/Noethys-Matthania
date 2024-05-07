@@ -333,6 +333,7 @@ class ListView(FastObjectListView):
             #ColumnDefn(_("Attente"), 'left', 65, "encaissement_attente", typeDonnee="texte", stringConverter=FormateAttente), #, imageGetter=GetImageAttente),
             #ColumnDefn(_("Quittancier"), 'left', 75, "numero_quittancier", typeDonnee="texte"),
             ColumnDefn(_("Observations"), 'left', 160, "observations", typeDonnee="texte"),
+            ColumnDefn(_("En compta"), 'left', 80, "compta", typeDonnee="texte"),
             ]
         
         self.rowFormatter = rowFormatter
