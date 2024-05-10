@@ -18,7 +18,6 @@ try:
     if "linux" in sys.platform:
         messRaise = "Installer git sous linux: 'sudo apt install git'"
         SEP = "/"
-        git = "git"
 
     # tentative d'installation du package github si non présent
     if not importlib.util.find_spec('git'):
