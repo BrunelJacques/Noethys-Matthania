@@ -101,7 +101,7 @@ import datetime
 import math
 import wx
 
-from FonctionsPerso import Nz
+import FonctionsPerso as fp
 from WordWrapRenderer import WordWrapRenderer
 
 #----------------------------------------------------------------------------
@@ -1576,7 +1576,7 @@ class CellBlock(Block):
         Calculate the total width of this block (cells plus padding)
         """
         return sum(
-            Nz(x.cellWidth) for x in self.GetCombinedLists()) + self.CalculateExtrasWidth(dc)
+            fp.Nz(x.cellWidth) for x in self.GetCombinedLists()) + self.CalculateExtrasWidth(dc)
 
     # ----------------------------------------------------------------------------
     # Commands

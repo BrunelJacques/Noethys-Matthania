@@ -8,9 +8,8 @@
 #------------------------------------------------------------------------
 
 import wx
-import Chemins
 import GestionDB
-from Gest import GestionInscription
+import GestionInscription
 import GestionPieces as fGest
 from Data import DATA_Tables
 

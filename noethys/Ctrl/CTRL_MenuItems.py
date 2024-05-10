@@ -7,6 +7,7 @@
 # Copyright:       (c) 2010-12 Ivan LUCAS, JB
 # Licence:         Licence GNU GPL
 #-----------------------------------------------------------
+import os
 
 import wx
 import FonctionsPerso
@@ -82,16 +83,17 @@ def GetListItemsMenu(self,menuTransports):
              "image": "Images/16x16/Conversion_local.png",
              "action": self.On_fichier_Convertir_local, "actif": False},
             "-",
-            {"code": "upgrade_base",
-             "label": _("Upgrade de la Base de donnée"),
-             "infobulle": _("Cet outil ajoute les tables et champs manquants"),
-             "image": "Images/16x16/Outils.png",
-             "action": self.On_upgrade_base, "actif": True},
             {"code": "upgrade_modules",
              "label": _("Mise à jour Noethys"),
-             "infobulle": _("Cet outil permet d'importer un nouvelle version des programmes "),
+             "infobulle": _("Cet outil met à jour les programmes par la base de donnée"),
              "image": "Images/16x16/Outils.png",
              "action": self.On_upgrade_modules, "actif": True},
+            {"code": "upgrade_github",
+             "label": _("Installation-release depuis Github"),
+             "infobulle": _(
+                 "Cet outil permet d'installer ou releaser les programmes par internet "),
+             "image": "Images/16x16/Outils.png",
+             "action": self.On_upgrade_github, "actif": True},
             "-",
             {"code": "quitter", "label": _("Quitter"),
              "infobulle": _("Quitter Noethys"),
@@ -1595,6 +1597,15 @@ class Menu(object):
         dlg.Destroy()
         if ret == wx.ID_OK:
             self.parent.Quitter()
+
+    def On_upgrade_github(self, event):
+        pathInitial = os.getcwd()
+        from Outils import xGithub
+        os.chdir("..")
+        dlg = xGithub.DLG("Noethys-Matthania")
+        dlg.ShowModal()
+        dlg.Destroy()
+        os.chdir(pathInitial)
 
     def On_fichier_Quitter(self,event):
         self.parent.Quitter()

@@ -1,3 +1,6 @@
+version  1.3.2.81 (10/05/2024)
+- Implémentation releases via github
+
 version  1.3.2.80 (04/05/2024)
 - Affichage famille dans Gestion des dépôts
 - Corrections diverses

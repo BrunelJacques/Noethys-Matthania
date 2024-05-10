@@ -1529,7 +1529,6 @@ class MainFrame(wx.Frame):
 
         if UTILS_Utilisateurs.IsAdmin(afficheMessage=False):
             self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
-            self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(True)
         else:
             self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(False)
             self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(False)
@@ -1537,8 +1536,6 @@ class MainFrame(wx.Frame):
         # les versions correspondent: on passe
         if versionData == versionLogiciel:
             return True
-        # synchronisation des versions
-        resultat = True
 
         def EnregistreVersion():
             # Mémorisation de la nouvelle version du fichier
@@ -1669,6 +1666,7 @@ class MainFrame(wx.Frame):
             dlg.CenterOnParent()
             dlg.ShowModal()
             dlg.Destroy()
+
         return True
 
     def ActiveBarreMenus(self, etat=True):
