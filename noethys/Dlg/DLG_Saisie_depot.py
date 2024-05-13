@@ -441,16 +441,7 @@ class Dialog(wx.Dialog):
             return
         # Sauvegarde des règlements
         self.Sauvegarde_reglements()
-        
-        # Envoi par Email des avis de dépôt
-        nbreAvisDepots = self.GetNbreAvisDepots()
-        if nbreAvisDepots > 0 :
-            dlg = wx.MessageDialog(None, _("Il y a %d avis de dépôt à envoyer par Email !\n\nSouhaitez-vous le faire maintenant ?") % nbreAvisDepots, _("Avis de dépôt"), wx.YES_NO|wx.YES_DEFAULT|wx.ICON_QUESTION)
-            reponse = dlg.ShowModal() 
-            dlg.Destroy()
-            if reponse == wx.ID_YES :
-                self.EnvoyerAvisDepots()
-            
+
         # Fermeture
         self.EndModal(wx.ID_OK)
     
@@ -643,7 +634,7 @@ class Dialog(wx.Dialog):
         # Recherche les familles abonnées à ce service
         listeDonnees = []
         for track in self.tracks :
-            if track.email_depots != None and track.inclus == True :
+            if (not(track.email_depots in (None, ""))) and track.inclus == True :
                 
                 # Recherche de l'adresse d'envoi
                 IDindividu, categorie, adresse = track.email_depots.split(";")

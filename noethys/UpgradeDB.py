@@ -15,7 +15,7 @@ import GestionDB
 import FonctionsPerso as fp
 from Data import DATA_Tables
 from Utils import UTILS_Fichiers
-from Utils import UTILS_Utilisateurs
+from noethys.Utils import UTILS_Utilisateurs
 
 class DB(GestionDB.DB):
     def __init__(self, *args, **kwds):
