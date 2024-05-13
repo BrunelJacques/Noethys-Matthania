@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#-------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 # Application :    Gestion GITHUB install ou mise à jour d'application
 # Auteur:          Jacques BRUNEL
 # Licence:         Licence GNU GPL
-#--------------------------------------------------------------------------
+# --------------------------------------------------------------------------
 
 import os, sys
 import importlib.util
@@ -41,7 +41,8 @@ except Exception as err:
     raise Exception("Echec %s: %s\n%s" % (mess, err, messRaise))
 
 
-def IsPullNeeded(repo_path,mute=False):
+
+def IsPullNeeded(repo_path, mute=False):
     try:
         repo = git.Repo(repo_path)
         origin = repo.remotes.origin
@@ -55,20 +56,21 @@ def IsPullNeeded(repo_path,mute=False):
         if needed and mute == False:
             mess = "Une mise à jour des programmes NOESTOCK-NOELITE est nécessaire\n\n"
             mess += "Voulez-vous faire cette mise à jour maintenant?"
-            ret = wx.MessageBox(mess,"Nouvelle version",
-                                style=wx.YES_NO|wx.ICON_INFORMATION)
+            ret = wx.MessageBox(mess, "Nouvelle version",
+                                style=wx.YES_NO | wx.ICON_INFORMATION)
             if ret == wx.YES:
                 path = os.getcwd()
                 needed, mess = PullGithub(path)
                 style = wx.ICON_INFORMATION
-                if needed: # détail de l'erreur retourné dans le message
+                if needed:  # détail de l'erreur retourné dans le message
                     style = wx.ICON_ERROR
-                wx.MessageBox(mess,"Retour Github",style=style)
-            else: needed = False
+                wx.MessageBox(mess, "Retour Github", style=style)
+            else:
+                needed = False
         return needed
 
     except git.exc.GitCommandError as e:
-        wx.MessageBox(f"Error: {e}","Accès GITHUB échoué",wx.ICON_ERROR)
+        wx.MessageBox(f"Error: {e}", "Accès GITHUB échoué", wx.ICON_ERROR)
         return False
 
 def PullGithub(appli_path, stash_changes=False, reset_hard=False):
@@ -98,6 +100,7 @@ def PullGithub(appli_path, stash_changes=False, reset_hard=False):
         err = True
     return err, mess
 
+
 def CloneGithub(repo_url, appli_path):
     err = None
     try:
@@ -110,6 +113,7 @@ def CloneGithub(repo_url, appli_path):
         err = True
     return err, mess
 
+
 class DLG(wx.Dialog):
     def __init__(self,lanceur=""):
         super().__init__(None, title="Installateur depuis GITHUB",
@@ -118,13 +122,13 @@ class DLG(wx.Dialog):
         self.initialPath = os.getcwd()
         self.lblPull = "   Release de l'existant"
         self.lblClone = "   Nouvelle installation"
-        self.lstApplis = ['NoeXpy','Noethys-Matthania']
-        self.lstFichierTest = ['Noestock.py','noethys%sNoethys.py'%SEP]
+        self.lstApplis = ['NoeXpy', 'Noethys-Matthania']
+        self.lstFichierTest = ['Noestock.py', 'noethys%sNoethys.py' % SEP]
         self.lanceur = lanceur
         self.initChoixAppli = ""
-        if lanceur.lower() in ['noestock', 'noelite','noexpy']:
+        if lanceur.lower() in ['noestock', 'noelite', 'noexpy']:
             self.initChoixAppli = 'NoeXpy'
-        elif lanceur.lower() in ['noethys-matthania','noethys']:
+        elif lanceur.lower() in ['noethys-matthania', 'noethys']:
             self.initChoixAppli = 'Noethys-Matthania'
         self.warning = False
         self.Controls()
@@ -133,7 +137,8 @@ class DLG(wx.Dialog):
 
     def Controls(self):
         self.staticboxAppli = wx.StaticBox(self, label=" Choix de l'application ")
-        self.staticboxDir = wx.StaticBox(self, label=" Répertoire de l'application (parcourir avec BROWSE)")
+        self.staticboxDir = wx.StaticBox(self,
+                                         label=" Répertoire de l'application (parcourir avec BROWSE)")
         choices = []
         for x in self.lstApplis:
             if x not in choices:
@@ -141,7 +146,6 @@ class DLG(wx.Dialog):
         self.cmbAppli = wx.ComboBox(self, value=self.initChoixAppli, choices=choices)
         self.radPull = wx.RadioButton(self, label=self.lblPull, style=wx.RB_GROUP)
         self.radClone = wx.RadioButton(self, label=self.lblClone)
-
 
         self.dirPicker = wx.DirPickerCtrl(self,
                                           message="Choisir le répertoire d'installation:",
@@ -186,7 +190,7 @@ class DLG(wx.Dialog):
         self.SetSizer(sizer)
         self.Show()
 
-    def Validation(self,event=None):
+    def Validation(self, event=None):
         self.warning = False
         ok = True
         # vérif choix appli, certains tests ne bloquent pas: self.checkForce.GetValue()
@@ -196,7 +200,7 @@ class DLG(wx.Dialog):
                           "Nom de l'appli court!")
             self.cmbAppli.SetFocus()
             self.warning = True
-            ok =ok and self.checkForce.GetValue()
+            ok = ok and self.checkForce.GetValue()
 
         # vérif de l'emplacement selon action souhaitée
         dir = self.dirPicker.GetPath()
@@ -223,21 +227,21 @@ class DLG(wx.Dialog):
                 mess = "Pb de positionnement pour une mise à jour, \n\n"
                 mess += f"'{SEP}{file}' est normalement présent à la racine de l'appli"
                 mess += f" '{libAppli}'"
-                wx.MessageBox(mess,"Echec test de présence fichier")
+                wx.MessageBox(mess, "Echec test de présence fichier")
                 self.dirPicker.SetFocus()
                 self.warning = True
-                ok =ok and self.checkForce.GetValue()
+                ok = ok and self.checkForce.GetValue()
         else:
             # nouvelle installation la destination est-elle bien vide
             exists = os.path.exists(dir)
-            if ok and  exists and (len(os.listdir(dir)) > 0):
+            if ok and exists and (len(os.listdir(dir)) > 0):
                 # répertoire non vide
                 mess = f"Le répertoire '{dir}' n'est pas vide\n\n"
                 mess += "une installation crée le repertoire ou se fait dans un vide"
-                wx.MessageBox(mess,"Echec car présence fichiers")
+                wx.MessageBox(mess, "Echec car présence fichiers")
                 self.dirPicker.SetFocus()
                 self.warning = True
-                ok =ok and self.checkForce.GetValue()
+                ok = ok and self.checkForce.GetValue()
 
         # sur installation vérif de non-imbrication d'applis
         if not isPull:
@@ -247,18 +251,18 @@ class DLG(wx.Dialog):
                     mess = f"Dans le chemin '{dir}' il y a déjà une appli\n\n"
                     mess += f"l'appli '{libAppli}' ne peut s'installer sous '{appli}'"
                     mess += "\nvoyez pour une mise à jour ou installer ailleurs."
-                    wx.MessageBox(mess,"Risque d'imbrication d'applications")
+                    wx.MessageBox(mess, "Risque d'imbrication d'applications")
                     self.dirPicker.SetFocus()
                     self.warning = True
-                    ok =ok and self.checkForce.GetValue()
+                    ok = ok and self.checkForce.GetValue()
 
         # vérif si la mise à jour est nécessaire
-        if isPull and ok and not IsPullNeeded(dir,mute=True):
+        if isPull and ok and not IsPullNeeded(dir, mute=True):
             mess = "Pas de mise à jour nécessaire\n\nforcer est possible"
             wx.MessageBox(mess, "Versions identiques")
-            ok =ok and self.checkForce.GetValue()
+            ok = ok and self.checkForce.GetValue()
 
-        # l'ensemble de tests est ok
+        # l'ensemble de tests est ok.
         return ok
 
     def Execution(self):
@@ -292,7 +296,7 @@ class DLG(wx.Dialog):
             style = wx.ICON_ERROR
         else:
             style = wx.ICON_INFORMATION
-        return  wx.MessageBox(mess, "Rapport de l'action", style=style)
+        return wx.MessageBox(mess, "Rapport de l'action", style=style)
 
     def AjustePath(self):
         appli = self.cmbAppli.GetValue()
@@ -303,7 +307,7 @@ class DLG(wx.Dialog):
         lastDir = dir.split(SEP)[-1]
         # ajuste dir si lastDir est n'est pas contenu avec le nom de l'appli
         if not lastDir.lower()[:6] in appli.lower():
-            dir += SEP+appli
+            dir += SEP + appli
         self.dirPicker.SetPath(dir)
 
     def OnDirPicker(self, event):
@@ -320,7 +324,8 @@ class DLG(wx.Dialog):
             return
         ret = self.Execution()
         if ret == wx.OK:
-             self.Close()
+            self.Close()
+
 
 # Lancement
 if __name__ == "__main__":
@@ -336,6 +341,7 @@ if __name__ == "__main__":
     fin = datetime.datetime.now()
     delta = (fin - debut).total_seconds()
     print(f"IsPullNeeded:{ret}, durée: {delta}")
+
     dlg = DLG("Noethys")
     app.MainLoop()
 
