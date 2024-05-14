@@ -19,8 +19,9 @@ import GestionDB
 import UpgradeDB
 import FonctionsPerso
 import random
-#from Patchs import aui # modif temporaire pb version aui dupliqué
+# import aui détourné # modif temporaire pb ModernDockArt
 import wx.lib.agw.aui as aui
+from Outils.dockart import ModernDockArt
 import wx.lib.agw.advancedsplash as AS
 import wx.lib.agw.toasterbox as Toaster
 from Utils.UTILS_Traduction import _
@@ -167,7 +168,7 @@ class MainFrame(wx.Frame):
         self._mgr = aui.AuiManager()
         if "linux" not in sys.platform:
             try:
-                self._mgr.SetArtProvider(aui.ModernDockArt(self))
+                self._mgr.SetArtProvider(ModernDockArt(self))
             except:
                 pass
         self._mgr.SetManagedWindow(self)
