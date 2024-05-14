@@ -680,6 +680,7 @@ class ReportFormat(object):
         self.Row = BlockFormat()
         self.ListFooter = BlockFormat()
         self.PageFooter = BlockFormat()
+        self.ListIntro = BlockFormat()
         self.Watermark = BlockFormat()
 
         self.IncludeImages = True
