@@ -24,32 +24,34 @@ import wx.lib.agw.aui as aui
 from Outils.dockart import ModernDockArt
 import wx.lib.agw.advancedsplash as AS
 import wx.lib.agw.toasterbox as Toaster
-from Utils.UTILS_Traduction import _
-from Utils import UTILS_Traduction
-from Utils import UTILS_Linux
-from Utils import UTILS_Config
-from Utils import UTILS_Customize
-from Utils import UTILS_Historique
-from Utils import UTILS_Sauvegarde_auto
-from Utils import UTILS_Rapport_bugs
-from Utils import UTILS_Utilisateurs
-from Utils import UTILS_Fichiers
-from Utils import UTILS_Json
-from Utils import UTILS_Parametres
-from Ctrl import CTRL_MenuItems
-from Ctrl import CTRL_Accueil
-from Ctrl import CTRL_Messages
-from Ctrl import CTRL_Identification
-from Ctrl import CTRL_Numfacture
-from Ctrl import CTRL_Recherche_individus
-from Ctrl import CTRL_Ephemeride
-from Dlg import DLG_Effectifs
-from Dlg import DLG_Message_html
-from Dlg import DLG_Enregistrement
-from Ctrl import CTRL_Toaster
-from Ctrl import CTRL_Portail_serveur
-from Ctrl import CTRL_TaskBarIcon
 from Crypto.Hash import SHA256
+
+from Utils.UTILS_Traduction import _
+import Utils.UTILS_Traduction as UTILS_Traduction
+import Utils.UTILS_Linux as UTILS_Linux
+import Utils.UTILS_Config as UTILS_Config
+import Utils.UTILS_Customize as UTILS_Customize
+import Utils.UTILS_Historique as UTILS_Historique
+import Utils.UTILS_Sauvegarde_auto as UTILS_Sauvegarde_auto
+import Utils.UTILS_Rapport_bugs as UTILS_Rapport_bugs
+import Utils.UTILS_Utilisateurs as UTILS_Utilisateurs
+import Utils.UTILS_Fichiers as UTILS_Fichiers
+import Utils.UTILS_Json as UTILS_Json
+import Utils.UTILS_Parametres as UTILS_Parametres
+import Ctrl.CTRL_MenuItems as CTRL_MenuItems
+import Ctrl.CTRL_Accueil as CTRL_Accueil
+import Ctrl.CTRL_Messages as CTRL_Messages
+import Ctrl.CTRL_Identification as CTRL_Identification
+import Ctrl.CTRL_Numfacture as CTRL_Numfacture
+import Ctrl.CTRL_Recherche_individus as CTRL_Recherche_individus
+import Ctrl.CTRL_Ephemeride as CTRL_Ephemeride
+import Dlg.DLG_Enregistrement as DLG_Enregistrement
+import Ctrl.CTRL_Toaster as CTRL_Toaster
+import Ctrl.CTRL_Portail_serveur as CTRL_Portail_serveur
+import Ctrl.CTRL_TaskBarIcon as CTRL_TaskBarIcon
+import Dlg.DLG_Effectifs as DLG_Effectifs
+import Dlg.DLG_Message_html as DLG_Message_html
+
 #from Cryptodome.Hash import SHA256 # possible avec $ pip install pycryptodomex
 
 

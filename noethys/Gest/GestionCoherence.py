@@ -1653,7 +1653,7 @@ class Diagnostic():
 class DLG_Diagnostic():
     def __init__(self,OneFamille=None):
         self.coherence = None
-        from Dlg import DLG_Choix
+        import Dlg.DLG_Choix as DLG_Choix
         mess1 = "Seulement les écritures non transférées en compta seront testées "
         mess1 += "puis une tentative de correction sera lancée"
         if not OneFamille:
