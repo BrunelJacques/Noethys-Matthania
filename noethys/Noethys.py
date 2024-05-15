@@ -1531,8 +1531,8 @@ class MainFrame(wx.Frame):
         if UTILS_Utilisateurs.IsAdmin(afficheMessage=False):
             self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
         else:
-            self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(False)
-            self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(False)
+            self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
+            self.dictInfosMenu["upgrade_github"]["ctrl"].Enable(False)
 
         # les versions correspondent: on passe
         if versionData == versionLogiciel:

@@ -23,10 +23,7 @@ from Ctrl import CTRL_Bandeau
 from Utils import UTILS_Dates
 import wx.lib.wordwrap as wordwrap
 
-if 'phoenix' in wx.PlatformInfo:
-    from wx.grid import GridCellRenderer
-else:
-    from wx.grid import PyGridCellRenderer as GridCellRenderer
+from wx.grid import GridCellRenderer
 
 COULEUR_CASES_OUVERTES = wx.Colour(255, 255, 255)
 COULEUR_CASES_FERMEES = wx.Colour(240, 240, 240)

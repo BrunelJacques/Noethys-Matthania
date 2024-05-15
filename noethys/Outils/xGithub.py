@@ -115,7 +115,7 @@ def CloneGithub(repo_url, appli_path):
 
 
 class DLG(wx.Dialog):
-    def __init__(self,lanceur=""):
+    def __init__(self, lanceur=""):
         super().__init__(None, title="Installateur depuis GITHUB",
                          pos=(400, 200),
                          style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
