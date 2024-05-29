@@ -802,6 +802,7 @@ class DlgTarification(wx.Dialog):
                     self.ctrl_abandon.SetValue(False)
                     dlgErr.ShowModal()
                     dlgErr.Destroy()
+                    return False
                 else:
                     lstOldIDpar.append(IDligne)
         self.dictDonnees['selfParrainage'] = {}
