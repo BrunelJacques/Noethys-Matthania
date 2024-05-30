@@ -240,8 +240,9 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         self.nomFichier = nomFichier
         if nomFichier:
             self.parent.check_stocke.SetValue(True)
-        else: self.parent.check_stocke.SetValue(False)
-        self.parent.check_maj.SetValue(True)
+        else:
+            self.parent.check_stocke.SetValue(False)
+
         self.MAJ(version_choix)
         return "ok"
 
@@ -518,12 +519,12 @@ class Dialog(wx.Dialog):
         else: ok = False
         self.bouton_ok.Enable(ok)
         self.bouton_fichier.Enable(True)
-        possible = self.version_data >= self.version_logiciel
+        possible = self.version_data > self.version_logiciel
         if not self.justChecked:
             self.check_maj.SetValue(possible)
             self.check_maj.Enable(possible)
             self.check_stocke.Enable(ok)
-        self.choice_baseDonnees.Enable(not ok)
+        self.choice_baseDonnees.Enable(True)
         self.bouton_versions.Enable(not ok)
         self.justChecked = False
         if hasattr(self,"ctrl_donnees"):
@@ -532,7 +533,6 @@ class Dialog(wx.Dialog):
                 self.check_stocke.Enable(False)
         # porte dérobée pour dégriser l'accès aux autres versions
         if not self.check_maj.GetValue() and not self.check_stocke.GetValue():
-            self.choice_baseDonnees.Enable(True)
             self.bouton_versions.Enable(True)
 
     def OnCheck(self, event):
@@ -550,6 +550,12 @@ class Dialog(wx.Dialog):
         # réinitialise la recherche de release
         ctrl.zipFile = None
         ctrl.MAJ(self.version_data)
+        if self.choice_baseDonnees.GetSelection() == 0:
+            self.bouton_ok.Enable(True)
+        elif self.ctrl_affiche.nomFichier:
+            self.bouton_ok.Enable(True)
+        else:
+            self.bouton_ok.Enable(False)
         return
 
     def OnBoutonVersions(self, event):
@@ -558,6 +564,8 @@ class Dialog(wx.Dialog):
 
     def OnBoutonFichier(self, event):
         self.ctrl_affiche.GetFileByChoisir()
+        if self.ctrl_affiche.nomFichier:
+            self.bouton_ok.Enable(True)
         return
 
     def OnBoutonAnnuler(self, event):
@@ -584,6 +592,7 @@ class Dialog(wx.Dialog):
                     print(info)
                     ret = self.ctrl_affiche.UpgradeDB()
                     if ret:
+
                         messStockage += "\n\nBase à jour: %s" % self.ctrl_affiche.version_choix
             else:
                 messStockage = "Echec Stockage: \n%s"%ret

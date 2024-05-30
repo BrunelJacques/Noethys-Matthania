@@ -15,7 +15,7 @@ from Utils.UTILS_Dates import DateEngEnDateDD
 
 TYPE_COULEUR = wx._core.Colour
 
-def ParametresCategorie(mode="get", categorie="", dictParametres={},**kwd):
+def ParametresCategorie(mode="get", categorie="", dictParametres={},nomFichier="",**kwd):
     # Pour mémoriser ou récupérer tous les paramètres d'une catégorie
     """ Le dictionnaire sera éclaté en autant d'enregistrements que d'items
     Renseigner dictParametres est indispensable pour un set,
@@ -28,7 +28,8 @@ def ParametresCategorie(mode="get", categorie="", dictParametres={},**kwd):
     if not categorie or categorie == "":
         mess = 'Le paramètre catégorie est obligatoire '
         raise Exception(mess)
-    DB = GestionDB.DB()
+
+    DB = GestionDB.DB(nomFichier=nomFichier)
 
     # Si aucun fichier n'est chargé, on renvoie la valeur par défaut :
     if DB.echec == 1 :
@@ -102,7 +103,7 @@ def ParametresCategorie(mode="get", categorie="", dictParametres={},**kwd):
     DB.Close()
     return dictFinal
 
-def Parametres(mode="get", categorie="", nom="", valeur=None, **kwd):
+def Parametres(mode="get", categorie="", nom="", valeur=None, nomFichier="", **kwd):
     """ Mémorise ou récupère un paramètre quelconque dans la base de données
         si mode = 'get' : valeur est la valeur par défaut
         si mode = 'set' : valeur est la valeur à donner au paramètre """
@@ -112,7 +113,7 @@ def Parametres(mode="get", categorie="", nom="", valeur=None, **kwd):
         raise Exception(mess)
 
     # Recherche du parametre
-    DB = GestionDB.DB()
+    DB = GestionDB.DB(nomFichier=nomFichier)
 
     # valeurTmp sera le retour par défaut
     valeurTmp = valeur
@@ -124,7 +125,7 @@ def Parametres(mode="get", categorie="", nom="", valeur=None, **kwd):
         if mode == "get":
             return valeur
         else:
-            mess= "Echec d'accès à la base:\n\nErr: %s" % (erreur)
+            mess= "Echec d'accès à la base: %s\n\nErr: %s" % (nomFichier,erreur)
             wx.MessageBox(mess,"UTILS_Parametre.Parametres",style=wx.ICON_STOP)
             return erreur
     if not categorie or len(categorie) == 0:
