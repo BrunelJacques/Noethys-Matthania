@@ -16,8 +16,8 @@ from Ctrl import CTRL_Bouton_image
 import GestionDB
 from Ctrl import CTRL_Bandeau
 from Ol import OL_Liste_prestations
-import CTRL_Saisie_date
-import CTRL_SelectionActivitesModal as sam
+from Ctrl import CTRL_Saisie_date
+from Ctrl import CTRL_SelectionActivitesModal as sam
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -36,7 +36,7 @@ class CTRL_Activite(sam.CTRL_BoutonSelectionActivites):
         if len(self.GetIDactivites()) > 1:
             return "( pieIDactivite in (%s))"%str(self.GetIDactivites())[1:-1]
         elif len(self.GetIDactivites()) > 0:
-            return "( pieIDactivite = %d )" % self.GetIDactivites[0]
+            return "( pieIDactivite = %d )" %self.GetIDactivites()[0]
         else: return "FALSE"
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
