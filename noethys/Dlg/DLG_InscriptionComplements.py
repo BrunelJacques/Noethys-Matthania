@@ -158,13 +158,17 @@ class DlgTransports(wx.Dialog):
             DB.ExecuterReq(req,MsgBox="ExecuterReq")
             recordset = DB.ResultatReq()
             if len(recordset) > 0 :
+                mess = ""
+                for cle in ("IDtranspAller","IDtranspRetour"):
+                    if not self.dictDonnees[cle]:
+                        self.dictDonnees[cle] = 0
                 if not (self.dictDonnees["IDtranspAller"] > 0):
-                    mess = "Un transport orphelin d'une inscription vient d'être rattaché à l'aller, vérifiez si c'est juste"
+                    mess += "Un transport orphelin d'une inscription vient d'être rattaché à l'aller, vérifiez si c'est juste"
                     self.dictDonnees["IDtranspAller"] = recordset[0][0]
-                elif not (self.dictDonnees["IDtranspRetour"] > 0):
-                    mess = "Un transport orphelin d'une inscription vient d'être rattaché au retour, vérifiez si c'est juste"
+                if not (self.dictDonnees["IDtranspRetour"] > 0):
+                    mess += "\nUn transport orphelin d'une inscription vient d'être rattaché au retour, vérifiez si c'est juste"
                     self.dictDonnees["IDtranspRetour"] = recordset[0][0]
-                else:
+                if mess == "":
                     mess = "Il y a des transports orphelins d'une inscription pour cet individu\n"
                     mess += "Supprimez les transports visibles, validez puis revenez pour rattacher les orphelins"
                 wx.MessageBox(mess,"Anomalie",style=wx.ICON_EXCLAMATION)
