@@ -781,7 +781,8 @@ class CTRL_Graphique(wx.ScrolledWindow):
                 # Dessin d'un bitmap
                 if type == "ex-couple" :
                     bmpCouple = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Divorce.png"), wx.BITMAP_TYPE_PNG) 
-                    dc.DrawBitmap(bmpCouple, extremiteLigne[0]-8, (listePoints[0][1]-listePoints[1][1])/2.0+listePoints[1][1]-8)
+                    dc.DrawBitmap(bmpCouple, extremiteLigne[0]-8,
+                                  int((listePoints[0][1]-listePoints[1][1])/2.0+listePoints[1][1]-8))
 
     def DrawLiens(self, dc):
         for numCol in [1, 2, 3] :
