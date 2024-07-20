@@ -250,8 +250,10 @@ class Dialog(wx.Dialog):
             self.bouton_ok_direct.Enable(False)
         if self.dictDonneesOrigine["nature"] in  ("FAC"):
             self.bouton_avoir.Enable(True)
+            self.bouton_compl.Enabme(True)
         else:
             self.bouton_avoir.Enable(False)
+            self.bouton_compl.Enabme(False)
         #fin _set_properties
 
     def __do_layout(self):
