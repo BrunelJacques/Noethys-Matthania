@@ -5,7 +5,7 @@ from . OLVEvent import CellEditFinishedEvent, CellEditFinishingEvent, CellEditSt
 from . OLVEvent import EVT_CELL_EDIT_STARTING, EVT_CELL_EDIT_STARTED, EVT_CELL_EDIT_FINISHING, EVT_CELL_EDIT_FINISHED, EVT_SORT
 from . OLVEvent import EVT_COLLAPSING, EVT_COLLAPSED, EVT_EXPANDING, EVT_EXPANDED, EVT_GROUP_CREATING, EVT_GROUP_SORT, EVT_ITEM_CHECKED
 from . CellEditor import CellEditorRegistry, MakeAutoCompleteTextBox, MakeAutoCompleteComboBox
-from ListCtrlPrinter import ListCtrlPrinter, ReportFormat, BlockFormat, LineDecoration, RectangleDecoration, ImageDecoration
+from . ListCtrlPrinter import ListCtrlPrinter, ReportFormat, BlockFormat, LineDecoration, RectangleDecoration, ImageDecoration
 from . WordWrapRenderer import WordWrapRenderer
 from . import Filter
 from . import CellEditor

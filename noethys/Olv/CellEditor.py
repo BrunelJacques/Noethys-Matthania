@@ -16,7 +16,7 @@
 
 """
 The *CellEditor* module provides some editors for standard types that can be installed
-in an *ObjectListView*. It also provides a *Registry* that maps between standard types
+in an *Olv*. It also provides a *Registry* that maps between standard types
 and functions that will create editors for that type.
 
 Cell Editors
@@ -32,10 +32,10 @@ Cell Editors
         an invalid value. The returned value should be of the correct type, i.e.
         don't return a string if the editor was registered for the bool type.
 
-    The editor should invoke FinishCellEdit() on its parent ObjectListView when it
+    The editor should invoke FinishCellEdit() on its parent Olv when it
     loses focus or when the user commits the change by pressing Return or Enter.
 
-    The editor should invoke CancelCellEdit() on its parent ObjectListView when
+    The editor should invoke CancelCellEdit() on its parent Olv when
     the user presses Escape.
 
 Editor Registry
@@ -114,7 +114,7 @@ class EditorRegistry:
         """
         Register the given function to be called when we need an editor for the given type.
 
-        The function must accept three parameter: an ObjectListView, row index, and subitem index.
+        The function must accept three parameter: an Olv, row index, and subitem index.
         It should return a wxWindow that is parented on the listview, and that responds to:
 
            - SetValue(newValue)
@@ -185,7 +185,7 @@ class EditorRegistry:
 class BooleanEditor(wx.Choice):
 
     """This is a simple editor to edit a boolean value that can be used in an
-    ObjectListView"""
+    Olv"""
 
     def __init__(self, *args, **kwargs):
         kwargs["choices"] = ["True", "False"]
@@ -207,11 +207,11 @@ class BooleanEditor(wx.Choice):
 
 class BaseCellTextEditor(wx.TextCtrl):
 
-    """This is a base text editor for text-like editors used in an ObjectListView"""
+    """This is a base text editor for text-like editors used in an Olv"""
 
     def __init__(self, olv, subItemIndex, **kwargs):
         style = wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB
-        # Allow for odd case where parent isn't an ObjectListView
+        # Allow for odd case where parent isn't an Olv
         if hasattr(olv, "columns"):
             if olv.HasFlag(wx.LC_ICON):
                 style |= (wx.TE_CENTRE | wx.TE_MULTILINE)
@@ -229,7 +229,7 @@ class BaseCellTextEditor(wx.TextCtrl):
 
 class IntEditor(BaseCellTextEditor):
 
-    """This is a text editor for integers for use in an ObjectListView"""
+    """This is a text editor for integers for use in an Olv"""
 
     def GetValue(self):
         "Get the value from the editor"
@@ -250,7 +250,7 @@ class IntEditor(BaseCellTextEditor):
 
 class LongEditor(BaseCellTextEditor):
 
-    """This is a text editor for long values for use in an ObjectListView"""
+    """This is a text editor for long values for use in an Olv"""
 
     def GetValue(self):
         "Get the value from the editor"
@@ -271,7 +271,7 @@ class LongEditor(BaseCellTextEditor):
 
 class FloatEditor(BaseCellTextEditor):
 
-    """This is a text editor for floats for use in an ObjectListView.
+    """This is a text editor for floats for use in an Olv.
 
     Because of the trouble of precisely converting floats to strings,
     this editor sometimes behaves a little strangely."""

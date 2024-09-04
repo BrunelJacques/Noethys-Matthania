@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #----------------------------------------------------------------------------
-# Name:         ObjectListView.py
+# Name:         Olv.py
 # Author:       Phillip Piper
 # Created:      29 February 2008
 # Copyright:    (c) 2008 Phillip Piper
@@ -65,9 +65,9 @@
 # - need a ChangeView() method to help when switching between views
 
 """
-An `ObjectListView` provides a more convienent and powerful interface to a ListCtrl.
+An `Olv` provides a more convienent and powerful interface to a ListCtrl.
 
-The major features of an `ObjectListView` are:
+The major features of an `Olv` are:
 
     * Automatically transforms a collection of model objects into a ListCtrl.
     * Automatically sorts rows by their data type.
@@ -84,7 +84,7 @@ The major features of an `ObjectListView` are:
     * The `VirtualObjectListView` version supports millions of rows through ListCtrl's virtual mode.
     * The `GroupListView` version partitions it's rows into collapsible groups.
 
-An `ObjectListView` works in a declarative manner: the programmer configures how it should
+An `Olv` works in a declarative manner: the programmer configures how it should
 work, then gives it the list of objects to display. The primary configuration is in the
 definitions of the columns. Columns are configured to know which aspect of their model
 they should display, how it should be formatted, and even how new values should be written
@@ -122,9 +122,9 @@ class ObjectListView(wx.ListCtrl):
     """
     An object list displays various aspects of a list of objects in a multi-column list control.
 
-    To use an ObjectListView, the programmer defines what columns are in the control and which
+    To use an Olv, the programmer defines what columns are in the control and which
     bits of information each column should display. The programmer then calls `SetObjects` with
-    the list of objects that the ObjectListView should display. The ObjectListView then builds
+    the list of objects that the Olv should display. The Olv then builds
     the control.
 
     Columns hold much of the intelligence of this control. Columns define both the format
@@ -159,7 +159,7 @@ class ObjectListView(wx.ListCtrl):
 
     * handleStandardKeys
         When this is True (the default), several standard keys will be handled as
-        commands by the ObjectListView. If this is False, they will be ignored.
+        commands by the Olv. If this is False, they will be ignored.
 
         Ctrl-A
             Select all model objects
@@ -203,7 +203,7 @@ class ObjectListView(wx.ListCtrl):
     CELLEDIT_DOUBLECLICK = 2
     CELLEDIT_F2ONLY = 3
 
-    """Names of standard images used within the ObjectListView. If you want to use your
+    """Names of standard images used within the Olv. If you want to use your
     own image in place of a standard one, simple register it with AddNamedImages() using
     one of the following names."""
     NAME_DOWN_IMAGE = "objectListView.downImage"
@@ -224,7 +224,7 @@ class ObjectListView(wx.ListCtrl):
 
     def __init__(self, *args, **kwargs):
         """
-        Create an ObjectListView.
+        Create an Olv.
 
         Apart from the normal ListCtrl parameters, this constructor looks for any of the
         following optional parameters:
@@ -248,7 +248,7 @@ class ObjectListView(wx.ListCtrl):
         # list is what is actually used to populate the control. This separation let us
         # modify what is presented to the user without losing our base data. This allows
         # to (in the future) implement filtering or some other view-like capabilities.
-        # Currently, for ObjectListView, these collections will be identical, but for a
+        # Currently, for Olv, these collections will be identical, but for a
         # GroupListView they are different.
         self.ctrl_footer = None
         self.modelObjects = []
@@ -2560,7 +2560,7 @@ class VirtualObjectListView(AbstractVirtualObjectListView):
 class FastObjectListView(AbstractVirtualObjectListView):
 
     """
-    A fast object list view is a nice compromise between the functionality of an ObjectListView
+    A fast object list view is a nice compromise between the functionality of an Olv
     and the speed of a VirtualObjectListView.
 
     This class codes around the limitations of a virtual list. Specifically, it allows
@@ -2670,7 +2670,7 @@ class FastObjectListView(AbstractVirtualObjectListView):
 class GroupListView(FastObjectListView):
 
     """
-    An ObjectListView that allows model objects to be organised into collapsable groups.
+    An Olv that allows model objects to be organised into collapsable groups.
 
     GroupListView only work in report view.
 
@@ -2678,11 +2678,11 @@ class GroupListView(FastObjectListView):
     and 'groupBackgroundColour' public variables.
 
     The images used for expanded and collapsed groups can be controlled by changing
-    the images name 'ObjectListView.NAME_EXPANDED_IMAGE' and 'ObjectListView.NAME_COLLAPSED_IMAGE'
+    the images name 'Olv.NAME_EXPANDED_IMAGE' and 'Olv.NAME_COLLAPSED_IMAGE'
     respectfully. Like this::
 
-        self.AddNamedImages(ObjectListView.NAME_EXPANDED_IMAGE, myOtherImage1)
-        self.AddNamedImages(ObjectListView.NAME_COLLAPSED_IMAGE, myOtherImage2)
+        self.AddNamedImages(Olv.NAME_EXPANDED_IMAGE, myOtherImage1)
+        self.AddNamedImages(Olv.NAME_COLLAPSED_IMAGE, myOtherImage2)
 
     Public variables:
 
@@ -3419,7 +3419,7 @@ class ColumnDefn(object):
     """
     A ColumnDefn controls how one column of information is sourced and formatted.
 
-    Much of the intelligence and ease of use of an ObjectListView comes from the column
+    Much of the intelligence and ease of use of an Olv comes from the column
     definitions. It is worthwhile gaining an understanding of the capabilities of this class.
 
     Public Attributes (alphabetically):
@@ -3488,7 +3488,7 @@ class ColumnDefn(object):
         Can the user edit cell values in this column? Default is True
 
     * isSearchable
-        If this column is the sort column, when the user types into the ObjectListView,
+        If this column is the sort column, when the user types into the Olv,
         will a match be looked for using values from this column? If this is False,
         values from column 0 will be used.
         Default is True.
@@ -3511,7 +3511,7 @@ class ColumnDefn(object):
         Default is -1, which means there is no limit.
 
     * useBinarySearch
-        If isSearchable and useBinarySearch are both True, the ObjectListView will use a
+        If isSearchable and useBinarySearch are both True, the Olv will use a
         binary search algorithm to locate a match. If useBinarySearch is False, a simple
         linear search will be done.
 
@@ -3519,7 +3519,7 @@ class ColumnDefn(object):
         comparisons), which makes them ideal for virtual lists. However, there are two
         constraints:
 
-            - the ObjectListView must be sorted by this column
+            - the Olv must be sorted by this column
 
             - sorting by string representation must give the same ordering as sorting
               by the aspect itself.
@@ -3604,8 +3604,8 @@ class ColumnDefn(object):
 
 
     The `title`, `align` and `width` attributes are only references when the column definition is given to the
-    ObjectListView via the `SetColumns()` or `AddColumnDefn()` methods. The other attributes are referenced
-    intermittently -- changing them will change the behaviour of the `ObjectListView`.
+    Olv via the `SetColumns()` or `AddColumnDefn()` methods. The other attributes are referenced
+    intermittently -- changing them will change the behaviour of the `Olv`.
 
     Without a string converter, None will be converted to an empty string. Install a string converter ('%s'
     will suffice) if you want to see the 'None' instead.
@@ -3677,7 +3677,7 @@ class ColumnDefn(object):
         self.useInitialLetterForGroupKey = useInitialLetterForGroupKey
         self.groupTitleSingleItem = groupTitleSingleItem or "%(title)s (%(count)d item)"
         self.groupTitlePluralItems = groupTitlePluralItems or "%(title)s (%(count)d items)"
-        # was this column created internally by ObjectListView?
+        # was this column created internally by Olv?
         self.isInternal = False
         self._EventHandler = None
 
@@ -4071,7 +4071,7 @@ class NamedImageList(object):
 class BatchedUpdate(object):
 
     """
-    This class is an *Adapter* around an ``ObjectListView`` which ensure that the list is updated, at most,
+    This class is an *Adapter* around an ``Olv`` which ensure that the list is updated, at most,
     once every *N* seconds.
 
     Usage::
@@ -4093,7 +4093,7 @@ class BatchedUpdate(object):
         * ``RepopulateList()``
         * ``SetObjects()``
 
-    All other message are passed directly to the ``ObjectListView`` and are thus unbatched. This means
+    All other message are passed directly to the ``Olv`` and are thus unbatched. This means
     that sorting and changes to columns are unbatched and will take effect immediately.
 
     You need to be a little careful when using batched updates. There are at least two things
@@ -4144,7 +4144,7 @@ class BatchedUpdate(object):
         """
         Forward any unknown references to the original objectListView.
 
-        This is what allows us to pretend to be an ObjectListView.
+        This is what allows us to pretend to be an Olv.
         """
         return getattr(self.objectListView, name)
 

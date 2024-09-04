@@ -57,11 +57,11 @@ class CTRL_Page_texte(wx.Panel):
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_contientpas)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_commence)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_vide)
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_pasvide)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_dans)
         self.Bind(wx.EVT_BUTTON, self.OnParmi, self.btn_dans)
         self.btn_dans.SetToolTip(_("Composition d'une série par cases à cocher"))
         self.ctrl_dans.SetToolTip(_("Séparez les valeurs de la série par ';'\nVous pouvez gérer la série des possibles par le bouton '...'"))
-        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_pasvide)
 
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_nondans)
         self.Bind(wx.EVT_BUTTON, self.OnNonParmi, self.btn_nondans)
@@ -263,7 +263,6 @@ class CTRL_Page_bool(wx.Panel):
 
 # -------------------------------------------------------------------------------------------------------------------------------
 
-
 class CTRL_Page_entier(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL) 
@@ -283,6 +282,8 @@ class CTRL_Page_entier(wx.Panel):
         self.ctrl_min = wx.SpinCtrl(self, -1, "", min=0, max=999999)
         self.label_et = wx.StaticText(self, -1, _("et"))
         self.ctrl_max = wx.SpinCtrl(self, -1, "", min=0, max=999999)
+        self.radio_vide = wx.RadioButton(self, -1, _("Est vide"),size=(110, -1))
+        self.radio_pasvide = wx.RadioButton(self, -1, _("N'est pas vide"),size=(110, -1))
 
         self.__set_properties()
         self.__do_layout()
@@ -294,6 +295,9 @@ class CTRL_Page_entier(wx.Panel):
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_inf)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_infegal)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_compris)
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_vide)
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_pasvide)
+
         
         self.OnRadio(None) 
         
@@ -308,7 +312,7 @@ class CTRL_Page_entier(wx.Panel):
         self.ctrl_max.SetMinSize((80, -1))
 
     def __do_layout(self):
-        grid_sizer_base = wx.FlexGridSizer(rows=7, cols=1, vgap=10, hgap=10)
+        grid_sizer_base = wx.FlexGridSizer(rows=9, cols=1, vgap=10, hgap=10)
         grid_sizer_compris = wx.FlexGridSizer(rows=1, cols=4, vgap=5, hgap=5)
         grid_sizer_infegal = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_inf = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
@@ -339,6 +343,8 @@ class CTRL_Page_entier(wx.Panel):
         grid_sizer_compris.Add(self.label_et, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_compris.Add(self.ctrl_max, 0, 0, 0)
         grid_sizer_base.Add(grid_sizer_compris, 1, wx.EXPAND, 0)
+        grid_sizer_base.Add(self.radio_vide, 1, wx.EXPAND, 0)
+        grid_sizer_base.Add(self.radio_pasvide, 1, wx.EXPAND, 0)
         self.SetSizer(grid_sizer_base)
         grid_sizer_base.Fit(self)
 
@@ -376,6 +382,10 @@ class CTRL_Page_entier(wx.Panel):
             min, max = criteres.split(";")
             self.ctrl_min.SetValue(int(min))
             self.ctrl_max.SetValue(int(max))
+        if choix == "VIDE" :
+            self.radio_vide.SetValue(True)
+        if choix == "PASVIDE" :
+            self.radio_pasvide.SetValue(True)
         self.OnRadio(None) 
     
     def GetValeur(self):
@@ -401,6 +411,10 @@ class CTRL_Page_entier(wx.Panel):
         if self.radio_compris.GetValue() == True :
             choix = "COMPRIS"
             criteres = "%d;%d" % (self.ctrl_min.GetValue(), self.ctrl_max.GetValue())
+        if self.radio_vide.GetValue() == True :
+            choix = "VIDE"
+        if self.radio_pasvide.GetValue() == True :
+            choix = "PASVIDE"
         return choix, criteres
 
     def Validation(self):
@@ -438,6 +452,8 @@ class CTRL_Page_montant(wx.Panel):
         self.ctrl_min = CTRL_Saisie_euros.CTRL(self)
         self.label_et = wx.StaticText(self, -1, _("et"))
         self.ctrl_max = CTRL_Saisie_euros.CTRL(self)
+        self.radio_vide = wx.RadioButton(self, -1, _("Est vide"),size=(110, -1))
+        self.radio_pasvide = wx.RadioButton(self, -1, _("N'est pas vide"),size=(110, -1))
 
         self.__set_properties()
         self.__do_layout()
@@ -449,6 +465,9 @@ class CTRL_Page_montant(wx.Panel):
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_inf)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_infegal)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_compris)
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_vide)
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_pasvide)
+
         
         self.OnRadio(None) 
         
@@ -463,7 +482,7 @@ class CTRL_Page_montant(wx.Panel):
         self.ctrl_max.SetMinSize((80, -1))
 
     def __do_layout(self):
-        grid_sizer_base = wx.FlexGridSizer(rows=7, cols=1, vgap=10, hgap=10)
+        grid_sizer_base = wx.FlexGridSizer(rows=9, cols=1, vgap=10, hgap=10)
         grid_sizer_compris = wx.FlexGridSizer(rows=1, cols=4, vgap=5, hgap=5)
         grid_sizer_infegal = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_inf = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
@@ -494,6 +513,8 @@ class CTRL_Page_montant(wx.Panel):
         grid_sizer_compris.Add(self.label_et, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_compris.Add(self.ctrl_max, 0, 0, 0)
         grid_sizer_base.Add(grid_sizer_compris, 1, wx.EXPAND, 0)
+        grid_sizer_base.Add(self.radio_vide, 1, wx.EXPAND, 0)
+        grid_sizer_base.Add(self.radio_pasvide, 1, wx.EXPAND, 0)
         self.SetSizer(grid_sizer_base)
         grid_sizer_base.Fit(self)
 
@@ -531,6 +552,10 @@ class CTRL_Page_montant(wx.Panel):
             min, max = criteres.split(";")
             self.ctrl_min.SetMontant(float(min))
             self.ctrl_max.SetMontant(float(max))
+        if choix == "VIDE" :
+            self.radio_vide.SetValue(True)
+        if choix == "PASVIDE" :
+            self.radio_pasvide.SetValue(True)
         self.OnRadio(None) 
     
     def GetValeur(self):
@@ -556,6 +581,10 @@ class CTRL_Page_montant(wx.Panel):
         if self.radio_compris.GetValue() == True :
             choix = "COMPRIS"
             criteres = "%d;%d" % (self.ctrl_min.GetMontant(), self.ctrl_max.GetMontant())
+        if self.radio_vide.GetValue() == True :
+            choix = "VIDE"
+        if self.radio_pasvide.GetValue() == True :
+            choix = "PASVIDE"
         return choix, criteres
 
     def Validation(self):
@@ -595,6 +624,8 @@ class CTRL_Page_date(wx.Panel):
         self.ctrl_min = CTRL_Saisie_date.Date2(self, heure=heure)
         self.label_et = wx.StaticText(self, -1, _("et"))
         self.ctrl_max = CTRL_Saisie_date.Date2(self, heure=heure)
+        self.radio_vide = wx.RadioButton(self, -1, _("Est vide"),size=(110, -1))
+        self.radio_pasvide = wx.RadioButton(self, -1, _("N'est pas vide"),size=(110, -1))
 
         self.__do_layout()
 
@@ -605,11 +636,13 @@ class CTRL_Page_date(wx.Panel):
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_inf)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_infegal)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_compris)
-        
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_vide)
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadio, self.radio_pasvide)
+
         self.OnRadio(None)
 
     def __do_layout(self):
-        grid_sizer_base = wx.FlexGridSizer(rows=7, cols=1, vgap=10, hgap=10)
+        grid_sizer_base = wx.FlexGridSizer(rows=9, cols=1, vgap=10, hgap=10)
         grid_sizer_compris = wx.FlexGridSizer(rows=1, cols=4, vgap=5, hgap=5)
         grid_sizer_infegal = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_inf = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
@@ -640,6 +673,8 @@ class CTRL_Page_date(wx.Panel):
         grid_sizer_compris.Add(self.label_et, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_compris.Add(self.ctrl_max, 0, 0, 0)
         grid_sizer_base.Add(grid_sizer_compris, 1, wx.EXPAND, 0)
+        grid_sizer_base.Add(self.radio_vide, 1, wx.EXPAND, 0)
+        grid_sizer_base.Add(self.radio_pasvide, 1, wx.EXPAND, 0)
         self.SetSizer(grid_sizer_base)
         grid_sizer_base.Fit(self)
 
@@ -677,7 +712,11 @@ class CTRL_Page_date(wx.Panel):
             min, max = criteres.split(";")
             self.ctrl_min.SetDate(min)
             self.ctrl_max.SetDate(max)
-        self.OnRadio(None) 
+        if choix == "VIDE" :
+            self.radio_vide.SetValue(True)
+        if choix == "PASVIDE" :
+            self.radio_pasvide.SetValue(True)
+        self.OnRadio(None)
     
     def GetValeur(self):
         choix, criteres = "", ""
@@ -702,6 +741,10 @@ class CTRL_Page_date(wx.Panel):
         if self.radio_compris.GetValue() == True :
             choix = "COMPRIS"
             criteres = "%s;%s" % (self.ctrl_min.GetDate(), self.ctrl_max.GetDate())
+        if self.radio_vide.GetValue() == True :
+            choix = "VIDE"
+        if self.radio_pasvide.GetValue() == True :
+            choix = "PASVIDE"
         return choix, criteres
 
     def Validation(self):

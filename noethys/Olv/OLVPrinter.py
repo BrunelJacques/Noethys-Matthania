@@ -13,7 +13,7 @@
 # To do:
 
 """
-An OLVPrinter takes an ObjectListView and turns it into a pretty report.
+An OLVPrinter takes an Olv and turns it into a pretty report.
 
 As always, the goal is for this to be as easy to use as possible. A typical
 usage should be as simple as::
@@ -34,10 +34,10 @@ from WordWrapRenderer import WordWrapRenderer
 class OLVPrinter(wx.Printout):
 
     """
-    An OLVPrinter creates a pretty report from an ObjectListView.
+    An OLVPrinter creates a pretty report from an Olv.
     """
 
-    def __init__(self, objectListView=None, title="ObjectListView Printing"):
+    def __init__(self, objectListView=None, title="Olv Printing"):
         """
         """
         wx.Printout.__init__(self, title)
@@ -97,7 +97,7 @@ class OLVPrinter(wx.Printout):
     def PrintPreview(
         self,
         parent=None,
-        title="ObjectListView Print Preview",
+        title="Olv Print Preview",
         bounds=(
             20,
             50,
@@ -1110,7 +1110,7 @@ class PageBreakBlock(Block):
 class ListBlock(Block):
 
     """
-    A ListBlock handles the printing of an entire ObjectListView.
+    A ListBlock handles the printing of an entire Olv.
     """
 
     def __init__(self, olv, title):
@@ -1196,7 +1196,7 @@ class ListBlock(Block):
 class ListHeaderBlock(TextBlock):
 
     """
-    A ListHeaderBlock is the title that comes before an ObjectListView.
+    A ListHeaderBlock is the title that comes before an Olv.
     """
 
     def __init__(self, olv, title):
@@ -1212,7 +1212,7 @@ class ListHeaderBlock(TextBlock):
 class ListFooterBlock(TextBlock):
 
     """
-    A ListFooterBlock is the text that comes before an ObjectListView.
+    A ListFooterBlock is the text that comes before an Olv.
     """
 
     def __init__(self, olv, text):
@@ -1244,7 +1244,7 @@ class GroupTitleBlock(TextBlock):
 class ListSliceBlock(Block):
 
     """
-    A ListSliceBlock prints a vertical slice of an ObjectListView.
+    A ListSliceBlock prints a vertical slice of an Olv.
     """
 
     def __init__(self, olv, left, right):
@@ -1287,7 +1287,7 @@ class ColumnHeaderBlock(CellBlock):
 
     """
     A ColumnHeaderBlock prints a portion of the columns header in
-    an ObjectListView.
+    an Olv.
     """
 
     def __init__(self, olv, left, right):
@@ -1333,7 +1333,7 @@ class ColumnHeaderBlock(CellBlock):
 class ListRowsBlock(Block):
 
     """
-    A ListRowsBlock prints rows of an ObjectListView.
+    A ListRowsBlock prints rows of an Olv.
     """
 
     def __init__(self, olv, left, right):
@@ -1405,7 +1405,7 @@ class GroupListRowsBlock(Block):
 
         # If GetObjectAt() return an object, then it's a normal row.
         # Otherwise, if the innerList object isn't None, it must be a ListGroup
-        # We can't use isinstance(x, GroupListView) because ObjectListView may
+        # We can't use isinstance(x, GroupListView) because Olv may
         # not be installed
         if self.olv.GetObjectAt(self.currentIndex):
             self.engine.AddBlock(
@@ -1433,7 +1433,7 @@ class GroupListRowsBlock(Block):
 class RowBlock(CellBlock):
 
     """
-    A RowBlock prints a vertical slice of a single row of an ObjectListView.
+    A RowBlock prints a vertical slice of a single row of an Olv.
     """
 
     def __init__(self, olv, rowIndex, left, right):
@@ -1857,7 +1857,7 @@ if __name__ == '__main__':
             wx.CallLater(50, self.run)
 
         def run(self):
-            printer = OLVPrinter(self.olv, "First ObjectListView Report")
+            printer = OLVPrinter(self.olv, "First Olv Report")
             printer.ReportFormat = ReportFormat.Normal()
 
             #fmt.PageHeader.Font = wx.FFont(36, wx.FONTFAMILY_SWISS, face="Gill Sans")

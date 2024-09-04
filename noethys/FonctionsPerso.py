@@ -818,7 +818,7 @@ def InsertThemeDansOL():
             for ligne in fichier :
 
                 # Insertion de l'import
-                if "from ObjectListView" in ligne :
+                if "from Olv" in ligne :
                     listeLignes.append("\n")
                     listeLignes.append("import UTILS_Interface\n")
                     dirty = True

@@ -330,7 +330,7 @@ class ListView(FastObjectListView):
         self.SetEmptyListMsgFont(wx.FFont(11, wx.DEFAULT, False, "Tekton"))
         self.SetSortColumn(2)
 
-        self.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK # ObjectListView.CELLEDIT_DOUBLECLICK
+        self.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK # Olv.CELLEDIT_DOUBLECLICK
 
     def SetParametres(self, mois=1, annee=2015, IDactivite=None, nomActivite=""):
         self.mois = mois

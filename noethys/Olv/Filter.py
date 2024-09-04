@@ -14,7 +14,7 @@
 
 """
 Filters provide a structured mechanism to display only some of the model objects
-given to an ObjectListView. Only those model objects which are 'chosen' by
+given to an Olv. Only those model objects which are 'chosen' by
 an installed filter will be presented to the user.
 
 Filters are simple callable objects which accept a single parameter, which
@@ -23,7 +23,7 @@ those objects which will be presented to the user.
 
 This module provides some standard filters.
 
-Filters almost always impose a performance penalty on the ObjectListView.
+Filters almost always impose a performance penalty on the Olv.
 The penalty is normally O(n) since the filter normally examines each model
 object to see if it should be included. Head() and Tail() are exceptions
 to this observation.

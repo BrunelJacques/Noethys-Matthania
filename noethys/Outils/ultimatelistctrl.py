@@ -10,7 +10,7 @@
 #
 # 1)  Subitem selection;
 # 2)  Watermark? (almost, does not work very well :-( );
-# 3)  Groups? (Maybe, check ObjectListView);
+# 3)  Groups? (Maybe, check Olv);
 # 4)  Scrolling items as headers and footers;
 # 5)  Alpha channel for text/background of items;
 # 6)  Custom renderers for headers/footers (done);

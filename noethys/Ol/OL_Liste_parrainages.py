@@ -58,8 +58,11 @@ class ListView(ObjectListView):
         self.selectionID = None
         self.selectionTrack = None
         ObjectListView.__init__(self,  **kwds)
-        self.parent = kwds["parent"].Parent
         self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
+        self.dteDebut = None
+        self.dteFin = None
+        self.anterieur = None
+        self.post = None
 
     def GetDonnees(self):
         DB = GestionDB.DB()
@@ -76,16 +79,16 @@ class ListView(ObjectListView):
                     matPieces.pieDateCreation, Sum(prestations.montant),matParrainages.parIDligneParr,matParrainages.parSolde,
                     matPiecesLignes.ligDate, matPiecesLignes.ligMontant, prestations.IDprestation
             FROM (((((	matPieces 
+                        INNER JOIN familles ON matPieces.pieIDparrain = familles.IDfamille) 
                         LEFT JOIN matParrainages ON matPieces.pieIDinscription = matParrainages.parIDinscription)
                         LEFT JOIN matPiecesLignes ON matParrainages.parIDligneParr = matPiecesLignes.ligIDnumLigne) 
-                        LEFT JOIN familles ON matPieces.pieIDparrain = familles.IDfamille) 
                         LEFT JOIN familles AS familles_1 ON matPieces.pieIDfamille = familles_1.IDfamille) 
                         LEFT JOIN individus ON matPieces.pieIDindividu = individus.IDindividu)
                         LEFT JOIN prestations ON matPieces.pieIDprestation = prestations.IDprestation
              %s
             GROUP BY matPieces.pieIDinscription, matPieces.pieIDparrain, familles.adresse_intitule, matPieces.pieIDfamille, 
                     familles_1.adresse_intitule, individus.prenom, matPieces.pieParrainAbandon, matPieces.pieNature, 
-                    matPieces.pieDateCreation, matParrainages.parIDligneParr, matPiecesLignes.ligDate, 
+                    matPieces.pieDateCreation, matParrainages.parIDligneParr,matParrainages.parSolde, matPiecesLignes.ligDate, 
                     matPiecesLignes.ligMontant, prestations.IDprestation
             ORDER BY matPieces.pieIDparrain
             ;""" % (where)
@@ -125,25 +128,27 @@ class ListView(ObjectListView):
                 if item[champs.index('reduction')]:
                     reduc = 1 * post
 
+                if (periode,IDparrain,IDfilleul) in list(dictParrainages.keys()):
+                    continue
                 # nouveau parrain dans la periode, on alimente tous les champs simples
-                if not (periode,IDparrain,IDfilleul) in list(dictParrainages.keys()):
-                    dictParrainages[(periode,IDparrain,IDfilleul)] = {}
-                    dictP = dictParrainages[(periode,IDparrain,IDfilleul)]
-                    for champ in champs:
-                        dictP[champ] = item[champs.index(champ)]
-                    dictP['periode'] = periode
-                    for champ in ('prenoms','datesReduc','lstIDprest'):
-                        dictP[champ] = []
-                    for champ in ('nbInscriptions','nbAbandons','nbAttente','flagOk'):
-                        dictP[champ] = 0
-                    for champ in ('mttReduc','caFilleuls','solde','regle','ratio',):
-                        dictP[champ] = 0.0
-                    if not IDparrain in list(dictKeys.keys()):
-                        dictKeys[IDparrain] = (periode,IDparrain,IDfilleul)
-                    dictP['lstIDprestations'] = []
+                dictParrainages[(periode,IDparrain,IDfilleul)] = {}
+                dictP = dictParrainages[(periode,IDparrain,IDfilleul)]
+                for champ in champs:
+                    dictP[champ] = item[champs.index(champ)]
+                dictP['periode'] = periode
+                for champ in ('prenoms','datesReduc','lstIDprest'):
+                    dictP[champ] = []
+                for champ in ('nbInscriptions','nbAbandons','nbAttente','flagOk'):
+                    dictP[champ] = 0
+                for champ in ('mttReduc','caFilleuls','solde','regle','ratio',):
+                    dictP[champ] = 0.0
+                if not IDparrain in list(dictKeys.keys()):
+                    dictKeys[IDparrain] = (periode,IDparrain,IDfilleul)
+                dictP['lstIDprestations'] = []
                 dictP = dictParrainages[(periode,IDparrain,IDfilleul)]
                 # première série de calculs
                 # ['prenoms','nbInscriptions','nbAbandons','nbAttente','caFilleuls','solde','regle','mttReduc','datesReduc','ratio','flagOk']
+
                 dictP['prenoms'].append("%s"%item[champs.index('prenom')])
                 if reduc:
                     dictP['datesReduc'].append("%s"%DateEngFr(item[champs.index('ligDate')]))
@@ -151,16 +156,11 @@ class ListView(ObjectListView):
                 dictP['nbInscriptions'] += 1
                 if item[champs.index('abandon')] == 1:
                     dictP['nbAbandons'] += 1
-                prorata = item[champs.index('prorata')]
-                # premières versions, les prorata étaient en % et non en /10000 et calculés différemment
-                if prorata and (int(prorata) > 1000):
-                    prorata = float(prorata) / 10000
-                else: prorata = 1.0
 
                 if item[champs.index('reduction')] == None or not reduc:
                     if dictP['IDligneParr'] != 0:
                        dictP['nbAttente'] += 1
-                else: dictP['mttReduc'] -= (item[champs.index('reduction')]) * prorata
+                else: dictP['mttReduc'] -= (item[champs.index('reduction')])
 
                 if item[champs.index('montant')] != None:
                     dictP['caFilleuls'] += item[champs.index('montant')]
@@ -368,10 +368,13 @@ class ListView(ObjectListView):
         self.SetObjects(self.donnees)
 
     def GetFiltre(self):
-        self.dteDebut = self.parent.ctrl_date_debut.GetDate()
-        self.dteFin = self.parent.ctrl_date_fin.GetDate()
-        self.anterieur = self.parent.ctrl_anterieur.GetValue()
-        self.post = self.parent.ctrl_post.GetValue()
+        if not self.GrandParent:
+            return ""
+
+        self.dteDebut = self.GrandParent.ctrl_date_debut.GetDate()
+        self.dteFin = self.GrandParent.ctrl_date_fin.GetDate()
+        self.anterieur = self.GrandParent.ctrl_anterieur.GetValue()
+        self.post = self.GrandParent.ctrl_post.GetValue()
         filtreSQL = """
         WHERE 	(	(matPieces.pieIDparrain Is Not Null) 
 				    AND	(matPieces.pieDateCreation Between '%s' And '%s'))"""%(self.dteDebut,self.dteFin)
@@ -584,7 +587,7 @@ class MyFrame(wx.Frame):
         #import time
         #t = time.time()
         if footer == "sans":
-            self.myOlv = ListView(panel, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+            self.myOlv = ListView(panel, -1)
             self.myOlv.MAJ()
             sizer_2.Add(self.myOlv, 1, wx.ALL|wx.EXPAND, 4)
         else:
@@ -599,7 +602,7 @@ class MyFrame(wx.Frame):
 
 if __name__ == '__main__':
     app = wx.App(0)
-    frame_1 = MyFrame("avec",None, -1, "ObjectListView")
+    frame_1 = MyFrame("sans",None, -1, "OL_Liste_Parrainage")
     app.SetTopWindow(frame_1)
     frame_1.Show()
     app.MainLoop()

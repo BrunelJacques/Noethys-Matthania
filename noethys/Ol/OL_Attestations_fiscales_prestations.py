@@ -214,7 +214,7 @@ class ListView(FastObjectListView):
         self.SetSortColumn(self.columns[1])
         self.SetObjects(self.donnees)
 
-        self.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK # ObjectListView.CELLEDIT_DOUBLECLICK
+        self.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK # Olv.CELLEDIT_DOUBLECLICK
        
     def MAJ(self, date_debut=None, date_fin=None, dateNaiss=None, listeActivites=[], listeModes=[]):
         self.date_debut = date_debut

@@ -16,7 +16,7 @@
 # To do:
 
 """
-The OLVEvent module holds all the events used by the ObjectListView module.
+The OLVEvent module holds all the events used by the Olv module.
 """
 
 __author__ = "Phillip Piper"
@@ -177,8 +177,8 @@ class CellEditStartingEvent(CellEditEvent):
 
         If this is called, the event handler must handle all configuration. In
         particular, it must configure its own event handlers to that
-        ObjectListView.CancelCellEdit() is called when the user presses Escape,
-        and ObjectListView.CommitCellEdit() is called when the user presses
+        Olv.CancelCellEdit() is called when the user presses Escape,
+        and Olv.CommitCellEdit() is called when the user presses
         Enter/Return or when the editor loses focus. """
         self.shouldConfigureEditor = False
 
@@ -252,12 +252,12 @@ class CellEditFinishingEvent(CellEditEvent):
 class SortEvent(VetoableEvent):
 
     """
-    The user wants to sort the ObjectListView.
+    The user wants to sort the Olv.
 
     When sortModelObjects is True, the event handler should sort the model objects used by
-    the given ObjectListView. If the "modelObjects" instance variable is not None, that
+    the given Olv. If the "modelObjects" instance variable is not None, that
     collection of objects should be sorted, otherwise the "modelObjects" collection of the
-    ObjectListView should be sorted. For a VirtualObjectListView, "modelObjects" will
+    Olv should be sorted. For a VirtualObjectListView, "modelObjects" will
     always be None and the programmer must sort the object in whatever backing store is
     being used.
 
@@ -289,7 +289,7 @@ class SortEvent(VetoableEvent):
 
     def Handled(self, wasHandled=True):
         """
-        Indicate that the event handler has sorted the ObjectListView.
+        Indicate that the event handler has sorted the Olv.
         The OLV will handle other tasks like updating sort indicators
         """
         self.wasHandled = wasHandled
@@ -398,8 +398,8 @@ class ItemCheckedEvent(wx.PyCommandEvent):
     """
     Item checked event
 
-    If column is not created using :meth:`ObjectListView.CreateCheckStateColumn` event will go to the
-    event handler of wx.GetApp().GetTopWindow() - see :class:`ObjectListView.ColumnDef.SetCheckState`
+    If column is not created using :meth:`Olv.CreateCheckStateColumn` event will go to the
+    event handler of wx.GetApp().GetTopWindow() - see :class:`Olv.ColumnDef.SetCheckState`
     """
 
     def __init__(

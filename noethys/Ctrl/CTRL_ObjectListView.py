@@ -49,7 +49,6 @@ class ObjectListView(OLV.ObjectListView):
         self.Bind(wx.EVT_LIST_COL_DRAGGING, self._HandleColumnDragging)
         self.GetMainWindow().Bind(wx.EVT_SCROLLWIN, self.OnScroll)
 
-
     def Activation(self, etat=True):
         """ Active ou desactive l'etat du controle """
         if etat == True :
@@ -410,7 +409,7 @@ class ObjectListView(OLV.ObjectListView):
                 andor = " and "
             else: andor = " or "
             texteFiltre = andor.join(filtres_colonnes)
-            # Pour débug voir plus haut paramétrages => def formatageFiltres(
+            # Pour débug voir les paramétrages => def formatageFiltres(
             filtre = Filter.Predicate(lambda track: eval(texteFiltre))
             listeFiltres.append(filtre)
         self.SetFilter(Filter.Chain(self.filtrerAndNotOr,*listeFiltres))
@@ -484,21 +483,29 @@ class ObjectListView(OLV.ObjectListView):
                     max = str(criteres.split(";")[1])
                 else :
                     criteres = str(criteres)
-                        
+
+                filtre = 'track.%s != None and '%code
+
                 if choix == "EGAL" :
-                    filtre = "track.%s == %s" % (code, criteres)
+                    filtre += "track.%s == %s" % (code, criteres)
                 if choix == "DIFFERENT" :
-                    filtre = "track.%s != %s" % (code, criteres)
+                    filtre += "track.%s != %s" % (code, criteres)
                 if choix == "SUP" :
-                    filtre = "track.%s > %s" % (code, criteres)
+                    filtre += "track.%s > %s" % (code, criteres)
                 if choix == "SUPEGAL" :
-                    filtre = "track.%s >= %s" % (code, criteres)
+                    filtre += "track.%s >= %s" % (code, criteres)
                 if choix == "INF" :
-                    filtre = "track.%s < %s" % (code, criteres)
+                    filtre += "track.%s < %s" % (code, criteres)
                 if choix == "INFEGAL" :
-                    filtre = "track.%s <= %s" % (code, criteres)
+                    filtre += "track.%s <= %s" % (code, criteres)
                 if choix == "COMPRIS" :
-                    filtre = "(track.%s >= %s and track.%s <= %s)" % (code, min, code, max)
+                    filtre += "(track.%s >= %s and track.%s <= %s)" % (code, min, code, max)
+
+                if choix == "VIDE" :
+                    filtre = "(track.%s == None)" % (code)
+                if choix == "PASVIDE" :
+                    filtre = "track.%s != None" % (code)
+
 
             # Date
             if typeDonnee in ("date", "dateheure") :
@@ -544,6 +551,10 @@ class ObjectListView(OLV.ObjectListView):
                         max = criteres.split(";")[1]
                         filtre = "track.%s != None and str(track.%s) >= '%s' and str(track.%s) <= '%s'" % (
                         code, code, min, code, max)
+                if choix == "VIDE" :
+                    filtre = "(track.%s == '' or track.%s == None)" % (code, code)
+                if choix == "PASVIDE" :
+                    filtre = "track.%s != '' and track.%s != None" % (code, code)
 
             # Inscrits
             if typeDonnee == "inscrits" :

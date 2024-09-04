@@ -56,6 +56,8 @@ def GetCondition(titre="", typeDonnee="", choix="", criteres=""):
         if choix == "INF" : description = _("'%s' est inférieur à '%s'") % (titre, criteres)
         if choix == "INFEGAL" : description = _("'%s' est inférieur ou égal à '%s'")  % (titre, criteres)
         if choix == "COMPRIS" : description = _("'%s' est compris entre '%s' et '%s'") % (titre, criteres.split(";")[0], criteres.split(";")[1])
+        if choix == "VIDE" : description = _("'%s' est vide") % titre
+        if choix == "PASVIDE" : description = _("'%s' n'est pas vide") % titre
 
     # MONTANT
     if typeDonnee == "montant" :
@@ -66,6 +68,8 @@ def GetCondition(titre="", typeDonnee="", choix="", criteres=""):
         if choix == "INF" : description = _("'%s' est inférieur à %.2f %s") % (titre, float(criteres), SYMBOLE)
         if choix == "INFEGAL" : description = _("'%s' est inférieur ou égal à %.2f %s") % (titre, float(criteres), SYMBOLE)
         if choix == "COMPRIS" : description = _("'%s' est compris entre %.2f %s et %.2f %s") % (titre, float(criteres.split(";")[0]), SYMBOLE, float(criteres.split(";")[1]), SYMBOLE)
+        if choix == "VIDE" : description = _("'%s' est vide") % titre
+        if choix == "PASVIDE" : description = _("'%s' n'est pas vide") % titre
 
     # DATE
     if typeDonnee == "date" :
@@ -76,6 +80,8 @@ def GetCondition(titre="", typeDonnee="", choix="", criteres=""):
         if choix == "INF" : description = _("'%s' est inférieur au '%s'") % (titre, UTILS_Dates.DateEngFr(criteres))
         if choix == "INFEGAL" : description = _("'%s' est inférieur ou égal au '%s'") % (titre, UTILS_Dates.DateEngFr(criteres))
         if choix == "COMPRIS" : description = _("'%s' est compris entre le '%s' et le '%s'") % (titre, UTILS_Dates.DateEngFr(criteres.split(";")[0]), UTILS_Dates.DateEngFr(criteres.split(";")[1]))
+        if choix == "VIDE" : description = _("'%s' est vide") % titre
+        if choix == "PASVIDE" : description = _("'%s' n'est pas vide") % titre
 
     # DATE ET HEURE
     if typeDonnee == "dateheure" :

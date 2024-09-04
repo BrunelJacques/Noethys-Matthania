@@ -932,7 +932,7 @@ class MyFrame(wx.Frame):
 
 if __name__ == '__main__':
     app = wx.App(0)
-    frame_1 = MyFrame("zzoutils",None, -1, "ObjectListView")
+    frame_1 = MyFrame("zzoutils",None, -1, "Olv")
     app.SetTopWindow(frame_1)
     frame_1.Show()
     app.MainLoop()

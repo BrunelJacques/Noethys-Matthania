@@ -139,7 +139,7 @@ setup(
     options = options,
     data_files = data_files,
     #dependency_links = [],
-    packages = ["noethys", "noethys.Ctrl", "noethys.Data", "noethys.Dlg", "noethys.Gest", "noethys.ObjectListView", "noethys.Ol", "noethys.Outils", "noethys.Utils"],
+    packages = ["noethys", "noethys.Ctrl", "noethys.Data", "noethys.Dlg", "noethys.Gest", "noethys.Olv", "noethys.Ol", "noethys.Outils", "noethys.Utils"],
     install_requires = open("requirements.txt").readlines(),
     windows = [
         {

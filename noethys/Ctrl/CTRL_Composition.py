@@ -2132,7 +2132,7 @@ if __name__ == '__main__':
     import time
     heure_debut = time.time()
     #wx.InitAllImageHandlers()
-    frame_1 = MyFrame(None, -1, "ObjectListView", size=(900, 400))
+    frame_1 = MyFrame(None, -1, "Olv", size=(900, 400))
     app.SetTopWindow(frame_1)
     print("Temps de chargement CTRL_Composition =", time.time() - heure_debut)
     frame_1.Show()

@@ -23,7 +23,7 @@
 
 
 """
-An ``ListCtrlPrinter`` takes an ``ObjectListView`` or ``wx.ListCtrl`` and turns it into a
+An ``ListCtrlPrinter`` takes an ``Olv`` or ``wx.ListCtrl`` and turns it into a
 pretty report.
 
 As always, the goal is for this to be as easy to use as possible. A typical
@@ -110,7 +110,7 @@ from WordWrapRenderer import WordWrapRenderer
 class ListCtrlPrinter(object):
 
     """
-    An ListCtrlPrinter creates a pretty report from an ObjectListView/ListCtrl.
+    An ListCtrlPrinter creates a pretty report from an Olv/ListCtrl.
 
     """
 
@@ -2012,7 +2012,7 @@ class ListSliceBlock(Block):
             self.engine.AddBlock(RunningBlockPusher(headerBlock))
 
         # Are we printing a GroupListView?
-        # We can't use isinstance() since ObjectListView may not be installed
+        # We can't use isinstance() since Olv may not be installed
         if hasattr(self.lv, "GetShowGroups") and self.lv.GetShowGroups():
             self.engine.AddBlock(GroupListRowsBlock(self.lv, self.left, self.right,
                                                     scale, self.allCellWidths))
@@ -2233,7 +2233,7 @@ class GroupListRowsBlock(Block):
 
         # If GetObjectAt() return an object, then it's a normal row.
         # Otherwise, if the innerList object isn't None, it must be a ListGroup
-        # We can't use isinstance(x, GroupListView) because ObjectListView may not be installed
+        # We can't use isinstance(x, GroupListView) because Olv may not be installed
         if self.lv.GetObjectAt(self.currentIndex):
             self.engine.AddBlock(
                 RowBlock(self.lv, self.currentIndex, self.left, self.right, self.scale,
