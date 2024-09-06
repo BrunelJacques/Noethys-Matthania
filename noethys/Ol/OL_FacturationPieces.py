@@ -642,8 +642,8 @@ class ListView(ObjectListView):
         retour = GestionDB.Messages().Choix(listeTuples=[(1,texte),(2,"J'abandonne"),], titre = ("La pièce cochée va être supprimée "), intro = "Suppression demandée")
         if retour[0] != 1 :
             return
-        #pour chaque ligne cochée
-        for obj in self.GetCheckedObjects():
+        #pour chaque ligne sélectionnée
+        for obj in objects:
             dictDonnees =  obj.__dict__
             fGest = GestionInscription.Forfaits(self,self.DB)
             if dictDonnees['nature'] in ('FAC'):

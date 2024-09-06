@@ -1056,7 +1056,7 @@ class CTRL(wx.Panel):
         # Ventilation automatique
         totalVentilation = Ftd(self.ctrl_ventilation.GetTotalVentile())
         resteVentilation = self.montant_reglement - totalVentilation
-        if resteVentilation <= Ftd(0.0) :
+        if resteVentilation <= Ftd(0.0) and self.montant_reglement != Ftd(0.0):
             dlg = wx.MessageDialog(self, _("Vous avez déjà ventilé tout le crédit disponible !"), _("Erreur"), wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
             dlg.Destroy()
