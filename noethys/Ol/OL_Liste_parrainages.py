@@ -71,7 +71,7 @@ class ListView(ObjectListView):
         where = self.GetFiltre()
         # Appel des lignes
         champs = ['IDinscription','IDparrain','libParrain','IDfilleul','libFilleul','prenom','abandon','nature',
-                  'date','montant','IDligneParr','prorata','ligDate','reduction','IDprestation']
+                  'date','montant','IDligneParr','info','ligDate','reduction','IDprestation']
 
         req = """
             SELECT matPieces.pieIDinscription, matPieces.pieIDparrain, familles.adresse_intitule, matPieces.pieIDfamille, 

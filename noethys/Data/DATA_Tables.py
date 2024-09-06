@@ -1672,7 +1672,7 @@ DB_DATA = {
     "matParrainages":   [
         ("parIDinscription", "INTEGER", "Code ID inscription du filleul"),
         ("parIDligneParr", "INTEGER", "Code ID de la ligne de pièce imputaion de la réduc parrainage"),
-        ("parSolde", "INTEGER", "7xxx géré par opérateur xxx, 999 correction auto"),
+        ("parSolde", "INTEGER", "7xxxx géré par opérateur xxxx, 999 correction auto"),
         ("parAbandon", "INTEGER", "1 pour abandon au filleul lors de l'affectation"),
     ],  # fin de matParrainages, suivi des parrainages
     "matCerfas":        [
