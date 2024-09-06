@@ -15,7 +15,6 @@ from Ctrl import CTRL_Bandeau
 from Ctrl import CTRL_Saisie_date
 from Ol import OL_Liste_parrainages
 import datetime
-import PIL.Image as Image
 
 def dateDDenSQL(dateDD):
     if not isinstance(dateDD,datetime.date): return ""

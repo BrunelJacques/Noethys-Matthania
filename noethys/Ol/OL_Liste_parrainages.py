@@ -15,7 +15,7 @@ from Utils import UTILS_Config
 from Utils import UTILS_Utilisateurs
 from Dlg import DLG_Famille
 from Utils.UTILS_Traduction import _
-from Ctrl.CTRL_ObjectListView import ObjectListView, ColumnDefn, Filter, CTRL_Outils, PanelAvecFooter
+from Ctrl.CTRL_ObjectListView import ObjectListView, ColumnDefn, CTRL_Outils, PanelAvecFooter
 
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 
@@ -362,19 +362,23 @@ class ListView(ObjectListView):
             ColumnDefn("ko", 'center', 60, 'flagOk', typeDonnee='texte')]
         
         self.SetColumns(lstColonnes)
-        self.SetSortColumn(self.columns[1])
+        #self.SetSortColumn(self.columns[1])
         self.SetEmptyListMsg(_("Aucun parrainage sur la période"))
         self.SetEmptyListMsgFont(wx.FFont(11, wx.DEFAULT, faceName="Tekton"))
         self.SetObjects(self.donnees)
 
     def GetFiltre(self):
-        if not self.GrandParent:
-            return ""
+        try:
+            self.dteDebut = self.GrandParent.ctrl_date_debut.GetDate()
+            self.dteFin = self.GrandParent.ctrl_date_fin.GetDate()
+            self.anterieur = self.GrandParent.ctrl_anterieur.GetValue()
+            self.post = self.GrandParent.ctrl_post.GetValue()
+        except:
+            self.dteDebut = datetime.date(2023,1,1)
+            self.dteFin = datetime.date(2023,12,31)
+            self.anterieur = False
+            self.post = False
 
-        self.dteDebut = self.GrandParent.ctrl_date_debut.GetDate()
-        self.dteFin = self.GrandParent.ctrl_date_fin.GetDate()
-        self.anterieur = self.GrandParent.ctrl_anterieur.GetValue()
-        self.post = self.GrandParent.ctrl_post.GetValue()
         filtreSQL = """
         WHERE 	(	(matPieces.pieIDparrain Is Not Null) 
 				    AND	(matPieces.pieDateCreation Between '%s' And '%s'))"""%(self.dteDebut,self.dteFin)
@@ -518,47 +522,6 @@ class ListView(ObjectListView):
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
-class BarreRecherche(wx.SearchCtrl):
-    def __init__(self, parent):
-        wx.SearchCtrl.__init__(self, parent, size=(-1, -1), style=wx.TE_PROCESS_ENTER)
-        self.parent = parent
-        self.rechercheEnCours = False
-        
-        self.SetDescriptiveText(_("Rechercher..."))
-        self.ShowSearchButton(True)
-        
-        self.listView = self.parent.ctrl_listview
-        nbreColonnes = self.listView.GetColumnCount()
-        self.listView.SetFilter(Filter.TextSearch(self.listView, self.listView.columns[0:nbreColonnes]))
-        
-        self.SetCancelBitmap(wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Interdit.png"), wx.BITMAP_TYPE_PNG))
-        self.SetSearchBitmap(wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Loupe.png"), wx.BITMAP_TYPE_PNG))
-        
-        self.Bind(wx.EVT_SEARCHCTRL_SEARCH_BTN, self.OnSearch)
-        self.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.OnCancel)
-        self.Bind(wx.EVT_TEXT_ENTER, self.OnDoSearch)
-        self.Bind(wx.EVT_TEXT, self.OnDoSearch)
-
-
-    def OnSearch(self, evt):
-        self.Recherche()
-            
-    def OnCancel(self, evt):
-        self.SetValue("")
-        self.Recherche()
-
-    def OnDoSearch(self, evt):
-        self.Recherche()
-        
-    def Recherche(self):
-        txtSearch = self.GetValue().replace("'","\\'")
-        self.ShowCancelButton(len(txtSearch))
-        self.listView.GetFilter().SetText(txtSearch)
-        self.listView.RepopulateList()
-        self.Refresh() 
-
-# -------------------------------------------------------------------------------------------------------------------------------------------
-
 class ListviewAvecFooter(PanelAvecFooter):
     def __init__(self, parent, kwargs={}):
         # definition des sous-totaux de colonnes
@@ -576,33 +539,50 @@ class ListviewAvecFooter(PanelAvecFooter):
 
 # ----------------- FRAME DE TEST ----------------------------------------------------------------
 
+
 class MyFrame(wx.Frame):
-    def __init__(self, footer,*args, **kwds):
-        wx.Frame.__init__(self, *args, **kwds)
-        panel = wx.Panel(self, -1)
-        sizer_1 = wx.BoxSizer(wx.VERTICAL)
-        sizer_1.Add(panel, 1, wx.ALL|wx.EXPAND)
-        self.SetSizer(sizer_1)
-        sizer_2 = wx.BoxSizer(wx.VERTICAL)
-        #import time
-        #t = time.time()
+    def __init__(self, footer, *args, **kwargs):
+        wx.Frame.__init__(self, *args, **kwargs)
+        panel = wx.Panel(self, -1,name="test1")
+        sizer_frame = wx.BoxSizer(wx.VERTICAL)
+        sizer_frame.Add(panel, 1, wx.ALL|wx.EXPAND)
+        self.SetSizer(sizer_frame)
+        sizer_panel = wx.BoxSizer(wx.VERTICAL)
+
         if footer == "sans":
             self.myOlv = ListView(panel, -1)
             self.myOlv.MAJ()
-            sizer_2.Add(self.myOlv, 1, wx.ALL|wx.EXPAND, 4)
-        else:
-            self.listviewAvecFooter = ListviewAvecFooter(self, kwargs={})
-            self.ctrl_parrainages = self.listviewAvecFooter.GetListview()
-            self.ctrl_recherche = CTRL_Outils(self, listview=self.ctrl_parrainages, afficherCocher=True)
+            sizer_panel.Add(self.myOlv, 1, wx.ALL | wx.EXPAND, 4)
+        elif footer == "footer":
+            self.myOlv = ListviewAvecFooter(panel, kwargs={})
+            self.myOlv.ctrl_listview.MAJ()
+            sizer_panel.Add(self.myOlv, 1, wx.ALL | wx.EXPAND, 4)
+        elif footer == "outils":
+            self.myOlv = ListView(panel, -1)
+            self.myOlv.MAJ()
+            #spécifique pour outils de recherche
+            self.ctrl_recherche = CTRL_Outils(panel, listview=self.myOlv.GetListview(), afficherCocher=True)
             self.ctrl_recherche.SetBackgroundColour((255, 255, 255))
-            sizer_2.Add(self.listviewAvecFooter, 1, wx.ALL|wx.EXPAND, 4)
-        panel.SetSizer(sizer_2)
+            ###
+            sizer_panel.Add(self.myOlv, 1, wx.ALL|wx.EXPAND, 4)
+            sizer_panel.Add(self.ctrl_recherche, 0, wx.ALL | wx.EXPAND, 4)
+        else:
+            self.myOlv = ListviewAvecFooter(self, kwargs={})
+            self.myOlv.MAJ()
+            self.ctrl_parrainages = self.myOlv.GetListview()
+            self.ctrl_recherche = CTRL_Outils(panel, listview=self.ctrl_parrainages,
+                                              afficherCocher=True)
+            self.ctrl_recherche.SetBackgroundColour((255, 255, 255))
+            sizer_panel.Add(self.myOlv, 1, wx.ALL | wx.EXPAND, 4)
+            sizer_panel.Add(self.ctrl_recherche, 0, wx.ALL | wx.EXPAND, 4)
+        panel.SetSizer(sizer_panel)
         self.SetSize((900, 400))
         self.Layout()
 
 if __name__ == '__main__':
     app = wx.App(0)
-    frame_1 = MyFrame("sans",None, -1, "OL_Liste_Parrainage")
+    # Paramétres MyFrame (footer, parent, id, titre)
+    frame_1 = MyFrame("sans", None, -1,"OL TEST")
     app.SetTopWindow(frame_1)
     frame_1.Show()
     app.MainLoop()

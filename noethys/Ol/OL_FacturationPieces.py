@@ -758,7 +758,7 @@ class MyFrame(wx.Frame):
 if __name__ == '__main__':
     app = wx.App(0)
     # Paramétres MyFrame (footer,factures, parent, id, titre)
-    frame_1 = MyFrame("avec", False, None, -1,"OL TEST")
+    frame_1 = MyFrame("sans", False, None, -1,"OL TEST")
     app.SetTopWindow(frame_1)
     frame_1.Show()
     app.MainLoop()

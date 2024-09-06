@@ -827,16 +827,13 @@ class ObjectListView(wx.ListCtrl):
             self.SetItem(listItem)
 
         for iCol in range(1, len(self.columns)):
-            if 'phoenix' in wx.PlatformInfo:
-                self.SetItem(
-                    index, iCol, self.GetStringValueAt(
-                        modelObject, iCol), self.GetImageAt(
-                        modelObject, iCol))
-            else:
-                self.SetStringItem(
-                    index, iCol, self.GetStringValueAt(
-                        modelObject, iCol), self.GetImageAt(
-                        modelObject, iCol))
+            nbitem = self.GetItemCount()
+            if nbitem == 0:
+                continue
+            value = self.GetStringValueAt( modelObject, iCol)
+            image = self.GetImageAt( modelObject, iCol)
+            self.SetItem(index, iCol, value, image)
+
 
     def RefreshObject(self, modelObject):
         """
