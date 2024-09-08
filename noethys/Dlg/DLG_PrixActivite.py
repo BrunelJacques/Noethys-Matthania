@@ -575,7 +575,8 @@ class DlgTarification(wx.Dialog):
         self.dictDonnees["etat"] = etatPiece
         self.dictDonnees["lignes_piece"] = self.listeLignesPiece
         self.dictDonnees["nbreJours"] = self.nbreJours
-        self.dictDonnees["IDprestation"] = None
+        if not "IDprestation" in self.dictDonnees:
+            self.dictDonnees["IDprestation"] = None
         # enrichi le dictinnaire reçu
         self.dDonneesOrig.update(self.dictDonnees)
 

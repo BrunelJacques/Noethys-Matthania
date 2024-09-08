@@ -57,7 +57,7 @@ class ListView(ObjectListView):
         # Initialisation du listCtrl
         self.selectionID = None
         self.selectionTrack = None
-        ObjectListView.__init__(self,  **kwds)
+        ObjectListView.__init__(self,*args, **kwds)
         self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
         self.dteDebut = None
         self.dteFin = None
@@ -550,7 +550,7 @@ class MyFrame(wx.Frame):
         sizer_panel = wx.BoxSizer(wx.VERTICAL)
 
         if footer == "sans":
-            self.myOlv = ListView(panel, -1)
+            self.myOlv = ListView(panel, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
             self.myOlv.MAJ()
             sizer_panel.Add(self.myOlv, 1, wx.ALL | wx.EXPAND, 4)
         elif footer == "footer":
@@ -581,7 +581,6 @@ class MyFrame(wx.Frame):
 
 if __name__ == '__main__':
     app = wx.App(0)
-    # Paramétres MyFrame (footer, parent, id, titre)
     frame_1 = MyFrame("sans", None, -1,"OL TEST")
     app.SetTopWindow(frame_1)
     frame_1.Show()
