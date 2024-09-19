@@ -5,7 +5,7 @@
 # Auteur:          Ivan LUCAS, JB, Jacques Brunel
 # Licence:         Licence GNU GPL
 # Gestion de la piece en modification
-# Adapté à partir de DLG_ValidationPiece
+# Adapté à partir de DLG_ChoixTypePiece
 #------------------------------------------------------------------------
 
 from Utils.UTILS_Traduction import _
@@ -22,7 +22,7 @@ from Gest import GestionPieces
 import GestionDB
 from Dlg import DLG_PrixActivite
 from Gest import GestionInscription
-from Dlg import DLG_ValidationPiece
+from Dlg import DLG_ChoixTypePiece
 from Dlg import DLG_InscriptionComplements
 from Ctrl import CTRL_Bandeau
 
@@ -542,7 +542,7 @@ class Dialog(wx.Dialog):
         self.ctrl_nom_nature.Enable(True)
         interroChoix = wx.ID_CANCEL
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_factures", "creer")  :
-            dlg = DLG_ValidationPiece.Dialog(self,"modif")
+            dlg = DLG_ChoixTypePiece.Dialog(self,"modif")
             interroChoix = dlg.ShowModal()
             self.codeNature = dlg.codeNature
             #dlg.Destroy()

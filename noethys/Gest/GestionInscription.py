@@ -1483,6 +1483,24 @@ class Forfaits():
                 self.DB.ReqDEL("prestations", "IDprestation", IDprestation)
         #fin SuppressionInscription
 
+    def ZeroPiece(self,IDinscription):
+        DB = GestionDB.DB()
+        # ctrl de présence d'autre piece pointant la même inscription
+        req = """SELECT Count(pieIDnumPiece)
+            FROM matPieces
+            WHERE pieIDinscription = %s;
+            """ % (IDinscription)
+        DB.ExecuterReq(req,MsgBox="Recherche Autres Pieces sur inscription " + str(IDinscription))
+        recordset = DB.ResultatReq()
+        nbre = Nz(recordset[0][0])
+        if nbre == 0:
+            retFin = True
+        else:
+            retFin = False
+        DB.Close()
+        return retFin
+        #fin ZeroPiece
+    
     def SuppressionPiece(self, parent, dictDonnees):
         #suppression d'une pièce non facturée et de tout ce qui va avec
         IDinscription = dictDonnees["IDinscription"]
@@ -1524,7 +1542,8 @@ class Forfaits():
             self.DB.ReqDEL("prestations", "IDprestation", IDprestation)
 
         # supression des liens inscription, conso
-        if IDinscription != None:
+        
+        if IDinscription != None and self.ZeroPiece(IDinscription):
             self.DB.ReqDEL("consommations", "IDinscription", IDinscription)
             self.DB.ReqDEL("inscriptions", "IDinscription", IDinscription)
 
@@ -1599,41 +1618,43 @@ class Forfaits():
             return
         #Rétrogradation d'une piece de type facture en commande
         if dictDonnees["noFacture"] == None:
-            GestionDB.MessageBox(self.parent,"Cette facture n'a pas de no de facture !\nProblème logique", titre="Traitement impossible")
+            GestionDB.MessageBox(self.parent,"Cette facture n'a pas de no de facture !\nProblème logique", titre="Cas Anormal à vérifier")
+        DB = GestionDB.DB()
+        pGest = GestionPieces.Forfaits(parent)
+        #recharge la pièce pour avoir tous les champs
+        ok = self.GetPieceModif(self.parent,None,None,IDnumPiece=dictDonnees['IDnumPiece'])
+        dictDonnees = self.dictPiece
+        commentaire = Decod(dictDonnees['commentaire'])
+        if commentaire == None: commentaire = " -\n"
+        #on traite le numero facture
+        ligneComm = " "
+        action = ""
+        if not dictDonnees["noFacture"]:
+            # anomalie d'une pièce FAC sans numéro facture
+            pass
+        elif pGest.FactureMonoPiece(dictDonnees["noFacture"],dictDonnees["IDnumPiece"]):
+            # suppression de la facture et stockage du numéro
+            if pGest.DestroyFacture(dictDonnees["noFacture"],dictDonnees["IDcompte_payeur"]):
+                DB.SetParam(param = str(dictDonnees["noFacture"]),value= dictDonnees["noFacture"],user = "NoLibre",
+                            type = "integer",unique=False)
+                ligneComm = " Suppression Facture %s " % dictDonnees['noFacture']
+                action = "SuppressionFacturation"
         else:
-            DB = GestionDB.DB()
-            pGest = GestionPieces.Forfaits(parent)
-            #recharge la pièce pour avoir tous les champs
-            ok = self.GetPieceModif(self.parent,None,None,IDnumPiece=dictDonnees['IDnumPiece'])
-            dictDonnees = self.dictPiece
-            commentaire = Decod(dictDonnees['commentaire'])
-            if commentaire == None: commentaire = " -\n"
-            #on traite le numero facture
-            ligneComm = " "
-            action = ""
-            if pGest.FactureMonoPiece(dictDonnees["noFacture"],dictDonnees["IDnumPiece"]):
-                # suppression de la facture et stockage du numéro
-                if pGest.DestroyFacture(dictDonnees["noFacture"],dictDonnees["IDcompte_payeur"]):
-                    DB.SetParam(param = str(dictDonnees["noFacture"]),value= dictDonnees["noFacture"],user = "NoLibre",
-                                type = "integer",unique=False)
-                    ligneComm = " Suppression Facture %s " % dictDonnees['noFacture']
-                    action = "SuppressionFacturation"
-            else:
-                # simple diminution du montant de la facture
-                mtt = Nz(dictDonnees["total"])+ Nz(dictDonnees["prixTranspAller"]) +  Nz(dictDonnees["prixTranspRetour"])
-                pGest.ReduitFacture(dictDonnees["noFacture"],mtt,dictDonnees["IDprestation"])
-                ligneComm = " Rétrogradation %s " % dictDonnees['nature']
-                action = "ModificationFacturation"
-            commentaire = datetime.date.today().strftime("%d/%m/%y : ") + ligneComm + "\n" + commentaire
-            #force à None l'IDfacture dans la prestation
-            DB.ReqMAJ('prestations',[('IDfacture',None),],'IDprestation',dictDonnees['IDprestation'],MsgBox = 'RAZ IDfacture en prestation')
-            #on traite la pièce
-            DB.ReqMAJ('matPieces',[('pieNoFacture',None),('pieNoAvoir',None),('pieNature','COM'),
-                                   ('pieDateFacturation',None),('pieDateAvoir',None),
-                                   ('pieCommentaire',commentaire)],
-                      'pieIDnumPiece',dictDonnees["IDnumPiece"],MsgBox = 'qGestionInscription.Retrofac')
-            self.Historise(dictDonnees['IDindividu'],dictDonnees['IDfamille'],action,ligneComm)
-            del pGest
+            # simple diminution du montant de la facture
+            mtt = Nz(dictDonnees["total"])+ Nz(dictDonnees["prixTranspAller"]) +  Nz(dictDonnees["prixTranspRetour"])
+            pGest.ReduitFacture(dictDonnees["noFacture"],mtt,dictDonnees["IDprestation"])
+            ligneComm = " Rétrogradation %s " % dictDonnees['nature']
+            action = "ModificationFacturation"
+        commentaire = datetime.date.today().strftime("%d/%m/%y : ") + ligneComm + "\n" + commentaire
+        #force à None l'IDfacture dans la prestation
+        DB.ReqMAJ('prestations',[('IDfacture',None),],'IDprestation',dictDonnees['IDprestation'],MsgBox = 'RAZ IDfacture en prestation')
+        #on traite la pièce
+        DB.ReqMAJ('matPieces',[('pieNoFacture',None),('pieNoAvoir',None),('pieNature','COM'),
+                               ('pieDateFacturation',None),('pieDateAvoir',None),
+                               ('pieCommentaire',commentaire)],
+                  'pieIDnumPiece',dictDonnees["IDnumPiece"],MsgBox = 'qGestionInscription.Retrofac')
+        self.Historise(dictDonnees['IDindividu'],dictDonnees['IDfamille'],action,ligneComm)
+        del pGest
         #fin RetroFact
 
     def RetroAvo(self,parent,dictDonnees):

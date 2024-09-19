@@ -21,7 +21,7 @@ from Utils import UTILS_Utilisateurs
 import GestionDB
 from Dlg import DLG_ChoixLigne
 from Dlg import DLG_FacturationPieces
-from Dlg import DLG_ValidationPiece
+from Dlg import DLG_ChoixTypePiece
 from Dlg import DLG_Choix
 from Gest import GestionArticle
 from Gest import GestionInscription
@@ -826,8 +826,16 @@ class DlgTarification(wx.Dialog):
         self.Sortie()
 
     def OnBoutonOk(self, event):
-        valide = DLG_ValidationPiece.ValideSaisie(self.resultsOlv.GetCheckedObjects(),testSejour=False)
-        if valide:
+        tracks = self.resultsOlv.GetCheckedObjects()
+        valide = True
+        if len(tracks) > 0:
+            if not hasattr(tracks[0],"IDnumPiece"):
+                tracks[0].IDnumPiece = None
+            valide1 = DLG_ChoixTypePiece.ValideSaisie(tracks, testSejour=False)
+            valide2 = DLG_ChoixTypePiece.DoubleLigne(tracks,self.annee, self.DB,
+                                                     IDnumPiece=tracks[0].IDnumPiece)
+            valide = valide1 and valide2
+        if valide :
             #lancer la synthèse
             if not self.fromAvoir :
                     ret =self.Final()

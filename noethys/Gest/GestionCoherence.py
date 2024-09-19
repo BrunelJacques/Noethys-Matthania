@@ -771,7 +771,7 @@ class Diagnostic():
             else:
                 return False
 
-        raise Exception("Cas non prévu: %s"%str(dLigne))
+        #raise Exception("Cas non prévu: %s"%str(dLigne))
 
     def SynchroInscriptionToConsommation(self,dLigne):
         # mises à jour des consommations d'une inscription par écrasement de ses valeurs communes

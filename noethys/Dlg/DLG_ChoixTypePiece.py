@@ -15,7 +15,6 @@ from Ctrl import CTRL_Bouton_image
 from Gest import GestionArticle
 from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn
 import copy
-import GestionDB
 from Ctrl import CTRL_Bandeau
 
 
@@ -42,6 +41,61 @@ def ValideSaisie(tracks,testSejour=True):
             dlg.Destroy()
     return ret
 
+def DoubleLigne(tracks,IDinscription, db, IDnumPiece = None):
+    # censure la présence de doublon dans les libellés de lignes
+    valide = True
+    lstLibelles = [x.libelle for x in tracks]
+    # test sur les lignes présentes dans la piece encours
+    for x in tracks:
+        if lstLibelles.count(x.libelle) >1:
+            mess = "Ligne '%s' en double\n\n" % x.libelle
+            mess += "%d lignes ont un même libellé\n" % (lstLibelles.count(x.libelle))
+            mess += "Précisez les libellés si vous souhaites conserver les lignes..."
+            wx.MessageBox(mess, "Modifiez une ligne", wx.ICON_INFORMATION)
+            valide = False
+            return valide
+    # test sur les pièces existantes
+    recordset = []
+    if len(lstLibelles) > 0:
+        conditionPiece = ""
+        if IDnumPiece:
+            conditionPiece = "AND (matPieces.pieIDnumPiece <> %d)" % IDnumPiece
+        req = """
+        SELECT matPieces.pieIDactivite, activites.nom, matPiecesLignes.ligCodeArticle, 
+                matPiecesLignes.ligLibelle, Sum(matPiecesLignes.ligMontant), 
+                Count(matPiecesLignes.ligIDnumLigne)
+        FROM (matPieces 
+        INNER JOIN matPiecesLignes 
+            ON matPieces.pieIDnumPiece = matPiecesLignes.ligIDnumPiece) 
+        LEFT JOIN activites 
+            ON matPieces.pieIDactivite = activites.IDactivite
+        WHERE (( matPieces.pieIDinscription = %d ) 
+                AND (matPiecesLignes.ligLibelle in ( %s) )
+                %s)
+        GROUP BY matPieces.pieIDactivite, activites.nom, matPiecesLignes.ligCodeArticle, 
+                matPiecesLignes.ligLibelle
+        HAVING Sum(matPiecesLignes.ligMontant) <> 0 
+        ;""" % ( IDinscription, str(lstLibelles)[1:-1], conditionPiece)
+        db.ExecuterReq(req,MsgBox = "DLG_ChoixTypePiece.WarnDblLigne")
+        recordset = db.ResultatReq()
+    if len(recordset) > 0:
+        # test la présence antérieure de même ligne
+        for IDactivite, nomActivite, codeArticle, libelle, mtt, nbre in recordset:
+            for track in tracks:
+                if (track.libelle != libelle) or track.codeArticle != codeArticle:
+                    continue
+                montant = mtt + track.montant
+                if round(montant,2) == 0.0:
+                    continue
+                if not nomActivite:
+                    nomActivite = str(IDactivite) # peut être l'année pour famille
+                mess = "Ligne '%s' en double\n\n"% libelle
+                mess += "L'activité '%s' a %d lignes avec un même libellé\n"% (nomActivite,nbre)
+                mess += "article '%s' pour un prix total de %8.2f¤ est déjà présent!\n"% (codeArticle,montant)
+                mess += "Précisez les libellés si vous souhaites conserver les lignes..."
+                wx.MessageBox(mess, "Modifiez une ligne", wx.ICON_INFORMATION)
+                valide = False
+    return valide
 
 # -----------------------------------------------------------------------------------------------------------------
 class Dialog(wx.Dialog):
@@ -50,7 +104,7 @@ class Dialog(wx.Dialog):
         self.parent = parent
         self.titre = ("Gestion de l'état de la pièce")
         intro = ("L'état de la pièce conditionne l'étape dans le processus de l'inscription")
-        self.SetTitle("DLG_ValidationPiece")
+        self.SetTitle("DLG_ChoixTypePiece")
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=self.titre, texte=intro,  hauteurHtml=15, nomImage="Images/22x22/Smiley_nul.png")
         self.liste_naturePiece = copy.deepcopy(GestionArticle.LISTEnaturesPieces)
         self.staticbox_CARACTER = wx.StaticBox(self, -1, _("Choix de l'état de la pièce"))

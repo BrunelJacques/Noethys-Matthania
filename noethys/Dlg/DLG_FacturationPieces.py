@@ -323,9 +323,9 @@ class  Dialog(wx.Dialog):
         objects = self.olv_piecesFiltrees.GetChoicesObjects()
         if len(objects) == 0:
             return
-        from Dlg import DLG_ValidationPiece
+        from Dlg import DLG_ChoixTypePiece
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_factures", "creer")  :
-            dlg = DLG_ValidationPiece.Dialog(self,"modif")
+            dlg = DLG_ChoixTypePiece.Dialog(self,"modif")
             interroChoix = dlg.ShowModal()
             self.codeNature = dlg.codeNature
             dlg.Destroy()

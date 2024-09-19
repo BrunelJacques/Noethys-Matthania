@@ -12,7 +12,8 @@ import wx
 import datetime
 from operator import attrgetter
 import wx.lib.agw.hyperlink as Hyperlink
-from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn,Filter, CTRL_Outils
+from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, CTRL_Outils
+import Olv.Filter as Filter
 import copy
 from Ctrl import CTRL_Bouton_image
 from Ctrl import CTRL_Bandeau
@@ -20,7 +21,7 @@ from Utils import UTILS_Config
 from Utils import UTILS_Utilisateurs
 import GestionDB
 from Dlg import DLG_ChoixLigne
-from Dlg import DLG_ValidationPiece
+from Dlg import DLG_ChoixTypePiece
 from Gest import GestionArticle
 
 from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
@@ -527,11 +528,15 @@ class DlgTarification(wx.Dialog):
         if self.dictDonnees["origine"] != "modif" :
             testSejour = True
         else : testSejour = False
-        valide = DLG_ValidationPiece.ValideSaisie(self.resultsOlv.GetCheckedObjects(),testSejour=testSejour)
-        if valide :
+        tracks = self.resultsOlv.GetCheckedObjects()
+        valide1 = DLG_ChoixTypePiece.ValideSaisie(tracks,testSejour=testSejour)
+        valide2 = DLG_ChoixTypePiece.DoubleLigne(tracks,self.dictDonnees["IDinscription"],
+                                                 self.DB,
+                                                 IDnumPiece=self.dDonneesOrig["IDnumPiece"])
+        if valide1 and valide2 :
             endModal = wx.ID_CANCEL
             if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_factures", "creer")  :
-                dlg = DLG_ValidationPiece.Dialog(self,"ajout")
+                dlg = DLG_ChoixTypePiece.Dialog(self,"ajout")
                 interroChoix = dlg.ShowModal()
                 self.codeNature = dlg.codeNature
                 self.listeLignesPiece = []
@@ -546,8 +551,12 @@ class DlgTarification(wx.Dialog):
         if self.dictDonnees["origine"] != "compl" :
             testSejour = True
         else : testSejour = False
-        valide = DLG_ValidationPiece.ValideSaisie(self.resultsOlv.GetCheckedObjects(),testSejour=testSejour)
-        if valide :
+        tracks = self.resultsOlv.GetCheckedObjects()
+        valide1 = DLG_ChoixTypePiece.ValideSaisie(tracks,testSejour=testSejour)
+        valide2 = DLG_ChoixTypePiece.DoubleLigne(tracks,self.dictDonnees["IDinscription"],
+                                                 self.DB,
+                                                 IDnumPiece=self.dDonneesOrig["IDnumPiece"])
+        if valide1 and valide2 :
             self.FinSaisie(event)
 
     def FinSaisie(self,event):

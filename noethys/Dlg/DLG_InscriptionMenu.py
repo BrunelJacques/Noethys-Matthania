@@ -280,11 +280,15 @@ class DlgMenu(wx.Dialog):
         # on a ajouté des lignes à l'inscription mais c'est dans une nouvelle pièce.
         individu = self.dictDonnees["IDindividu"]
         activite = self.dictDonnees["IDactivite"]
+        for cle in ["IDnumPiece","IDprestation","nature","noFacture","dateFacturation"]:
+            self.dictDonnees[cle] = None
+
         if "IDtranspAller" in self.dictDonnees:
             self.dictDonnees["IDtranspAller"] = None
             self.dictDonnees["IDtranspRetour"] = None
             self.dictDonnees["prixTranspAller"] = 0.0
             self.dictDonnees["prixTranspRetour"] = 0.0
+
         if razConsos :
             req = """DELETE FROM consommations
                    WHERE IDindividu = %d AND IDactivite =%d ;""" % (individu, activite)
