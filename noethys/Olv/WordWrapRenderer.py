@@ -28,9 +28,7 @@ import wx
 import bisect
 from wx.lib.wordwrap import wordwrap
 
-
 class WordWrapRenderer:
-
     """
     This renderer encapsulates the logic need to draw and measure a word-wrapped
     string within a given rectangle.
