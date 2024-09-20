@@ -1,3 +1,6 @@
+version  1.3.2.96 (21/09/2024)
+- Correction test double ligne sur cotisations
+
 version  1.3.2.95 (21/09/2024)
 - Correction test double ligne en création d'inscription
 

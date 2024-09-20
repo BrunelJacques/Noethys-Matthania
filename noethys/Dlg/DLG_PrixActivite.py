@@ -538,7 +538,8 @@ class DlgTarification(wx.Dialog):
         valide1 = DLG_ChoixTypePiece.ValideSaisie(tracks,testSejour=testSejour)
         valide2 = DLG_ChoixTypePiece.DoubleLigne(tracks,self.dictDonnees["IDinscription"],
                                                  self.DB,
-                                                 IDnumPiece=self.dDonneesOrig["IDnumPiece"])
+                                                 IDnumPiece=self.dDonneesOrig["IDnumPiece"],
+                                                 IDfamille= self.dictDonnees["IDfamille"])
         if valide1 and valide2 :
             endModal = wx.ID_CANCEL
             if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_factures", "creer")  :
@@ -567,7 +568,8 @@ class DlgTarification(wx.Dialog):
         valide1 = DLG_ChoixTypePiece.ValideSaisie(tracks,testSejour=testSejour)
         valide2 = DLG_ChoixTypePiece.DoubleLigne(tracks,self.dictDonnees["IDinscription"],
                                                  self.DB,
-                                                 IDnumPiece=self.dDonneesOrig["IDnumPiece"])
+                                                 IDnumPiece=self.dDonneesOrig["IDnumPiece"],
+                                                 IDfamille= self.dictDonnees["IDfamille"])
         if valide1 and valide2 :
             self.FinSaisie(event)
 

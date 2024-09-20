@@ -538,6 +538,7 @@ class DlgTarification(wx.Dialog):
         self.periode = (self.exerciceDeb,self.exerciceFin)
         self.annee = self.exerciceFin.year
         self.IDcompte_payeur = dictDonneesParent["IDcompte_payeur"]
+
         # Verrouillage utilisateurs
         self.rw = True
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_inscriptions", "creer") == False :
@@ -833,7 +834,8 @@ class DlgTarification(wx.Dialog):
                 tracks[0].IDnumPiece = None
             valide1 = DLG_ChoixTypePiece.ValideSaisie(tracks, testSejour=False)
             valide2 = DLG_ChoixTypePiece.DoubleLigne(tracks,self.annee, self.DB,
-                                                     IDnumPiece=tracks[0].IDnumPiece)
+                                                     IDnumPiece=tracks[0].IDnumPiece,
+                                                     IDfamille=self.IDcompte_payeur)
             valide = valide1 and valide2
         if valide :
             #lancer la synthèse

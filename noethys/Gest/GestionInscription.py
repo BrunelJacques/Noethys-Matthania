@@ -1186,9 +1186,10 @@ class Forfaits():
         if mttOrigine != mttNew:
             ret = self.ModifPrestationVentilation999(self.DB,dictDonnees)
 
-
         # action sur la pièce
-        dateFact = self.DB.GetDateFacture(dictDonnees["IDinscription"],
+        dateFact = datetime.date.today()
+        if dictDonnees["nature"] in  ('FAC','AVO'):
+            dateFact = self.DB.GetDateFacture(dictDonnees["IDinscription"],
                                      dictDonnees["IDactivite"],
                                      datetime.date.today())
         # recherche date d'échéance

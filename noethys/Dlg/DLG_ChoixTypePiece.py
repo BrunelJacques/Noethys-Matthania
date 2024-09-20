@@ -41,7 +41,7 @@ def ValideSaisie(tracks,testSejour=True):
             dlg.Destroy()
     return ret
 
-def DoubleLigne(tracks,IDinscription, db, IDnumPiece = None):
+def DoubleLigne(tracks,IDinscription, db, IDnumPiece=None, IDfamille=None):
     # censure la présence de doublon dans les libellés de lignes
     valide = True
     #Cas de création de pièce inutile de rechercher des doublons
@@ -72,13 +72,14 @@ def DoubleLigne(tracks,IDinscription, db, IDnumPiece = None):
             ON matPieces.pieIDnumPiece = matPiecesLignes.ligIDnumPiece) 
         LEFT JOIN activites 
             ON matPieces.pieIDactivite = activites.IDactivite
-        WHERE (( matPieces.pieIDinscription = %d ) 
+        WHERE ((( matPieces.pieIDinscription = %d ) 
+                AND ( matPieces.pieIDfamille = %d ))
                 AND (matPiecesLignes.ligLibelle in ( %s) )
                 %s)
         GROUP BY matPieces.pieIDactivite, activites.nom, matPiecesLignes.ligCodeArticle, 
                 matPiecesLignes.ligLibelle
         HAVING Sum(matPiecesLignes.ligMontant) <> 0 
-        ;""" % ( IDinscription, str(lstLibelles)[1:-1], conditionPiece)
+        ;""" % ( IDinscription, IDfamille, str(lstLibelles)[1:-1], conditionPiece)
         db.ExecuterReq(req,MsgBox = "DLG_ChoixTypePiece.WarnDblLigne")
         recordset = db.ResultatReq()
     if len(recordset) > 0:
