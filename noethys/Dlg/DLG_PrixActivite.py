@@ -528,6 +528,12 @@ class DlgTarification(wx.Dialog):
         if self.dictDonnees["origine"] != "modif" :
             testSejour = True
         else : testSejour = False
+        # Complète l'info en cas de création
+        if not hasattr(self.dictDonnees,"IDinscription"):
+            self.dictDonnees["IDinscription"] = None
+        if not hasattr(self.dDonneesOrig,"IDnumPiece"):
+            self.dDonneesOrig["IDnumPiece"] = None
+
         tracks = self.resultsOlv.GetCheckedObjects()
         valide1 = DLG_ChoixTypePiece.ValideSaisie(tracks,testSejour=testSejour)
         valide2 = DLG_ChoixTypePiece.DoubleLigne(tracks,self.dictDonnees["IDinscription"],
@@ -551,6 +557,12 @@ class DlgTarification(wx.Dialog):
         if self.dictDonnees["origine"] != "compl" :
             testSejour = True
         else : testSejour = False
+        # Complète l'info en cas de création
+        if not hasattr(self.dictDonnees,"IDinscription"):
+            self.dictDonnees["IDinscription"] = None
+        if not hasattr(self.dDonneesOrig,"IDnumPiece"):
+            self.dDonneesOrig["IDnumPiece"] = None
+
         tracks = self.resultsOlv.GetCheckedObjects()
         valide1 = DLG_ChoixTypePiece.ValideSaisie(tracks,testSejour=testSejour)
         valide2 = DLG_ChoixTypePiece.DoubleLigne(tracks,self.dictDonnees["IDinscription"],

@@ -44,6 +44,9 @@ def ValideSaisie(tracks,testSejour=True):
 def DoubleLigne(tracks,IDinscription, db, IDnumPiece = None):
     # censure la présence de doublon dans les libellés de lignes
     valide = True
+    #Cas de création de pièce inutile de rechercher des doublons
+    if not IDinscription:
+        return valide
     lstLibelles = [x.libelle for x in tracks]
     # test sur les lignes présentes dans la piece encours
     for x in tracks:
