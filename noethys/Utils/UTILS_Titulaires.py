@@ -67,9 +67,8 @@ def AjoutContacts(dFamille, dIndividu):
 
 def AjoutNomAdresse(dFamille, dIndividu):
     strIDcivilite = dIndividu["IDcivilite"]
-    if strIDcivilite != None:
-        nomCivilite = ("%s " % DICT_CIVILITES[int(strIDcivilite)][
-            "civiliteAbrege"]).strip()
+    if strIDcivilite != None  and strIDcivilite != "None":
+        nomCivilite = ("%s " % DICT_CIVILITES[int(strIDcivilite)][ "civiliteAbrege"]).strip()
     else:
         nomCivilite = ""
     # Recherche de l'adresse du correspondant
