@@ -529,9 +529,9 @@ class DlgTarification(wx.Dialog):
             testSejour = True
         else : testSejour = False
         # Complète l'info en cas de création
-        if not hasattr(self.dictDonnees,"IDinscription"):
+        if not "IDinscription" in self.dictDonnees:
             self.dictDonnees["IDinscription"] = None
-        if not hasattr(self.dDonneesOrig,"IDnumPiece"):
+        if not "IDnumPiece" in self.dDonneesOrig:
             self.dDonneesOrig["IDnumPiece"] = None
 
         tracks = self.resultsOlv.GetCheckedObjects()
@@ -559,9 +559,9 @@ class DlgTarification(wx.Dialog):
             testSejour = True
         else : testSejour = False
         # Complète l'info en cas de création
-        if not hasattr(self.dictDonnees,"IDinscription"):
+        if not "IDinscription" in self.dictDonnees:
             self.dictDonnees["IDinscription"] = None
-        if not hasattr(self.dDonneesOrig,"IDnumPiece"):
+        if not "IDnumPiece" in self.dDonneesOrig:
             self.dDonneesOrig["IDnumPiece"] = None
 
         tracks = self.resultsOlv.GetCheckedObjects()

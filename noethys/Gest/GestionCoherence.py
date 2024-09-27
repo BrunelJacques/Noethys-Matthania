@@ -1435,9 +1435,17 @@ class Diagnostic():
                     if nomCible == "prestations" and dict["pieNature"] in ("DEV","RES"):
                         continue
 
-                    # exception pour les consoavoir dont l'IDprestation n'est pas dans la pièce désignée par IDcontrat
+                    # exception pour les consos dont l'IDprestation n'est pas dans la pièce désignée par IDcontrat
                     if nomOrig == "prestations":
                         if champCible == "pieIDprestation":
+                            # prestation de type conso sans un numéro de pièce cas anormal
+                            if "conso" in dict["categorie"] and not dict["IDcontrat"]:
+                                attendu = "No contrat dans une conso*"
+                                trouve = dict["IDcontrat"]
+                                ajoutAnomalie("ToDel", IDcible, attendu,
+                                              messNonAttendu(ID, IDcible, attendu,
+                                                             trouve))
+                                continue
                             # exception pour les prestations résiduelle de devis et reservations
                             if dictCible["pieNature"]  in ("DEV", "RES"):
                                 attendu = "FAC ou AVO"
