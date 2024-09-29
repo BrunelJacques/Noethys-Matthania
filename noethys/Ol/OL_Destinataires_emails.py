@@ -16,7 +16,7 @@ import datetime
 import os
 import FonctionsPerso
 
-from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, CTRL_Outils
+from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn
 
 LISTE_EXTENSIONS = ["bmp", "doc", "docx", "gif", "jpeg", "jpg", "pdf", "png", "tous", "xls", "xlsx", "zip", "plusieurs",]
 
@@ -480,65 +480,10 @@ class ListView(FastObjectListView):
             return
         else:
             FonctionsPerso.LanceFichierExterne(cheminFichier)
-        
+
     def ExportExcel(self, event=None):
-        """ Export Excel """
-        titre = _("Destinataires")
-        # Vérifie qu"il y a des adresses mails saisies
-        if len(self.donnees) == 0 :
-            dlg = wx.MessageDialog(self, _("La liste des destinataires est vide !"), "Erreur", wx.OK| wx.ICON_EXCLAMATION)  
-            dlg.ShowModal()
-            dlg.Destroy()
-            return
-        # Demande à l'utilisateur le nom de fichier et le répertoire de destination
-        nomFichier = "ExportExcel_%s.xls" % datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-        wildcard = "Fichier Excel (*.xls)|*.xls|" \
-                        "All files (*.*)|*.*"
-        sp = wx.StandardPaths.Get()
-        cheminDefaut = sp.GetDocumentsDir()
-        dlg = wx.FileDialog(
-            None, message = _("Veuillez sélectionner le répertoire de destination et le nom du fichier"), defaultDir=cheminDefaut, 
-            defaultFile = nomFichier, 
-            wildcard = wildcard, 
-            style = wx.SAVE
-            )
-        dlg.SetFilterIndex(0)
-        if dlg.ShowModal() == wx.ID_OK:
-            cheminFichier = dlg.GetPath()
-            dlg.Destroy()
-        else:
-            dlg.Destroy()
-            return
-        # Le fichier de destination existe déjà :
-        if os.path.isfile(cheminFichier) == True :
-            dlg = wx.MessageDialog(None, _("Un fichier portant ce nom existe déjà. \n\nVoulez-vous le remplacer ?"), "Attention !", wx.YES_NO | wx.NO_DEFAULT | wx.ICON_EXCLAMATION)
-            if dlg.ShowModal() == wx.ID_NO :
-                return False
-                dlg.Destroy()
-            else:
-                dlg.Destroy()
-        # Export
-        import pyExcelerator
-        # Création d'un classeur
-        wb = pyExcelerator.Workbook()
-        # Création d'une feuille
-        ws1 = wb.add_sheet(titre)
-        # Remplissage de la feuille
-        x = 0
-        for track in self.donnees :
-            ws1.write(x, 0, track.adresse)
-            x += 1                    
-        # Finalisation du fichier xls
-        wb.save(cheminFichier)
-        # Confirmation de création du fichier et demande d'ouverture directe dans Excel
-        txtMessage = _("Le fichier Excel a été créé avec succès. Souhaitez-vous l'ouvrir dès maintenant ?")
-        dlgConfirm = wx.MessageDialog(None, txtMessage, _("Confirmation"), wx.YES_NO|wx.NO_DEFAULT|wx.ICON_QUESTION)
-        reponse = dlgConfirm.ShowModal()
-        dlgConfirm.Destroy()
-        if reponse == wx.ID_NO:
-            return
-        else:
-            FonctionsPerso.LanceFichierExterne(cheminFichier)
+        from Utils import UTILS_Export
+        UTILS_Export.ExportExcel(self, titre=self.titre)
 
     def GetLignesCheck(self):
         donneesSelect = []

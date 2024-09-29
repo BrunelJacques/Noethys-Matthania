@@ -7,12 +7,7 @@
 # Copyright:       (c) 2010-11 Ivan LUCAS, JB
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
-
-
-import Chemins
-from Utils.UTILS_Traduction import _
 import wx
-import socket
 import os
 import sys
 import time
@@ -28,21 +23,16 @@ from Dlg import DLG_Messagebox
 
 import smtplib
 import six
-from six.moves.email_mime_multipart import MIMEMultipart
-from six.moves.email_mime_base import MIMEBase
-from six.moves.email_mime_text import MIMEText
-from six.moves.email_mime_image import MIMEImage
-from email.utils import formatdate
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
 from email.header import Header
-from email.utils import formatdate, formataddr
+from email.utils import formatdate
 from email import encoders
 import mimetypes
 
 from Outils import mail
-
-# Import pour permettre compilation windows
-from Outils.mail import base, smtp
-
 
 def EnvoiEmailFamille(parent=None, IDfamille=None, nomDoc="", categorie="", listeAdresses=[], visible=True, log=None, CreationPDF=None, IDmodele=None):
     # Création du PDF
@@ -92,10 +82,10 @@ def EnvoiEmailFamille(parent=None, IDfamille=None, nomDoc="", categorie="", list
 
     if len(dlg.listeSucces) > 0 :
         resultat = True
-        if log : log.EcritLog(_(u"L'Email a été envoyé avec succès."))
+        if log : log.EcritLog("L'Email a été envoyé avec succès.")
     else :
         resultat = False
-        if log : log.EcritLog(_(u"L'email n'a pas été envoyé."))
+        if log : log.EcritLog("L'email n'a pas été envoyé.")
 
     dlg.Destroy()
 
@@ -145,7 +135,7 @@ def GetAdresseFamille(IDfamille=None, choixMultiple=True, muet=False, nomTitulai
         if IDfamille in dictTitulaires:
             nomTitulaires = dictTitulaires[IDfamille]["titulairesSansCivilite"]
         else :
-            nomTitulaires = _(u"Famille inconnue")
+            nomTitulaires = "Famille inconnue"
     # Récupération des adresses mails de chaque membre de la famille
     DB = GestionDB.DB()
     req = """
@@ -162,14 +152,14 @@ def GetAdresseFamille(IDfamille=None, choixMultiple=True, muet=False, nomTitulai
     listeTemp = []
     for IDindividu,  IDcategorie, nom, prenom, mailPerso, mailTravail in listeDonnees :
         if mailPerso != None and mailPerso != "" and mailPerso not in listeTemp :
-            listeAdresses.append((_(u"%s (Adresse perso de %s)") % (mailPerso, prenom), mailPerso))
+            listeAdresses.append(("%s (Adresse perso de %s)" % (mailPerso, prenom), mailPerso))
             listeTemp.append(mailPerso)
         if mailTravail != None and mailTravail != "" and mailTravail not in listeTemp :
-            listeAdresses.append((_(u"%s (Adresse pro de %s)") % (mailTravail, prenom), mailTravail))
+            listeAdresses.append("%s (Adresse pro de %s)" %(mailTravail, prenom), mailTravail)
             listeTemp.append(mailTravail)
     if len(listeAdresses) == 0 :
         if muet == False :
-            dlg = wx.MessageDialog(None, _(u"Aucun titulaire de la famille de %s ne dispose d'adresse mail !") % nomTitulaires, "Erreur", wx.OK | wx.ICON_EXCLAMATION)
+            dlg = wx.MessageDialog(None, "Aucun titulaire de la famille de %s ne dispose d'adresse mail !" % nomTitulaires, "Erreur", wx.OK | wx.ICON_EXCLAMATION)
             dlg.ShowModal()
             dlg.Destroy()
         return []
@@ -180,10 +170,16 @@ def GetAdresseFamille(IDfamille=None, choixMultiple=True, muet=False, nomTitulai
         listeMails = []
         for label, adresse in listeAdresses :
             listeLabels.append(label)
+        mess = "%d adresses internet sont disponibles pour la famille de %s.\nSélectionnez celles que vous souhaitez utiliser puis cliquez sur le bouton 'Ok' :" % (len(listeAdresses),
+                                                                                                                                                                    nomTitulaires)
         if choixMultiple == True :
-            dlg = wx.MultiChoiceDialog(None, _(u"%d adresses internet sont disponibles pour la famille de %s.\nSélectionnez celles que vous souhaitez utiliser puis cliquez sur le bouton 'Ok' :") % (len(listeAdresses), nomTitulaires), _(u"Choix d'adresses Emails"), listeLabels)
+            dlg = wx.MultiChoiceDialog(None,
+                                       mess,
+                                       "Choix d'adresses Emails", listeLabels)
         else :
-            dlg = wx.SingleChoiceDialog(None, _(u"%d adresses internet sont disponibles pour la famille de %s.\nSélectionnez celle que vous souhaitez utiliser puis cliquez sur le bouton 'Ok' :") % (len(listeAdresses), nomTitulaires), _(u"Choix d'une adresse Email"), listeLabels)
+            dlg = wx.SingleChoiceDialog(None,
+                                        mess,
+                                        "Choix d'une adresse Email", listeLabels)
         dlg.SetSize((450, -1))
         dlg.CenterOnScreen()
         if dlg.ShowModal() == wx.ID_OK :
@@ -193,7 +189,7 @@ def GetAdresseFamille(IDfamille=None, choixMultiple=True, muet=False, nomTitulai
                 selections = [dlg.GetSelection(),]
             dlg.Destroy()
             if len(selections) == 0 :
-                dlg = wx.MessageDialog(None, _(u"Vous n'avez sélectionné aucune adresse mail !"), "Erreur", wx.OK | wx.ICON_EXCLAMATION)
+                dlg = wx.MessageDialog(None, "Vous n'avez sélectionné aucune adresse mail !", "Erreur", wx.OK | wx.ICON_EXCLAMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
                 return []
@@ -215,14 +211,14 @@ def GetAdressesFamilles(liste_IDfamille=[]):
 
     # Sélection des adresses mail
     liste_actions = [
-        ("all", _(u"Toutes les adresses de la famille")),
-        ("one_perso_first", _(u"Une seule adresse par famille (perso en priorité)")),
-        ("one_pro_first", _(u"Une seule adresse par famille (pro en priorité)")),
-        ("all_perso", _(u"Toutes les adresses personnelles de la famille")),
-        ("all_pro", _(u"Toutes les adresses professionnelles de la famille")),
-        ("all_perso_first", _(u"Toutes les adresses personnelles de la famille en priorité")),
-        ("all_pro_first", _(u"Toutes les adresses professionnelles de la famille en priorité")),
-        ("selection", _(u"Je veux sélectionner les adresses pour chaque famille")),
+        ("all", "Toutes les adresses de la famille"),
+        ("one_perso_first", "Une seule adresse par famille (perso en priorité)"),
+        ("one_pro_first", "Une seule adresse par famille (pro en priorité)"),
+        ("all_perso", "Toutes les adresses personnelles de la famille"),
+        ("all_pro", "Toutes les adresses professionnelles de la famille"),
+        ("all_perso_first", "Toutes les adresses personnelles de la famille en priorité"),
+        ("all_pro_first", "Toutes les adresses professionnelles de la famille en priorité"),
+        ("selection", "Je veux sélectionner les adresses pour chaque famille"),
         ]
     dlg = wx.SingleChoiceDialog(None, u"Quelles adresses internet souhaitez-vous utiliser ?", u"Sélection des adresses", [label for code, label in liste_actions], wx.CHOICEDLG_STYLE)
     dlg.SetSize((350, 240))
@@ -341,14 +337,14 @@ def GetAdressesFamilles(liste_IDfamille=[]):
             if IDfamille in dictTitulaires:
                 nom_titulaires = dictTitulaires[IDfamille]["titulairesSansCivilite"]
             else:
-                nom_titulaires = _(u"Titulaires inconnus")
+                nom_titulaires = "Titulaires inconnus"
             liste_anomalies.append(nom_titulaires)
 
     if len(liste_anomalies) > 0 and len(liste_anomalies) != len(liste_IDfamille):
-        intro = _(u"%d des familles sélectionnées n'ont pas d'adresse Email :") % len(liste_anomalies)
-        conclusion = _(u"Souhaitez-vous quand même continuer avec les autres destinataires ?")
+        intro = "%d des familles sélectionnées n'ont pas d'adresse Email :" % len(liste_anomalies)
+        conclusion = "Souhaitez-vous quand même continuer avec les autres destinataires ?"
         detail = u"\n".join([nom for nom in liste_anomalies])
-        dlgErreur = DLG_Messagebox.Dialog(None, titre=_(u"Avertissement"), introduction=intro, detail=detail, conclusion=conclusion, icone=wx.ICON_EXCLAMATION, boutons=[_(u"Oui"), _(u"Non"), _(u"Annuler")])
+        dlgErreur = DLG_Messagebox.Dialog(None, titre="Avertissement", introduction=intro, detail=detail, conclusion=conclusion, icone=wx.ICON_EXCLAMATION, boutons=["Oui", "Non", "Annuler"])
         reponse = dlgErreur.ShowModal()
         dlgErreur.Destroy()
         if reponse != 0:
@@ -356,7 +352,7 @@ def GetAdressesFamilles(liste_IDfamille=[]):
 
     # Dernière vérification avant transfert
     if len(dict_adresses) == 0 :
-        dlg = wx.MessageDialog(None, _(u"Il ne reste finalement aucune adresse internet !"), _(u"Erreur"), wx.OK | wx.ICON_EXCLAMATION)
+        dlg = wx.MessageDialog(None, "Il ne reste finalement aucune adresse internet !", "Erreur", wx.OK | wx.ICON_EXCLAMATION)
         dlg.ShowModal()
         dlg.Destroy()
         return False
@@ -571,11 +567,11 @@ class SmtpV1(Base_messagerie):
                     labelAdresse = adresse.decode("iso-8859-15")
                 except:
                     labelAdresse = adresse
-                label = _(u"Envoi %d/%d : %s...") % (index, len(messages), labelAdresse)
+                label = "Envoi %d/%d : %s..." % (index, len(messages), labelAdresse)
 
                 # Si la dlg_progress a été fermée, on la réouvre
                 if dlg_progress == None:
-                    dlg_progress = wx.ProgressDialog(_(u"Envoi des mails"), _(u""), maximum=len(messages) + 1, parent=None)
+                    dlg_progress = wx.ProgressDialog("Envoi des mails", "", maximum=len(messages) + 1, parent=None)
                     dlg_progress.SetSize((450, 140))
                     dlg_progress.CenterOnScreen()
                 dlg_progress.Update(index, label)
@@ -614,16 +610,16 @@ class SmtpV1(Base_messagerie):
                         dlg_progress = None
 
                         # Affichage de l'erreur
-                        intro = _(u"L'erreur suivante a été détectée :")
+                        intro = "L'erreur suivante a été détectée :"
                         detail = err
                         if index <= len(messages) - 1:
-                            conclusion = _(u"Souhaitez-vous quand même continuer l'envoi des autres emails ?")
-                            boutons = [_(u"Réessayer"), _(u"Continuer"),
-                                       _(u"Continuer et ne plus signaler les erreurs"), _(u"Arrêter")]
+                            conclusion = "Souhaitez-vous quand même continuer l'envoi des autres emails ?"
+                            boutons = ["Réessayer", "Continuer",
+                                       "Continuer et ne plus signaler les erreurs", "Arrêter"]
                         else:
                             conclusion = None
-                            boutons = [_(u"Réessayer"), _(u"Arrêter"), ]
-                        dlgErreur = DLG_Messagebox.Dialog(None, titre=_(u"Erreur"), introduction=intro, detail=detail,
+                            boutons = ["Réessayer", "Arrêter", ]
+                        dlgErreur = DLG_Messagebox.Dialog(None, titre="Erreur", introduction=intro, detail=detail,
                                                           conclusion=conclusion, icone=wx.ICON_ERROR, boutons=boutons)
                         reponse = dlgErreur.ShowModal()
                         dlgErreur.Destroy()
@@ -641,26 +637,26 @@ class SmtpV1(Base_messagerie):
 
         # Fin de la gauge
         if dlg_progress != None:
-            dlg_progress.Update(index, _(u"Fin de l'envoi."))
+            dlg_progress.Update(index, "Fin de l'envoi.")
             dlg_progress.Destroy()
 
         # Si tous les Emails envoyés avec succès
         if len(listeAnomalies) == 0 and afficher_confirmation_envoi == True:
             if len(listeSucces) == 1:
-                message = _(u"L'Email a été envoyé avec succès !")
+                message = "L'Email a été envoyé avec succès !"
             else:
-                message = _(u"Les %d Emails ont été envoyés avec succès !") % len(listeSucces)
-            dlg = wx.MessageDialog(None, message, _(u"Fin de l'envoi"), wx.OK | wx.ICON_INFORMATION)
+                message = "Les %d Emails ont été envoyés avec succès !" % len(listeSucces)
+            dlg = wx.MessageDialog(None, message, "Fin de l'envoi", wx.OK | wx.ICON_INFORMATION)
             dlg.ShowModal()
             dlg.Destroy()
 
         # Si Anomalies
         if len(listeAnomalies) > 0 and len(messages) > 1:
             if len(listeSucces) > 0:
-                intro = _(u"%d Email(s) ont été envoyés avec succès mais les %d envois suivants ont échoué :") % (
+                intro = "%d Email(s) ont été envoyés avec succès mais les %d envois suivants ont échoué :" % (
                 len(listeSucces), len(listeAnomalies))
             else:
-                intro = _(u"Tous les envois ont lamentablement échoué :")
+                intro = "Tous les envois ont lamentablement échoué :"
             lignes = []
             for message, erreur in listeAnomalies:
                 adresse = message.GetLabelDestinataires()
@@ -668,8 +664,8 @@ class SmtpV1(Base_messagerie):
                     lignes.append(u"- %s : %s" % (adresse.decode("iso-8859-15"), erreur))
                 except:
                     lignes.append(u"- %s : %s" % (adresse, erreur))
-            dlg = DLG_Messagebox.Dialog(None, titre=_(u"Compte-rendu de l'envoi"), introduction=intro,
-                                        detail="\n".join(lignes), icone=wx.ICON_INFORMATION, boutons=[_(u"Ok"), ])
+            dlg = DLG_Messagebox.Dialog(None, titre="Compte-rendu de l'envoi", introduction=intro,
+                                        detail="\n".join(lignes), icone=wx.ICON_INFORMATION, boutons=["Ok", ])
             dlg.ShowModal()
             dlg.Destroy()
 
@@ -732,11 +728,11 @@ class SmtpV2(Base_messagerie):
                     labelAdresse = adresse.decode("iso-8859-15")
                 except:
                     labelAdresse = adresse
-                label = _(u"Envoi %d/%d : %s...") % (index, len(messages), labelAdresse)
+                label = "Envoi %d/%d : %s..." % (index, len(messages), labelAdresse)
 
                 # Si la dlg_progress a été fermée, on la réouvre
                 if dlg_progress == None:
-                    dlg_progress = wx.ProgressDialog(_(u"Envoi des mails"), _(u""), maximum=len(messages) + 1, parent=None)
+                    dlg_progress = wx.ProgressDialog("Envoi des mails", "", maximum=len(messages) + 1, parent=None)
                     dlg_progress.SetSize((450, 140))
                     dlg_progress.CenterOnScreen()
                 dlg_progress.Update(index, label)
@@ -775,16 +771,17 @@ class SmtpV2(Base_messagerie):
                         dlg_progress = None
 
                         # Affichage de l'erreur
-                        intro = _(u"L'erreur suivante a été détectée :")
+                        intro = "L'erreur suivante a été détectée :"
                         detail = err
                         if index <= len(messages) - 1:
-                            conclusion = _(u"Souhaitez-vous quand même continuer l'envoi des autres emails ?")
-                            boutons = [_(u"Réessayer"), _(u"Continuer"),
-                                       _(u"Continuer et ne plus signaler les erreurs"), _(u"Arrêter")]
+                            conclusion = "Souhaitez-vous quand même continuer l'envoi des autres emails ?"
+                            boutons = ["Réessayer", "Continuer",
+                                       "Continuer et ne plus signaler les erreurs",
+                                       "Arrêter"]
                         else:
                             conclusion = None
-                            boutons = [_(u"Réessayer"), _(u"Arrêter"), ]
-                        dlgErreur = DLG_Messagebox.Dialog(None, titre=_(u"Erreur"), introduction=intro, detail=detail,
+                            boutons = ["Réessayer", "Arrêter", ]
+                        dlgErreur = DLG_Messagebox.Dialog(None, titre="Erreur", introduction=intro, detail=detail,
                                                           conclusion=conclusion, icone=wx.ICON_ERROR, boutons=boutons)
                         reponse = dlgErreur.ShowModal()
                         dlgErreur.Destroy()
@@ -802,26 +799,26 @@ class SmtpV2(Base_messagerie):
 
         # Fin de la gauge
         if dlg_progress != None:
-            dlg_progress.Update(index, _(u"Fin de l'envoi."))
+            dlg_progress.Update(index, "Fin de l'envoi.")
             dlg_progress.Destroy()
 
         # Si tous les Emails envoyés avec succès
         if len(listeAnomalies) == 0 and afficher_confirmation_envoi == True:
             if len(listeSucces) == 1:
-                message = _(u"L'Email a été envoyé avec succès !")
+                message = "L'Email a été envoyé avec succès !"
             else:
-                message = _(u"Les %d Emails ont été envoyés avec succès !") % len(listeSucces)
-            dlg = wx.MessageDialog(None, message, _(u"Fin de l'envoi"), wx.OK | wx.ICON_INFORMATION)
+                message = "Les %d Emails ont été envoyés avec succès !"% len(listeSucces)
+            dlg = wx.MessageDialog(None, message, "Fin de l'envoi", wx.OK | wx.ICON_INFORMATION)
             dlg.ShowModal()
             dlg.Destroy()
 
         # Si Anomalies
         if len(listeAnomalies) > 0 and len(messages) > 1:
             if len(listeSucces) > 0:
-                intro = _(u"%d Email(s) ont été envoyés avec succès mais les %d envois suivants ont échoué :") % (
+                intro = "%d Email(s) ont été envoyés avec succès mais les %d envois suivants ont échoué :" % (
                 len(listeSucces), len(listeAnomalies))
             else:
-                intro = _(u"Tous les envois ont lamentablement échoué :")
+                intro = "Tous les envois ont lamentablement échoué :"
             lignes = []
             for message, erreur in listeAnomalies:
                 adresse = message.GetLabelDestinataires()
@@ -829,8 +826,8 @@ class SmtpV2(Base_messagerie):
                     lignes.append(u"- %s : %s" % (adresse.decode("iso-8859-15"), erreur))
                 except:
                     lignes.append(u"- %s : %s" % (adresse, erreur))
-            dlg = DLG_Messagebox.Dialog(None, titre=_(u"Compte-rendu de l'envoi"), introduction=intro,
-                                        detail="\n".join(lignes), icone=wx.ICON_INFORMATION, boutons=[_(u"Ok"), ])
+            dlg = DLG_Messagebox.Dialog(None, titre="Compte-rendu de l'envoi", introduction=intro,
+                                        detail="\n".join(lignes), icone=wx.ICON_INFORMATION, boutons=["Ok", ])
             dlg.ShowModal()
             dlg.Destroy()
 
@@ -847,12 +844,14 @@ class Mailjet(Base_messagerie):
         if api_key == None or api_secret == None:
             raise ValueError(u"Les codes MAILJET ne sont pas valides.")
 
-        # Connexion à Mailjet
+        # Connexion à Mailjet à réactiver si 'mailjet_rest' existe
+        """
         try:
             from mailjet_rest import Client
             self.connection = Client(auth=(api_key, api_secret), version='v3.1')
         except Exception as err:
             raise
+        """
 
     def Envoyer(self, message=None):
         # Préparation du message
@@ -931,11 +930,11 @@ class Mailjet(Base_messagerie):
                     labelAdresse = adresse.decode("iso-8859-15")
                 except:
                     labelAdresse = adresse
-                label = _(u"Envoi %d/%d : %s...") % (index, len(messages), labelAdresse)
+                label = "Envoi %d/%d : %s..." % (index, len(messages), labelAdresse)
 
                 # Si la dlg_progress a été fermée, on la réouvre
                 if dlg_progress == None:
-                    dlg_progress = wx.ProgressDialog(_(u"Envoi des mails"), _(u""), maximum=len(messages) + 1, parent=None)
+                    dlg_progress = wx.ProgressDialog("Envoi des mails", "", maximum=len(messages) + 1, parent=None)
                     dlg_progress.SetSize((450, 140))
                     dlg_progress.CenterOnScreen()
                 dlg_progress.Update(index, label)
@@ -957,16 +956,16 @@ class Mailjet(Base_messagerie):
                         dlg_progress = None
 
                         # Affichage de l'erreur
-                        intro = _(u"L'erreur suivante a été détectée :")
+                        intro = "L'erreur suivante a été détectée :"
                         detail = err
                         if index <= len(messages) - 1:
-                            conclusion = _(u"Souhaitez-vous quand même continuer l'envoi des autres emails ?")
-                            boutons = [_(u"Réessayer"), _(u"Continuer"),
-                                       _(u"Continuer et ne plus signaler les erreurs"), _(u"Arrêter")]
+                            conclusion = "Souhaitez-vous quand même continuer l'envoi des autres emails ?"
+                            boutons = ["Réessayer", "Continuer",
+                                       "Continuer et ne plus signaler les erreurs", "Arrêter"]
                         else:
                             conclusion = None
-                            boutons = [_(u"Réessayer"), _(u"Arrêter"), ]
-                        dlgErreur = DLG_Messagebox.Dialog(None, titre=_(u"Erreur"), introduction=intro, detail=detail,
+                            boutons = ["Réessayer", "Arrêter", ]
+                        dlgErreur = DLG_Messagebox.Dialog(None, titre="Erreur", introduction=intro, detail=detail,
                                                           conclusion=conclusion, icone=wx.ICON_ERROR, boutons=boutons)
                         reponse = dlgErreur.ShowModal()
                         dlgErreur.Destroy()
@@ -984,25 +983,25 @@ class Mailjet(Base_messagerie):
 
         # Fin de la gauge
         if dlg_progress != None:
-            dlg_progress.Update(index, _(u"Fin de l'envoi."))
+            dlg_progress.Update(index, "Fin de l'envoi.")
             dlg_progress.Destroy()
 
         # Si tous les Emails envoyés avec succès
         if len(listeAnomalies) == 0 and afficher_confirmation_envoi == True:
             if len(listeSucces) == 1:
-                message = _(u"L'Email a été envoyé avec succès !")
+                message = "L'Email a été envoyé avec succès !"
             else:
-                message = _(u"Les %d Emails ont été envoyés avec succès !") % len(listeSucces)
-            dlg = wx.MessageDialog(None, message, _(u"Fin de l'envoi"), wx.OK | wx.ICON_INFORMATION)
+                message = "Les %d Emails ont été envoyés avec succès !" % len(listeSucces)
+            dlg = wx.MessageDialog(None, message, "Fin de l'envoi", wx.OK | wx.ICON_INFORMATION)
             dlg.ShowModal()
             dlg.Destroy()
 
         # Si Anomalies
         if len(listeAnomalies) > 0 and len(messages) > 1:
             if len(listeSucces) > 0:
-                intro = _(u"%d Email(s) ont été envoyés avec succès mais les %d envois suivants ont échoué :") % ( len(listeSucces), len(listeAnomalies))
+                intro = "%d Email(s) ont été envoyés avec succès mais les %d envois suivants ont échoué :" % ( len(listeSucces), len(listeAnomalies))
             else:
-                intro = _(u"Tous les envois ont lamentablement échoué :")
+                intro = "Tous les envois ont lamentablement échoué :"
             lignes = []
             for message, erreur in listeAnomalies:
                 adresse = message.GetLabelDestinataires()
@@ -1010,7 +1009,7 @@ class Mailjet(Base_messagerie):
                     lignes.append(u"- %s : %s" % (adresse.decode("iso-8859-15"), erreur))
                 except:
                     lignes.append(u"- %s : %s" % (adresse, erreur))
-            dlg = DLG_Messagebox.Dialog(None, titre=_(u"Compte-rendu de l'envoi"), introduction=intro, detail="\n".join(lignes), icone=wx.ICON_INFORMATION, boutons=[_(u"Ok"), ])
+            dlg = DLG_Messagebox.Dialog(None, titre="Compte-rendu de l'envoi", introduction=intro, detail="\n".join(lignes), icone=wx.ICON_INFORMATION, boutons=["Ok", ])
             dlg.ShowModal()
             dlg.Destroy()
 
@@ -1020,11 +1019,32 @@ class Mailjet(Base_messagerie):
         pass
 
 if __name__ == u"__main__":
+    from Utils import UTILS_Titulaires
+    dictDest = UTILS_Titulaires.GetCorrespondant(IDfamille=709)
+    lstDest = dictDest["mails"].split(";")
+    pathFichier = 'C:\\Users\\jbrun\\AppData\\Roaming\\noethys\\Temp\\ATTESTATION20240929152045XIL984.pdf'
+    dictExp = GetAdresseExp()
+    dictEnvoi = {
+        "backend" : "smtp",
+        "hote" : dictExp["smtp"],# "smtp.gmail.com",
+        "port" : dictExp["port"],# 587,
+        "utilisateur" : dictExp["utilisateur"],# "xxxxx@xxxx.com",
+        "motdepasse" : dictExp["motdepasse"],# "**************",
+        "email_exp" : dictExp["adresse"],# "xxxxx@xxxx.com",
+        "nom_exp" : "expediteur test",
+        "timeout" : 20,
+        "use_tls" : 1,
+        "parametres" : "notification==0",
+        "fail_silently" : False
+        }
     # Préparation du message
-    message = Message(destinataires=[""], sujet=u"Sujet du mail", texte_html="<p>Ceci est le <b>texte</b> html</p>", fichiers=[], images=[])
+    message = Message(destinataires=lstDest, sujet=u"Sujet du mail",
+                      texte_html="<p>Ceci est le <b>texte</b> html</p>", 
+                      fichiers=[pathFichier,],
+                      images=[])
 
     # Envoi du message
-    messagerie = Messagerie(backend='Mailjet', hote=None, port=None, utilisateur=None, motdepasse=None, email_exp=None, nom_exp=None, timeout=None, use_tls=False)
+    messagerie = Messagerie(**dictEnvoi)
     messagerie.Connecter()
     messagerie.Envoyer(message)
     messagerie.Fermer()

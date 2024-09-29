@@ -766,7 +766,7 @@ def GetCorrespondant(IDfamille=None, IDindividu=None):
     IDrepresentant = None
     dict = None
     # recherche de la famille si ID individu
-    designation = None
+    designation = "non trouvé"
     if not IDfamille:
         req = """SELECT rattachements.IDfamille
                 FROM rattachements
@@ -782,7 +782,8 @@ def GetCorrespondant(IDfamille=None, IDindividu=None):
             IDfamille = recordset[0][0]
     # recherche du représentant de la famille
     isRepres = False
-    designation = "!!! %d "%IDindividu
+    if IDindividu:
+        designation = "!!! %d "%IDindividu
     if IDfamille:
         req = """SELECT adresse_individu, adresse_intitule
                 FROM familles
@@ -854,6 +855,6 @@ def GetCorrespondant(IDfamille=None, IDindividu=None):
     return dict
 
 if __name__ == '__main__':
-    #print GetCorrespondant(IDindividu=16672)
-    dic = GetFamillesEtiq(listeIDfamille=[5979,])
+    dic =  GetCorrespondant(IDfamille=709)
+    #dic = GetFamillesEtiq(listeIDfamille=[5979,])
     print(dic)
