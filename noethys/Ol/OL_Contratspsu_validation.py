@@ -352,8 +352,8 @@ class ListView(FastObjectListView):
         DB = GestionDB.DB()
         req = """SELECT IDcontrat, IDindividu
         FROM contrats
-        WHERE type='psu' AND date_debut<='%s' AND date_fin>='%s' AND IDactivite=%d
-        ;""" % (date_fin, date_debut, self.IDactivite)
+        WHERE date_debut<='%s' AND date_fin>='%s'
+        ;""" % (date_fin, date_debut)
         DB.ExecuterReq(req,MsgBox="ExecuterReq")
         listeContrats = DB.ResultatReq()
 

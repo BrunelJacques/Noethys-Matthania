@@ -15,10 +15,9 @@ import copy
 import os
 import decimal
 from Ctrl import CTRL_Footer
-import ObjectListView as OLV
-import Filter, OLVEvent
-
-from ObjectListView import AbstractVirtualObjectListView as Abstract
+from Olv import ObjectListView as OLV
+from Olv.ObjectListView import AbstractVirtualObjectListView as Abstract
+from Olv import Filter, OLVEvent
 
 def Nz(valeur):
     if not valeur:

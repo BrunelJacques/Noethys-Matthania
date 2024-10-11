@@ -10,13 +10,13 @@
 
 
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
 import datetime
 from Ctrl import CTRL_Bandeau
 from Ol import OL_Contratspsu_validation
+from Ctrl.CTRL_ObjectListView import CTRL_Outils
 import GestionDB
 
 LISTE_MOIS = [_("Janvier"), _("Février"), _("Mars"), _("Avril"), _("Mai"), _("Juin"), _("Juillet"), _("Août"), _("Septembre"), _("Octobre"), _("Novembre"), _("Décembre")]
@@ -95,7 +95,7 @@ class Dialog(wx.Dialog):
         self.box_contrats_staticbox = wx.StaticBox(self, -1, _("Mensualités"))
         self.listviewAvecFooter = OL_Contratspsu_validation.ListviewAvecFooter(self)
         self.ctrl_contrats = self.listviewAvecFooter.GetListview()
-        self.ctrl_recherche = OL_Contratspsu_validation.CTRL_Outils(self, listview=self.ctrl_contrats, afficherCocher=True)
+        self.ctrl_recherche = CTRL_Outils(self, listview=self.ctrl_contrats, afficherCocher=True)
 
         self.bouton_detail = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Zoom_plus.png"), wx.BITMAP_TYPE_ANY))
         self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))

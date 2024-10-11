@@ -17,6 +17,7 @@ from Utils import UTILS_Utilisateurs
 import GestionDB
 from Ctrl import CTRL_Choix_modele
 from Ol import OL_Attestations_cerfa_selection
+from Ctrl.CTRL_ObjectListView import CTRL_Outils
 from Utils import UTILS_Attestations_cerfa
 import wx.lib.agw.hyperlink as Hyperlink
 import wx.lib.agw.pybusyinfo as PBI
@@ -165,7 +166,7 @@ class Panel(wx.Panel):
         self.staticbox_attestations_staticbox = wx.StaticBox(self, -1, _("Attestations à générer"))
         self.listviewAvecFooter = OL_Attestations_cerfa_selection.ListviewAvecFooter(self,  kwargs={})
         self.ctrl_attestations = self.listviewAvecFooter.GetListview()
-        self.ctrl_recherche = OL_Attestations_cerfa_selection.CTRL_Outils(self, listview=self.ctrl_attestations, afficherCocher=True)
+        self.ctrl_recherche = CTRL_Outils(self, listview=self.ctrl_attestations, afficherCocher=True)
 
         self.bouton_apercu_liste = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Apercu.png"), wx.BITMAP_TYPE_ANY))
         self.bouton_imprimer_liste = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
