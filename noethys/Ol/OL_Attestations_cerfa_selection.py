@@ -14,7 +14,8 @@ import Chemins
 import wx
 import datetime
 import GestionDB
-from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, CellEditor,PanelAvecFooter, CTRL_Outils
+from Olv import CellEditor
+from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, PanelAvecFooter
 from Utils import UTILS_Config
 from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
 from Utils import UTILS_Titulaires

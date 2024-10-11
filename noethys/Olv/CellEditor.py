@@ -50,13 +50,8 @@ __date__ = "3 May 2008"
 import datetime
 import wx
 
-if 'phoenix' in wx.PlatformInfo:
-    from wx.adv import DatePickerCtrl
-    validator = wx.Validator
-else:
-    from wx import DatePickerCtrl
-    validator = wx.PyValidator
-
+from wx.adv import DatePickerCtrl
+validator = wx.Validator
 
 
 #======================================================================
