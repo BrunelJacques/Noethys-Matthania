@@ -614,7 +614,7 @@ def VideRepertoireUpdates(forcer=False):
         listeReps = UTILS_Fichiers.GetRepUpdates()
         numVersionActuelle = GetVersionLogiciel()
         for nomRep in os.listdir(listeReps) :
-            resultat = CompareVersions(versionApp=numVersionActuelle, versionMaj=nomRep)
+            resultat = NeedMaj(versionApp=numVersionActuelle, versionMaj=nomRep)
             if resultat == False or forcer == True :
                 # Le rep est pour une version égale ou plus ancienne
                 if numVersionActuelle != nomRep or forcer == True :
@@ -737,11 +737,11 @@ def ConvertVersionTuple(txtVersion=""):
             tupleTemp.append(int(num))
     return tuple(tupleTemp)
 
-def CompareVersions(versionApp="", versionMaj=""):
+def NeedMaj(versionApp="", versionMaj=""):
     """ Compare 2 versions """
     """ Return True si la version MAJ est plus récente """
-    a,b = [[int(n) for n in version.split(".")] for version in [versionMaj, versionApp]]
-    return a>b
+    b,a = [[int(n) for n in version.split(".")] for version in [versionMaj, versionApp]]
+    return b>a
 
 def LanceFichierExterne(nomFichier) :
     """ Ouvre un fichier externe sous windows ou linux """
@@ -846,7 +846,7 @@ def InsertThemeDansOL():
 
 if __name__ == "__main__":
     app = wx.App(0)
-
+    """
     import wx.lib.dialogs as dialogs
     image = wx.Bitmap("Static/Images/32x32/Activite.png", wx.BITMAP_TYPE_ANY)
     message2 = "Ceci est un message super méga long qui doit prendre pas mal de place !\n" * 50
@@ -857,7 +857,7 @@ if __name__ == "__main__":
     del attente
     dlg.Destroy()
     app.MainLoop()
-    
+    """
     # Recherche de modules
 ##    listeModules = RechercheModules("OL_Liste_comptes.py")
 ##    for x in listeModules :
@@ -870,7 +870,7 @@ if __name__ == "__main__":
     # Génération d'un nom de document
     #print GenerationNomDoc("document", "pdf")
     
-    #VideRepertoireUpdates(forcer=True)
+    print(NeedMaj("1.3.2.1", "1.3.2.05"))
 
     #InsertCodeToolTip()
     #CreerDonneesVirtuellesLocations(1000)

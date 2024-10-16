@@ -81,9 +81,10 @@ class CTRL_AfficheVersion(wx.TextCtrl):
                 if "disponible" in invite:
                     invite += ", ou une autre version."
                 self.SetValue(invite)
-        elif self.version_choix > self.version_logiciel:
+        elif FonctionsPerso.NeedMaj(self.version_logiciel,version_choix):
             nouveautes = self.GetNouveautes(self.zipFile)
             self.SetValue("%sVersions à installer :\n\n%s" % (self.invite, nouveautes))
+        self.version_choix = version_choix
         self.parent.EnableBoutons()
 
     def SetParamConnexion(self,paramConnexion):
@@ -153,14 +154,17 @@ class CTRL_AfficheVersion(wx.TextCtrl):
             return
         pathNameVersions, versions = tplVersions
         posF = versions.find(self.version_logiciel) - 8
-        if posF == -1:
-            posF = min(2000, len(versions))
-        nouveautes = versions[:posF].strip()
         posDebut = versions.find("n")
         posFin = versions.find("(", 0, 50)
-        version = versions[posDebut + 1:posFin].strip()
-        if nouveautes.strip() == "":
-            nouveautes = "%s\n Même version !"%version
+        choixVersion = versions[posDebut + 1:posFin].strip()
+        if posF < 1 or choixVersion != self.version_logiciel:
+            posF = min(2000, len(versions))
+            nouveautes = "Version en cours NON TROUVEE\n\nDernières qui seront remontées:\n"
+            nouveautes += versions[:posF].strip()
+        elif self.version_logiciel == choixVersion:
+            nouveautes = "%s\n Même version !"%choixVersion
+        else:
+            nouveautes = versions[:posF].strip()
         return nouveautes
 
     def ChoixVersion(self):
@@ -172,7 +176,9 @@ class CTRL_AfficheVersion(wx.TextCtrl):
             return
         titre = "Choisissez une version d'application"
         intro = "Double-clic vous permet de choisir une ligne, <B>'SUPPR' pour retirer la version de la base</B>"
-        dlg = CTRL_ChoixListe.Dialog(self,lstChoix,titre=titre,intro=intro,LargeurCode=100)
+        dlg = CTRL_ChoixListe.Dialog(self,lstChoix,titre=titre,intro=intro,
+                                     LargeurCode=100)
+        dlg.listview.SetSortColumn(0, resortNow=True,ascending=False)
         #listeOriginale=[("Choix1","Texte1"),],LargeurCode=150,LargeurLib=100,colSort=0, minSize=(600, 350),
         #         titre="Faites un choix !", intro="Double Clic sur la réponse souhaitée...")
         ret = dlg.ShowModal()
@@ -194,6 +200,7 @@ class CTRL_AfficheVersion(wx.TextCtrl):
 
     def ValidationFile(self,zipFile,nomFichier=None):
         self.parent.tplVersionChoix = None
+        self.parent.versionChoix = None
 
         tplVersions = GetVersionsFromZipFile(zipFile,nomFichier)
         if not tplVersions:
@@ -209,6 +216,7 @@ class CTRL_AfficheVersion(wx.TextCtrl):
 
         # analyse du contenu
         version_choix = self.GetVersionInTexte(versions)
+        version_logiciel = self.version_logiciel
         if len(version_choix.split('.')) != 4:
             mess = "Le fichier version ne commence pas par un numéro de version valide\n\n"
             mess += "Vérifiez le contenu et rectifiez-le éventuellement"
@@ -216,19 +224,39 @@ class CTRL_AfficheVersion(wx.TextCtrl):
             return
 
         tplVersionChoix = FonctionsPerso.ConvertVersionTuple(version_choix)
-        if version_choix.split('.')[:3] != self.version_logiciel.split('.')[:3]:
+        tplVersionLogiciel = FonctionsPerso.ConvertVersionTuple(version_logiciel)
+
+        def cutFinVer(versionStr):
+            # coupe le dernier indice du numéro de version (échelon de la version)
+            ret = ""
+            for x in versionStr.split('.')[:-1]:
+                ret += str(x) + "."
+            return ret[:-1]
+
+        niveauLogiciel = cutFinVer(version_logiciel)
+        niveauChoix = cutFinVer(version_choix)
+
+        # test si on a changé de niveau
+        if (FonctionsPerso.NeedMaj(niveauLogiciel, niveauChoix)
+                and (tplVersionLogiciel[-1] not in (99,999)
+                    or tplVersionLogiciel[-2] != tplVersionChoix[-2]-1)):
             mess = "Trop de différence entre les versions\n\n"
-            mess += "Refaites une installation complète depuis Github NoethysMatthania"
+            mess += ("La version à installer est de niveau %s"
+                     "\nla votre %s est trop ancienne\n")%(niveauChoix, niveauLogiciel)
+            mess += "\nVous pouvez installer d'abord un fichier %s.99 | 999!"%niveauLogiciel
+            mess += "\nou refaites l'installation depuis Github NoethysMatthania"
             wx.MessageBox(mess, "Impossible", style=wx.ICON_ERROR)
             return
-        if version_choix < self.version_logiciel:
-            mess = "Votre version est postérieure à celles stockées\n\n"
-            mess += "La %s est la plus récente stockée\nla votre %s semble plus récente\n\n" % (
-                version_choix, self.version_logiciel)
-            mess += "Vous pouvez installer un fichier !"
-            ret = wx.MessageBox(mess, style=wx.OK | wx.ICON_INFORMATION)
-            return
-        if version_choix > self.version_logiciel:
+
+        # test de version présente plus avancée que les stockées
+        if (not FonctionsPerso.NeedMaj(version_logiciel,version_choix)):
+            mess = "La version proposée n'est pas postérieure à l'actuelle \n\n"
+            mess += "La version à installer est %s \nla votre %s semble plus récente\n\n"%(version_choix, version_logiciel)
+            mess += "Vous pouvez installer votre fichier sur la base de données!"
+            wx.MessageBox(mess, style=wx.OK | wx.ICON_INFORMATION)
+
+        # Ouverture de l'envoi possible
+        if version_choix > version_logiciel:
             self.parent.check_maj.SetValue(True)
         else: self.parent.check_maj.SetValue(False)
 
@@ -238,11 +266,6 @@ class CTRL_AfficheVersion(wx.TextCtrl):
 
         self.zipFile = zipFile
         self.nomFichier = nomFichier
-        if nomFichier:
-            self.parent.check_stocke.SetValue(True)
-        else:
-            self.parent.check_stocke.SetValue(False)
-
         self.MAJ(version_choix)
         return "ok"
 
@@ -280,9 +303,6 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         mess = None
         if len(lstNumReleases) == 0:
             mess = "Pas de releases stockées dans cette base pour Noethys '(%s)'"%categorie
-        elif lastVersion >= tplVersion:
-            # on priviligie la dernière version car tplVersion n'a pas été actualisé
-            tplVersion = lastVersion
         elif not trouvee:
             mess = "La version '%s' n'est pas stockée dans cette base, " % str(tplVersion)
             mess += "d'autres versions sont disponibles"
@@ -387,7 +407,6 @@ class Dialog(wx.Dialog):
                            style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
         self.parent = parent
         self.majFaite = False
-        self.justChecked = False
         if not version_data or not version_logiciel_date:
             version_data, version_logiciel_date = self.GetVersions()
         posDeb = version_logiciel_date.find("n") +1
@@ -514,31 +533,29 @@ class Dialog(wx.Dialog):
         self.CenterOnScreen() 
 
     def EnableBoutons(self):
-        if self.tplVersionChoix and len(self.tplVersionChoix) == 4:
+        if not hasattr(self, "ctrl_affiche"):
+            return
+        versionChoix = self.ctrl_affiche.version_choix
+        txt = "Ok pour release"
+        ok = False
+        coche = False
+        if versionChoix:
             ok = True
-        else: ok = False
+            coche = FonctionsPerso.NeedMaj(self.version_logiciel,versionChoix)
+            txt = "Ok release\n%s"%versionChoix
+
+        self.bouton_ok.SetTexte(txt)
         self.bouton_ok.Enable(ok)
-        self.bouton_fichier.Enable(True)
-        possible = self.version_data > self.version_logiciel
-        if not self.justChecked:
-            self.check_maj.SetValue(possible)
-            self.check_maj.Enable(possible)
-            self.check_stocke.Enable(ok)
+        self.check_maj.Enable(ok)
+        self.check_stocke.Enable(ok)
+
+        self.check_maj.SetValue(coche)
+        self.check_stocke.SetValue(coche)
         self.choice_baseDonnees.Enable(True)
-        self.bouton_versions.Enable(not ok)
-        self.justChecked = False
-        if hasattr(self,"ctrl_donnees"):
-            if not self.ctrl_affiche.nomFichier:
-                self.check_stocke.SetValue(False)
-                self.check_stocke.Enable(False)
-        # porte dérobée pour dégriser l'accès aux autres versions
-        if not self.check_maj.GetValue() and not self.check_stocke.GetValue():
-            self.bouton_versions.Enable(True)
+        self.bouton_versions.Enable(True)
+        self.bouton_fichier.Enable(True)
 
     def OnCheck(self, event):
-        # MAJ de l'affichage de la recherche par défaut
-        self.justChecked = True # à l'intention de EnableBoutons
-        self.ctrl_affiche.MAJ(self.version_data)
         return
 
     def OnChoiceBaseDonnees(self, event):
@@ -559,13 +576,18 @@ class Dialog(wx.Dialog):
         return
 
     def OnBoutonVersions(self, event):
-        self.ctrl_affiche.ChoixVersion()
+        self.ctrl_affiche.zipFile = None
+        ret = self.ctrl_affiche.ChoixVersion()
+        if ret != "ok":
+            self.ctrl_affiche.version_choix = None
+        self.EnableBoutons()
         return
 
     def OnBoutonFichier(self, event):
-        self.ctrl_affiche.GetFileByChoisir()
-        if self.ctrl_affiche.nomFichier:
-            self.bouton_ok.Enable(True)
+        ret = self.ctrl_affiche.GetFileByChoisir()
+        if ret != "ok":
+            self.ctrl_affiche.version_choix = None
+        self.EnableBoutons()
         return
 
     def OnBoutonAnnuler(self, event):

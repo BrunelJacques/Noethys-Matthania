@@ -1423,6 +1423,7 @@ class Dialog(wx.Dialog):
         self.listview.SetSortColumn(self.listview.columns[self.colSort])
         self.listview.SetObjects(self.liste)
 
+
     def __do_layout(self):
         gridsizer_base = wx.FlexGridSizer(rows=6, cols=1, vgap=0, hgap=0)
 
