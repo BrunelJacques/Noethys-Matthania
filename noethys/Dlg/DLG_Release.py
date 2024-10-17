@@ -81,7 +81,7 @@ class CTRL_AfficheVersion(wx.TextCtrl):
                 if "disponible" in invite:
                     invite += ", ou une autre version."
                 self.SetValue(invite)
-        elif FonctionsPerso.NeedMaj(self.version_logiciel,version_choix):
+        else:
             nouveautes = self.GetNouveautes(self.zipFile)
             self.SetValue("%sVersions à installer :\n\n%s" % (self.invite, nouveautes))
         self.version_choix = version_choix
@@ -153,18 +153,20 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         if not tplVersions:
             return
         pathNameVersions, versions = tplVersions
-        posF = versions.find(self.version_logiciel) - 8
         posDebut = versions.find("n")
-        posFin = versions.find("(", 0, 50)
+        posFin = versions.find("(",0,50)
         choixVersion = versions[posDebut + 1:posFin].strip()
-        if posF < 1 or choixVersion != self.version_logiciel:
-            posF = min(2000, len(versions))
+        posActu = versions.find(self.version_logiciel) # position de l'actuelle dans l'histo
+        # recaler la position de l'ancienne version trouvée dans l'historique
+        posActu = versions.find("version",max(0,posActu - 12))
+        if posActu < 0 or (choixVersion != self.version_logiciel and posActu < 5):
+            posActu = min(2000, len(versions))
             nouveautes = "Version en cours NON TROUVEE\n\nDernières qui seront remontées:\n"
-            nouveautes += versions[:posF].strip()
+            nouveautes += versions[:posActu].strip()
         elif self.version_logiciel == choixVersion:
             nouveautes = "%s\n Même version !"%choixVersion
         else:
-            nouveautes = versions[:posF].strip()
+            nouveautes = versions[:posActu].strip()
         return nouveautes
 
     def ChoixVersion(self):
@@ -249,10 +251,11 @@ class CTRL_AfficheVersion(wx.TextCtrl):
             return
 
         # test de version présente plus avancée que les stockées
-        if (not FonctionsPerso.NeedMaj(version_logiciel,version_choix)):
+        if ((not FonctionsPerso.NeedMaj(version_logiciel,version_choix))
+                and version_logiciel != version_choix):
             mess = "La version proposée n'est pas postérieure à l'actuelle \n\n"
             mess += "La version à installer est %s \nla votre %s semble plus récente\n\n"%(version_choix, version_logiciel)
-            mess += "Vous pouvez installer votre fichier sur la base de données!"
+            mess += "Vous pouvez installer votre version sur la base de données, via un file.zip!"
             wx.MessageBox(mess, style=wx.OK | wx.ICON_INFORMATION)
 
         # Ouverture de l'envoi possible
