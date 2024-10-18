@@ -1536,7 +1536,7 @@ class MainFrame(wx.Frame):
             self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
             self.dictInfosMenu["upgrade_github"]["ctrl"].Enable(False)
 
-        # les versions correspondent: on passe
+        # les versions correspondent: c'est ok
         if versionData == versionLogiciel:
             return True
 
@@ -1561,9 +1561,9 @@ class MainFrame(wx.Frame):
                 style = wx.OK | wx.ICON_ERROR
                 message = "Pb Update"
                 import UpgradeDB
-                DB = UpgradeDB.DB(nomFichier=nomFichier)
-                resultat = DB.UpdateDB(self, versionData)
-                DB.Close()
+                DBup = UpgradeDB.DB(nomFichier=nomFichier)
+                resultat = DBup.UpdateDB(self, versionData)
+                DBup.Close()
                 if resultat == True:
                     EnregistreVersion()
                 else:
@@ -1577,10 +1577,11 @@ class MainFrame(wx.Frame):
         message = "Base de donnée inchangée!\n\nAbandon du traitement"
         titre = "Abandon versioning"
         style = wx.OK | wx.ICON_INFORMATION
+        
         # Compare les versions par les tuples
         if len(versionLogiciel) < 3:
             # numéro de version trop court
-            message = "Numéro Version incorrect : %s"% VERSION_LOGICIEL
+            message = "Votre numéro de Version n'est pas connu : %s"% VERSION_LOGICIEL
             wx.MessageBox(message,titre,style=wx.ICON_INFORMATION)
             return True
         elif versionData == versionLogiciel:
@@ -1588,11 +1589,11 @@ class MainFrame(wx.Frame):
             return True
         elif versionData[:2] != versionLogiciel[:2]:
             # Changement majeur, réserve l'action aux admins
-            mess = "INCOHERENCE VERSIONS\n\n"
+            mess = "VERSION NON SUPPORTEE\n\n"
             mess += "Version logiciel '%s' - Version base de donnée '%s'\n" % (
                 versionData[:2], versionLogiciel[:2])
             mess += "Ce changement majeur nécessite une intervention éclairée\n"
-            mess += "sur la base ou la version en cohérence avec la version python."
+            mess += "sur la base de donnée ou l'installation d'une nouvelle version."
             wx.MessageBox(mess, "", style=wx.ICON_WARNING)
             if not UTILS_Utilisateurs.IsAdmin():
                 self.Fermer(sauvegarde_auto=False)
@@ -1600,10 +1601,10 @@ class MainFrame(wx.Frame):
             self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
             self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(True)
             resultat = True
+        # les deux premiers indices sont égaux, test sur les niveaux (3? indice)
         elif versionData[:3] < versionLogiciel[:3]:
-            # Changement de niveau version, nécessite MAJ_TablesEtChamps
             mess = "Base de donnée d'un niveau inférieur\n\n"
-            mess += "Faut-il mettre à jour la base de donnée distante?"
+            mess += "Faut-il mettre à jour la base de données pointée?"
             dlg = wx.MessageDialog(self, mess, _(""),
                                    wx.YES_NO|wx.CANCEL | wx.YES_DEFAULT | wx.ICON_WARNING)
             reponse = dlg.ShowModal()
@@ -1612,21 +1613,26 @@ class MainFrame(wx.Frame):
                 self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(False)
                 return True
             elif reponse == wx.ID_NO:
-                mess = "UPGRADE BASE conseillé\n\n"
+                mess = "UPGRADE BASE conseillée\n\n"
                 mess += "Version logiciel '%s' - Version base de donnée '%s'\n" % (
                     versionLogiciel[:3],versionData[:3])
-                mess += "Ce changement de niveau de version peut nécessiter une mise à jour de la base\n"
-                mess += "On peut quand même travailler en mode dégradé, avec un plus grand risque de bug."
+                mess += "La version que vous utilisez peut nécessiter une mise à jour de la base\n"
+                mess += "Une base non à jour peut être à l'origine de bugs."
                 wx.MessageBox(mess, "", style=wx.ICON_INFORMATION)
                 return True
+            # Upgrade demandé
             elif not UTILS_Utilisateurs.IsAdmin(afficheMessage=True):
+                mess = "UPGRADE BASE est réservé aux admins\n\n"
+                mess += "Version logiciel '%s' - Version base de donnée '%s'\n" % (
+                    versionLogiciel[:3],versionData[:3])
+                mess += "On peut quand même travailler, malgré quelques risques de bug!"
+                wx.MessageBox(mess, "", style=wx.ICON_INFORMATION)
                 return True
-
+            #else un admin a demandé l'upgrade
             self.SetStatusText(self.infoVersions + " ...")
             print(self.infoVersions)
             self.mess = self.infoVersions
             self.SauvegardeAutomatique()
-
             try:
                 import UpgradeDB
                 resultat = UpgradeDB.MAJ_TablesEtChamps(self)
@@ -1638,7 +1644,7 @@ class MainFrame(wx.Frame):
                 titre = "Erreur"
                 style = wx.OK | wx.ICON_ERROR
                 resultat = False
-
+        # Une release logiciel est nécessaire, car la version de la base est supérieure
         else:
             # Lancement de la release ordinaire
             from Dlg import DLG_Release
@@ -1646,24 +1652,24 @@ class MainFrame(wx.Frame):
             resultat = dlg.ShowModal()
             majFaite = dlg.majFaite
             dlg.Destroy()
-            if versionData < versionLogiciel:
-                self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
-                resultat = True
-            elif not majFaite:
+
+            # Retour de l'écran proposant la mise à jour
+            if resultat != wx.ID_OK:
                 self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
                 message = "Votre station n'est pas synchronisée!\n\n"
-                message += "installez la version '%s.xxx' la plus récente ." % VERSION_LOGICIEL[:3]
-                titre = "Erreur"
+                message += "installez la version '%s.xxx' la plus récente ." % VERSION_LOGICIEL[:4]
+                titre = "Mise à jour non effectuée"
                 style = wx.OK | wx.ICON_EXCLAMATION
             else:
-                if resultat == wx.ID_OK:
+                if majFaite:
                     # redémarrage après release faite et confirmée par l'utilisateur
                     if self.Quitter(videRepertoiresTemp=False, sauvegardeAuto=False):
                         self.halt = True
                         self.Close()
                 else:
-                    message = "Votre station sera à jour après le prochain démarrage"
-                    titre = "L'ancienne version reste active"
+                    self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(False)
+                    message = "La mise à jour n'est pas faite"
+                    titre = "La version affichée reste active"
         if resultat != True:
             dlg = wx.MessageDialog(self, message, titre, style=style)
             dlg.CenterOnParent()

@@ -74,7 +74,7 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         if not self.zipFile:
             # recherche un zipFile dans documents de la base pointée
             ret = self.GetFileInDocuments(self.tplVersionData)
-            if ret != "ok":
+            if ret != wx.ID_OK:
                 invite += "\nPas de mise à jour trouvée"
                 invite += "\n\n%s" % ret
                 invite += "\nChoisissez un fichier"
@@ -85,7 +85,6 @@ class CTRL_AfficheVersion(wx.TextCtrl):
             nouveautes = self.GetNouveautes(self.zipFile)
             self.SetValue("%sVersions à installer :\n\n%s" % (self.invite, nouveautes))
         self.version_choix = version_choix
-        self.parent.EnableBoutons()
 
     def SetParamConnexion(self,paramConnexion):
         dbDoc = UpgradeDB.DB(nomFichier=paramConnexion, suffixe="DOCUMENTS")
@@ -191,6 +190,7 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         dlg.Destroy()
         if version_choix:
             self.MAJ(version_choix)
+        return ret
 
     @staticmethod
     def GetVersionInTexte(versions):
@@ -270,7 +270,7 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         self.zipFile = zipFile
         self.nomFichier = nomFichier
         self.MAJ(version_choix)
-        return "ok"
+        return wx.ID_OK
 
     def GetFileByChoisir(self):
         # choix d'un fichier et intégration par validation
@@ -464,6 +464,7 @@ class Dialog(wx.Dialog):
         else:
             self.check_maj.SetValue(True)
         self.check_stocke.SetValue(False)
+        self.check_stocke.Enable(False)
         self.txt_base.SetToolTip(wx.ToolTip("Choix de la base de donnée qui conserve les versions"))
         self.choice_baseDonnees.SetToolTip(wx.ToolTip("Base de donnée qui conserve les différentes versions"))
         self.check_maj.SetToolTip(wx.ToolTip("Pour mettre à jour l'application sur votre station de travail"))
@@ -539,23 +540,19 @@ class Dialog(wx.Dialog):
         if not hasattr(self, "ctrl_affiche"):
             return
         versionChoix = self.ctrl_affiche.version_choix
-        txt = "Ok pour release"
-        ok = False
+        txt = "Ok release"
+        actif = False
         coche = False
         if versionChoix:
-            ok = True
+            actif = True
             coche = FonctionsPerso.NeedMaj(self.version_logiciel,versionChoix)
             txt = "Ok release\n%s"%versionChoix
 
         self.bouton_ok.SetTexte(txt)
-        self.bouton_ok.Enable(ok)
-        self.check_maj.Enable(ok)
-        self.check_stocke.Enable(ok)
-
+        self.bouton_ok.Enable(actif)
+        self.check_maj.Enable(actif)
         self.check_maj.SetValue(coche)
-        self.check_stocke.SetValue(coche)
         self.choice_baseDonnees.Enable(True)
-        self.bouton_versions.Enable(True)
         self.bouton_fichier.Enable(True)
 
     def OnCheck(self, event):
@@ -581,15 +578,21 @@ class Dialog(wx.Dialog):
     def OnBoutonVersions(self, event):
         self.ctrl_affiche.zipFile = None
         ret = self.ctrl_affiche.ChoixVersion()
-        if ret != "ok":
+        if ret != wx.ID_OK:
             self.ctrl_affiche.version_choix = None
         self.EnableBoutons()
         return
 
     def OnBoutonFichier(self, event):
         ret = self.ctrl_affiche.GetFileByChoisir()
-        if ret != "ok":
+        if ret == wx.ID_OK:
+            self.check_stocke.Enable(True)
+            self.check_stocke.SetValue(True)
+        else:
             self.ctrl_affiche.version_choix = None
+            self.check_stocke.Enable(False)
+            self.check_stocke.SetValue(False)
+
         self.EnableBoutons()
         return
 
