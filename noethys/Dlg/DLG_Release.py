@@ -59,7 +59,7 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         self.version_data = self.parent.version_data
         self.version_choix = None
         # les deux premiers items affichés sont exprimés en texte comme préfixe
-        self.invite = "\nActuellement: Version % s\n" % self.version_logiciel
+        self.invite = "\nActuellement: Version % s\n" % self.parent.version_logiciel_date
         self.dbDoc, self.dbData = self.SetParamConnexion("")
 
         self.tplVersionLogiciel = FonctionsPerso.ConvertVersionTuple(self.version_logiciel)
@@ -81,6 +81,7 @@ class CTRL_AfficheVersion(wx.TextCtrl):
                 if "disponible" in invite:
                     invite += ", ou une autre version."
                 self.SetValue(invite)
+                version_choix = None
         else:
             nouveautes = self.GetNouveautes(self.zipFile)
             self.SetValue("%sVersions à installer :\n\n%s" % (self.invite, nouveautes))
@@ -150,6 +151,7 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         # dans le fichier version, isole les nouveautés à afficher
         tplVersions = GetVersionsFromZipFile(zipFile)
         if not tplVersions:
+            self.version_choix = None
             return
         pathNameVersions, versions = tplVersions
         posDebut = versions.find("n")
@@ -180,8 +182,6 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         dlg = CTRL_ChoixListe.Dialog(self,lstChoix,titre=titre,intro=intro,
                                      LargeurCode=100)
         dlg.listview.SetSortColumn(0, resortNow=True,ascending=False)
-        #listeOriginale=[("Choix1","Texte1"),],LargeurCode=150,LargeurLib=100,colSort=0, minSize=(600, 350),
-        #         titre="Faites un choix !", intro="Double Clic sur la réponse souhaitée...")
         ret = dlg.ShowModal()
         version_choix = None
         if ret == wx.ID_OK:
@@ -203,6 +203,7 @@ class CTRL_AfficheVersion(wx.TextCtrl):
     def ValidationFile(self,zipFile,nomFichier=None):
         self.parent.tplVersionChoix = None
         self.parent.versionChoix = None
+        self.version_choix = None
 
         tplVersions = GetVersionsFromZipFile(zipFile,nomFichier)
         if not tplVersions:
@@ -416,6 +417,7 @@ class Dialog(wx.Dialog):
         posFin = version_logiciel_date.find("(")
         version_logiciel = version_logiciel_date[posDeb:posFin].strip()
         self.version_logiciel = version_logiciel
+        self.version_logiciel_date = version_logiciel_date
         self.version_data = version_data
         self.tplVersionLogiciel = FonctionsPerso.ConvertVersionTuple(version_logiciel)
         self.tplVersionData = FonctionsPerso.ConvertVersionTuple(version_data)
