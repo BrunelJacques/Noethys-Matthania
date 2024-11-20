@@ -830,11 +830,12 @@ class DlgTarification(wx.Dialog):
         tracks = self.resultsOlv.GetCheckedObjects()
         valide = True
         if len(tracks) > 0:
-            if not hasattr(tracks[0],"IDnumPiece"):
-                tracks[0].IDnumPiece = None
+            IDnumPiece = None
+            if self.resultsOlv.dictDonnees["origine"] == "modif":
+                IDnumPiece = self.resultsOlv.dictDonnees["IDnumPiece"]
             valide1 = DLG_ChoixTypePiece.ValideSaisie(tracks, testSejour=False)
             valide2 = DLG_ChoixTypePiece.DoubleLigne(tracks,self.annee, self.DB,
-                                                     IDnumPiece=tracks[0].IDnumPiece,
+                                                     IDnumPiece=IDnumPiece,
                                                      IDfamille=self.IDcompte_payeur)
             valide = valide1 and valide2
         if valide :
