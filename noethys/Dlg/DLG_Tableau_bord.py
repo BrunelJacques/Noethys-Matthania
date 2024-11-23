@@ -549,7 +549,7 @@ class Remplissage(object):
                 # tous les tarifs inclus dans l'effectif sont des campeurs
                 dictDon['Ncampeurs'] += 1
                 dInscriptions[IDinscription]['campeur'] = 1
-                if IDcivilite in (3,5):
+                if IDcivilite in (2,3,5):
                     dictDon['filles'] += 1
                 else: dictDon['gars'] += 1
 
@@ -560,7 +560,7 @@ class Remplissage(object):
             else:
                 # éauipiers, bénévoles anims etc, tous ce qui n'entre pas dans les effectifs sans être enfant
                 dictDon['Nanims'] += 1
-                if IDcivilite in (3,5):
+                if IDcivilite in (2,3,5):
                     dictDon['animsF'] += 1
                 else: dictDon['animsG'] += 1
             # fin d'actualisation de dictDonnees[cleGrp)
