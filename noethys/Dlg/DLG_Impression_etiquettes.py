@@ -14,7 +14,7 @@ import Chemins
 import wx
 import datetime
 from Ctrl import CTRL_Bouton_image
-from wx.lib.floatcanvas import FloatCanvas
+import wx.lib.floatcanvas.FloatCanvas as FloatCanvas
 import numpy
 import wx.lib.agw.pybusyinfo as PBI
 from Dlg import DLG_Noedoc

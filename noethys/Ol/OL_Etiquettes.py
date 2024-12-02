@@ -19,7 +19,7 @@ from Utils import UTILS_Utilisateurs
 from Utils import UTILS_Titulaires
 from Utils import UTILS_Questionnaires
 from Data import DATA_Civilites as Civilites
-from Ctrl.CTRL_ObjectListView import ObjectListView, ColumnDefn, Filter, CTRL_Outils, PanelAvecFooter
+from Ctrl.CTRL_ObjectListView import ObjectListView, ColumnDefn, CTRL_Outils
 
 def DateEngEnDateDD(dateEng):
     if dateEng and not isinstance(dateEng,str): dateEng = str(dateEng)
@@ -199,13 +199,18 @@ class TrackIndividu(object):
 
         # Ajout des adresses Emails des titulaires
         self.mails = ""
+        self.mail = ""
         if donnees["individus.mail"] != None :
             self.mails = donnees["individus.mail"] + "; "
+            self.mail = donnees["individus.mail"]
         if donnees["individus.travail_mail"] != None :
             self.mails += donnees["individus.travail_mail"]
+            if self.mail == "":
+                self.mail = donnees["individus.travail_mail"]
         if donnees["individus_1.mail"] != None :
             self.mails += donnees["individus_1.mail"]
-
+            if self.mail == "":
+                self.mail = donnees["individus_1.mail"]
 
         # Ajout des téléphones des titulaires
         self.telephones = ""
