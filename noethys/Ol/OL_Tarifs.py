@@ -520,7 +520,9 @@ class ListView(FastObjectListView):
             return
 
         # Confirmation de suppression
-        dlg = wx.MessageDialog(self, _("Souhaitez-vous vraiment supprimer les affectations de tarifs?"), _("Suppression"), wx.YES_NO|wx.NO_DEFAULT|wx.CANCEL|wx.ICON_INFORMATION)
+        nb = len(self.GetSelectedObjects())
+        mess = "Souhaitez-vous vraiment supprimer les affectations de tarifs de %d lignes?"%nb
+        dlg = wx.MessageDialog(self, mess, "Suppression", wx.YES_NO|wx.NO_DEFAULT|wx.CANCEL|wx.ICON_INFORMATION)
         if dlg.ShowModal() == wx.ID_YES :
             self.SauveSelection(None,"","",None,None)
         dlg.Destroy()

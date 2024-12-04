@@ -578,6 +578,7 @@ class DlgTarification(wx.Dialog):
         self.listeLignesPiece = self.ListeDict(self.resultsOlv)
         if event and event.Id == wx.ID_CANCEL:
             self.Sortie(wx.ID_CANCEL)
+            return
         # Validation du montant
         endModal = wx.ID_CANCEL
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_factures", "creer")  :

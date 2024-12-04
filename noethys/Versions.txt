@@ -1,3 +1,7 @@
+version 1.3.3.5 (4/12/2024)
+- Bug sur abandon de création de pièce
+- Affiche le nombre de ligne à supprimer dans gestion tarif suppression
+
 version 1.3.3.4 (2/12/2024)
 - Bug étiquettes
 
