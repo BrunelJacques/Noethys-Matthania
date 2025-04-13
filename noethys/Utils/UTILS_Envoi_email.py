@@ -155,7 +155,7 @@ def GetAdresseFamille(IDfamille=None, choixMultiple=True, muet=False, nomTitulai
             listeAdresses.append(("%s (Adresse perso de %s)" % (mailPerso, prenom), mailPerso))
             listeTemp.append(mailPerso)
         if mailTravail != None and mailTravail != "" and mailTravail not in listeTemp :
-            listeAdresses.append("%s (Adresse pro de %s)" %(mailTravail, prenom), mailTravail)
+            listeAdresses.append(("%s (Adresse pro de %s)" %(mailTravail, prenom), mailTravail))
             listeTemp.append(mailTravail)
     if len(listeAdresses) == 0 :
         if muet == False :

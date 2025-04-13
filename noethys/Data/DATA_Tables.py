@@ -1507,8 +1507,7 @@ DB_DATA = {
                 ("actif", "INTEGER", "Actif pour écritures nouvelles (0/1)"),
                 ("cloture", "INTEGER", "Clôturé, ne peut plus être actif(0/1)"),
                 ], # Compta : Exercices
-    
-    
+
     "compta_analytiques":[("IDanalytique", "INTEGER PRIMARY KEY AUTOINCREMENT", "ID Analytique"),
                 ("nom", "VARCHAR(400)", "Nom du poste analytique"),
                 ("abrege", "VARCHAR(200)", "Abrégé du poste analytique"),
