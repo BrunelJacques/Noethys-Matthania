@@ -6,72 +6,82 @@
 # Licence:         Licence GNU GPL
 # --------------------------------------------------------------------------
 
-import os, sys
-import importlib.util
+import os, sys, wx
+import traceback
 
 # imports préalables aux connexions git
-try:
-    mess = "lancement gitPython"
-    messRaise = "Installer git par commande windows 'pip install GitPython'\n"
-    SEP = "\\"
-    git = "GitPython"
-    if "linux" in sys.platform:
-        messRaise = "Installer git sous linux: 'sudo apt install git'"
-        SEP = "/"
+mess = "lancement gitPython"
+MessError = """Necessaire pour git:\n\n
+    - client git à installer (https://git-scm.com/download/win)\n
+    - variable Path contient 'c:\Program Files\Git\cmd'
+    - git config --global --add safe.directory '*'
+    - pip install GitPython"""
 
+try:
+    SEP = "\\"
+    if "linux" in sys.platform:
+        SEP = "/"
+        MessError = "Installer git sous linux\n\n'sudo apt install git'\n"
     # tentative d'installation du package github si non présent
+    import importlib.util
     if not importlib.util.find_spec('git'):
         mess = "test de présence de package github"
         import subprocess
-
-        commande = ['pip', 'install', git]
+        commande = ['pip', 'install', 'GitPython']
         subprocess.call(commande)
     import git
-
-    mess = "lancement wxPython"
-    messRaise = "Installer wxPython par commande 'pip install wxPython'"
-    if "linux" in sys.platform:
-        messRaise = ("Installer wxPython sous Linux:\n" +
-                     "pip3 install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04 wxPython")
-    import wx
-
-    del mess
-    del messRaise
+    MessError = "'import git'  ok\n"
 except Exception as err:
-    raise Exception("Echec %s: %s\n%s" % (mess, err, messRaise))
+    print("\nEchec %s: %s\n%s\n" % (mess, err, MessError))
 
-
-
-def IsPullNeeded(repo_path, mute=False):
+def IsPullNeeded(repo_path, withPull=True, mute=False):
+    # Teste la nécessité et fait une release depuis GitHub
     try:
+        messError = MessError
         repo = git.Repo(repo_path)
+        messError += "git.Repo(%s) est ok\n"%repo_path
         origin = repo.remotes.origin
+        messError += "repo.remotes.origin est ok\n"
         # Fetch changes from remote repository
         origin.fetch()
+        messError += "origin.fetch est ok\n"
         # Get the commit IDs of the local and remote branches
         local_branch = repo.head.commit
         remote_branch = origin.refs.master.commit
+        messError += "remote_branch est ok est ok\n"
         # Check if local branch is behind remote branch
         needed = local_branch != remote_branch
-        if needed and mute == False:
-            mess = "Une mise à jour des programmes NOESTOCK-NOELITE est nécessaire\n\n"
-            mess += "Voulez-vous faire cette mise à jour maintenant?"
-            ret = wx.MessageBox(mess, "Nouvelle version",
+        if needed and withPull == True:
+            if not mute:
+                mess = "Une mise à jour des programmes NOESTOCK-NOELITE est nécessaire\n\n"
+                mess += "Voulez-vous faire cette mise à jour maintenant?"
+                ret = wx.MessageBox(mess, "Nouvelle version",
                                 style=wx.YES_NO | wx.ICON_INFORMATION)
+            else:
+                print("Lancement de PullGitHub")
+                ret = wx.YES
             if ret == wx.YES:
                 path = os.getcwd()
                 needed, mess = PullGithub(path)
                 style = wx.ICON_INFORMATION
                 if needed:  # détail de l'erreur retourné dans le message
                     style = wx.ICON_ERROR
-                wx.MessageBox(mess, "Retour Github", style=style)
-            else:
-                needed = False
+                if not mute:
+                    wx.MessageBox(mess, "Retour Github", style=style)
+                else:
+                    print(f"Retour GitHub: {mess}")
         return needed
-
     except git.exc.GitCommandError as e:
-        wx.MessageBox(f"Error: {e}", "Accès GITHUB échoué", wx.ICON_ERROR)
-        return False
+        messError += f"\nErreur: {e}\n"
+        print(f"Erreur Git: {e}")
+        if not mute:
+            wx.MessageBox(messError,"Git A vérifier",wx.ICON_INFORMATION)
+    except Exception as e:
+        tb = traceback.format_exc()
+        print(f"\n{messError}\n{tb}\nErreur Exception: {e}\n")
+        if not mute:
+            messError += f"{tb}\n{e}\n"
+            wx.MessageBox(messError,"Git A vérifier",wx.ICON_ERROR)
 
 def PullGithub(appli_path, stash_changes=False, reset_hard=False):
     mess = "Lancement Update\n"
@@ -93,13 +103,12 @@ def PullGithub(appli_path, stash_changes=False, reset_hard=False):
         # Effectuer git pull depuis la branche actuelle
         origin = repo.remote(name='origin')
         origin.pull()
-        mess = "Mise à jour réussie.\n\n-"
+        mess = "Mise à jour réussie.\n\nRedémarrez le programme pour bénéficier des nouveautés"
 
     except git.exc.GitCommandError as e:
         mess += f"\nErreur lors de la mise à jour : {e}"
         err = True
     return err, mess
-
 
 def CloneGithub(repo_url, appli_path):
     err = None
@@ -112,7 +121,6 @@ def CloneGithub(repo_url, appli_path):
         mess = f"Erreur lors du clonage :\n\n {e}"
         err = True
     return err, mess
-
 
 class DLG(wx.Dialog):
     def __init__(self, lanceur=""):
@@ -206,7 +214,7 @@ class DLG(wx.Dialog):
         dir = self.dirPicker.GetPath()
         lstDir = dir.split(SEP)
         dirLower_1 = SEP.join([x.lower() for x in lstDir[:-1]])
-        if ok and lstDir <= 1:
+        if ok and len(lstDir) <= 1:
             # absence de dir
             wx.MessageBox("Déterminez une localisation pour l'appli\n\nutilisez Browse",
                           "Pas de répertoire")
@@ -257,7 +265,7 @@ class DLG(wx.Dialog):
                     ok = ok and self.checkForce.GetValue()
 
         # vérif si la mise à jour est nécessaire
-        if isPull and ok and not IsPullNeeded(dir, mute=True):
+        if isPull and ok and not IsPullNeeded(dir, mute=False):
             mess = "Pas de mise à jour nécessaire\n\nforcer est possible"
             wx.MessageBox(mess, "Versions identiques")
             ok = ok and self.checkForce.GetValue()
@@ -325,7 +333,6 @@ class DLG(wx.Dialog):
         ret = self.Execution()
         if ret == wx.OK:
             self.Close()
-
 
 # Lancement
 if __name__ == "__main__":
