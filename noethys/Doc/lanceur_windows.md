@@ -1,3 +1,7 @@
+rem ------------------------------------------------------------------------
+rem 		Suivez le 'Tuto installation.odt' pour l'installation
+rem -------------------------------------------------------------------------
+
 echo off
 c:
 cd "c:\Program Files\Noethys-Matthania"
