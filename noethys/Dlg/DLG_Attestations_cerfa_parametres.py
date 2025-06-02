@@ -70,7 +70,7 @@ class CTRL_Modes_reglements(wx.CheckListBox):
     def CocheSome(self):
         index = 0
         for index in range(0, len(self.listeModes)):
-            if self.listeModes[index][0][:3].lower() in ("chè","che","che","vir","esp"):
+            if self.listeModes[index][0][:3].lower() in ("chè","che","che","vir","esp","cb "):
                 self.Check(index)
             index += 1
 

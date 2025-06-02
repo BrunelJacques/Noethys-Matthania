@@ -13,7 +13,7 @@ import Chemins
 import wx
 import GestionDB
 import datetime
-from Ctrl.CTRL_ObjectListView import ObjectListView, ColumnDefn, Filter, CTRL_Outils, PanelAvecFooter
+from Ctrl.CTRL_ObjectListView import ObjectListView, ColumnDefn, CTRL_Outils, PanelAvecFooter
 
 from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
 from Utils import UTILS_Config
