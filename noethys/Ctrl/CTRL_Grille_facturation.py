@@ -112,6 +112,8 @@ class CTRL(HTL.HyperTreeList):
             IDactivite = dictPrestation["IDactivite"]
             if "montantVentilation" in dictPrestation :
                 montantVentilation = dictPrestation["montantVentilation"]
+                if not montantVentilation:
+                    montantVentilation = 0.0
             else:
                 montantVentilation = 0.0
             
