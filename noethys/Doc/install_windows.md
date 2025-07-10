@@ -12,15 +12,15 @@ rechercher et installer les bibliothèques suivantes.
 
 # installer git  par https://git-scm.com/download/win
 ouvrir une fenêtre shell en mode administrateur (clic droit  sur la proposition windows)
-> cd c:\'Program Files'
-> git clone https://github.com/BrunelJacques/Noethys-Matthania
-> cd Noethys-Matthania
-> pip install -r requirements.txt
+- cd c:\'Program Files'
+- git clone https://github.com/BrunelJacques/Noethys-Matthania
+- cd Noethys-Matthania
+- pip install -r requirements.txt
 
 # Installez un raccourci sur le bureau
-cible: "C:\Program Files\Python311\python.exe" Noethys.py
-démarrer: C:\Program Files\Noethys-Matthania\noethys\
-icone: C:\Program Files\Noethys-Matthania\noethys\Static\Images\Icone.ico
+- cible: "C:\Program Files\Python311\python.exe" Noethys.py
+- démarrer: C:\Program Files\Noethys-Matthania\noethys\
+- icone: C:\Program Files\Noethys-Matthania\noethys\Static\Images\Icone.ico
 
 # Compléments
 
