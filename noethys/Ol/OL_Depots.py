@@ -22,7 +22,8 @@ SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 
 from Utils import UTILS_Gestion
 from Utils import UTILS_Interface
-from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, CTRL_Outils, PanelAvecFooter
+from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, PanelAvecFooter, CTRL_Outils
+import Olv.Filter as Filter
 from Utils import UTILS_Utilisateurs
 
 
@@ -192,7 +193,7 @@ class ListView(FastObjectListView):
             return "%.2f %s" % (montant, SYMBOLE)
 
         liste_Colonnes = [
-            ColumnDefn(_("ID"), "left", 42, "IDdepot", typeDonnee="entier", imageGetter=GetImageVerrouillage),
+            ColumnDefn(_("ID"), "left", 55, "IDdepot", typeDonnee="entier", imageGetter=GetImageVerrouillage),
             ColumnDefn(_("Date"), 'left', 80, "date", typeDonnee="date", stringConverter=FormateDateCourt),
             ColumnDefn(_("Nom"), 'left', 170, "nom", typeDonnee="texte"),
             ColumnDefn(_("Compte"), 'left', 120, "nom_compte", typeDonnee="texte"),
@@ -205,7 +206,7 @@ class ListView(FastObjectListView):
         self.SetColumns(liste_Colonnes)
         self.SetEmptyListMsg(_("Aucun dépôt"))
         self.SetEmptyListMsgFont(wx.FFont(11, wx.DEFAULT, False, "Tekton"))
-        self.SetSortColumn(self.columns[1])
+        self.SetSortColumn(self.columns[0],ascending=False)
         self.SetObjects(self.donnees)
        
     def MAJ(self, ID=None):
@@ -223,7 +224,7 @@ class ListView(FastObjectListView):
         self.selectionID = None
         self.selectionTrack = None
         if ID == None :
-            self.DefileDernier()
+            self.DefilePremier()
 
     def Selection(self):
         return self.GetSelectedObjects()

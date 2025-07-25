@@ -105,6 +105,7 @@ import unicodedata
 
 import CellEditor
 import OLVEvent
+import Filter
 
 # python 3 lacks cmp:
 def cmp(a, b):

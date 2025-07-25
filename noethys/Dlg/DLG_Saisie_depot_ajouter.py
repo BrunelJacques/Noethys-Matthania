@@ -18,7 +18,7 @@ import datetime
 
 from Ol import OL_Reglements_depots
 from Dlg import DLG_Messagebox
-
+from Ctrl.CTRL_ObjectListView import CTRL_Outils
 import GestionDB
 
 
@@ -127,26 +127,27 @@ class Dialog(wx.Dialog):
 
         self.label_compte = wx.StaticText(self, -1, _("Compte :"))
         self.ctrl_compte = CTRL_Compte(self)
-        self.ctrl_compte.SetMinSize((130, -1))
+        self.ctrl_compte.SetMinSize((230, -1))
         self.ctrl_compte.SetID(self.IDcompte)
 
         self.label_mode = wx.StaticText(self, -1, _("Mode :"))
         self.ctrl_mode = CTRL_Modes(self)
-        self.ctrl_mode.SetMinSize((130, -1))
+        self.ctrl_mode.SetMinSize((160, -1))
 
         self.label_tri = wx.StaticText(self, -1, _("Tri :"))
         self.ctrl_tri = wx.Choice(self, -1, choices = (_("Ordre de saisie"), _("Date"), _("Mode de règlement"), _("Emetteur"), _("Numéro de pièce"), _("Famille"), _("Nom de payeur"), _("Montant"),
                                                        _("Avis"), _("Compte"), _("Différé"), _("Attente"), _("Quittancier"), _("Observations")))
-        self.ctrl_tri.Select(0)
+        self.ctrl_tri.Select(1)
 
         self.label_ordre = wx.StaticText(self, -1, _("Ordre :"))
-        self.ctrl_ordre = wx.Choice(self, -1, choices = (_("Ascendant"), _("Descendant")))
-        self.ctrl_ordre.Select(0) 
+        self.ctrl_ordre = wx.Choice(self, -1, choices = (_("Descendant"), _("Ascendant")))
+        self.ctrl_ordre.Select(1)
         
         # Reglements disponibles
         self.staticbox_reglements_disponibles_staticbox = wx.StaticBox(self, -1, _("Règlements disponibles"))
         self.listviewAvecFooter1 = OL_Reglements_depots.ListviewAvecFooter(self, kwargs={"inclus" : False, "sortable" : True, "style": wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_HRULES|wx.LC_VRULES|wx.LB_MULTIPLE})
         self.ctrl_reglements_disponibles = self.listviewAvecFooter1.GetListview()
+        self.ctrl_recherche = CTRL_Outils(self, listview=self.ctrl_reglements_disponibles)
 
         # Commandes
         self.bouton_bas_tout = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Fleche_double_bas.png"), wx.BITMAP_TYPE_ANY))
@@ -182,7 +183,6 @@ class Dialog(wx.Dialog):
         self.OnChoixTri(None)
         self.OnChoixOrdre(None)
         self.MAJListes(tracks=self.tracks) 
-        
 
     def __set_properties(self):
         self.SetTitle(_("Ajouter ou retirer des règlements"))
@@ -201,7 +201,7 @@ class Dialog(wx.Dialog):
         self.bouton_aide.SetToolTip(wx.ToolTip(_("Cliquez ici pour obtenir de l'aide")))
         self.bouton_ok.SetToolTip(wx.ToolTip(_("Cliquez ici pour valider")))
         self.bouton_annuler.SetToolTip(wx.ToolTip(_("Cliquez ici pour annuler")))
-        self.SetMinSize((910, 710))
+        self.SetMinSize((1100, 850))
 
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=5, cols=1, vgap=10, hgap=10)
@@ -216,10 +216,11 @@ class Dialog(wx.Dialog):
         staticbox_reglements_disponibles = wx.StaticBoxSizer(self.staticbox_reglements_disponibles_staticbox, wx.VERTICAL)
         grid_sizer_dispo = wx.FlexGridSizer(rows=2, cols=1, vgap=10, hgap=10)
         
-        grid_sizer_options = wx.FlexGridSizer(rows=1, cols=13, vgap=5, hgap=5)
-        grid_sizer_options.Add(self.label_compte, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer_options.Add(self.ctrl_compte, 0, wx.EXPAND, 0)
+        grid_sizer_options = wx.FlexGridSizer(rows=1, cols=14, vgap=5, hgap=5)
         grid_sizer_options.Add( (5, 5), 0, wx.EXPAND, 0)
+        grid_sizer_options.Add(self.label_compte, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer_options.Add(self.ctrl_compte, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer_options.Add((5, 5), 0, wx.EXPAND, 0)
         grid_sizer_options.Add(self.label_mode, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_options.Add(self.ctrl_mode, 0, 0, 0)
         grid_sizer_options.Add( (5, 5), 0, wx.EXPAND, 0)
@@ -228,7 +229,8 @@ class Dialog(wx.Dialog):
         grid_sizer_options.Add( (5, 5), 0, wx.EXPAND, 0)
         grid_sizer_options.Add(self.label_ordre, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_options.Add(self.ctrl_ordre, 0, 0, 0)
-        grid_sizer_options.AddGrowableCol(1)
+        grid_sizer_options.Add((15, 5), 0, wx.EXPAND, 0)
+        grid_sizer_options.AddGrowableCol(0)
         grid_sizer_dispo.Add(grid_sizer_options, 0, wx.EXPAND, 0)
         
         grid_sizer_dispo.Add(self.listviewAvecFooter1, 0, wx.EXPAND, 0)
@@ -236,6 +238,7 @@ class Dialog(wx.Dialog):
         grid_sizer_dispo.AddGrowableRow(1)
         grid_sizer_dispo.AddGrowableCol(0)
         staticbox_reglements_disponibles.Add(grid_sizer_dispo, 1, wx.ALL|wx.EXPAND, 5)
+        staticbox_reglements_disponibles.Add(self.ctrl_recherche, 0, wx.EXPAND, 0)
         grid_sizer_base.Add(staticbox_reglements_disponibles, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         
         # Commandes de transfert
@@ -376,7 +379,6 @@ class Dialog(wx.Dialog):
 
         # Fermeture
         self.EndModal(wx.ID_OK)
-
 
 
 if __name__ == "__main__":

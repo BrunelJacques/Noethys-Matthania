@@ -20,8 +20,9 @@ import os
 from Utils import UTILS_Titulaires
 from Utils import UTILS_Config
 from Utils import UTILS_Interface
-from Ctrl.CTRL_ObjectListView import (FastObjectListView, ColumnDefn,
-                                      Filter, PanelAvecFooter)
+from Ctrl.CTRL_ObjectListView import (FastObjectListView, ColumnDefn, PanelAvecFooter)
+import Olv.Filter as Filter
+
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 
 def DateEngFr(textDate):
@@ -318,14 +319,14 @@ class ListView(FastObjectListView):
                     listItem.SetTextColour((255, 0, 0))
 
         liste_Colonnes = [
-            ColumnDefn(_("IDreglement"), "left", 0, "IDreglement", typeDonnee="entier"),
+            ColumnDefn(_("ID"), "left", 70, "IDreglement", typeDonnee="entier"),
             ColumnDefn(_("Date"), 'left', 75, "date", typeDonnee="date", stringConverter=FormateDateCourt),
-            ColumnDefn(_("Mode"), 'left', 75, "nom_mode", typeDonnee="texte", imageGetter=GetImageMode),
+            ColumnDefn(_("Mode"), 'left', 95, "nom_mode", typeDonnee="texte", imageGetter=GetImageMode),
             ColumnDefn(_("Numéro"), 'left', 65, "numero_piece", typeDonnee="texte"),
-            ColumnDefn(_("Emetteur"), 'left', 125, "nom_emetteur", typeDonnee="texte", imageGetter=GetImageEmetteur),
+            ColumnDefn(_("Emetteur"), 'left', 110, "nom_emetteur", typeDonnee="texte", imageGetter=GetImageEmetteur),
             ColumnDefn(_("IDfamille"), 'left', 50, "IDfamille", typeDonnee="entier"),
             ColumnDefn(_("Famille"), 'left', 160, "adresse_intitule", typeDonnee="texte"),
-            ColumnDefn(_("Payeur"), 'left', 150, "nom_payeur", typeDonnee="texte"),
+            ColumnDefn(_("Payeur"), 'left', 130, "nom_payeur", typeDonnee="texte"),
             ColumnDefn(_("Montant"), 'right', 75, "montant", typeDonnee="montant", stringConverter=FormateMontant),
             #ColumnDefn(_("Avis"), 'left', 110, "avis_depot", typeDonnee="date", stringConverter=FormateDateCourt, imageGetter=GetImageAvisDepot),
             ColumnDefn(_("Compte"), 'left', 100, "nom_compte", typeDonnee="texte"),

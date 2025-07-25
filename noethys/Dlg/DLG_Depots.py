@@ -109,9 +109,10 @@ class Dialog(wx.Dialog):
         
         # Reglements disponibles
         self.staticbox_reglements = wx.StaticBox(self, -1, _("Règlements disponibles"))
-        self.listviewAvecFooter1 = OL_Reglements_depots.ListviewAvecFooter(self, kwargs={"inclus" : False, "selectionPossible" : False, "size" : (-1, 180) }) 
+        kw = {"inclus" : False, "selectionPossible" : False, "size" : (-1, 180) }
+        self.listviewAvecFooter1 = OL_Reglements_depots.ListviewAvecFooter(self,kwargs=kw)
         self.ctrl_reglements = self.listviewAvecFooter1.GetListview()
-        self.ctrl_reglements.SetMinSize((100, 150))
+        self.ctrl_reglements.SetMinSize((600, 150))
 
         # Dépôts
         self.staticbox_depots = wx.StaticBox(self, -1, _("Dépôts"))
@@ -156,7 +157,7 @@ class Dialog(wx.Dialog):
         self.check_images.SetToolTip(wx.ToolTip(_("Cochez cette case pour afficher les images des modes et émetteurs dans chaque fenêtre du gestionnaire de dépôts")))
         self.bouton_aide.SetToolTip(wx.ToolTip(_("Cliquez ici pour obtenir de l'aide")))
         self.bouton_fermer.SetToolTip(wx.ToolTip(_("Cliquez ici pour fermer")))
-        self.SetMinSize((950, 700))
+        self.SetMinSize((1050, 850))
 
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=5, cols=1, vgap=10, hgap=10)
@@ -168,7 +169,7 @@ class Dialog(wx.Dialog):
         staticbox_reglements = wx.StaticBoxSizer(self.staticbox_reglements, wx.VERTICAL)
         grid_sizer_reglements = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         
-        grid_sizer_reglements.Add(self.listviewAvecFooter1, 0, wx.EXPAND | wx.ALL, 0)
+        grid_sizer_reglements.Add(self.listviewAvecFooter1, 1, wx.EXPAND | wx.ALL, 0)
         
         grid_sizer_reglements.AddGrowableRow(0)
         grid_sizer_reglements.AddGrowableCol(0)
@@ -212,6 +213,7 @@ class Dialog(wx.Dialog):
         
         self.SetSizer(grid_sizer_base)
         grid_sizer_base.Fit(self)
+        grid_sizer_base.AddGrowableRow(1)
         grid_sizer_base.AddGrowableRow(2)
         grid_sizer_base.AddGrowableCol(0)
         self.Layout()

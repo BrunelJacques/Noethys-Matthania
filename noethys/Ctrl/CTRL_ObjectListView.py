@@ -15,9 +15,10 @@ import copy
 import os
 import decimal
 from Ctrl import CTRL_Footer
-from Olv import ObjectListView as OLV
+import Olv.ObjectListView as OLV
 from Olv.ObjectListView import AbstractVirtualObjectListView as Abstract
-from Olv import Filter, OLVEvent
+import Olv.Filter as Filter
+import Olv.OLVEvent as OLVEvent
 
 def Nz(valeur):
     if not valeur:
@@ -374,7 +375,19 @@ class ObjectListView(OLV.ObjectListView):
     
     def GetListview(self):
         return self
-        
+
+    def DefilePremier(self):
+        largeur, hauteur = self.GetSize()
+        if largeur > 0 and hauteur > 0:
+            if self.GetFilter() != None:
+                listeObjets = self.GetFilteredObjects()
+            else:
+                listeObjets = self.GetObjects()
+            if len(listeObjets) > 0:
+                premierTrack = listeObjets[0]
+                index = self.GetIndexOf(premierTrack)
+                self.EnsureCellVisible(index, 0)
+
     def DefileDernier(self):
         """ Defile jusqu'au dernier item de la liste """
         largeur, hauteur = self.GetSize()
