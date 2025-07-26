@@ -91,6 +91,7 @@ class ListView(FastObjectListView):
         self.itemSelected = False
         self.popupIndex = -1
         self.listeFiltres = []
+        self.limit = ""
         # Initialisation du listCtrl
         self.nom_fichier_liste = __file__
         FastObjectListView.__init__(self, *args, **kwds)
@@ -109,6 +110,10 @@ class ListView(FastObjectListView):
         global DICT_DETAILS_DEPOTS
         DICT_DETAILS_DEPOTS = {}
         DB = GestionDB.DB()
+        try:
+            i = int(self.limit)
+            limit = "LIMIT %s"%self.limit
+        except: limit = "LIMIT 100"
         req = """SELECT 
         depots.IDdepot, reglements.IDmode, modes_reglements.label,
         SUM(reglements.montant), COUNT(reglements.IDreglement)
@@ -116,7 +121,9 @@ class ListView(FastObjectListView):
         LEFT JOIN reglements ON reglements.IDdepot = depots.IDdepot
         LEFT JOIN modes_reglements ON modes_reglements.IDmode = reglements.IDmode
         GROUP BY depots.IDdepot, reglements.IDmode
-        """
+        ORDER BY  depots.IDdepot DESC
+        %s;
+        """%limit
         DB.ExecuterReq(req,MsgBox="ExecuterReq")
         listeDonnees = DB.ResultatReq()
         DB.Close()
@@ -136,14 +143,20 @@ class ListView(FastObjectListView):
         """ Récupération des données """
         listeID = None
         db = GestionDB.DB()
+        try:
+            i = int(self.limit)
+            limit = "LIMIT %s"%self.limit
+        except: limit = "LIMIT 100"
+
         req = """SELECT 
         IDdepot, depots.date, depots.nom, verrouillage, 
         depots.IDcompte, comptes_bancaires.nom, comptes_bancaires.numero, 
         observations
         FROM depots
         LEFT JOIN comptes_bancaires ON comptes_bancaires.IDcompte = depots.IDcompte
-        ORDER BY depots.date;
-        """
+        ORDER BY IDdepot DESC
+        %s;
+        """%limit
         db.ExecuterReq(req,MsgBox="ExecuterReq")
         listeDonnees = db.ResultatReq()
         db.Close()

@@ -101,7 +101,8 @@ class Dialog(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, name="DLG_Depots", style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
         self.parent = parent
-        
+        self.limit = 100
+
         # Bandeau
         intro = _("Vous pouvez ici saisir, modifier ou supprimer des dépôts bancaires. ")
         titre = _("Gestion des dépôts")
@@ -128,6 +129,9 @@ class Dialog(wx.Dialog):
         # Options
         self.check_images = wx.CheckBox(self, -1, _("Afficher les images des modes et émetteurs"))
         self.check_images.SetValue(UTILS_Config.GetParametre("depots_afficher_images", defaut=True))
+
+        self.label_limit = wx.StaticText(self, -1, _("Dépots affichés limités à :"))
+        self.ctrl_limit = wx.TextCtrl(self, -1, "100")
         
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -140,10 +144,13 @@ class Dialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.Modifier, self.bouton_modifier)
         self.Bind(wx.EVT_BUTTON, self.Supprimer, self.bouton_supprimer)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckImages, self.check_images)
+        self.Bind(wx.EVT_TEXT_ENTER,self.OnLimit, self.ctrl_limit)
+        self.Bind(wx.EVT_TEXT,self.OnLimit, self.ctrl_limit)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonImprimer, self.bouton_imprimer)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAide, self.bouton_aide)
 
         # Init
+        self.OnLimit(None)
         self.MAJreglements()
         self.ctrl_depots.MAJ()
 
@@ -155,8 +162,10 @@ class Dialog(wx.Dialog):
         self.bouton_supprimer.SetToolTip(wx.ToolTip(_("Cliquez ici pour supprimer le dépôt sélectionné dans la liste")))
         self.bouton_imprimer.SetToolTip(wx.ToolTip(_("Cliquez ici pour imprimer la liste des dépôts affichés")))
         self.check_images.SetToolTip(wx.ToolTip(_("Cochez cette case pour afficher les images des modes et émetteurs dans chaque fenêtre du gestionnaire de dépôts")))
+        self.ctrl_limit.SetToolTip(wx.ToolTip("Modifiez le nombre de lignes de dépôt souhaité dans l'affichage"))
         self.bouton_aide.SetToolTip(wx.ToolTip(_("Cliquez ici pour obtenir de l'aide")))
         self.bouton_fermer.SetToolTip(wx.ToolTip(_("Cliquez ici pour fermer")))
+        self.ctrl_limit.SetMaxSize((60,20))
         self.SetMinSize((1050, 850))
 
     def __do_layout(self):
@@ -180,7 +189,7 @@ class Dialog(wx.Dialog):
         staticbox_depots = wx.StaticBoxSizer(self.staticbox_depots, wx.VERTICAL)
         grid_sizer_depots = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         
-        grid_sizer_gauche = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
+        grid_sizer_gauche = wx.FlexGridSizer(rows=3, cols=1, vgap=0, hgap=10)
         grid_sizer_gauche.Add(self.listviewAvecFooter2, 0, wx.EXPAND, 0)
         grid_sizer_gauche.Add(self.ctrl_recherche, 0, wx.EXPAND, 0)
         grid_sizer_gauche.AddGrowableRow(0)
@@ -201,8 +210,12 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(staticbox_depots, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         
         # Options
-        grid_sizer_base.Add(self.check_images, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
-        
+        grid_sizer_options = wx.FlexGridSizer(rows=1, cols=4, vgap=10, hgap=3)
+        grid_sizer_options.Add(self.check_images, 1, wx.LEFT|wx.RIGHT, 10)
+        grid_sizer_options.Add(self.label_limit, 1, wx.LEFT|wx.RIGHT, 10)
+        grid_sizer_options.Add(self.ctrl_limit, 1, wx.LEFT|wx.RIGHT, 10)
+        grid_sizer_base.Add(grid_sizer_options, 1, wx.LEFT|wx.LEFT|wx.BOTTOM, 10)
+
         # Boutons
         grid_sizer_boutons = wx.FlexGridSizer(rows=1, cols=4, vgap=10, hgap=10)
         grid_sizer_boutons.Add(self.bouton_aide, 0, 0, 0)
@@ -222,7 +235,11 @@ class Dialog(wx.Dialog):
     def OnCheckImages(self, event):
         UTILS_Config.SetParametre("depots_afficher_images", self.check_images.GetValue())
         self.MAJreglements() 
-        
+
+    def OnLimit(self,event):
+        self.ctrl_depots.limit = self.ctrl_limit.GetValue()
+        self.ctrl_depots.MAJ()
+
     def MAJreglements(self):
         tracks = self.GetTracks()
         self.ctrl_reglements.MAJ(tracks)

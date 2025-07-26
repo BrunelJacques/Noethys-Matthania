@@ -104,7 +104,7 @@ class ListView(FastObjectListView):
             else:
                 track.inclus = True
         index = self.GetIndexOf(track)
-        if index == len(self.donnees)-1 :
+        if index == len(self.innerList)-1 :
             if len(self.donnees) > 1 :
                 nextTrack = self.GetObjectAt(index-1)
             else:
