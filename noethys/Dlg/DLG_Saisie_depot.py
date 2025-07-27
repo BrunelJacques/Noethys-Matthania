@@ -54,7 +54,7 @@ class Choix_compte(wx.Choice):
         self.SetID(0)
     
     def SetListeDonnees(self):
-        self.listeNoms = [_("----------------------- Aucun compte bancaire -----------------------")]
+        self.listeNoms = [_("------- Aucun compte bancaire -------")]
         self.listeID = [0,]
         DB = GestionDB.DB()
         req = """SELECT IDcompte, nom, numero
@@ -89,6 +89,51 @@ class Choix_compte(wx.Choice):
             return self.dictNumeros[IDcompte]
         else:
             return None
+
+
+class Choix_mode(wx.Choice):
+    def __init__(self, parent):
+        wx.Choice.__init__(self, parent, -1)
+        self.parent = parent
+        self.listeNoms = []
+        self.listeID = []
+        self.SetListeDonnees()
+        self.SetID(0)
+
+    def SetListeDonnees(self):
+        self.listeNoms = [
+            _("------- Aucun mode de règlement -------")]
+        self.listeID = [0, ]
+        DB = GestionDB.DB()
+        req = """SELECT IDmode, label
+        FROM modes_reglements 
+        ORDER BY IDmode;"""
+        DB.ExecuterReq(req, MsgBox="DLG_Saisie_depot.choix_mode")
+        listeDonnees = DB.ResultatReq()
+        DB.Close()
+        if len(listeDonnees) == 0: return
+        for IDmode, nom in listeDonnees:
+            self.listeNoms.append(nom)
+            self.listeID.append(IDmode)
+        self.SetItems(self.listeNoms)
+
+    def SetID(self, ID=None):
+        index = 0
+        for IDcompte in self.listeID:
+            if IDcompte == ID:
+                self.SetSelection(index)
+            index += 1
+
+    def GetID(self):
+        index = self.GetSelection()
+        if index == -1: return None
+        if index == 0: return 0
+        return self.listeID[index]
+
+    def GetValue(self):
+        index = self.GetID()
+        return self.listeNoms[index]
+
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -168,8 +213,13 @@ class Dialog(wx.Dialog):
         self.initial = True
         # Reglements
         self.staticbox_parametres_staticbox = wx.StaticBox(self, -1, _("Paramètres"))
-        self.label_nom = wx.StaticText(self, -1, _("Nom du dépôt :"))
-        self.ctrl_nom = wx.TextCtrl(self, -1, "", size=(300, -1))
+        if self.IDdepot != None:
+            self.label_nom = wx.StaticText(self, -1, _("Nom du dépôt :"))
+            self.ctrl_nom = wx.TextCtrl(self, -1, "", size=(300, -1))
+        else:
+            self.label_nom = wx.StaticText(self, -1, _("Mode règl. principal:"))
+            self.ctrl_nom = Choix_mode(self)
+
         self.label_date = wx.StaticText(self, -1, _("Date du dépôt :"))
         self.ctrl_date = CTRL_Saisie_date.Date2(self)
         self.label_verrouillage = wx.StaticText(self, -1, _("Verrouillage :"))
@@ -224,7 +274,12 @@ class Dialog(wx.Dialog):
         self.initial = False
 
     def __set_properties(self):
-        self.ctrl_nom.SetToolTip(wx.ToolTip(_("Saisissez ici un nom (Ex : 'Chèques - Février 2012'...")))
+        if self.IDdepot != None:
+            self.ctrl_nom.SetToolTip(wx.ToolTip(_("Modifiez le nom proposé (Ex : 'tout mode règlement...")))
+        else:
+            self.ctrl_nom.SetToolTip(
+                wx.ToolTip(_("Sélectionnez un mode règlement par défaut, modifiable ensuite")))
+
         self.ctrl_date.SetToolTip(wx.ToolTip(_("Saisissez la date de dépôt")))
         self.bouton_imprimer.SetToolTip(wx.ToolTip(_("Cliquez ici pour imprimer la liste des règlements du dépôt")))
         self.bouton_avis_depots.SetToolTip(wx.ToolTip(_("Cliquez ici pour envoyer par Email des avis de dépôts")))
@@ -236,6 +291,7 @@ class Dialog(wx.Dialog):
         self.bouton_aide.SetToolTip(wx.ToolTip(_("Cliquez ici obtenir de l'aide")))
         self.bouton_ok.SetToolTip(wx.ToolTip(_("Cliquez ici pour valider")))
         self.bouton_annuler.SetToolTip(wx.ToolTip(_("Cliquez ici pour annuler")))
+        self.ctrl_code_compta.SetMinSize((120,20))
         self.SetMinSize((890, 720))
 
     def __do_layout(self):
@@ -248,7 +304,7 @@ class Dialog(wx.Dialog):
         grid_sizer_haut_droit = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         grid_sizer_haut_gauche = wx.FlexGridSizer(rows=3, cols=2, vgap=5, hgap=5)
         grid_sizer_haut_gauche.Add(self.label_nom, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer_haut_gauche.Add(self.ctrl_nom, 0, wx.EXPAND, 0)
+        grid_sizer_haut_gauche.Add(self.ctrl_nom, 0,wx.EXPAND, 0)
 
         grid_sizer_haut_gauche.Add(self.label_date, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
 
@@ -261,10 +317,10 @@ class Dialog(wx.Dialog):
         grid_sizer_haut_gauche.Add(grid_sizer_haut_date, 0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 0)
 
         grid_sizer_haut_gauche.Add(self.label_code_compta, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer_haut_gauche.Add(self.ctrl_code_compta, 0, wx.EXPAND, 0)
-        
+        grid_sizer_haut_gauche.Add(self.ctrl_code_compta, 0, 0, 0)
         grid_sizer_haut_gauche.AddGrowableCol(1)
         grid_sizer_parametres.Add(grid_sizer_haut_gauche, 1, wx.EXPAND, 0)
+
         grid_sizer_haut_droit.Add(self.label_compte, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_haut_droit.Add(self.ctrl_compte, 0, wx.EXPAND, 0)
         grid_sizer_haut_droit.Add(self.label_observations, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
@@ -272,6 +328,7 @@ class Dialog(wx.Dialog):
         grid_sizer_haut_droit.AddGrowableRow(1)
         grid_sizer_haut_droit.AddGrowableCol(1)
         grid_sizer_parametres.Add(grid_sizer_haut_droit, 1, wx.EXPAND, 0)
+
         grid_sizer_parametres.AddGrowableCol(0)
         grid_sizer_parametres.AddGrowableCol(1)
         staticbox_parametres.Add(grid_sizer_parametres, 1, wx.ALL|wx.EXPAND, 10)
@@ -382,12 +439,16 @@ class Dialog(wx.Dialog):
     def OnBoutonAjouter(self, event): 
         # Vérifier si compte sélectionné
         IDcompte = self.ctrl_compte.GetID()
+        IDmode = None
+        if self.IDdepot == None:
+            IDmode = self.ctrl_nom.GetID()
         if IDcompte == 0 or IDcompte == None : 
             dlg = wx.MessageDialog(self, _("Vous devez obligatoirement sélectionner un compte bancaire !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
             dlg.ShowModal()
             dlg.Destroy()
             self.ctrl_compte.SetFocus()
             return False
+        date = self.ctrl_date.GetDate()
         # Vérifier le dépot contient des règlements transférés en compta
         haltela = False
         for track in self.tracks:
@@ -399,8 +460,12 @@ class Dialog(wx.Dialog):
             dlg.ShowModal()
             dlg.Destroy()
             return False
+
         # Ouverture DLG Sélection réglements
-        dlg = DLG_Saisie_depot_ajouter.Dialog(self, tracks=self.tracks, IDcompte=IDcompte)      
+        dlg = DLG_Saisie_depot_ajouter.Dialog(self, tracks=self.tracks,
+                                              IDcompte=IDcompte,
+                                              IDmode=IDmode,
+                                              date=date)
         if dlg.ShowModal() == wx.ID_OK:
             self.tracks = dlg.GetTracks()
             self.ctrl_reglements.MAJ(self.tracks)

@@ -18,7 +18,9 @@ import datetime
 
 from Ol import OL_Reglements_depots
 from Dlg import DLG_Messagebox
+from Ctrl import CTRL_Saisie_date
 from Ctrl.CTRL_ObjectListView import CTRL_Outils
+
 import GestionDB
 
 
@@ -117,13 +119,22 @@ class CTRL_Modes(wx.Choice):
 
 
 class Dialog(wx.Dialog):
-    def __init__(self, parent, tracks=[], IDcompte=None):
+    def __init__(self, parent, tracks=[], IDcompte=None, IDmode=None, date=None):
         wx.Dialog.__init__(self, parent, -1, name="DLG_Saisie_depot_ajouter", style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
         self.parent = parent
         self.tracks= tracks
         self.IDcompte = IDcompte
-        
+        self.IDmode = IDmode
+        self.date = date
         self.label_intro = wx.StaticText(self, -1, _("Double-cliquez sur un règlement pour l'affecter ou non au dépôt."), style=wx.ALIGN_CENTER)
+
+
+        self.label_date = wx.StaticText(self, -1, _("Date limite :"))
+        self.ctrl_date = CTRL_Saisie_date.Date2(self)
+        if self.date:
+            self.ctrl_date.SetDate(date)
+        else:
+            self.ctrl_date.SetDate(datetime.date.today())
 
         self.label_compte = wx.StaticText(self, -1, _("Compte :"))
         self.ctrl_compte = CTRL_Compte(self)
@@ -133,6 +144,8 @@ class Dialog(wx.Dialog):
         self.label_mode = wx.StaticText(self, -1, _("Mode :"))
         self.ctrl_mode = CTRL_Modes(self)
         self.ctrl_mode.SetMinSize((160, -1))
+        if self.IDmode:
+            self.ctrl_mode.SetID(self.IDmode)
 
         self.label_tri = wx.StaticText(self, -1, _("Tri :"))
         self.ctrl_tri = wx.Choice(self, -1, choices = (_("Ordre de saisie"), _("Date"), _("Mode de règlement"), _("Emetteur"), _("Numéro de pièce"), _("Famille"), _("Nom de payeur"), _("Montant"),
@@ -178,7 +191,7 @@ class Dialog(wx.Dialog):
         self.Bind(wx.EVT_CHOICE, self.OnChoixMode, self.ctrl_mode)
         self.Bind(wx.EVT_CHOICE, self.OnChoixTri, self.ctrl_tri)
         self.Bind(wx.EVT_CHOICE, self.OnChoixOrdre, self.ctrl_ordre)
-        
+
         # Initialisation des contrôles
         self.OnChoixTri(None)
         self.OnChoixOrdre(None)
@@ -216,8 +229,11 @@ class Dialog(wx.Dialog):
         staticbox_reglements_disponibles = wx.StaticBoxSizer(self.staticbox_reglements_disponibles_staticbox, wx.VERTICAL)
         grid_sizer_dispo = wx.FlexGridSizer(rows=2, cols=1, vgap=10, hgap=10)
         
-        grid_sizer_options = wx.FlexGridSizer(rows=1, cols=14, vgap=5, hgap=5)
+        grid_sizer_options = wx.FlexGridSizer(rows=1, cols=17, vgap=5, hgap=5)
         grid_sizer_options.Add( (5, 5), 0, wx.EXPAND, 0)
+        grid_sizer_options.Add(self.label_date, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer_options.Add(self.ctrl_date, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer_options.Add((5, 5), 0, wx.EXPAND, 0)
         grid_sizer_options.Add(self.label_compte, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_options.Add(self.ctrl_compte, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_options.Add((5, 5), 0, wx.EXPAND, 0)
@@ -279,9 +295,12 @@ class Dialog(wx.Dialog):
         if tracks != None :
             self.tracks = tracks
         # MAJ Liste règlements disponibles
+        date = self.ctrl_date.GetDate()
         IDcompte = self.ctrl_compte.GetID() 
         IDmode = self.ctrl_mode.GetID() 
-        self.ctrl_reglements_disponibles.MAJ(self.tracks, selectionTrack=selectionTrack, nextTrack=nextTrack, IDcompte=IDcompte, IDmode=IDmode) 
+        self.ctrl_reglements_disponibles.MAJ(self.tracks, selectionTrack=selectionTrack,
+                                             nextTrack=nextTrack, IDcompte=IDcompte,
+                                             IDmode=IDmode, date=date)
         self.staticbox_reglements_disponibles_staticbox.SetLabel(self.ctrl_reglements_disponibles.GetLabelListe(_("règlements disponibles")))
         # MAJ Liste règlements du dépôt
         self.ctrl_reglements_depot.MAJ(self.tracks, selectionTrack=selectionTrack, nextTrack=nextTrack) 
@@ -301,7 +320,10 @@ class Dialog(wx.Dialog):
         
     def GetTracks(self):
         return self.tracks
-    
+
+    def OnChoixDate(self):
+        self.MAJListes()
+
     def OnChoixCompte(self, event):
         self.MAJListes()
         

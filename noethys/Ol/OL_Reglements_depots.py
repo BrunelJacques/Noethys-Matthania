@@ -113,7 +113,7 @@ class ListView(FastObjectListView):
             nextTrack = self.GetObjectAt(index+1)
         self.GetGrandParent().MAJListes(self.tracks, selectionTrack=tracks, nextTrack=nextTrack)
         
-    def InitModel(self, tracks=None, IDcompte=None, IDmode=None):
+    def InitModel(self, tracks=None, IDcompte=None, IDmode=None, date=None):
         if tracks != None :
             self.tracks = tracks
         listeTracks = []
@@ -121,6 +121,13 @@ class ListView(FastObjectListView):
             valide = True
             if track.inclus != self.inclus :
                 valide = False
+
+            # Filtre date
+            if date != None and track.date_differe and track.date_differe > date :
+                valide = False
+            if date != None and track.date and track.date > date :
+                valide = False
+
             # Filtre compte
             if IDcompte != None and track.IDcompte != IDcompte :
                 valide = False
@@ -348,9 +355,10 @@ class ListView(FastObjectListView):
         self.SortBy(self.numColonneTri, ascending=self.ordreAscendant)
         self.SetObjects(self.donnees)
        
-    def MAJ(self, tracks=None, ID=None, selectionTrack=None, nextTrack=None, IDcompte=None, IDmode=None):
+    def MAJ(self, tracks=None, ID=None, selectionTrack=None, nextTrack=None, IDcompte=None,
+            IDmode=None, date=None):
         # Save sorting
-        self.InitModel(tracks, IDcompte, IDmode)
+        self.InitModel(tracks, IDcompte, IDmode, date)
         self.InitObjectListView()
         # Sélection d'un item
         if selectionTrack != None :
