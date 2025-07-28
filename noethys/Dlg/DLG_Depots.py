@@ -131,7 +131,7 @@ class Dialog(wx.Dialog):
         self.check_images.SetValue(UTILS_Config.GetParametre("depots_afficher_images", defaut=True))
 
         self.label_limit = wx.StaticText(self, -1, _("Dépots affichés limités à :"))
-        self.ctrl_limit = wx.TextCtrl(self, -1, "100")
+        self.ctrl_limit = wx.TextCtrl(self, -1, "200", style=wx.TE_PROCESS_ENTER)
         
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -144,8 +144,7 @@ class Dialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.Modifier, self.bouton_modifier)
         self.Bind(wx.EVT_BUTTON, self.Supprimer, self.bouton_supprimer)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckImages, self.check_images)
-        self.Bind(wx.EVT_TEXT_ENTER,self.OnLimit, self.ctrl_limit)
-        self.Bind(wx.EVT_TEXT,self.OnLimit, self.ctrl_limit)
+        self.ctrl_limit.Bind(wx.EVT_KILL_FOCUS, self.OnLimit) # to perform in a textctrl
         self.Bind(wx.EVT_BUTTON, self.OnBoutonImprimer, self.bouton_imprimer)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAide, self.bouton_aide)
 
@@ -239,6 +238,8 @@ class Dialog(wx.Dialog):
     def OnLimit(self,event):
         self.ctrl_depots.limit = self.ctrl_limit.GetValue()
         self.ctrl_depots.MAJ()
+        if event:
+            event.skip()
 
     def MAJreglements(self):
         tracks = self.GetTracks()

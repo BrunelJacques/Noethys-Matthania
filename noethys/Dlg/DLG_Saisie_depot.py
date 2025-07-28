@@ -90,10 +90,10 @@ class Choix_compte(wx.Choice):
         else:
             return None
 
-
-class Choix_mode(wx.Choice):
+class zzChoix_mode(wx.ComboCtrl):
+    # choix du mode de réglement à proposer comme nom par défaut
     def __init__(self, parent):
-        wx.Choice.__init__(self, parent, -1)
+        wx.ComboCtrl.__init__(self, parent, -1,style=wx.TE_PROCESS_ENTER)
         self.parent = parent
         self.listeNoms = []
         self.listeID = []
@@ -102,7 +102,7 @@ class Choix_mode(wx.Choice):
 
     def SetListeDonnees(self):
         self.listeNoms = [
-            _("------- Aucun mode de règlement -------")]
+            _("------- Aucun mode de règlement choisi -------")]
         self.listeID = [0, ]
         DB = GestionDB.DB()
         req = """SELECT IDmode, label
@@ -112,10 +112,12 @@ class Choix_mode(wx.Choice):
         listeDonnees = DB.ResultatReq()
         DB.Close()
         if len(listeDonnees) == 0: return
+        i = 0
         for IDmode, nom in listeDonnees:
             self.listeNoms.append(nom)
             self.listeID.append(IDmode)
-        self.SetItems(self.listeNoms)
+            self.SetValue(nom)
+            i += 1
 
     def SetID(self, ID=None):
         index = 0
@@ -130,9 +132,72 @@ class Choix_mode(wx.Choice):
         if index == 0: return 0
         return self.listeID[index]
 
-    def GetValue(self):
+    def zzGetValue(self):
         index = self.GetID()
         return self.listeNoms[index]
+
+class Choix_mode(wx.ComboCtrl):
+    def __init__(self, parent):
+        wx.ComboCtrl.__init__(self, parent, -1,"",style=wx.TE_PROCESS_ENTER)
+        self.popup = ListCtrlComboPopup()
+        self.SetPopupControl(self.popup)
+        self.listeNoms = []
+        self.listeID = []
+        self.SetListeDonnees()
+
+    def SetListeDonnees(self):
+        nom = "------- Aucun mode de règlement choisi -------"
+        self.SetText(nom)
+        DB = GestionDB.DB()
+        req = """SELECT IDmode, label
+        FROM modes_reglements 
+        ORDER BY IDmode;"""
+        DB.ExecuterReq(req, MsgBox="DLG_Saisie_depot.choix_mode")
+        listeDonnees = DB.ResultatReq()
+        DB.Close()
+        if len(listeDonnees) == 0: return
+        i = 0
+        for IDmode, nom in listeDonnees:
+            self.listeNoms.append(nom)
+            self.listeID.append(IDmode)
+            self.popup.AddItem(nom)
+            i += 1
+
+    def GetID(self):
+        value = self.GetValue()
+        if value in self.listeNoms:
+            index = self.listeNoms.index(value)
+        else:
+            return None
+        return self.listeID[index]
+
+class ListCtrlComboPopup(wx.ComboPopup):
+    def Init(self):
+        self.value = -1
+        self.curitem = -1
+
+    def Create(self, parent):
+        self.lc = wx.ListCtrl(parent, style=wx.LC_LIST | wx.LC_SINGLE_SEL | wx.SIMPLE_BORDER)
+        self.lc.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
+        return True
+
+    def GetControl(self):
+        return self.lc
+
+    def AddItem(self, text):
+        self.lc.InsertItem(self.lc.GetItemCount(), text)
+
+    def OnLeftDown(self, event):
+        item, _ = self.lc.HitTest(event.GetPosition())
+        if item >= 0:
+            self.value = item
+            self.Dismiss()
+
+    def GetStringValue(self):
+        if self.value >= 0:
+            return self.lc.GetItemText(self.value)
+        return ""
+
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
@@ -211,14 +276,12 @@ class Dialog(wx.Dialog):
         self.parent = parent
         self.IDdepot = IDdepot
         self.initial = True
+        self.nom = ""
+        self.saisie = False
         # Reglements
         self.staticbox_parametres_staticbox = wx.StaticBox(self, -1, _("Paramètres"))
-        if self.IDdepot != None:
-            self.label_nom = wx.StaticText(self, -1, _("Nom du dépôt :"))
-            self.ctrl_nom = wx.TextCtrl(self, -1, "", size=(300, -1))
-        else:
-            self.label_nom = wx.StaticText(self, -1, _("Mode règl. principal:"))
-            self.ctrl_nom = Choix_mode(self)
+        self.label_nom = wx.StaticText(self, -1, _("Nom du dépôt :"))
+        self.ctrl_nom = Choix_mode(self)
 
         self.label_date = wx.StaticText(self, -1, _("Date du dépôt :"))
         self.ctrl_date = CTRL_Saisie_date.Date2(self)
@@ -243,6 +306,7 @@ class Dialog(wx.Dialog):
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
         self.bouton_imprimer = CTRL_Bouton_image.CTRL(self, texte=_("Imprimer"), cheminImage="Images/32x32/Imprimante.png")
         self.bouton_avis_depots = CTRL_Bouton_image.CTRL(self, texte=_("Envoyer les avis de dépôt"), cheminImage="Images/32x32/Emails_exp.png")
+        self.bouton_nouveau = CTRL_Bouton_image.CTRL(self, texte=_("Ok\nNouveau"), cheminImage="Images/32x32/Valider.png")
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"), cheminImage="Images/32x32/Valider.png")
         self.bouton_annuler = CTRL_Bouton_image.CTRL(self, texte=_("Annuler"), cheminImage="Images/32x32/Annuler.png")
 
@@ -253,42 +317,39 @@ class Dialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAide, self.bouton_aide)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonImprimer, self.bouton_imprimer)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAvisDepots, self.bouton_avis_depots)
+        self.Bind(wx.EVT_BUTTON, self.OnBoutonNouveau, self.bouton_nouveau)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonOk, self.bouton_ok)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAnnuler, self.bouton_annuler)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckVerrouillage, self.ctrl_verrouillage)
-        self.Bind(wx.EVT_TEXT, self.OnCodeCompta, self.ctrl_code_compta)
 
         # Importation lors d'une modification
         if self.IDdepot != None :
             self.SetTitle(_("Modification d'un dépôt"))
-            self.Importation() 
+            self.Importation()
             self.OnCheckVerrouillage(None)
         else:
             self.SetTitle(_("Saisie d'un dépôt"))
             self.ctrl_date.SetDate(datetime.date.today())
-        
+        self.Init()
+
+    def Init(self):
         # Importation des règlements
         self.tracks = self.GetTracks()
         self.ctrl_reglements.MAJ(tracks=self.tracks) 
         self.MAJinfos()
-        self.initial = False
 
     def __set_properties(self):
-        if self.IDdepot != None:
-            self.ctrl_nom.SetToolTip(wx.ToolTip(_("Modifiez le nom proposé (Ex : 'tout mode règlement...")))
-        else:
-            self.ctrl_nom.SetToolTip(
-                wx.ToolTip(_("Sélectionnez un mode règlement par défaut, modifiable ensuite")))
-
         self.ctrl_date.SetToolTip(wx.ToolTip(_("Saisissez la date de dépôt")))
         self.bouton_imprimer.SetToolTip(wx.ToolTip(_("Cliquez ici pour imprimer la liste des règlements du dépôt")))
         self.bouton_avis_depots.SetToolTip(wx.ToolTip(_("Cliquez ici pour envoyer par Email des avis de dépôts")))
         self.ctrl_verrouillage.SetToolTip(wx.ToolTip(_("Cochez cette case si le dépôt doit être verrouillé. Dans ce cas, il devient impossible de modifier la liste des règlements qui le contient !")))
+        self.ctrl_nom.SetToolTip(wx.ToolTip("Sélectionnez un mode règlement pour nom dépôt, modifiable ensuite"))
         self.ctrl_code_compta.SetToolTip(wx.ToolTip(_("Ce code comptable s'il est numérique aura priorité sur celui de l'organisme bancaire. Utile uniquement pour déroger aux comptes par défaut")))
         self.ctrl_compte.SetToolTip(wx.ToolTip(_("Sélectionnez le compte bancaire d'encaissement")))
         self.ctrl_observations.SetToolTip(wx.ToolTip(_("[Optionnel] Saisissez des commentaires")))
         self.bouton_ajouter.SetToolTip(wx.ToolTip(_("Cliquez ici pour ajouter ou retirer des règlements de ce dépôt")))
         self.bouton_aide.SetToolTip(wx.ToolTip(_("Cliquez ici obtenir de l'aide")))
+        self.bouton_nouveau.SetToolTip(wx.ToolTip(_("Cliquez ici pour valider et créer un nouveau dépôt")))
         self.bouton_ok.SetToolTip(wx.ToolTip(_("Cliquez ici pour valider")))
         self.bouton_annuler.SetToolTip(wx.ToolTip(_("Cliquez ici pour annuler")))
         self.ctrl_code_compta.SetMinSize((120,20))
@@ -343,11 +404,12 @@ class Dialog(wx.Dialog):
         staticbox_reglements.Add(grid_sizer_reglements, 1, wx.ALL|wx.EXPAND, 10)
         grid_sizer_base.Add(staticbox_reglements, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         
-        grid_sizer_boutons = wx.FlexGridSizer(rows=1, cols=6, vgap=10, hgap=10)
+        grid_sizer_boutons = wx.FlexGridSizer(rows=1, cols=7, vgap=10, hgap=10)
         grid_sizer_boutons.Add(self.bouton_aide, 0, 0, 0)
         grid_sizer_boutons.Add(self.bouton_imprimer, 0, 0, 0)
         grid_sizer_boutons.Add(self.bouton_avis_depots, 0, 0, 0)
         grid_sizer_boutons.Add((20, 20), 0, wx.EXPAND, 0)
+        grid_sizer_boutons.Add(self.bouton_nouveau, 0, 0, 0)
         grid_sizer_boutons.Add(self.bouton_ok, 0, 0, 0)
         grid_sizer_boutons.Add(self.bouton_annuler, 0, 0, 0)
         grid_sizer_boutons.AddGrowableCol(2)
@@ -467,9 +529,15 @@ class Dialog(wx.Dialog):
                                               IDmode=IDmode,
                                               date=date)
         if dlg.ShowModal() == wx.ID_OK:
+            modemodif = dlg.ctrl_mode.GetID()
+            if "----" in self.ctrl_nom.GetValue():
+                try:
+                    self.ctrl_nom.SetID(modemodif)
+                except: pass
             self.tracks = dlg.GetTracks()
             self.ctrl_reglements.MAJ(self.tracks)
             self.MAJinfos()
+            self.saisie = True
         dlg.Destroy() 
         
     def OnCheckVerrouillage(self, event):
@@ -482,44 +550,61 @@ class Dialog(wx.Dialog):
         from Utils import UTILS_Aide
         UTILS_Aide.Aide("Gestiondesdpts")
 
-    def OnBoutonAnnuler(self, event): 
-        dlg = wx.MessageDialog(self, _("Souhaitez-vous vraiment annuler ?\n\nLes éventuelles modifications effectuées seront perdues..."), _("Annulation"), wx.YES_NO|wx.YES_DEFAULT|wx.CANCEL|wx.ICON_QUESTION)
-        reponse = dlg.ShowModal()
-        dlg.Destroy()
-        if reponse != wx.ID_YES :
-            return
+    def OnBoutonAnnuler(self, event):
+        if self.saisie:
+            dlg = wx.MessageDialog(self, _("Souhaitez-vous vraiment annuler ?\n\nLes éventuelles modifications effectuées seront perdues..."), _("Annulation"), wx.YES_NO|wx.YES_DEFAULT|wx.CANCEL|wx.ICON_QUESTION)
+            reponse = dlg.ShowModal()
+            dlg.Destroy()
+            if reponse != wx.ID_YES :
+                return
         self.EndModal(wx.ID_CANCEL)
 
-    def OnCodeCompta(self,event):
-        if not self.initial :
-            code = self.ctrl_code_compta.GetValue()
-            try:
-                codeNum = str(int(code))
-            except:
-                self.ctrl_code_compta.SetValue("")
-                self.Refresh()
+    def OnBoutonOk(self, event):
+        if self.Sauvegardes():
+            # Fermeture
+            self.EndModal(wx.ID_OK)
 
-    def OnBoutonOk(self, event): 
+    def OnBoutonNouveau(self,event):
+        if self.Sauvegardes():
+            self.IDdepot = None
+            self.Init()
+            nom = self.ctrl_nom.GetValue()
+            try:
+                IDmode = self.ctrl_nom.GetID()
+            except:
+                IDmode = None
+            if IDmode:
+                self.ctrl_nom.SetID(IDmode)
+            elif nom in self.ctrl_nom.listeNoms:
+                ix = self.ctrl_nom.listeNoms.index(nom)
+                self.ctrl_nom.SetID(ix)
+            self.Layout()
+
+    def Sauvegardes(self):
         # Sauvegarde des paramètres
-        etat = self.Sauvegarde_depot() 
+        etat = self.Sauvegarde_depot()
         if etat == False :
-            return
+            return False
         # Sauvegarde des règlements
         self.Sauvegarde_reglements()
+        return True
 
-        # Fermeture
-        self.EndModal(wx.ID_OK)
-    
     def Sauvegarde_depot(self):
-        # Nom
-        nom = self.ctrl_nom.GetValue() 
-        if nom == "" :
-            dlg = wx.MessageDialog(self, _("Vous devez obligatoirement saisir un nom. Exemple : 'Chèques - Juillet 2010'... !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
+        # Nombre de lignes
+        if len(self.ctrl_reglements.modelObjects) == 0:
+            if self.IDdepot == None:
+                dlg = wx.MessageDialog(self,
+                                   "Aucun règlement dans ce dépôt, Abandonnez ou Ajoutez-en",
+                                   "Erreur de saisie", wx.OK | wx.ICON_EXCLAMATION)
+            else:
+                dlg = wx.MessageDialog(self,
+                                   "Aucune ligne! Si le dépôt éxistait préalablement, Abandonnez puis supprimez-le à partir de la liste des dépôts",
+                                   "Erreur de saisie", wx.OK | wx.ICON_EXCLAMATION)
             dlg.ShowModal()
             dlg.Destroy()
             self.ctrl_nom.SetFocus()
             return False
-        
+
         # Date
         date = self.ctrl_date.GetDate()
         if date == None :
@@ -554,7 +639,7 @@ class Dialog(wx.Dialog):
         
         DB = GestionDB.DB()
         listeDonnees = [    
-                ("nom", nom),
+                ("nom", self.nom),
                 ("date", date),
                 ("verrouillage", verrouillage),
                 ("IDcompte", IDcompte),
@@ -601,10 +686,13 @@ class Dialog(wx.Dialog):
                 dictDetails[track.IDmode]["nbre"] += 1
                 dictDetails[track.IDmode]["montant"] += track.montant
         # Création du texte
+        self.nom = ""
         texte = _("<B>%d règlements (%.2f %s) : </B>") % (nbreTotal, montantTotal, SYMBOLE)
         for IDmode, dictDetail in dictDetails.items() :
             texteDetail = "%d %s (%.2f %s), " % (dictDetail["nbre"], dictDetail["label"], dictDetail["montant"], SYMBOLE)
             texte += texteDetail
+            abrege = dictDetail["label"].split(" ")[0]
+            self.nom += "%s "%abrege[:10]
         if len(dictDetails) > 0 :
             texte = texte[:-2] + "."
         else:
@@ -766,7 +854,8 @@ class Dialog(wx.Dialog):
 if __name__ == "__main__":
     app = wx.App(0)
     #wx.InitAllImageHandlers()
-    dialog_1 = Dialog(None, IDdepot=3357)
+    #dialog_1 = Dialog(None, IDdepot=3357)
+    dialog_1 = Dialog(None, IDdepot=None)
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()
     app.MainLoop()
