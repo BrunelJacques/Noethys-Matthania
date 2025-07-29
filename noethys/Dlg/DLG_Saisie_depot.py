@@ -171,55 +171,6 @@ class CTRL_Infos(html.HtmlWindow):
     def SetLabel(self, texte=""):
         self.SetPage(u"""<BODY><FONT SIZE=2 COLOR='#000000'>%s</FONT></BODY>""" % texte)
         self.SetBackgroundColour(self.couleurFond)
-    
-# ---------------------------------------------------------------------------------------------------------------------------------------
-
-class Track(object):
-    def __init__(self, donnees):
-        self.IDreglement = donnees[0]
-        self.compte_payeur = donnees[1]
-        self.date = DateEngEnDateDD(donnees[2])
-        self.IDmode = donnees[3]
-        self.nom_mode = donnees[4]
-        self.IDemetteur = donnees[5]
-        self.nom_emetteur = donnees[6]
-        self.numero_piece = donnees[7]
-        self.montant = donnees[8]
-        self.IDpayeur = donnees[9]
-        self.nom_payeur = donnees[10]
-        self.observations = donnees[11]
-        self.numero_quittancier = donnees[12]
-        self.IDprestation_frais = donnees[13]
-        self.IDcompte = donnees[14]
-        self.date_differe = donnees[15]
-        if self.date_differe != None :
-            self.date_differe = DateEngEnDateDD(self.date_differe)
-        self.encaissement_attente = donnees[16]
-        self.IDdepot = donnees[17]
-        self.date_depot = donnees[18]
-        if self.date_depot != None :
-            self.date_depot = DateEngEnDateDD(self.date_depot)
-        self.nom_depot = donnees[19]
-        self.verrouillage_depot = donnees[20]
-        self.date_saisie = donnees[21]
-        if self.date_saisie != None :
-            self.date_saisie = DateEngEnDateDD(self.date_saisie)
-        self.IDutilisateur = donnees[22]
-        self.montant_ventilation = donnees[23]
-        if self.montant_ventilation == None :
-            self.montant_ventilation = 0.0
-        self.nom_compte = donnees[24]
-        self.IDfamille = donnees[25]
-        self.email_depots = ""
-        self.adresse_intitule = donnees[26]
-        self.avis_depot = donnees[27]
-        self.compta = donnees[28]
-
-        # Etat
-        if self.IDdepot == None or self.IDdepot == 0 :
-            self.inclus = False
-        else:
-            self.inclus = True
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -377,54 +328,12 @@ class Dialog(wx.Dialog):
         grid_sizer_base.AddGrowableRow(1)
         grid_sizer_base.AddGrowableCol(0)
         self.Layout()
-        self.CenterOnScreen() 
+        self.CenterOnScreen()
 
-    def GetTracks(self):
-        """ Récupération des données """
-        if self.IDdepot == None : 
-            IDdepot = 0
-        else:
+    def GetTracks(self, IDdepot=None, IDreglement=None):
+        if not IDdepot:
             IDdepot = self.IDdepot
-            
-        db = GestionDB.DB()
-        req = """SELECT 
-        reglements.IDreglement, reglements.IDcompte_payeur, reglements.date, 
-        reglements.IDmode, modes_reglements.label, 
-        reglements.IDemetteur, emetteurs.nom, 
-        reglements.numero_piece, reglements.montant, 
-        payeurs.IDpayeur, payeurs.nom, 
-        reglements.observations, numero_quittancier, IDprestation_frais, reglements.IDcompte, date_differe, 
-        encaissement_attente, 
-        reglements.IDdepot, depots.date, depots.nom, depots.verrouillage, 
-        date_saisie, IDutilisateur, 
-        SUM(ventilation.montant) AS total_ventilation,
-        comptes_bancaires.nom,
-        familles.IDfamille, 
-        familles.adresse_intitule,
-        reglements.avis_depot,
-        reglements.compta
-        FROM reglements
-        LEFT JOIN ventilation ON reglements.IDreglement = ventilation.IDreglement
-        LEFT JOIN modes_reglements ON reglements.IDmode=modes_reglements.IDmode
-        LEFT JOIN emetteurs ON reglements.IDemetteur=emetteurs.IDemetteur
-        LEFT JOIN payeurs ON reglements.IDpayeur=payeurs.IDpayeur
-        LEFT JOIN depots ON reglements.IDdepot=depots.IDdepot
-        LEFT JOIN comptes_bancaires ON comptes_bancaires.IDcompte=reglements.IDcompte
-        LEFT JOIN comptes_payeurs ON comptes_payeurs.IDcompte_payeur = reglements.IDcompte_payeur
-        LEFT JOIN familles ON familles.IDfamille = comptes_payeurs.IDfamille
-        WHERE reglements.IDdepot IS NULL OR reglements.IDdepot=%d
-        GROUP BY reglements.IDreglement
-        ORDER BY reglements.date;
-        """ % IDdepot
-        db.ExecuterReq(req,MsgBox="DLG_Saisie_depot")
-        listeDonnees = db.ResultatReq()
-        db.Close()
-        
-        listeListeView = []
-        for item in listeDonnees :
-            track = Track(item)
-            listeListeView.append(track)
-        return listeListeView
+        return self.ctrl_reglements.GetTracks(IDdepot,IDreglement)
 
     def Importation(self):
         """ Importation des données """
@@ -458,9 +367,9 @@ class Dialog(wx.Dialog):
     def OnBoutonAjouter(self, event): 
         # Vérifier si compte sélectionné
         IDcompte = self.ctrl_compte.GetID()
-        IDmode = None
-        if self.IDdepot == None:
-            IDmode = self.ctrl_nom.GetID()
+        IDmode = self.ctrl_nom.GetID()
+        if (IDmode == None) and (len(self.ctrl_reglements.modelObjects) > 0):
+            IDmode = self.ctrl_reglements.modelObjects[0].IDmode            
         if IDcompte == 0 or IDcompte == None : 
             dlg = wx.MessageDialog(self, _("Vous devez obligatoirement sélectionner un compte bancaire !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
             dlg.ShowModal()
@@ -582,7 +491,12 @@ class Dialog(wx.Dialog):
         
         # Code compta
         code_compta = self.ctrl_code_compta.GetValue() 
-        
+
+        # nom dépot, priorité si modifié
+        nom = self.ctrl_nom.GetValue()
+        if not nom in self.ctrl_nom.listeNoms:
+            self.nom = nom
+
         DB = GestionDB.DB()
         listeDonnees = [    
                 ("nom", self.nom),
