@@ -121,11 +121,19 @@ class ListView(FastObjectListView):
         # Binds perso
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
         self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
+    # instancié par divers programmes et plusieurs fois dans DLG_Saisie_depot_ajouter
+    """ self.GetGrandParent().GetName() 
+        peut prendre les valeurs  "DLG_Saisie_depot" ou "DLG_Saisie_depot_ajouter"
+    """
 
     def GetTracks(self, IDdepot=None, IDreglement=None):
         """ Récupération des données """
         if IDdepot == None:
             IDdepot = 0
+
+        where = "WHERE reglements.IDdepot IS NULL OR reglements.IDdepot = %d" %IDdepot
+        if IDreglement:
+            where = "WHERE reglements.IDreglement = %d" % IDreglement
 
         db = GestionDB.DB()
         req = """SELECT 
@@ -153,10 +161,10 @@ class ListView(FastObjectListView):
         LEFT JOIN comptes_bancaires ON comptes_bancaires.IDcompte=reglements.IDcompte
         LEFT JOIN comptes_payeurs ON comptes_payeurs.IDcompte_payeur = reglements.IDcompte_payeur
         LEFT JOIN familles ON familles.IDfamille = comptes_payeurs.IDfamille
-        WHERE reglements.IDdepot IS NULL OR reglements.IDdepot=%d
+        %s
         GROUP BY reglements.IDreglement
         ORDER BY reglements.date;
-        """ % IDdepot
+        """ % where
         db.ExecuterReq(req, MsgBox="DLG_Saisie_depot")
         listeDonnees = db.ResultatReq()
         db.Close()
@@ -551,15 +559,15 @@ class ListView(FastObjectListView):
         track = self.Selection()[0]
         IDreglement = track.IDreglement
         from Dlg import DLG_Saisie_reglement
-        dlg = DLG_Saisie_reglement.Dialog(self, IDcompte_payeur=None, IDreglement=IDreglement)      
+        dlg = DLG_Saisie_reglement.Dialog(self, IDcompte_payeur=None,
+                                          IDreglement=IDreglement)
         if dlg.ShowModal() == wx.ID_OK:
-            if self.GetGrandParent().GetName() == "DLG_Saisie_depot" :
-                self.GetGrandParent().Init()
-            if self.GetGrandParent().GetName() == "DLG_Saisie_depot_ajouter" :
-                dlg_saisie_depot = self.GetGrandParent().GetParent()
-                dlg_saisie_depot.Init()
-                self.GetGrandParent().MAJListes(dlg_saisie_depot.tracks)
-        dlg.Destroy() 
+            newtrack = self.GetTracks(IDreglement=IDreglement)[0]
+            for attr in dir(newtrack):
+                if not attr.startswith('__'):
+                    if hasattr(track,attr):
+                        setattr(track, attr, getattr(newtrack, attr))
+        dlg.Destroy()
 
     def Supprimer(self, event):
         if len(self.Selection()) == 0 :

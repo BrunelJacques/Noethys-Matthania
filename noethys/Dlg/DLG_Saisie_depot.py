@@ -242,7 +242,7 @@ class Dialog(wx.Dialog):
 
     def Init(self):
         # Importation des règlements
-        self.tracks = self.GetTracks()
+        self.tracks = self.GetTracks(self.IDdepot)
         self.ctrl_reglements.MAJ(tracks=self.tracks) 
         self.MAJinfos()
 
@@ -330,10 +330,8 @@ class Dialog(wx.Dialog):
         self.Layout()
         self.CenterOnScreen()
 
-    def GetTracks(self, IDdepot=None, IDreglement=None):
-        if not IDdepot:
-            IDdepot = self.IDdepot
-        return self.ctrl_reglements.GetTracks(IDdepot,IDreglement)
+    def GetTracks(self, IDdepot=None):
+        return self.ctrl_reglements.GetTracks(IDdepot=IDdepot,IDreglement=None)
 
     def Importation(self):
         """ Importation des données """
@@ -400,6 +398,7 @@ class Dialog(wx.Dialog):
                 try:
                     self.ctrl_nom.SetID(modemodif)
                 except: pass
+            # Récupère les tracks de la saisie_depot_ajouter cadre du bas
             self.tracks = dlg.GetTracks()
             self.ctrl_reglements.MAJ(self.tracks)
             self.MAJinfos()
@@ -417,7 +416,7 @@ class Dialog(wx.Dialog):
         UTILS_Aide.Aide("Gestiondesdpts")
 
     def OnBoutonAnnuler(self, event):
-        if self.saisie:
+        if self.saisie and len(self.ctrl_reglements.modelObjects) > 0 :
             dlg = wx.MessageDialog(self, _("Souhaitez-vous vraiment annuler ?\n\nLes éventuelles modifications effectuées seront perdues..."), _("Annulation"), wx.YES_NO|wx.YES_DEFAULT|wx.CANCEL|wx.ICON_QUESTION)
             reponse = dlg.ShowModal()
             dlg.Destroy()

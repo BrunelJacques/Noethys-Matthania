@@ -153,7 +153,6 @@ class Dialog(wx.Dialog):
         self.MAJreglements()
         self.ctrl_depots.MAJ()
 
-
     def __set_properties(self):
         self.SetTitle(_("Gestion des dépôts"))
         self.bouton_ajouter.SetToolTip(wx.ToolTip(_("Cliquez ici pour ajouter un dépôt")))

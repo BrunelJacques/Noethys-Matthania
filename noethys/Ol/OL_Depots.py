@@ -335,10 +335,10 @@ class ListView(FastObjectListView):
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("reglements_depots", "creer") == False : return
         from Dlg import DLG_Saisie_depot
         dlg = DLG_Saisie_depot.Dialog(self, IDdepot=None) 
-        if dlg.ShowModal() == wx.ID_OK:
-            IDdepot = dlg.GetIDdepot()
-            self.MAJ(IDdepot)
-            self.GetGrandParent().MAJreglements()
+        dlg.ShowModal()
+        IDdepot = dlg.GetIDdepot()
+        self.MAJ(IDdepot)
+        self.GetGrandParent().MAJreglements()
         dlg.Destroy()
 
     def Modifier(self, event):
@@ -351,9 +351,9 @@ class ListView(FastObjectListView):
         IDdepot = self.Selection()[0].IDdepot
         from Dlg import DLG_Saisie_depot
         dlg = DLG_Saisie_depot.Dialog(self, IDdepot=IDdepot)      
-        if dlg.ShowModal() == wx.ID_OK:
-            self.MAJ(IDdepot)
-            self.GetGrandParent().MAJreglements()
+        dlg.ShowModal()
+        self.MAJ(IDdepot)
+        self.GetGrandParent().MAJreglements()
         dlg.Destroy() 
 
     def Supprimer(self, event):
@@ -385,16 +385,6 @@ class ListView(FastObjectListView):
             self.MAJ()
             self.GetGrandParent().MAJreglements()
         dlg.Destroy()
-
-
-
-
-
-
-
-
-
-
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
