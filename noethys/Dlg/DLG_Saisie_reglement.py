@@ -873,9 +873,17 @@ class Dialog(wx.Dialog):
         wx.CallLater(0, self.Layout) # Contre pb d'affichage du wx.Choice
     
     def VerrouillageDepot(self):
-        if self.compta != None :
+        parent = self.GetParent().GetName()
+        origineDepot = parent == "OL_Reglements_depots"
+        if origineDepot and self.compta == None:
+            return
+
+        if self.IDdepot != None or self.compta != None :
             if self.compta != None:
                 mess = "Ce règlement est transféré en compta, les possibilités de modification sont limitées"
+            else:
+                mess = "Ce règlement ayant fait l'objet d'un dépôt, vous devez le sortir du dépôt pour une modification complète"
+
             dlg = wx.MessageDialog(self, mess , _("Modification limitée"), wx.OK | wx.ICON_INFORMATION)
             dlg.ShowModal()
             dlg.Destroy()

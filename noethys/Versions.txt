@@ -1,4 +1,7 @@
-version 1.3.3.12 (29/07/2025)
+version 1.3.3.13 (29/07/2025)
+- modif des règlements impossible si déposé et non modifié par dépot
+
+version 1.3.3.12 (28/07/2025)
 - modif d'un règlement possible en gestion des dépôts
 
 version 1.3.3.11 (26/07/2025)

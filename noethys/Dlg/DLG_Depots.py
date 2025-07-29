@@ -238,7 +238,7 @@ class Dialog(wx.Dialog):
         self.ctrl_depots.limit = self.ctrl_limit.GetValue()
         self.ctrl_depots.MAJ()
         if event:
-            event.skip()
+            event.Skip()
 
     def MAJreglements(self):
         tracks = self.GetTracks()

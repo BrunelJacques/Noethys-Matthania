@@ -92,6 +92,10 @@ class Track(object):
 # ---------------------------------------------------------------------------------------------------------------------------------------
 
 class ListView(FastObjectListView):
+    # instancié par divers programmes et plusieurs fois dans DLG_Saisie_depot_ajouter
+    """ self.GetGrandParent().GetName()
+        peut prendre les valeurs  "DLG_Saisie_depot" ou "DLG_Saisie_depot_ajouter"
+    """
     def __init__(self, *args, **kwds):
         # Récupération des paramètres perso
         self.inclus = kwds.pop("inclus", True)
@@ -117,14 +121,11 @@ class ListView(FastObjectListView):
         # Initialisation du listCtrl
         self.nom_fichier_liste = __file__
         FastObjectListView.__init__(self, *args, **kwds)
+        self.Name = "OL_Reglements_depots"
 
         # Binds perso
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
         self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
-    # instancié par divers programmes et plusieurs fois dans DLG_Saisie_depot_ajouter
-    """ self.GetGrandParent().GetName() 
-        peut prendre les valeurs  "DLG_Saisie_depot" ou "DLG_Saisie_depot_ajouter"
-    """
 
     def GetTracks(self, IDdepot=None, IDreglement=None):
         """ Récupération des données """
