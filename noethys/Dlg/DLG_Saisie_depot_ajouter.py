@@ -158,8 +158,12 @@ class Dialog(wx.Dialog):
         
         # Reglements disponibles
         self.staticbox_reglements_disponibles_staticbox = wx.StaticBox(self, -1, _("Règlements disponibles"))
-        self.listviewAvecFooter1 = OL_Reglements_depots.ListviewAvecFooter(self, kwargs={"inclus" : False, "sortable" : True, "style": wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_HRULES|wx.LC_VRULES|wx.LB_MULTIPLE})
+        kwd = {"inclus" : False,
+               "sortable" : True,
+               "style": wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_HRULES|wx.LC_VRULES|wx.LB_MULTIPLE}
+        self.listviewAvecFooter1 = OL_Reglements_depots.ListviewAvecFooter(self, kwargs=kwd)
         self.ctrl_reglements_disponibles = self.listviewAvecFooter1.GetListview()
+        self.ctrl_reglements_disponibles.Name = "ctrl_reglements_disponibles"
         self.ctrl_recherche = CTRL_Outils(self, listview=self.ctrl_reglements_disponibles)
 
         # Commandes
@@ -170,8 +174,13 @@ class Dialog(wx.Dialog):
 
         # Reglements du dépôt
         self.staticbox_reglements_depot_staticbox = wx.StaticBox(self, -1, _("Règlements du dépôt"))
-        self.listviewAvecFooter2 = OL_Reglements_depots.ListviewAvecFooter(self, kwargs={"inclus" : True, "style": wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_HRULES|wx.LC_VRULES|wx.LB_MULTIPLE})
+        kwd = {"inclus" : True,
+               "style": wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_HRULES|wx.LC_VRULES|wx.LB_MULTIPLE,
+               "selectionPossible": True
+               }
+        self.listviewAvecFooter2 = OL_Reglements_depots.ListviewAvecFooter(self, kwargs=kwd)
         self.ctrl_reglements_depot = self.listviewAvecFooter2.GetListview()
+        self.ctrl_reglements_depot.Name = "ctrl_reglements_depot"
 
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")

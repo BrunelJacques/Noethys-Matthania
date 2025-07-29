@@ -512,6 +512,8 @@ class Dialog(wx.Dialog):
         self.IDreglement = IDreglement
         self.dernierRecu = None
         self.avis_depot = None
+        self.lstModifs = []
+
 
         if "linux" in sys.platform :
             defaultFont = self.GetFont()
@@ -871,12 +873,9 @@ class Dialog(wx.Dialog):
         wx.CallLater(0, self.Layout) # Contre pb d'affichage du wx.Choice
     
     def VerrouillageDepot(self):
-        if self.IDdepot != None or self.compta != None :
+        if self.compta != None :
             if self.compta != None:
                 mess = "Ce règlement est transféré en compta, les possibilités de modification sont limitées"
-            else:
-                mess = "Ce règlement ayant fait l'objet d'un dépôt, vous devez le sortir du dépôt pour une modification complète"
-            DB= GestionDB.DB
             dlg = wx.MessageDialog(self, mess , _("Modification limitée"), wx.OK | wx.ICON_INFORMATION)
             dlg.ShowModal()
             dlg.Destroy()
@@ -965,6 +964,7 @@ class Dialog(wx.Dialog):
         if ret == "ok":
             dicInfo["IDcompte"] = IDcompte
         DB.Close()
+
     def OnChoixMode(self, event):
         IDmode = self.ctrl_mode.GetID()
         self.ctrl_emetteur.MAJ(IDmode)
@@ -976,7 +976,6 @@ class Dialog(wx.Dialog):
             IDcompte = self.ctrl_mode.GetInfosMode()["IDcompte"]
             if IDcompte:
                 self.ctrl_compte.SetID(IDcompte)
-
 
     def OnChoixEmetteur(self, event): 
         IDemetteur = self.ctrl_emetteur.GetID()
@@ -1018,7 +1017,6 @@ class Dialog(wx.Dialog):
         self.ctrl_emetteur.MAJ(IDmode)
         self.ctrl_emetteur.SetID(IDemetteur)
         self.OnChoixEmetteur(None)
-    
 
     def OnKillFocusDate(self, event):
         # controle si saisie dans un exercice ouvert
@@ -1337,7 +1335,6 @@ class Dialog(wx.Dialog):
                     "frais_label" : None,
                     })
 
-    
     def GetIDreglement(self):
         return self.IDreglement
     
@@ -1480,6 +1477,7 @@ class Dialog(wx.Dialog):
         else:
             self.nouveauReglement = False
             DB.ReqMAJ("reglements", listeDonnees, "IDreglement", self.IDreglement)
+        self.lstModifs = listeDonnees
         
         # --- Sauvegarde de la ventilation ---
         self.ctrl_ventilation.Sauvegarde(self.IDreglement)

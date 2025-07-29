@@ -84,8 +84,15 @@ class ListView(FastObjectListView):
                 pass
 
     def OnItemActivated(self,event):
+        # Palie le manque de selected en plus de activated par un double clic direct
+        ix = event.GetIndex()
+        self.SetItemState(ix, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
+
         if self.selectionPossible == True :
-            self.Deplacer()
+            if self.Name == "ctrl_reglements_disponibles":
+                self.Deplacer()
+            else:
+                self.Modifier(None)
     
     def Deplacer(self):
         if len(self.Selection()) == 0 :
@@ -365,9 +372,6 @@ class ListView(FastObjectListView):
             self.SelectObjects(selectionTrack, deselectOthers=True)
             if self.GetSelectedObject() == None :
                 self.SelectObject(nextTrack, deselectOthers=True, ensureVisible=True)
-                
-##        if ID == None :
-##            self.DefileDernier() 
 
     def Selection(self):
         return self.GetSelectedObjects()
@@ -378,10 +382,18 @@ class ListView(FastObjectListView):
             noSelection = True
         else:
             noSelection = False
-            ID = self.Selection()[0].IDreglement
-                
+
         # Création du menu contextuel
         menuPop = UTILS_Adaptations.Menu()
+
+        # Item Modifier
+        item = wx.MenuItem(menuPop, 20, _("Modifier le règlement"))
+        bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"),
+                        wx.BITMAP_TYPE_PNG)
+        item.SetBitmap(bmp)
+        menuPop.Append(item)
+        self.Bind(wx.EVT_MENU, self.Modifier, id=20)
+        if noSelection == True: item.Enable(False)
 
         # Génération automatique des fonctions standards
         self.GenerationContextMenu(menuPop, dictParametres=self.GetParametresImpression())
@@ -447,9 +459,11 @@ class ListView(FastObjectListView):
         dlg = DLG_Saisie_reglement.Dialog(self, IDcompte_payeur=None, IDreglement=IDreglement)      
         if dlg.ShowModal() == wx.ID_OK:
             if self.GetGrandParent().GetName() == "DLG_Saisie_depot" :
-                self.MAJ(selectionTrack=track) 
+                self.GetGrandParent().Init()
             if self.GetGrandParent().GetName() == "DLG_Saisie_depot_ajouter" :
-                self.GetGrandParent().MAJListes(self.tracks, selectionTrack=track)
+                dlg_saisie_depot = self.GetGrandParent().GetParent()
+                dlg_saisie_depot.Init()
+                self.GetGrandParent().MAJListes(dlg_saisie_depot.tracks)
         dlg.Destroy() 
 
     def Supprimer(self, event):

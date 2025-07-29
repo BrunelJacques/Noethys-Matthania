@@ -90,52 +90,6 @@ class Choix_compte(wx.Choice):
         else:
             return None
 
-class zzChoix_mode(wx.ComboCtrl):
-    # choix du mode de réglement à proposer comme nom par défaut
-    def __init__(self, parent):
-        wx.ComboCtrl.__init__(self, parent, -1,style=wx.TE_PROCESS_ENTER)
-        self.parent = parent
-        self.listeNoms = []
-        self.listeID = []
-        self.SetListeDonnees()
-        self.SetID(0)
-
-    def SetListeDonnees(self):
-        self.listeNoms = [
-            _("------- Aucun mode de règlement choisi -------")]
-        self.listeID = [0, ]
-        DB = GestionDB.DB()
-        req = """SELECT IDmode, label
-        FROM modes_reglements 
-        ORDER BY IDmode;"""
-        DB.ExecuterReq(req, MsgBox="DLG_Saisie_depot.choix_mode")
-        listeDonnees = DB.ResultatReq()
-        DB.Close()
-        if len(listeDonnees) == 0: return
-        i = 0
-        for IDmode, nom in listeDonnees:
-            self.listeNoms.append(nom)
-            self.listeID.append(IDmode)
-            self.SetValue(nom)
-            i += 1
-
-    def SetID(self, ID=None):
-        index = 0
-        for IDcompte in self.listeID:
-            if IDcompte == ID:
-                self.SetSelection(index)
-            index += 1
-
-    def GetID(self):
-        index = self.GetSelection()
-        if index == -1: return None
-        if index == 0: return 0
-        return self.listeID[index]
-
-    def zzGetValue(self):
-        index = self.GetID()
-        return self.listeNoms[index]
-
 class Choix_mode(wx.ComboCtrl):
     def __init__(self, parent):
         wx.ComboCtrl.__init__(self, parent, -1,"",style=wx.TE_PROCESS_ENTER)
@@ -172,6 +126,7 @@ class Choix_mode(wx.ComboCtrl):
         return self.listeID[index]
 
 class ListCtrlComboPopup(wx.ComboPopup):
+    # complément pour ComboCtrl modifiable après choix
     def Init(self):
         self.value = -1
         self.curitem = -1
@@ -197,8 +152,6 @@ class ListCtrlComboPopup(wx.ComboPopup):
         if self.value >= 0:
             return self.lc.GetItemText(self.value)
         return ""
-
-
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -296,7 +249,11 @@ class Dialog(wx.Dialog):
         
         # Reglements
         self.staticbox_reglements_staticbox = wx.StaticBox(self, -1, _("Règlements"))
-        self.listviewAvecFooter = OL_Reglements_depots.ListviewAvecFooter(self, kwargs={"inclus" : True, "selectionPossible" : False}) 
+        kwd = {"inclus": True,
+               "style": wx.LC_REPORT | wx.SUNKEN_BORDER | wx.LC_HRULES | wx.LC_VRULES | wx.LB_MULTIPLE,
+               "selectionPossible":True
+               }
+        self.listviewAvecFooter = OL_Reglements_depots.ListviewAvecFooter(self, kwargs=kwd)
         self.ctrl_reglements = self.listviewAvecFooter.GetListview()
         
         self.ctrl_infos = CTRL_Infos(self, hauteur=32, couleurFond="#F0FBED" , style=wx.html.HW_NO_SELECTION | wx.html.HW_SCROLLBAR_NEVER | wx.SUNKEN_BORDER)
@@ -568,17 +525,6 @@ class Dialog(wx.Dialog):
         if self.Sauvegardes():
             self.IDdepot = None
             self.Init()
-            nom = self.ctrl_nom.GetValue()
-            try:
-                IDmode = self.ctrl_nom.GetID()
-            except:
-                IDmode = None
-            if IDmode:
-                self.ctrl_nom.SetID(IDmode)
-            elif nom in self.ctrl_nom.listeNoms:
-                ix = self.ctrl_nom.listeNoms.index(nom)
-                self.ctrl_nom.SetID(ix)
-            self.Layout()
 
     def Sauvegardes(self):
         # Sauvegarde des paramètres
@@ -854,8 +800,7 @@ class Dialog(wx.Dialog):
 if __name__ == "__main__":
     app = wx.App(0)
     #wx.InitAllImageHandlers()
-    #dialog_1 = Dialog(None, IDdepot=3357)
-    dialog_1 = Dialog(None, IDdepot=None)
+    dialog_1 = Dialog(None, IDdepot= 5092)
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()
     app.MainLoop()
