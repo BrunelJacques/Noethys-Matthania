@@ -149,10 +149,10 @@ class OLVtarification(FastObjectListView):
         self.evenRowsBackColor = wx.Colour(255, 255, 255)
         self.useExpansionColumn = True
         liste_Colonnes = [
-            ColumnDefn("Code", "center", 100, "codeArticle",typeDonnee="texte"),
+            ColumnDefn("Code", "center", 100, "codeArticle",typeDonnee="texte",isEditable=False),
             ColumnDefn("Libelle (libelles modifiables)", "left", 300,"libelle",typeDonnee="texte",isSpaceFilling = True ),
             ColumnDefn("Qté", "right", 50, "qte",typeDonnee="montant",stringConverter=FmtXd ),
-            ColumnDefn("Calculé", "right", 100, "montantCalcul",typeDonnee="montant",stringConverter="%.2f"),
+            ColumnDefn("Calculé", "right", 100, "montantCalcul",typeDonnee="montant",stringConverter="%.2f",isEditable=False),
             ColumnDefn("Forcé", "right", 100, "montant",typeDonnee="montant",stringConverter=Fmt2d),
             ]
         self.SetColumns(liste_Colonnes)

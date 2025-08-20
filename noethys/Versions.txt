@@ -1,3 +1,9 @@
+version 1.3.3.14 (20/08/2025)
+- Saisie code article directement en saisie devient impossible: modifier libellé ok
+
+version 1.3.3.13 (12/08/2025)
+- impessions_conso bug
+
 version 1.3.3.13 (29/07/2025)
 - modif des règlements impossible si déposé et non modifié par dépot
 

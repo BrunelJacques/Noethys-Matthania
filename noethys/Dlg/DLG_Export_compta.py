@@ -645,7 +645,7 @@ class Donnees():
         if texte != "\n":
             del dlgAttente
             # Avertissement et bloquage du process
-            wx.MessageBox( _("Vérifiez la facturation des familles suivantes !%s")%texte,"Incohérence à réduire avant transfert")
+            wx.MessageBox( _("Vérifiez la facturation pour les raisons suivantes !%s")%texte,"Incohérence ventes à réduire avant transfert")
             return False
         del dlgAttente
         return True
@@ -709,7 +709,7 @@ class Donnees():
         del dlgAttente
         if texte != "\n":
             # Avertissement et bloquage du process
-            wx.MessageBox(_("Vérifiez les anomalies sur les règlements :%s")%texte,"Incohérence à réduire avant transfert")
+            wx.MessageBox(_("Vérifiez les anomalies sur les règlements :%s")%texte,"Incohérences règlement à réduire avant transfert")
             return False
         return True
         #fin CoherenceBanque

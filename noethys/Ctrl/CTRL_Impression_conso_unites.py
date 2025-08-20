@@ -235,7 +235,9 @@ class CTRL(HTL.HyperTreeList):
                         track.ctrl_affichage = ctrl_affichage      
                         
                         # Colonnes textes
-                        self.SetItemText(brancheUnite, str(index+1), 4)
+                        try:
+                            self.SetItemText(brancheUnite, str(index+1), 4)
+                        except: pass
                         track.position = index
                         index += 1
                         
