@@ -13,10 +13,7 @@ import Chemins
 from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
-if wx.VERSION < (2, 9, 0, 0) :
-    from Outils import ultimatelistctrl as ULC
-else :
-    from wx.lib.agw import ultimatelistctrl as ULC
+import wx.lib.agw.ultimatelistctrl as ULC
 
 import os
 import six

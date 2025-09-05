@@ -14,10 +14,7 @@ from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 import six
-if wx.VERSION < (2, 9, 0, 0) :
-    from Outils import ultimatelistctrl as ULC
-else :
-    from wx.lib.agw import ultimatelistctrl as ULC
+import wx.lib.agw.ultimatelistctrl as ULC
 
 # Import des assistants pour pouvoir les inclure dans la compilation windows
 from Ctrl import CTRL_Assistant_annuelle

@@ -16,16 +16,10 @@ import wx
 from Ctrl import CTRL_Bouton_image
 import wx.html
 import wx.lib.filebrowsebutton as filebrowse
-if wx.VERSION < (2, 9, 0, 0) :
-    from Outils import ultimatelistctrl as ULC
-else :
-    from wx.lib.agw import ultimatelistctrl as ULC
+import wx.lib.agw.ultimatelistctrl as ULC
 import wx.lib.agw.hyperlink as Hyperlink
 import xlrd
-try:
-    import unicodecsv as csv
-except:
-    from Outils import unicodecsvpy2 as csv
+import csv
 import os
 import datetime
 import GestionDB

@@ -22,28 +22,20 @@ SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 MONNAIE_SINGULIER = UTILS_Config.GetParametre("monnaie_singulier", _("Euro"))
 MONNAIE_DIVISION = UTILS_Config.GetParametre("monnaie_division", _("Centime"))
 
-from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
-
-from Data import DATA_Civilites as Civilites
-DICT_CIVILITES = Civilites.GetDictCivilites()
-
 import GestionDB
-import FonctionsPerso
-from Utils import UTILS_Titulaires
-from Utils import UTILS_Questionnaires
+
 from Utils import UTILS_Impression_attestation_cerfa
 from Utils import UTILS_Dates
 from Dlg import DLG_Apercu_attestation_fiscale
 from Utils import UTILS_Conversion
-from Utils import UTILS_Infos_individus
 from Data import DATA_Civilites
 DICT_CIVILITES = DATA_Civilites.GetDictCivilites()
 
 
 class Attestations_fiscales():
     def __init__(self):
+
         """ Récupération de toutes les données de base """
-        
         DB = GestionDB.DB()
             
         # Récupération des infos sur l'organisme
@@ -66,7 +58,6 @@ class Attestations_fiscales():
             self.dictOrganisme["num_agrement"] = num_agrement
             self.dictOrganisme["num_siret"] = num_siret
             self.dictOrganisme["code_ape"] = code_ape
-
         DB.Close()
 
     def EcritStatusbar(self, texte=""):
@@ -80,12 +71,6 @@ class Attestations_fiscales():
         """ Impression des factures """
         dlgAttente = PBI.PyBusyInfo(_("Recherche des données..."), parent=None, title=_("Veuillez patienter..."), icon=wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Logo.png"), wx.BITMAP_TYPE_ANY))
         wx.Yield()
-        lstIDfamilles = [int(x.IDfamille) for x in tracks]
-
-        # Récupération des infos de base individus et familles
-        self.infosIndividus = UTILS_Infos_individus.Informations(lstIDfamilles=lstIDfamilles)
-        # Récupération des questionnaires
-        self.Questionnaires = UTILS_Questionnaires.ChampsEtReponses(type="famille",lstIDfamilles=lstIDfamilles)
 
         dictDonnees = {}
         dictChampsFusion = {}
@@ -176,15 +161,6 @@ class Attestations_fiscales():
             if autre:
                 dictDonnee["{AUTRES_MODES}"]="X"
 
-            # Ajoute les infos de base familles
-            dictDonnee.update(self.infosIndividus.GetDictValeurs(mode="famille", ID=IDfamille, formatChamp=True))
-
-            # Ajoute les réponses des questionnaires
-            for dictReponse in self.Questionnaires.GetDonnees(IDfamille) :
-                dictDonnee[dictReponse["champ"]] = dictReponse["reponse"]
-                if dictReponse["controle"] == "codebarres" :
-                    dictDonnee["{CODEBARRES_QUESTION_%d}" % dictReponse["IDquestion"]] = dictReponse["reponse"]
-            
             dictDonnees[IDcerfa] = dictDonnee
             
             # Champs de fusion pour Email

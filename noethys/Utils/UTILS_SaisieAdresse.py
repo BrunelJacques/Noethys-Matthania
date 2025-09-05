@@ -219,7 +219,6 @@ def GetOnePays(filtre=""):
     else: condition = ""
     db = GestionDB.DB()
     def Requete(condition):
-        db = GestionDB.DB()
         req = """SELECT secteurs.nom
         FROM secteurs
         %s ;"""%condition
@@ -461,10 +460,14 @@ def SetDBcorrespondant(dicCorrespondant):
     # envoi dans la base de donnée
     DB=GestionDB.DB()
     ret = DB.ReqMAJ("familles",lstDonnees,"IDfamille",dicCorrespondant['IDfamille'],MsgBox="Insert familles Correspondant")
+    DB.Close()
     return ret
 
 def SetDBoldAdresse(DB,IDindividu=None,adresse = "\n\n\n\n\n\n\n"):
-    if not DB: DB = GestionDB.DB()
+    if not DB:
+        fermerDB = True
+        DB = GestionDB.DB()
+    else: fermerDB = False
     # Stocke dans la base de donnée l'adresse avec 4 lignes obligatoires pour rue, 2 pour ville et cp à part.
     rue_resid,cp_resid,ville_resid = LstAdresseToChamps(adresse)
     # envoi dans la base de donnée
@@ -474,6 +477,8 @@ def SetDBoldAdresse(DB,IDindividu=None,adresse = "\n\n\n\n\n\n\n"):
                     ("adresse_normee", 1),
                     ("date_modification", ut.DateDDEnDateEng(datetime.date.today()))]
     ret = DB.ReqMAJ("exadresses",lstDonnees,"IDindividu",IDindividu,MsgBox="Insert exAdresse")
+    if fermerDB:
+        DB.Close()
     return ret
 
 def Validation(adresse):
@@ -1230,4 +1235,5 @@ if __name__ == "__main__":
     ret = TransposeAdresse(lstAdresse)
     for ix in range(7):
         print((lstAdresse[ix]+" "*50)[:50],"\t",ret[ix])
+    print(GetOnePays("g"))
     app.MainLoop()

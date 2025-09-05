@@ -1881,7 +1881,7 @@ class Forfaits():
 
     def GetFamille(self,parent):
         # Fixe IDfamille listeFamille (unique) listeNOms (des membres ) si l'individu est rattaché à d'autres familles
-        parent.listeNoms = []
+        parent.lstLibTypes = []
         parent.listeFamille = []
         # Vérifie que l'individu est rattaché comme REPRESENTANT ou ENFANT à une famille
         if parent.dictFamillesRattachees == None: return False
@@ -1900,7 +1900,7 @@ class Forfaits():
         if self.nbreFamilles == 1 :
             parent.IDfamille = lastIDfamille
             parent.listeFamille.append(lastIDfamille)
-            parent.listeNoms.append(parent.dictFamillesRattachees[parent.IDfamille]["nomsTitulaires"])
+            parent.lstLibTypes.append(parent.dictFamillesRattachees[parent.IDfamille]["nomsTitulaires"])
         else:
             # Si rattachée à plusieurs familles
             listeTuplesFamilles = []
@@ -1908,11 +1908,11 @@ class Forfaits():
                 IDcategorie = dictFamille["IDcategorie"]
                 if IDcategorie in (1, 2) :
                     parent.listeFamille.append(IDfamille)
-                    parent.listeNoms.append(dictFamille["nomsTitulaires"])
+                    parent.lstLibTypes.append(dictFamille["nomsTitulaires"])
                     listeTuplesFamilles.append((IDfamille,dictFamille["nomsTitulaires"]))
             # On demande à quelle famille rattacher cette inscription
             retour = GestionDB.Messages().Choix(listeTuples=listeTuplesFamilles, titre = ("Cet individu est rattaché à %d familles")
-                    % len(parent.listeNoms), intro = "Double clic pour rattacher cette inscription à une famille !")
+                    % len(parent.lstLibTypes), intro ="Double clic pour rattacher cette inscription à une famille !")
             ixChoix = retour[0]
             famille = retour[1]
             if  ixChoix != None:

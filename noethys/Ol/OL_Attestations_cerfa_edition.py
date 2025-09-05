@@ -86,7 +86,8 @@ class ListView(FastObjectListView):
             # affichage de tous les cerfas de la période
             DB = GestionDB.DB()
             req = """
-                    SELECT crfIDcerfa, crfIDfamille, crfDateEdition, crfIDutilisateur, crfDateDebut, crfDateFin, crfTotal, crfCerfa
+                    SELECT crfIDcerfa, crfIDfamille, crfDateEdition, crfIDutilisateur, 
+                            crfDateDebut, crfDateFin, crfTotal, crfCerfa
                     FROM matCerfas
                     WHERE (crfDateDebut Between '%s' And '%s') OR (crfDateFin Between '%s' And '%s')
                 ;""" % (self.periodeDeb, self.periodeFin, self.periodeDeb, self.periodeFin)

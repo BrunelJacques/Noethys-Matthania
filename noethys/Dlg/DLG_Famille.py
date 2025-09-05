@@ -768,10 +768,11 @@ class Dialog(wx.Dialog):
 
     def Final(self):
         # Fermeture de la fenêtre
+        self.DB.Close()
         try :
             if not self.parent:
+                self.DB.Close(all=True)
                 GestionDB.AfficheConnexionsOuvertes()
-            self.DB.Close(all=True)
             self.EndModal(wx.ID_OK)
         except Exception as err:
             print(("Erreur sortie fiche famille: ",err))
@@ -911,7 +912,7 @@ if __name__ == "__main__":
     heure_debut = time.time()
     # ramel 567; perez marc 1724; bartoOliv 1861; branco 4499;  bourrel 6191
     #7735 parrainage; 8107 multifactures; 709 Brunel jacques
-    dialog_1 = Dialog(None, IDfamille=10068 )
+    dialog_1 = Dialog(None, IDfamille=709)
     print("Temps de chargement fiche famille =", time.time() - heure_debut)
     app.SetTopWindow(dialog_1)
 

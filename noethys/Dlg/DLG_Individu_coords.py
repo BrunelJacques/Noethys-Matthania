@@ -56,7 +56,9 @@ class Adresse_auto(wx.Choice):
             self.lstIndividusAffiches.append(IDindividu)
 
     def GetListeDonnees(self, DB=None):
+        fermerDB = False
         if not DB:
+            fermerDB = True
             DB = GestionDB.DB()
         # liste des familles pouvant proposer une adresse pour l'individu
         adresse_auto = None
@@ -101,6 +103,7 @@ class Adresse_auto(wx.Choice):
         # liminaire pour recherche des adresses à proposer
         if len(listeFamilles) == 0:
             self.dictAdresses = {}
+            if fermerDB : DB.Close()
             return []
         elif len(listeFamilles) == 1 :
             condition = "(%s)" % listeFamilles[0]
@@ -139,6 +142,7 @@ class Adresse_auto(wx.Choice):
         # pointeur du correspondant actuel
         if self.cat=="famille":
             self.SetID(ID=IDcorresp)
+        if fermerDB: DB.Close()
         return
 
     def SetID(self, ID=0):
@@ -1113,7 +1117,6 @@ class Panel_contact(wx.Panel):
                                 ("refus_mel",self.ctrl_refus_mel.GetValue()),
                             ]
             DB.ReqMAJ("familles", listeDonnees, "IDfamille", self.IDfamille,MsgBox="Sauvegarde.familles")
-
         DB.Close()
 
 class Panel_coords(wx.Panel):

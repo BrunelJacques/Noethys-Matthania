@@ -10,7 +10,7 @@
 
 from Utils.UTILS_Traduction import _
 import wx
-from wx.lib.agw import ultimatelistctrl as ULC
+import wx.lib.agw.ultimatelistctrl as ULC
 
 LARGEUR_COLONNE_ACTIVITE = 190
 LARGEUR_COLONNE_GROUPE = 120

@@ -17,10 +17,7 @@ from Ctrl import CTRL_Bouton_image
 import os
 import GestionDB
 
-if wx.VERSION < (2, 9, 0, 0) :
-    from Outils import ultimatelistctrl as ULC
-else :
-    from wx.lib.agw import ultimatelistctrl as ULC
+import wx.lib.agw.ultimatelistctrl as ULC
 
 
 class CTRL(ULC.UltimateListCtrl):

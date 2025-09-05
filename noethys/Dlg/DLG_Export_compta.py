@@ -815,7 +815,7 @@ class Donnees():
         DB.Close()
         return
 
-    def GetPrestations(self,datePrestPourConsos=False):
+    def GetPrestations(self,isConso=False):
         listeDictLignes = []
         # Récupération des prestations de type OD
         DB = GestionDB.DB()
@@ -826,23 +826,23 @@ class Donnees():
         if not self.dictParametres["retransfert"] :
             condTransfert = " AND ( prestations.compta IS NULL )"
         else : condTransfert = ""
-        if datePrestPourConsos:
-            # prépare le regroupement dans les clients par No Piece
-            # On ignore la date de la pièce pour ne retenir que la date de la prestation
-            journal = (self.dictParametres["journal_ventes"])
+        
+        if isConso:
+            # regroupe sur no facture, avec date de la prestation (
             complChamp = ", pieNoFacture, pieNoAvoir, factures.date_edition  "
             complJoin = " LEFT JOIN factures ON factures.IDfacture = prestations.IDfacture LEFT JOIN matPieces ON (matPieces.pieIDprestation = prestations.IDprestation OR matPieces.pieIDnumPiece = prestations.IDcontrat )"
             condition  = " (NOT prestations.IDfacture IS NULL ) AND (prestations.categorie LIKE 'conso%%') AND (prestations.montant <> 0) AND (factures.date_edition >= '%s' ) AND (factures.date_edition <= '%s' ) %s " %(self.date_debut, self.date_fin, condTransfert)
         else:
             # regroupement dans les clients par No prestation
-            journal = (self.dictParametres["journal_od_ventes"])
             complChamp = ", NULL, NULL, NULL "
             complJoin = ""
             condition  = " (NOT (prestations.categorie LIKE 'conso%%')) AND (NOT (prestations.categorie = 'import')) AND (prestations.montant <> 0) AND (prestations.date >= '%s' ) AND (prestations.date <= '%s' ) %s " %(self.date_debut, self.date_fin, condTransfert)
 
         req = """
-            SELECT  prestations.IDprestation, prestations.IDfamille, prestations.categorie, prestations.date, prestations.montant, prestations.label, prestations.code_compta,
-            activites.abrege, activites.code_comptable, activites.code_transport, nomsFamille.nom,nomsFamille.prenom, individus.nom, individus.prenom, groupes.analytique
+            SELECT  prestations.IDprestation, prestations.IDfamille, prestations.categorie, 
+                prestations.date, prestations.montant, prestations.label, prestations.code_compta,
+                activites.abrege, activites.code_comptable, activites.code_transport, 
+                nomsFamille.nom,nomsFamille.prenom, individus.nom, individus.prenom, groupes.analytique
             %s
             FROM ((((prestations
             LEFT JOIN (inscriptions
@@ -872,22 +872,28 @@ class Donnees():
             DB.Close()
             return False
         listeDonnees = DB.ResultatReq()
-        if datePrestPourConsos : cat = "consos"
+        if isConso : cat = "consos"
         else: cat = "od"
-        dlgAttente = PBI.PyBusyInfo(_("Traitement de  %d prestations de type %s pour transfert compta...")%(len(listeDonnees),cat), parent=None, title=_("Veuillez patienter..."), icon=wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Logo.png"), wx.BITMAP_TYPE_ANY))
+        dlgAttente = PBI.PyBusyInfo("Traitement de  %d prestations de type %s pour transfert compta..."%(len(listeDonnees),cat), 
+                                    parent=None, title=_("Veuillez patienter..."), 
+                                    icon=wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Logo.png"), 
+                                                   wx.BITMAP_TYPE_ANY))
         wx.Yield()
 
         listeIDprestations = []
-        for IDprestation, IDfamille, categorie, datePrestation, montant, label, codeComptaPrestation, abregeActivite, actAnalytique, actAnalyTransp, nomFamille, prenomFamille, nomIndividu, prenomIndividu, analytique, noFacture, noAvoir, dateFacture in listeDonnees :
+        for (IDprestation, IDfamille, categorie, datePrestation, montant, label, 
+             codeComptaPrestation, abregeActivite, actAnalytique, actAnalyTransp, 
+             nomFamille, prenomFamille, nomIndividu, prenomIndividu, analytique, 
+             noFacture, noAvoir, dateFacture) in listeDonnees :
             ok = True
-            if datePrestPourConsos:
+            if isConso:
                 if noFacture == None and noAvoir == None:
                     # perte du lien prestation-facture-piece pour une conso : on ne transfère pas une anomalie
                     ok = False
             if ok:
                 listeIDprestations.append(IDprestation)
                 if Nz(montant) != FloatToDecimal(0.0) :
-                    if datePrestPourConsos:
+                    if isConso:
                         date = dateFacture
                     else: date = datePrestation
                     if label == None : label = "prest: " + str(IDprestation)
@@ -898,6 +904,13 @@ class Donnees():
                     else: reference = abregeActivite
 
                     if codeComptaPrestation == None: codeComptaPrestation = ""
+                    if isConso:
+                        journal = (self.dictParametres["journal_ventes"])
+                    elif categorie[:3] == "don":
+                        journal = (self.dictParametres["journal_od_dons"])
+                    else:
+                        journal = (self.dictParametres["journal_od_ventes"])
+
                     if codeComptaPrestation == "":
                         if categorie[:3] == "don":
                             codeComptaPrestation = self.dictParametres["dons"]
@@ -1770,6 +1783,11 @@ class CTRL_Lanceur(CTRL_Parametres):
             {"cat": "chaine", "label": _("ODventes"),
              "description": _("Code journal pour les prestations sans pièce"), "code": "journal_od_ventes",
              "tip": _("Code journal des prestations saisies directement"), "defaut": _("VT"), "obligatoire": True},
+            {"cat": "chaine", "label": _("ODdons"),
+             "description": _("Code journal pour les dons avec ou sans pièce"),
+             "code": "journal_od_dons",
+             "tip": _("Code journal des dons reçus"),
+             "defaut": _("ODD"), "obligatoire": True},
             _("Codes comptables par défaut"),
             {"cat": "chaine", "label": _("Ventes"), "description": _("Code comptable des ventes"),
              "code": "code_ventes", "tip": _(
@@ -1837,13 +1855,13 @@ class CTRL_Lanceur(CTRL_Parametres):
             if dictParametres["option_ventes"] == 0:
                 lignesVentes = fDon.GetPieces()
             elif dictParametres["option_ventes"] == 1:
-                lignesVentes = fDon.GetPrestations(datePrestPourConsos=True)
+                lignesVentes = fDon.GetPrestations(isConso=True)
             if lignesVentes != False:
                 for ID, ligne in sorted(lignesVentes, key=TakeFirst):
                     if ligne["montant"] != FloatToDecimal(0.0):
                         listeLignesTxt.append(self.FormateLigne(format, ligne, numLigne))
                         numLigne += 1
-                lignesVtes = fDon.GetPrestations(datePrestPourConsos=False)
+                lignesVtes = fDon.GetPrestations(isConso=False)
                 if lignesVtes != False:
                     for ID, ligne in sorted(lignesVtes, key=TakeFirst):
                         if ligne["montant"] != FloatToDecimal(0.0):

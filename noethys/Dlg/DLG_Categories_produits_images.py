@@ -15,7 +15,7 @@ import wx
 import GestionDB
 import six
 from Utils import UTILS_Images
-from wx.lib.agw import ultimatelistctrl as ULC
+import wx.lib.agw.ultimatelistctrl as ULC
 from Ctrl import CTRL_Bouton_image
 
 

@@ -264,8 +264,8 @@ class Panel(wx.Panel):
         self.bouton_imprimer_liste.SetToolTip(_("Cliquez ici pour imprimer la liste"))
         self.bouton_export_texte.SetToolTip(_("Cliquez ici pour exporter la liste au format texte"))
         self.bouton_export_excel.SetToolTip(_("Cliquez ici pour exporter la liste au format Excel"))
-        self.bouton_email.SetToolTip(_("Cliquez ici pour accéder à l'envoi des attestations fiscales par Email"))
-        self.bouton_imprimer.SetToolTip(_("Cliquez ici pour imprimer les attestations fiscales générées"))
+        self.bouton_email.SetToolTip(_("Cliquez ici pour accéder à l'envoi des Cerfas par Email"))
+        self.bouton_imprimer.SetToolTip(_("Cliquez ici pour imprimer les Cerfas générés"))
 
     def __do_layout(self):
 

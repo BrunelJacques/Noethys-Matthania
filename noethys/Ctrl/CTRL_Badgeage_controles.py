@@ -24,10 +24,7 @@ try :
 except :
     pass
 
-if wx.VERSION < (2, 9, 0, 0) :
-    from Outils import ultimatelistctrl as ULC
-else :
-    from wx.lib.agw import ultimatelistctrl as ULC
+import wx.lib.agw.ultimatelistctrl as ULC
 
 from Data import DATA_Civilites as Civilites
 from Ctrl import CTRL_Photo

@@ -20,10 +20,7 @@ import GestionDB
 from Data import DATA_Civilites as Civilites
 from Ctrl import CTRL_Photo
 
-if wx.VERSION < (2, 9, 0, 0) :
-    from Outils import ultimatelistctrl as ULC
-else :
-    from wx.lib.agw import ultimatelistctrl as ULC
+import wx.lib.agw.ultimatelistctrl as ULC
     
 import wx.html as html
 

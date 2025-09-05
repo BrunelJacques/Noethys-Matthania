@@ -26,10 +26,7 @@ from Ctrl import CTRL_Saisie_mail
 
 from Dlg.DLG_Portail_demandes import CTRL_Log
 
-if wx.VERSION < (2, 9, 0, 0) :
-    from Outils import ultimatelistctrl as ULC
-else :
-    from wx.lib.agw import ultimatelistctrl as ULC
+import wx.lib.agw.ultimatelistctrl as ULC
 
 
 DICT_RENSEIGNEMENTS = {"nom" : "Nom", "prenom" : "Prénom", "date_naiss" : "date de naissance", "cp_naiss" : "CP de naissance", "ville_naiss" : "Ville de naissance", "adresse_auto" : "Adresse rattachée", "rue_resid" : "Rue de l'adresse", "cp_resid" : "CP de l'adresse", "ville_resid" : "Ville de l'adresse",

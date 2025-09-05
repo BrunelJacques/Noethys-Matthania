@@ -26,7 +26,6 @@ from Data.DATA_Liens import DICT_TYPES_LIENS, DICT_AUTORISATIONS
 from Data import DATA_Civilites as Civilites
 DICT_CIVILITES = Civilites.GetDictCivilites()
 
-
 def GetTypeChamp(codeChamp=""):
     """ Renvoie le type de donnée d'un champ """
     codeChamp = codeChamp.replace("{", "").replace("}", "")
@@ -37,7 +36,6 @@ def GetTypeChamp(codeChamp=""):
         return dictTypes[codeChamp]
     else :
         return "texte"
-
 
 def GetNomsChampsPossibles(mode="individu+famille"):
     listeChamps = []
@@ -205,7 +203,6 @@ def GetNomsChampsPossibles(mode="individu+famille"):
         listeChamps.extend(listeLiens)
 
     return listeChamps
-
 
 class Informations() :
     def __init__(self,
@@ -970,8 +967,7 @@ class Informations() :
         
         #self.EnregistreFichier(mode="individu", nomFichier="Temp/infos_individus.dat") 
         self.EnregistreDansDB()
-##        print len(self.LectureFichier())
-        
+
 if __name__ == '__main__':
     infos = Informations()
     infos.Tests() 

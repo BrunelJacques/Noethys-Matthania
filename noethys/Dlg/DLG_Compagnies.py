@@ -15,9 +15,6 @@ from Ctrl import CTRL_Bouton_image
 from Ctrl import CTRL_Bandeau
 from Ol import OL_Compagnies
 
-try: import psyco; psyco.full()
-except: pass
-
 
 DICT_CATEGORIES = {
     "bus" : {"singulier":_("compagnie de bus"), "pluriel":_("compagnies de bus"), "image":"Bus"},

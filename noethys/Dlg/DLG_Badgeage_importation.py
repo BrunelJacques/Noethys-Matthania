@@ -26,10 +26,7 @@ try :
 except :
     pass
 
-try:
-    import unicodecsv as csv
-except:
-    from Outils import unicodecsvpy2 as csv
+import csv
 
 import GestionDB
 from Ctrl import CTRL_Saisie_date

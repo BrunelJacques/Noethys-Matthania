@@ -13,7 +13,7 @@ import wx
 import Chemins
 import GestionDB
 from Utils import UTILS_Config
-from wx.lib.agw import ultimatelistctrl as ULC
+import wx.lib.agw.ultimatelistctrl as ULC
 
 COULEUR_TRAIT = wx.Colour(200, 200, 200)
 COULEUR_TEXTE = "BLACK"

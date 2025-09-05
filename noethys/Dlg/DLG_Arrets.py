@@ -16,9 +16,6 @@ from Ctrl import CTRL_Bandeau
 from Ol import OL_Arrets
 import GestionDB
 
-try: import psyco; psyco.full()
-except: pass
-
 DICT_CATEGORIES = {
     "bus" : {"singulier":_("arrêt de bus"), "pluriel":_("arrêts de bus"), "image":"Bus"},
     "car" : {"singulier":_("arrêt de cars"), "pluriel":_("arrêts de cars"), "image":"Car"},
