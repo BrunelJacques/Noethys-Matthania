@@ -112,9 +112,15 @@ def ValideDate(texte, date_min="01/01/1900", date_max="01/01/2999", avecMessages
         wx.MessageBox(message, "Erreur de date")
     return False
 
-def PeriodeMois(date=datetime.date.today(),nbjours=30):
-    deb = date-datetime.timedelta(nbjours)
-    return [deb,date]
+def PeriodeMois(date=None,decaleJours=-25):
+    if not isinstance(date,(datetime.date,datetime.datetime)):
+        date = datetime.date.today()
+    dt = date + datetime.timedelta(decaleJours)
+    deb = datetime.date(dt.year,dt.month,1)
+    fin = deb + datetime.timedelta(32) # va dans le mois suivant
+    fin = datetime.date(fin.year,fin.month,1) # début du mois suivant
+    fin = fin - datetime.timedelta(1)
+    return [deb,fin]
 
 class myparserinfo(parserinfo):
     JUMP = [" ", ".", ",", ";", "-", "/", "'",
@@ -495,7 +501,7 @@ class Date2(wx.Panel):
             self.OnChoixDate()
         dlg.Destroy()
 
-    def OnChoixDate(self):
+    def OnChoixDate(self,event=None):
         # Envoi un signal de changement de date au panel parent
         if self.activeCallback == True and hasattr(self.parent, "OnChoixDate"):
             self.parent.OnChoixDate()
@@ -565,11 +571,13 @@ class Periode(wx.Panel):
         si nbcolonnes est >4 il y aura des espaces sup entre début et fin
     """
     def __init__(self, parent,
-                 periode = PeriodeMois(),
+                 periode = None,
                  size=(-1, -1),
                  pos=wx.DefaultPosition,
                  flexGridParams=(2, 2, 5, 5)):
         wx.Panel.__init__(self, parent, id=-1, name="periode", size=size, pos=pos)
+        if not periode:
+            periode = PeriodeMois(datetime.date.today())
         self.parent = parent
         self.periode = periode
         self.flexGridParams = flexGridParams
@@ -603,8 +611,9 @@ class Periode(wx.Panel):
         self.SetSizer(sizer_base)
         self.Layout()
 
-    def SetPeriode(self, periode=PeriodeMois()):
-        self.periode = periode
+    def SetPeriode(self, periode=None):
+        if periode:
+            self.periode = periode
         self.ctrl_date_debut.SetDate(self.periode[0])
         self.ctrl_date_fin.SetDate(self.periode[1])
 
