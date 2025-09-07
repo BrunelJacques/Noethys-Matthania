@@ -13,7 +13,7 @@ import wx
 import GestionDB
 
 LISTE_TYPES_PRESTATIONS = [
-            ("","_____ Saisir le début ou flécher _____",""),
+            ("","_____ Saisir le type ou flécher _____",""),
             ("don", "Don à l'association", "DC"), # ID, label, prefix-pièce cpta
             ("donsscerfa", "Don sans Cerfa", "DS"),
             ("debour", "Frais ou débour dû par client", "PR"),
