@@ -97,7 +97,7 @@ class Ctrl_compte(wx.Choice):
             index = 0
         self.SetSelection(index)
 
-    def GetCompte(self):
+    def GetValue(self):
         index = self.GetSelection()
         if index == -1: return None
         return self.lstCodesCpte[index]
@@ -188,7 +188,7 @@ class Ctrl_activite(wx.Choice):
     def GetID(self):
         index = self.GetSelection()
         if index == -1 : return None
-        return self.listeActivites[index]
+        return self.listeActivites[index]['IDactivite']
 
 # ---------------------------------------------------------------------------------------
 
@@ -210,6 +210,7 @@ class Dialog(wx.Dialog):
         if self.IDprestation:
             prestation = self.__Importation()
 
+        # Construction de la trame
         intro = "Vous pouvez saisir ou modifier ici une prestation qui ne fait pas l'objet d'une facture (ex.: Dons, frais de dossier, pénalité, report...)."
         if self.mode == 'saisie':
             self.SetTitle("DLG_Saisie_prestation")
@@ -223,9 +224,10 @@ class Dialog(wx.Dialog):
                                                  nomImage="Images/22x22/Smiley_nul.png")
         self.__CreateCtrl()
         if prestation:
-            self.__ChargePrestation(prestation)
+            IDactivite = self.__ChargePrestation(prestation)
         else:
-            self.Importation_activites()
+            IDactivite = None
+        self.Importation_activites(IDactivite)
         self.__set_properties()
         self.__do_layout()
         if not self.IDprestation:
@@ -234,7 +236,7 @@ class Dialog(wx.Dialog):
         self.EnableCtrl()
 
     def __Importation(self): # cas d'un ID prestation fourni
-        """ Importation des données """
+        """ Importation des données  de la prestation """
         DB = GestionDB.DB()
         req = """
         SELECT IDprestation, IDfamille, date, categorie, label, IDcontrat, compta, 
@@ -253,7 +255,6 @@ class Dialog(wx.Dialog):
         IDcontrat = prestation[5]
         compta = prestation[6]
         numFacture = prestation[7]
-
         # les consos sont passées en read only
         if categorie and  categorie.lower().startswith("conso"):
             self.mode = 'visu'
@@ -420,11 +421,9 @@ class Dialog(wx.Dialog):
         self.date = self.ctrl_date.GetDate()
         self.OnChoixDate(None)
 
-        # chargements optionnels
+        # chargement optionnel
         if IDindividu:
             self.Importation_individus()
-        if IDactivite:
-            self.Importation_activites(IDactivite=IDactivite)
 
         # Label
         self.ctrl_label.SetValue(label)
@@ -446,9 +445,7 @@ class Dialog(wx.Dialog):
         if IDindividu and IDindividu != 0 :
             self.radio_type_individuelle.SetValue(True)
             self.ctrl_individu.SetID(IDindividu)
-        # Activité
-        if IDactivite:
-            self.ctrl_activite.SetID(IDactivite)
+
         # Code comptable
         if code_cpte:
             self.ctrl_compte.SetValue(code_cpte)
@@ -458,6 +455,7 @@ class Dialog(wx.Dialog):
         # Facture
         if numFacture:
             self.ctrl_facture.SetLabel("Facture n°%d" % numFacture)
+        return IDactivite # pour ajour à l'importation si hors année en cours
 
     def EnableCtrl(self):
         if self.mode == "visu":
@@ -514,11 +512,10 @@ class Dialog(wx.Dialog):
 
         # Remplissage du contrôle
         self.ctrl_individu.SetListeDonnees(dictIndividus)
-        return
 
     def Importation_activites(self,IDactivite=None):
         DB = GestionDB.DB()
-
+        IDaCharger = IDactivite
         # Recherche les activités
         where = ""
         if self.date or IDactivite:
@@ -545,7 +542,8 @@ class Dialog(wx.Dialog):
 
         # Remplissage du contrôle
         self.ctrl_activite.SetListeDonnees(listeActivites)
-        return
+        if IDactivite:
+            self.ctrl_activite.SetID(IDaCharger)
 
     def Message(self,mess,titre="SAISIE INCORRECTE"):
         dlg = wx.MessageDialog(self, mess, titre, style=wx.OK | wx.ICON_EXCLAMATION)
@@ -732,7 +730,7 @@ if __name__ == "__main__":
     app = wx.App(False)
     frame = wx.Frame(None, title="Main Window")
     #IDprestation=46681,51089,50455 IDfamille=9,8578,60)
-    dialog = Dialog(frame, IDprestation=None, IDfamille=60)
+    dialog = Dialog(frame, IDprestation=50455, IDfamille=60)
 
     result = dialog.ShowModal()  # This blocks until EndModal is called
     dialog.Destroy()
