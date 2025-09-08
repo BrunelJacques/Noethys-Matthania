@@ -41,7 +41,8 @@ class Ctrl_compte(wx.Choice):
         self.parent = parent
 
         DB = GestionDB.DB()
-        self.planCpte = DATA_Types_prestations.GetLstComptes(DB)
+        self.planCpte = [('',"___ Saisir le début d'un compte ____",""),]
+        self.planCpte += DATA_Types_prestations.GetLstComptes(DB)
         DB.Close()
         self.SetListeDonnees()
 
@@ -114,7 +115,7 @@ class Ctrl_categorie(wx.Choice):
         kw['consos'] = 'conso' in filtre
         kw['dons'] = 'don' in filtre
         kw['autres'] = 'autre' in filtre
-        self.lstIDtypes, self.lstLibTypes = DATA_Types_prestations.GetLstTypes(**kw)
+        self.lstIDtypes, self.lstLibTypes = DATA_Types_prestations.GetLstTypesPrest(**kw)
         self.SetItems(self.lstLibTypes)
         self.SetCategorie("")
 
@@ -247,21 +248,37 @@ class Dialog(wx.Dialog):
 
         DB.ExecuterReq(req, MsgBox="DLG_Saisie_prestation.Importation")
         listeDonnees = DB.ResultatReq()
-        DB.Close()
         if len(listeDonnees) == 0:
+            DB.Close()
             return
         prestation = listeDonnees[0]
         categorie = prestation[3] # sera utililsé pour filtrer les types de compte
         IDcontrat = prestation[5]
         compta = prestation[6]
         numFacture = prestation[7]
+
         # les consos sont passées en read only
         if categorie and  categorie.lower().startswith("conso"):
             self.mode = 'visu'
 
+        # blocage des dons cerfatés
+        if categorie.startswith("don") and self.mode == "saisie":
+            req = """SELECT crlIDcerfa
+                    FROM matCerfasLignes
+                    WHERE crlIDprestation = %d;"""%self.IDprestation
+            DB.ExecuterReq(req, MsgBox="DLG_Saisie_prestation.Importation Test Cerfa")
+            listeCerfas = DB.ResultatReq()
+            if len(listeCerfas) > 0:
+                IDcerfa = listeCerfas[0][0]
+                mess = "Cette prestation a fait l'objet d'un Cerfa\n\n"
+                mess += "numéro cerfa %d"%IDcerfa
+                self.Message(mess,"MODIF IMPOSSIBLE")
+                self.mode = "visu"
+
         # empécher la modif d'une pièce par sa prestation, ce qui créerait une anomalie
         if IDcontrat or compta or numFacture:
             self.mode = 'visu'
+        DB.Close()
         return prestation
 
     def __CreateCtrl(self): # Création des controls affichés
@@ -730,7 +747,7 @@ if __name__ == "__main__":
     app = wx.App(False)
     frame = wx.Frame(None, title="Main Window")
     #IDprestation=46681,51089,50455 IDfamille=9,8578,60)
-    dialog = Dialog(frame, IDprestation=50455, IDfamille=60)
+    dialog = Dialog(frame, IDprestation=50746, IDfamille=8472)
 
     result = dialog.ShowModal()  # This blocks until EndModal is called
     dialog.Destroy()

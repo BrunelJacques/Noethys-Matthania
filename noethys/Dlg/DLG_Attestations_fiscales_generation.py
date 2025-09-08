@@ -54,8 +54,7 @@ class Dialog(wx.Dialog):
                         
         # Création des pages
         self.Creation_Pages()        
-        
-            
+
     def Creation_Pages(self):
         """ Creation des pages """
         for numPage in range(1, self.nbrePages+1):

@@ -204,7 +204,7 @@ class BaseCellTextEditor(wx.TextCtrl):
 
     """This is a base text editor for text-like editors used in an Olv"""
 
-    def __init__(self, olv, subItemIndex, **kwargs):
+    def __init__(self, olv, subItemIndex, *args, **kwargs):
         style = wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB
         # Allow for odd case where parent isn't an Olv
         if hasattr(olv, "columns"):
@@ -283,6 +283,11 @@ class FloatEditor(BaseCellTextEditor):
         "Put a new value into the editor"
         if isinstance(value, (float, int)):
             value = repr(value)
+        else:
+            try:
+                value = str(value)
+            except:
+                value = "0"
         super(FloatEditor, self).SetValue(value)
 
 #----------------------------------------------------------------------------

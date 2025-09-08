@@ -203,7 +203,6 @@ class ListView(FastObjectListView):
             dict["montant_retenu"] +=  FloatToDecimal(montantDon) + FloatToDecimal(regul)
             dict["labelDon"] +=  track.labelDon + ", "
             dictDon = {"IDprestation": track.IDprestation,
-                        "montantLigne": FloatToDecimal(montantDon) + FloatToDecimal(regul),
                         "listeIDreglements": track.listeIDreglements,
                         "listeIDlignes":track.listeIDlignes
                         }
@@ -242,8 +241,8 @@ class ListView(FastObjectListView):
 
         liste_Colonnes = [
             ColumnDefn(_("IDfamille"), 'right',40, "IDfamille", typeDonnee="entier", isEditable=False),
-            ColumnDefn(_("Famille"), 'left', 180, "designation", typeDonnee="texte",),
-            ColumnDefn(_("mail"), 'left', 80, "mail_famille", typeDonnee="texte",),
+            ColumnDefn(_("Famille"), 'left', 180, "designation", typeDonnee="texte",isEditable=True,),
+            ColumnDefn(_("mail"), 'left', 80, "mail_famille", typeDonnee="texte",isEditable=True,),
             ColumnDefn(_("Description"), "left", 180, "labelDon", typeDonnee="texte", isEditable=False),
             ColumnDefn(_("Montant"), "right", 70, "montant_dons", typeDonnee="montant", isEditable=False, stringConverter=FormateMontant),
             ColumnDefn(_("Forcer"), "right", 70, "montant_regul", typeDonnee="montant", isEditable=True, stringConverter=Fmt2d,
@@ -389,13 +388,13 @@ class ListView(FastObjectListView):
             track.IDcerfa = IDcerfa
             # géstion des lignes de dons portées par le Cerfas
             for don in track.lstDons:
-                for IDligne in don["listeIDlignes"]:
+                for IDligne,mttLigne in don["listeIDlignes"]:
                     listeDonnees=[
                                 ("crlIDcerfa",IDcerfa),
                                 ("crlIDprestation",don["IDprestation"]),
                                 ("crlIDligne", IDligne),
                                 ("crlIDfamille", track.IDfamille),
-                                ("crlMontant", don["montantLigne"]),
+                                ("crlMontant", mttLigne),
                                 ("crlReglements", str(don["listeIDreglements"])[1:-1]),
                     ]
                     DB.ReqInsert(nomTable = 'matCerfasLignes', listeDonnees = listeDonnees, MsgBox = 'OL_Attestations_cerfa_selection_insertCerfaLignes')

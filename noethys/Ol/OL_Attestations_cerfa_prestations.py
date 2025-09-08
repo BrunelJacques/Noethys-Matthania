@@ -219,7 +219,8 @@ class ListView(ObjectListView):
             dictDons[IDprestation]["montantDon"] += FloatToDecimal(montantDon)
             dictDons[IDprestation]["montantDonHors"] += FloatToDecimal(montantDonHors)
             dictDons[IDprestation]["labelDon"] += (labelDon +(", " ))
-            dictDons[IDprestation]["listeIDlignes"].append(int(IDligne))
+            dictDons[IDprestation]["listeIDlignes"].append((int(IDligne),
+                                                            FloatToDecimal(montantDon)))
 
         # enrichissement des informations de règlement
         for  IDprestation, montantRegl,labelModeRegl,nomPayeur,dateRegl,IDreglement in lstReglements :
