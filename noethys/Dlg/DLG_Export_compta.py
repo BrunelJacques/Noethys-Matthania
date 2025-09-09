@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: iso-8859-15 -*-
+# -*- coding: iso-8859-1 -*-
 #------------------------------------------------------------------------
 # Application :    Noethys branche Matthania,
 # Module:  Exports Compta Matthania, façon EBP_COMPTA
@@ -30,7 +30,7 @@ import wx.propgrid as wxpg
 from Ctrl import CTRL_Propertygrid
 from wx.adv import BitmapComboBox
 
-SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
+SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "?")
 CPTCLIENTS = "pas de compte client"
 CONTEXT = "choix logiciel à faire"
 
@@ -530,116 +530,114 @@ class Donnees():
                     texte += "Famille %d %s: prestation %s no:%d pointe la pièce %s %d \n" % (IDfamille,nomFamille,categorie,IDprestation,nature,pieIDnumPiece)
 
         #nouvelle requête si détail des ventes pour vérif des comptes
-        if self.dictParametres["option_ventes"] == 0 :
-            if not self.dictParametres["retransfert"] :
-                condTransfert = " AND ( pieComptaFac IS NULL )"
-            else : condTransfert = ""
-            condition  = """(matPlanComptable.pctCompte Is Null) 
-                            AND (ligMontant <> 0) 
-                            AND (   (pieDateFacturation >= '%s' 
-                                    AND pieDateFacturation <= '%s' ) 
-                                OR (pieDateAvoir >= '%s' 
-                                    AND pieDateAvoir <= '%s' )
-                                ) %s """ %(self.date_debut, self.date_fin,self.date_debut, self.date_fin, condTransfert)
+        if not self.dictParametres["retransfert"] :
+            condTransfert = " AND ( pieComptaFac IS NULL )"
+        else : condTransfert = ""
+        condition  = """(matPlanComptable.pctCompte Is Null) 
+                        AND (ligMontant <> 0) 
+                        AND (   (pieDateFacturation >= '%s' 
+                                AND pieDateFacturation <= '%s' ) 
+                            OR (pieDateAvoir >= '%s' 
+                                AND pieDateAvoir <= '%s' )
+                            ) %s """ %(self.date_debut, self.date_fin,self.date_debut, self.date_fin, condTransfert)
+        req = """
+                SELECT matPiecesLignes.ligCodeArticle, matArticles.artLibelle
+                FROM ((matPieces
+                LEFT JOIN matPiecesLignes ON matPieces.pieIDnumPiece = matPiecesLignes.ligIDnumPiece)
+                LEFT JOIN matArticles ON matPiecesLignes.ligCodeArticle = matArticles.artCodeArticle)
+                LEFT JOIN matPlanComptable ON matArticles.artCodeComptable = matPlanComptable.pctCodeComptable
+                WHERE  %s
+                GROUP BY matPiecesLignes.ligCodeArticle, matArticles.artLibelle
+            ;""" % condition
+        retour = DB.ExecuterReq(req,MsgBox="DLG_Export_compta.CoherenceVentes_2")
+        if retour != "ok" :
+            del dlgAttente
+            DB.Close()
+            return False
+        comptesNull = DB.ResultatReq()
+        self.dictArtCptNull={}
+        self.dictArtLib = {}
+        for codeArticle, libelle in comptesNull:
+            if not codeArticle in self.dictArtCptNull:
+                ok = False
+                # recherche sur le radical, utile pour les RED-FAMILL
+                for i in range(len(codeArticle),3,-1):
+                    code = codeArticle[:i].upper()
+                    req = """
+                        SELECT matPlanComptable.pctCompte, matPlanComptable.pctCodeComptable
+                        FROM matArticles LEFT JOIN matPlanComptable ON matArticles.artCodeComptable = matPlanComptable.pctCodeComptable
+                        WHERE matArticles.artCodeArticle = '%s'
+                        ;""" % code
+                    ret = DB.ExecuterReq(req,MsgBox="DLG_Export_compta.CoherenceVentes_3")
+                    if ret == "ok" :
+                        recordset = DB.ResultatReq()
+                        for record in recordset:
+                            compte = record[0]
+                            if compte != None:
+                                if len(compte) > 0 :
+                                    ok = True
+                    if ok:
+                        self.dictArtCptNull[codeArticle] = compte
+                        self.dictArtLib[codeArticle] = record[1]
+                        continue
+                if not ok:
+                    texte += "Pas de no de compte pour l'article %s\n" % codeArticle
 
-            req = """
-                    SELECT matPiecesLignes.ligCodeArticle, matArticles.artLibelle
-                    FROM ((matPieces
-                    LEFT JOIN matPiecesLignes ON matPieces.pieIDnumPiece = matPiecesLignes.ligIDnumPiece)
-                    LEFT JOIN matArticles ON matPiecesLignes.ligCodeArticle = matArticles.artCodeArticle)
-                    LEFT JOIN matPlanComptable ON matArticles.artCodeComptable = matPlanComptable.pctCodeComptable
-                    WHERE  %s
-                    GROUP BY matPiecesLignes.ligCodeArticle, matArticles.artLibelle
-                ;""" % condition
-            retour = DB.ExecuterReq(req,MsgBox="DLG_Export_compta.CoherenceVentes_2")
-            if retour != "ok" :
-                del dlgAttente
-                DB.Close()
-                return False
-            comptesNull = DB.ResultatReq()
-            self.dictArtCptNull={}
-            self.dictArtLib = {}
-            for codeArticle, libelle in comptesNull:
-                if not codeArticle in self.dictArtCptNull:
-                    ok = False
-                    # recherche sur le radical, utile pour les RED-FAMILL
-                    for i in range(len(codeArticle),3,-1):
-                        code = codeArticle[:i].upper()
-                        req = """
-                            SELECT matPlanComptable.pctCompte, matPlanComptable.pctCodeComptable
-                            FROM matArticles LEFT JOIN matPlanComptable ON matArticles.artCodeComptable = matPlanComptable.pctCodeComptable
-                            WHERE matArticles.artCodeArticle = '%s'
-                            ;""" % code
-                        ret = DB.ExecuterReq(req,MsgBox="DLG_Export_compta.CoherenceVentes_3")
-                        if ret == "ok" :
-                            recordset = DB.ResultatReq()
-                            for record in recordset:
-                                compte = record[0]
-                                if compte != None:
-                                    if len(compte) > 0 :
-                                        ok = True
-                        if ok:
-                            self.dictArtCptNull[codeArticle] = compte
-                            self.dictArtLib[codeArticle] = record[1]
-                            continue
-                    if not ok:
-                        texte += "Pas de no de compte pour l'article %s\n" % codeArticle
+        #requête de vérification d'enregistrements disparus
+        condition  = "((pieDateFacturation >= '%s' AND pieDateFacturation <= '%s' ) OR (pieDateAvoir >= '%s' AND pieDateAvoir <= '%s' )) " %(self.date_debut, self.date_fin,self.date_debut, self.date_fin)
+        # famille perdue
+        req = """
+            SELECT matPieces.pieIDnumPiece, matPieces.pieIDfamille, familles.IDfamille
+            FROM matPieces
+                 LEFT JOIN familles ON matPieces.pieIDfamille = familles.IDfamille
+            WHERE   %s
+                    AND ( familles.IDfamille IS NULL )
+            GROUP BY matPieces.pieIDnumPiece, matPieces.pieIDfamille, familles.IDfamille;
+            """ % condition
+        retour = DB.ExecuterReq(req,MsgBox="DLG_Export_compta.CoherenceVentes_4")
+        if retour != "ok" :
+            del dlgAttente
+            DB.Close()
+            return False
+        orphelines = DB.ResultatReq()
+        for IDnumPiece, IDfamille, famille in orphelines:
+            texte += "Pour la famille no %d la pièce %d ne trouve rien dans la table famille,\n " % (IDfamille,IDnumPiece)
 
-            #requête de vérification d'enregistrements disparus
-            condition  = "((pieDateFacturation >= '%s' AND pieDateFacturation <= '%s' ) OR (pieDateAvoir >= '%s' AND pieDateAvoir <= '%s' )) " %(self.date_debut, self.date_fin,self.date_debut, self.date_fin)
-            # famille perdue
-            req = """
-                SELECT matPieces.pieIDnumPiece, matPieces.pieIDfamille, familles.IDfamille
-                FROM matPieces
-                     LEFT JOIN familles ON matPieces.pieIDfamille = familles.IDfamille
-                WHERE   %s
-                        AND ( familles.IDfamille IS NULL )
-                GROUP BY matPieces.pieIDnumPiece, matPieces.pieIDfamille, familles.IDfamille;
-                """ % condition
-            retour = DB.ExecuterReq(req,MsgBox="DLG_Export_compta.CoherenceVentes_4")
-            if retour != "ok" :
-                del dlgAttente
-                DB.Close()
-                return False
-            orphelines = DB.ResultatReq()
-            for IDnumPiece, IDfamille, famille in orphelines:
-                texte += "Pour la famille no %d la pièce %d ne trouve rien dans la table famille,\n " % (IDfamille,IDnumPiece)
-
-            # prestation perdue
-            req = """
-                SELECT matPieces.pieIDnumPiece, matPieces.pieIDfamille, prestations.IDprestation
-                FROM matPieces
-                    LEFT JOIN prestations ON matPieces.pieIDprestation = prestations.IDprestation
-                WHERE   %s
-                        AND ( prestations.IDprestation IS NULL ) AND ( matPieces.pieNature = 'FAC')
-                GROUP BY matPieces.pieIDnumPiece, matPieces.pieIDfamille, prestations.IDprestation;
-                """ % condition
-            retour = DB.ExecuterReq(req,MsgBox="DLG_Export_compta.CoherenceVentes_5")
-            if retour != "ok" :
-                del dlgAttente
-                DB.Close()
-                return False
-            orphelines = DB.ResultatReq()
-            for IDnumPiece, IDfamille, prestation in orphelines:
-                texte += "Pour la famille no %d la pièce %d ne trouve pas la prestation associée,\n " % (IDfamille,IDnumPiece)
-            # individu rattaché
-            req = """
-                SELECT matPieces.pieIDnumPiece, matPieces.pieIDfamille, rattachements.IDindividu
-                FROM matPieces
-                LEFT JOIN (rattachements
-                            LEFT JOIN individus ON rattachements.IDindividu = individus.IDindividu) ON matPieces.pieIDfamille = rattachements.IDfamille
-                WHERE   %s
-                        AND ( rattachements.IDindividu IS NULL )
-                GROUP BY matPieces.pieIDnumPiece, matPieces.pieIDfamille, rattachements.IDindividu;
-                """ % condition
-            retour = DB.ExecuterReq(req,MsgBox="DLG_Export_compta.CoherenceVentes_6")
-            if retour != "ok" :
-                del dlgAttente
-                DB.Close()
-                return False
-            orphelines = DB.ResultatReq()
-            for IDnumPiece, IDfamille, Nom in orphelines:
-                texte += "Pour la famille no %d la pièce %d ne trouve aucun individu rattaché,\n " % (IDfamille,IDnumPiece)
+        # prestation perdue
+        req = """
+            SELECT matPieces.pieIDnumPiece, matPieces.pieIDfamille, prestations.IDprestation
+            FROM matPieces
+                LEFT JOIN prestations ON matPieces.pieIDprestation = prestations.IDprestation
+            WHERE   %s
+                    AND ( prestations.IDprestation IS NULL ) AND ( matPieces.pieNature = 'FAC')
+            GROUP BY matPieces.pieIDnumPiece, matPieces.pieIDfamille, prestations.IDprestation;
+            """ % condition
+        retour = DB.ExecuterReq(req,MsgBox="DLG_Export_compta.CoherenceVentes_5")
+        if retour != "ok" :
+            del dlgAttente
+            DB.Close()
+            return False
+        orphelines = DB.ResultatReq()
+        for IDnumPiece, IDfamille, prestation in orphelines:
+            texte += "Pour la famille no %d la pièce %d ne trouve pas la prestation associée,\n " % (IDfamille,IDnumPiece)
+        # individu rattaché
+        req = """
+            SELECT matPieces.pieIDnumPiece, matPieces.pieIDfamille, rattachements.IDindividu
+            FROM matPieces
+            LEFT JOIN (rattachements
+                        LEFT JOIN individus ON rattachements.IDindividu = individus.IDindividu) ON matPieces.pieIDfamille = rattachements.IDfamille
+            WHERE   %s
+                    AND ( rattachements.IDindividu IS NULL )
+            GROUP BY matPieces.pieIDnumPiece, matPieces.pieIDfamille, rattachements.IDindividu;
+            """ % condition
+        retour = DB.ExecuterReq(req,MsgBox="DLG_Export_compta.CoherenceVentes_6")
+        if retour != "ok" :
+            del dlgAttente
+            DB.Close()
+            return False
+        orphelines = DB.ResultatReq()
+        for IDnumPiece, IDfamille, Nom in orphelines:
+            texte += "Pour la famille no %d la pièce %d ne trouve aucun individu rattaché,\n " % (IDfamille,IDnumPiece)
 
         DB.Close()
         if texte != "\n":
@@ -815,7 +813,7 @@ class Donnees():
         DB.Close()
         return
 
-    def GetPrestations(self,isConso=False):
+    def GetPrestations(self):
         listeDictLignes = []
         # Récupération des prestations de type OD
         DB = GestionDB.DB()
@@ -827,23 +825,14 @@ class Donnees():
             condTransfert = " AND ( prestations.compta IS NULL )"
         else : condTransfert = ""
         
-        if isConso:
-            # regroupe sur no facture, avec date de la prestation (
-            complChamp = ", pieNoFacture, pieNoAvoir, factures.date_edition  "
-            complJoin = " LEFT JOIN factures ON factures.IDfacture = prestations.IDfacture LEFT JOIN matPieces ON (matPieces.pieIDprestation = prestations.IDprestation OR matPieces.pieIDnumPiece = prestations.IDcontrat )"
-            condition  = " (NOT prestations.IDfacture IS NULL ) AND (prestations.categorie LIKE 'conso%%') AND (prestations.montant <> 0) AND (factures.date_edition >= '%s' ) AND (factures.date_edition <= '%s' ) %s " %(self.date_debut, self.date_fin, condTransfert)
-        else:
-            # regroupement dans les clients par No prestation
-            complChamp = ", NULL, NULL, NULL "
-            complJoin = ""
-            condition  = " (NOT (prestations.categorie LIKE 'conso%%')) AND (NOT (prestations.categorie = 'import')) AND (prestations.montant <> 0) AND (prestations.date >= '%s' ) AND (prestations.date <= '%s' ) %s " %(self.date_debut, self.date_fin, condTransfert)
+        # regroupement dans les clients par No prestation
+        condition  = " (NOT (prestations.categorie LIKE 'conso%%')) AND (NOT (prestations.categorie = 'import')) AND (prestations.montant <> 0) AND (prestations.date >= '%s' ) AND (prestations.date <= '%s' ) %s " %(self.date_debut, self.date_fin, condTransfert)
 
         req = """
             SELECT  prestations.IDprestation, prestations.IDfamille, prestations.categorie, 
                 prestations.date, prestations.montant, prestations.label, prestations.code_compta,
                 activites.abrege, activites.code_comptable, activites.code_transport, 
                 nomsFamille.nom,nomsFamille.prenom, individus.nom, individus.prenom, groupes.analytique
-            %s
             FROM ((((prestations
             LEFT JOIN (inscriptions
                 LEFT JOIN groupes ON inscriptions.IDgroupe = groupes.IDgroupe)
@@ -862,9 +851,8 @@ class Donnees():
 				INNER JOIN individus ON titulaires.MinDeIDindividu = individus.IDindividu
 				) as nomsFamille
 			ON prestations.IDfamille = nomsFamille.IDfamille)
-			%s
             WHERE %s
-            ;""" % (complChamp, complJoin, condition)
+            ;""" % (condition)
 
         retour = DB.ExecuterReq(req,MsgBox = "ReqPrestations")
         if retour != "ok" :
@@ -872,9 +860,7 @@ class Donnees():
             DB.Close()
             return False
         listeDonnees = DB.ResultatReq()
-        if isConso : cat = "consos"
-        else: cat = "od"
-        dlgAttente = PBI.PyBusyInfo("Traitement de  %d prestations de type %s pour transfert compta..."%(len(listeDonnees),cat), 
+        dlgAttente = PBI.PyBusyInfo("Traitement de  %d prestations de type %s pour transfert compta..."%(len(listeDonnees),'od'),
                                     parent=None, title=_("Veuillez patienter..."), 
                                     icon=wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Logo.png"), 
                                                    wx.BITMAP_TYPE_ANY))
@@ -883,68 +869,55 @@ class Donnees():
         listeIDprestations = []
         for (IDprestation, IDfamille, categorie, datePrestation, montant, label, 
              codeComptaPrestation, abregeActivite, actAnalytique, actAnalyTransp, 
-             nomFamille, prenomFamille, nomIndividu, prenomIndividu, analytique, 
-             noFacture, noAvoir, dateFacture) in listeDonnees :
-            ok = True
-            if isConso:
-                if noFacture == None and noAvoir == None:
-                    # perte du lien prestation-facture-piece pour une conso : on ne transfère pas une anomalie
-                    ok = False
-            if ok:
-                listeIDprestations.append(IDprestation)
-                if Nz(montant) != FloatToDecimal(0.0) :
-                    if isConso:
-                        date = dateFacture
-                    else: date = datePrestation
-                    if label == None : label = "prest: " + str(IDprestation)
-                    if nomFamille == None : nomFamille = "fam: %s" % str(IDfamille)
-                    if prenomFamille == None : prenomFamille = " "
-                    nomFamille = nomFamille[:18] + " " + prenomFamille
-                    if abregeActivite == None : reference = categorie.replace('import','Imp')
-                    else: reference = abregeActivite
+             nomFamille, prenomFamille, nomIndividu, prenomIndividu,
+             analytique) in listeDonnees :
+            listeIDprestations.append(IDprestation)
+            if Nz(montant) != FloatToDecimal(0.0) :
+                date = datePrestation
+                if label == None : label = "prest: " + str(IDprestation)
+                if nomFamille == None : nomFamille = "fam: %s" % str(IDfamille)
+                if prenomFamille == None : prenomFamille = " "
+                nomFamille = nomFamille[:18] + " " + prenomFamille
+                if abregeActivite == None : reference = categorie.replace('import','Imp')
+                else: reference = abregeActivite
 
-                    if codeComptaPrestation == None: codeComptaPrestation = ""
-                    if isConso:
-                        journal = (self.dictParametres["journal_ventes"])
-                    elif categorie[:3] == "don":
-                        journal = (self.dictParametres["journal_od_dons"])
-                    else:
-                        journal = (self.dictParametres["journal_od_ventes"])
+                if codeComptaPrestation == None: codeComptaPrestation = ""
+                journal = (self.dictParametres["journal_od_ventes"])
 
-                    if codeComptaPrestation == "":
-                        if categorie[:3] == "don":
-                            codeComptaPrestation = self.dictParametres["dons"]
-                        elif categorie == "debour":
-                            codeComptaPrestation = self.dictParametres["debours"]
-                        elif categorie in ["importOD","importAnnul]"]:
-                            codeComptaPrestation = code_ventes
-                        else: codeComptaPrestation = self.dictParametres["autres"]
-                    if actAnalytique == None: actAnalytique = "00"
-                    if analytique == None: analytique = ""
-                    code_compta = codeComptaPrestation
-                    analytique = ("00" + actAnalytique)[-2:]
-                    if analytique != None :
-                        if analytique == "00": analytique = ("00" + analytique)[-2:]
-                    if analytique != "00" and len(analytique) == 2:
-                        code_compta = code_compta[:3] + analytique
-                        analytique = ''
-                    libCompte = categorie
-                    noPiece= IDprestation
-                    libEcriture = categorie[:3]+ " "+ nomFamille[:5] +"-"+label
+                if codeComptaPrestation == "":
+                    if categorie[:3] == "don":
+                        codeComptaPrestation = self.dictParametres["dons"]
+                    elif categorie == "debour":
+                        codeComptaPrestation = self.dictParametres["debours"]
+                    elif categorie in ["importOD","importAnnul]"]:
+                        codeComptaPrestation = code_ventes
+                    else: codeComptaPrestation = self.dictParametres["autres"]
+                if actAnalytique == None: actAnalytique = "00"
+                if analytique == None: analytique = ""
+                code_compta = codeComptaPrestation
+                analytique = ("00" + actAnalytique)[-2:]
+                if analytique != None :
+                    if analytique == "00": analytique = ("00" + analytique)[-2:]
+                if analytique != "00" and len(analytique) == 2:
+                    code_compta = code_compta[:3] + analytique
+                    analytique = ''
+                libCompte = categorie
+                noPiece= IDprestation
+                libEcriture = categorie[:3]+ " "+ nomFamille[:5] +"-"+label
 
-                    # -------------- Ventes crédit : Ventilation par prestation sans regroupement ---------------
-                    dictLigne = self.DictEcritureComplete("ODprestation",str(date),journal,code_compta,libCompte,libEcriture ,noPiece,
-                                                          FloatToDecimal(montant),"C",reference=str(IDfamille),analytique=analytique)
-                    listeDictLignes.append((noPiece,dictLigne))
-                    # -------------- Ventes débit : Ventilation par prestation sans regroupement ---------------
-                    dictLigne2 = copy.deepcopy(dictLigne)
-                    dictLigne2["sens"] = "D"
-                    dictLigne2["compte"] = code_clients + ("00000" + str(IDfamille))[-5:]
-                    dictLigne2["libCompte"] = nomFamille
-                    dictLigne2["libEcriture"] = libEcriture
-                    dictLigne2["reference"] = reference
-                    self.ComposePC(dictLigne2["compte"], nomFamille,"")
-                    listeDictLignes.append((noPiece,dictLigne2))
+                # -------------- Ventes crédit : Ventilation par prestation sans regroupement ---------------
+                dictLigne = self.DictEcritureComplete("ODprestation",str(date),journal,code_compta,libCompte,libEcriture ,noPiece,
+                                                      FloatToDecimal(montant),"C",reference=str(IDfamille),analytique=analytique)
+                listeDictLignes.append((noPiece,dictLigne))
+                # -------------- Ventes débit : Ventilation par prestation sans regroupement ---------------
+                dictLigne2 = copy.deepcopy(dictLigne)
+                dictLigne2["sens"] = "D"
+                dictLigne2["compte"] = code_clients + ("00000" + str(IDfamille))[-5:]
+                dictLigne2["libCompte"] = nomFamille
+                dictLigne2["libEcriture"] = libEcriture
+                dictLigne2["reference"] = reference
+                self.ComposePC(dictLigne2["compte"], nomFamille,"")
+                listeDictLignes.append((noPiece,dictLigne2))
         # Modif des pointeurs de transferts
         self.SetPointeursPrestations(DB,listeIDprestations,[])
 
@@ -1676,7 +1649,7 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL):#(wxpg.PropertyGrid) :
         CPTCLIENTS = dictParametres["code_clients"]
         return dictParametres
 
-    def CreationFichier(self, nomFichier="", texte="", iso = "iso-8859-15"):
+    def CreationFichier(self, nomFichier="", texte="", iso = "cp1252"):
         # Demande à l'utilisateur le nom de fichier et le répertoire de destination
         wildcard = "Fichier texte (*.txt)|*.txt|" \
                         "All files (*.*)|*.*"
@@ -1706,16 +1679,14 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL):#(wxpg.PropertyGrid) :
                 dlg.Destroy()
 
         # Création du fichier texte
-        f = open(cheminFichier, "w")
         if iso == "sans":
-            # tous ces caractères sont transposés avec plusieurs par unidecode ex : ¤ -> EUR
-            car  = ["¤","°","£","\\","?","§","é","è",]
+            # tous ces caractères sont transposés avec plusieurs par unidecode ex : ? -> EUR
+            car  = ["?","°","£","\\","?","§","é","è",]
             carR = ["E","o","$","/","-","$","e","e"]
             for i in range(0,len(car)):
                 texte=texte.replace(car[i],carR[i])
             try:
                 from unidecode import unidecode
-                f.write(unidecode(texte))
             except:
                 txtMessage = _("Il faut installer le module unidecode par la commande systeme PIP INSTALL unidecode")
                 dlgConfirm = wx.MessageDialog(None, txtMessage, _(" "), wx.YES_NO|wx.NO_DEFAULT|wx.ICON_QUESTION)
@@ -1723,8 +1694,13 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL):#(wxpg.PropertyGrid) :
                 dlgConfirm.Destroy()
         else:
             if iso == 'latin':
-                texte=texte.replace("¤","E")
-            f.write(texte.encode(iso))
+                texte=texte.replace("?","E")
+
+        if iso == 'sans':
+            f = open(cheminFichier, "w")
+        else:
+            f = open(cheminFichier, "w",encoding = iso)
+        f.write(texte)
         f.close()
         
         # Confirmation de création du fichier et demande d'ouverture directe dans Excel
@@ -1751,10 +1727,6 @@ class CTRL_Lanceur(CTRL_Parametres):
             {"cat": "check", "label": _("Ecritures déjà transférées"),
              "description": _("Ecritures déjà transférées"), "code": "retransfert",
              "tip": _("Attention risque de doublon dans la compta"), "defaut": False, "obligatoire": True},
-            {"cat": "choix", "label": _("Détails ventes pour clients"),
-             "description": _("Option regroupement des ventes"), "code": "option_ventes",
-             "tip": _("Sélectionnez le mode de regroupement des ventes dans le compte client"),
-             "choix": [_("Par numero de pièce comptable"), _("Par prestation")], "defaut": 0, "obligatoire": True},
             {"cat": "choix", "label": _("Option type de règlements         "),
              "description": _("Option sélection des règlements"), "code": "option_reglements",
              "tip": _("La date comptable des règlements dépend de ce choix"),
@@ -1771,7 +1743,7 @@ class CTRL_Lanceur(CTRL_Parametres):
             {"cat": "choix", "label": _("Encodage des caractères"),
              "description": _("Encodage des caractèers en sortie"), "code": "encodage",
              "tip": _("Si les accents posent problème préférer le sans accent"),
-             "choix": [_("UTF8 standard"), _("Supprimer les accents"), _("DOS Latin"), _("Windows iso-8859-15")],
+             "choix": [_("UTF8 Linux"), _("Supprimer les accents"), _("Windows iso-8859-1")],
              "defaut": 0, "obligatoire": True},
             _("Codes journaux par défaut"),
             {"cat": "chaine", "label": _("Ventes"), "description": _("Code journal des ventes"),
@@ -1783,11 +1755,6 @@ class CTRL_Lanceur(CTRL_Parametres):
             {"cat": "chaine", "label": _("ODventes"),
              "description": _("Code journal pour les prestations sans pièce"), "code": "journal_od_ventes",
              "tip": _("Code journal des prestations saisies directement"), "defaut": _("VT"), "obligatoire": True},
-            {"cat": "chaine", "label": _("ODdons"),
-             "description": _("Code journal pour les dons avec ou sans pièce"),
-             "code": "journal_od_dons",
-             "tip": _("Code journal des dons reçus"),
-             "defaut": _("ODD"), "obligatoire": True},
             _("Codes comptables par défaut"),
             {"cat": "chaine", "label": _("Ventes"), "description": _("Code comptable des ventes"),
              "code": "code_ventes", "tip": _(
@@ -1834,9 +1801,7 @@ class CTRL_Lanceur(CTRL_Parametres):
         if encodage == 1:
             iso = 'sans'
         elif encodage == 2:
-            iso = 'latin'
-        elif encodage == 3:
-            iso = 'iso-8859-15'
+            iso = 'iso-8859-1'
 
         # Ligne d'entête
         if dictParametres["ligne_noms_champs"] == True:
@@ -1852,16 +1817,13 @@ class CTRL_Lanceur(CTRL_Parametres):
         wx.Yield()
         # Ventes: traitement des lignes de factures et prestations
         if dictParametres["export_ventes"] == True:
-            if dictParametres["option_ventes"] == 0:
-                lignesVentes = fDon.GetPieces()
-            elif dictParametres["option_ventes"] == 1:
-                lignesVentes = fDon.GetPrestations(isConso=True)
+            lignesVentes = fDon.GetPieces()
             if lignesVentes != False:
                 for ID, ligne in sorted(lignesVentes, key=TakeFirst):
                     if ligne["montant"] != FloatToDecimal(0.0):
                         listeLignesTxt.append(self.FormateLigne(format, ligne, numLigne))
                         numLigne += 1
-                lignesVtes = fDon.GetPrestations(isConso=False)
+                lignesVtes = fDon.GetPrestations()
                 if lignesVtes != False:
                     for ID, ligne in sorted(lignesVtes, key=TakeFirst):
                         if ligne["montant"] != FloatToDecimal(0.0):
@@ -1955,7 +1917,9 @@ class Dialog(wx.Dialog):
             #fixation d'une date de Migration
             dateDebut = str(datetime.date(datetime.date.today().year,0o1,0o1))
             self.DB.SetParam(param="DebutCompta", value=dateDebut, type="date", user = "Any", unique= True)
+
         dateFin = DateDDenEng(datetime.date.today())
+        dateFin = "2025-04-30"  # pour tests JB
         self.DB.SetParam(param="FinCompta", value=dateFin, type="date", user = "Any", unique = True)
 
         # Bandeau

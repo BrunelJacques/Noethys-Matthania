@@ -249,9 +249,19 @@ class Dialog(wx.Dialog):
         DB.ExecuterReq(req, MsgBox="DLG_Saisie_prestation.Importation")
         listeDonnees = DB.ResultatReq()
         if len(listeDonnees) == 0:
+            mess = "Prestations %d dans le lancement introuvable par la requête\n\n"% self.IDprestation
+            mess += req
+            self.Message(mess, "ANOMALIE INATTENDUE")
+            self.IDprestation = None
             DB.Close()
             return
         prestation = listeDonnees[0]
+        IDfamille = prestation[1]
+        if IDfamille != self.IDfamille:
+            mess = "Problème avec le code famille\n\n"
+            mess += "le lanceur appelle %d la prestation est de %d"%(self.IDfamille, IDfamille)
+            self.Message(mess,"ANOMALIE INATTENDUE")
+            self.mode = 'visu'
         categorie = prestation[3] # sera utililsé pour filtrer les types de compte
         IDcontrat = prestation[5]
         compta = prestation[6]
@@ -747,7 +757,7 @@ if __name__ == "__main__":
     app = wx.App(False)
     frame = wx.Frame(None, title="Main Window")
     #IDprestation=46681,51089,50455 IDfamille=9,8578,60)
-    dialog = Dialog(frame, IDprestation=50746, IDfamille=8472)
+    dialog = Dialog(frame, IDprestation=51355, IDfamille=425)
 
     result = dialog.ShowModal()  # This blocks until EndModal is called
     dialog.Destroy()
