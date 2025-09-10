@@ -99,9 +99,9 @@ def Lire(nom_fichier="", conversion_auto=False):
             data = {}
             for key, valeur in fichier.items():
                 if type(key) == str:
-                    key = key.decode("iso-8859-15")
+                    key = key.decode('cp1252')
                 if type(valeur) == str:
-                    valeur = valeur.decode("iso-8859-15")
+                    valeur = valeur.decode('cp1252')
                 data[key] = valeur
             fichier.close()
 

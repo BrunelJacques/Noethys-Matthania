@@ -304,11 +304,11 @@ class CTRL(wx.Panel):
                 return None
             texte = _("<t>METEO</t>Actuellement sur %s, c'est %s (%s°c - %s, %s). Prévision pour demain : %s.") % (
                     ville.capitalize(), 
-                    dictMeteo["jour"]["condition"].decode("iso-8859-15").replace(u"&#39;", "'").lower(), 
-                    dictMeteo["jour"]["temp"].decode("iso-8859-15"),
-                    dictMeteo["jour"]["vent"].decode("iso-8859-15"), 
-                    dictMeteo["jour"]["humidite"].decode("iso-8859-15"),
-                    dictMeteo["previsions"][1]["condition"].decode("iso-8859-15").replace(u"&#39;", "'").lower(),
+                    dictMeteo["jour"]["condition"].decode('cp1252').replace(u"&#39;", "'").lower(), 
+                    dictMeteo["jour"]["temp"].decode('cp1252'),
+                    dictMeteo["jour"]["vent"].decode('cp1252'), 
+                    dictMeteo["jour"]["humidite"].decode('cp1252'),
+                    dictMeteo["previsions"][1]["condition"].decode('cp1252').replace(u"&#39;", "'").lower(),
                     )
             return texte
         

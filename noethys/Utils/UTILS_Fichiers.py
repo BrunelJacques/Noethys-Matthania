@@ -31,7 +31,7 @@ def GetRepData(fichier=""):
 
     # Recherche s'il existe un chemin personnalisé dans le Customize.ini
     chemin = UTILS_Customize.GetValeur("repertoire_donnees", "chemin", "")
-    #chemin = chemin.decode("iso-8859-15")
+    #chemin = chemin.decode('cp1252')
     if chemin != "" and os.path.isdir(chemin):
         return os.path.join(chemin, fichier)
 
@@ -39,7 +39,7 @@ def GetRepData(fichier=""):
     if sys.platform == "win32" and platform.release() != "Vista" :
 
         chemin = appdirs.site_data_dir(appname=None, appauthor=None)
-        #chemin = chemin.decode("iso-8859-15")
+        #chemin = chemin.decode('cp1252')
 
         chemin = os.path.join(chemin, "noethys")
         if not os.path.isdir(chemin):
@@ -48,7 +48,7 @@ def GetRepData(fichier=""):
     else :
 
         chemin = appdirs.user_data_dir(appname=None, appauthor=None)
-        #chemin = chemin.decode("iso-8859-15")
+        #chemin = chemin.decode('cp1252')
 
         chemin = os.path.join(chemin, "noethys")
         if not os.path.isdir(chemin):
@@ -90,7 +90,7 @@ def GetRepUtilisateur(fichier=""):
 
     # Recherche le chemin du répertoire de l'utilisateur
     chemin = appdirs.user_config_dir(appname=None, appauthor=None, roaming=True)
-    #chemin = chemin.decode("iso-8859-15")
+    #chemin = chemin.decode('cp1252')
 
     # Ajoute 'noethys' dans le chemin et création du répertoire
     chemin = os.path.join(chemin, "noethys")

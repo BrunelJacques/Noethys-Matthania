@@ -100,6 +100,7 @@ and the second look a different way.
 import datetime
 import math
 import wx
+import decimal
 
 import FonctionsPerso as fp
 from WordWrapRenderer import WordWrapRenderer
@@ -1509,6 +1510,8 @@ class CellBlock(Block):
             Bucket(cellWidth=x, text="", align=None, image=None)
             for x in self.GetCellWidths()]
         for (i, x) in enumerate(self.GetSubstitutedTexts()):
+            if not isinstance(buckets[i].text, str):
+                buckets[i].text = str(buckets[i].text)
             buckets[i].text = x
         for (i, x) in enumerate(self.GetAlignments()):
             buckets[i].align = x
@@ -1636,6 +1639,8 @@ class CellBlock(Block):
         # Draw each cell
         font = self.GetFont()
         for x in combined:
+            if not isinstance(x.text, str):
+                x.text = str(x.text)
             cellBounds = RectUtils.InsetRect(x.cell, cellPadding)
             self.DrawText(dc, x.text, cellBounds, font, x.align, imageIndex=x.image,
                           canWrap=cellFmt.CanWrap, listCtrl=self.GetListCtrl())

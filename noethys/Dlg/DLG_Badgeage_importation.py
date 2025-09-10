@@ -713,7 +713,7 @@ class Page_csv(wx.Panel):
         
         # Lecture du fichier CSV
         try :
-            fichier = csv.reader(open(nomFichier,"rb"), encoding="iso-8859-15", delimiter=delimiteur)
+            fichier = csv.reader(open(nomFichier,"rb"), encoding='cp1252', delimiter=delimiteur)
         except :
             dlg = wx.MessageDialog(self, _("Le fichier CSV ne semble pas valide !"), _("Erreur"), wx.OK | wx.ICON_EXCLAMATION)
             dlg.ShowModal()

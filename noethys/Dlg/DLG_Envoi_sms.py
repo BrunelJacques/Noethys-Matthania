@@ -866,7 +866,7 @@ class Dialog(wx.Dialog, Base):
 
             cheminFichier = UTILS_Fichiers.GetRepTemp(fichier="sms.txt")
             fichier = open(cheminFichier, 'w')
-            fichier.write(texte.encode("iso-8859-15"))
+            fichier.write(texte.encode('cp1252'))
             fichier.close()
 
             # Préparation du message
@@ -897,7 +897,7 @@ class Dialog(wx.Dialog, Base):
 
             cheminFichier = UTILS_Fichiers.GetRepTemp(fichier="sms.txt")
             fichier = open(cheminFichier, 'w')
-            fichier.write(texte.encode("iso-8859-15"))
+            fichier.write(texte.encode('cp1252'))
             fichier.close()
 
             # Préparation du message
@@ -928,7 +928,7 @@ class Dialog(wx.Dialog, Base):
 
             cheminFichier = UTILS_Fichiers.GetRepTemp(fichier="sms.txt")
             fichier = open(cheminFichier, 'w')
-            fichier.write(texte.encode("iso-8859-15"))
+            fichier.write(texte.encode('cp1252'))
             fichier.close()
 
             # Préparation du message
@@ -1002,7 +1002,7 @@ class Dialog(wx.Dialog, Base):
             messagerie.Fermer()
         except Exception as err:
             print((err,))
-            err = str(err).decode("iso-8859-15")
+            err = str(err).decode('cp1252')
             dlgErreur = wx.MessageDialog(None, _("Une erreur a été détectée dans l'envoi de l'Email !\n\nErreur : %s") % err, _("Erreur"), wx.OK | wx.ICON_ERROR)
             dlgErreur.ShowModal()
             dlgErreur.Destroy()

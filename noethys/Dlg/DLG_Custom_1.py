@@ -776,7 +776,7 @@ class CTRL_Log(wx.TextCtrl):
         try :
             texte += "[%s] %s " % (horodatage, message)
         except :
-            texte += "[%s] %s " % (horodatage, str(message).decode("iso-8859-15"))
+            texte += "[%s] %s " % (horodatage, str(message).decode('cp1252'))
         self.AppendText(texte)
 
         # Surlignage des erreurs

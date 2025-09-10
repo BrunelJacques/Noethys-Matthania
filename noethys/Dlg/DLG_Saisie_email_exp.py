@@ -702,7 +702,7 @@ class Dialog(wx.Dialog):
         except Exception as err:
             err = str(err)
             if six.PY2:
-                err = err.decode("iso-8859-15")
+                err = err.decode('cp1252')
             intro = _("L'envoi de l'email de test est impossible :")
             conclusion = _("Vérifiez votre connexion internet ou les paramètres de votre adresse d'expédition.")
             dlgErreur = DLG_Messagebox.Dialog(self, titre=_("Erreur"), introduction=intro, detail=err, conclusion=conclusion, icone=wx.ICON_ERROR, boutons=[_("Ok"),])

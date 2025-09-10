@@ -12,6 +12,7 @@
 from Utils.UTILS_Traduction import _
 import Chemins
 import wx
+from wx.adv import BitmapComboBox
 from Ctrl import CTRL_Bouton_image
 import os
 import datetime
@@ -28,7 +29,7 @@ from Utils import UTILS_Parametres
 import wx.lib.agw.pybusyinfo as PBI
 import wx.propgrid as wxpg
 from Ctrl import CTRL_Propertygrid
-from wx.adv import BitmapComboBox
+from Data import DATA_Types_prestations
 
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "?")
 CPTCLIENTS = "pas de compte client"
@@ -62,11 +63,6 @@ def FormateDate(dateDD=None, format="%d/%m/%y") :
         return ""
     else :
         return dateDD.strftime(format)
-    
-def zzzFormateLibelle(texte="", valeurs=[]):
-    for motcle, valeur in valeurs :
-        texte = texte.replace(motcle, valeur)
-    return texte
 
 def GetKeysDictTries(dictValeurs={}, key=""):
     """ Renvoie une liste de keys de dictionnaire triés selon la sous key indiquée """
@@ -162,10 +158,10 @@ dataTypesMatth = {"compte":[DataType(int,7,"<"),"@"],
              "libCompte":[DataType(str,25,"<"),"A"],
              "date":[DataType('strdt',8,">"),"B"],
              "journal":[DataType(str,2,"<"),"C"],
-             "noPiece":[DataType(int,6,">"),"D"],
+             "noPiece":[DataType(str,10,"<"),"D"],
              "reference":[DataType(str,7,"<"),"E"],
              "pointage":[DataType(str,8,"<"),"F"],
-             "libEcriture":[DataType(str,25,"<"),"G"],
+             "libEcriture":[DataType(str,30,"<"),"G"],
              "montant":[DataType(float,13,">"),"H"],
              "sens":[DataType(str,1,"<"),"I"],
              "ecart":[DataType(float,10,">"),"J"],
@@ -185,7 +181,7 @@ dataTypesQuadra = {
             "signe": [DataType(str, 1, "<"), "H"],
             "valeur": [DataType(float, 12, ">",), "I"],
             "div2": [DataType(str, 44, ">"), "J"],
-            "noPiece": [DataType(int, 8, ">"), "K"],
+            "noPiece": [DataType(str, 8, "<"), "K"],
             "devise": [DataType(str, 3, "<"), "L"],
             "jrn": [DataType(str, 3, "<"), "M"],
             "div3": [DataType(str, 3, "<"), "N"],
@@ -343,7 +339,7 @@ def Export_compta_matt_delimite(ligne):
         g+libCompte[:25]+g,
         g+date+g,
         ligne["journal"][:2],
-        str(ligne["noPiece"])[:6],
+        str(ligne["noPiece"])[:10],
         g+ligne["reference"][:7]+g,
         "",
         g+libEcriture[:25]+g,
@@ -419,6 +415,11 @@ class Donnees():
         self.nbreAttente = 0
         self.nbreDifferes = 0
         self.dictPC = {}
+        DB = GestionDB.DB()
+        matPC = DATA_Types_prestations.GetLstComptes(DB)
+        DB.Close()
+        self.lstCodesCptaPC = [x for x,y,z in matPC]
+        self.lstCptCptaPC = [z.strip(" 0") for x,y,z in matPC]
         # fin __init__
 
     def CoherenceVentes(self):
@@ -721,7 +722,8 @@ class Donnees():
                 self.dictPC[compte] = libCompte
         return
 
-    def DictEcritureComplete(self,cat,date,journal,compte,libCompte,libEcriture,noPiece,montant,sens,reference=" ",
+    def DictEcritureComplete(self,cat,date,journal,compte,libCompte,libEcriture,
+                             noPiece,montant,sens,reference=" ",
                              echeance=" ",pointage=" ",analytique=" ",):
         # le champ 'echeance' de EBP est remplacé par la notion de 'reference' qui est un complément au numéro de pièce
         dictEcriture = {}
@@ -829,29 +831,31 @@ class Donnees():
         condition  = " (NOT (prestations.categorie LIKE 'conso%%')) AND (NOT (prestations.categorie = 'import')) AND (prestations.montant <> 0) AND (prestations.date >= '%s' ) AND (prestations.date <= '%s' ) %s " %(self.date_debut, self.date_fin, condTransfert)
 
         req = """
-            SELECT  prestations.IDprestation, prestations.IDfamille, prestations.categorie, 
-                prestations.date, prestations.montant, prestations.label, prestations.code_compta,
-                activites.abrege, activites.code_comptable, activites.code_transport, 
-                nomsFamille.nom,nomsFamille.prenom, individus.nom, individus.prenom, groupes.analytique
-            FROM ((((prestations
-            LEFT JOIN (inscriptions
-                LEFT JOIN groupes ON inscriptions.IDgroupe = groupes.IDgroupe)
-            ON (prestations.IDactivite = inscriptions.IDactivite) AND (prestations.IDindividu = inscriptions.IDindividu))
-            LEFT JOIN activites ON prestations.IDactivite = activites.IDactivite)
-            LEFT JOIN individus ON prestations.IDindividu = individus.IDindividu)
-            LEFT JOIN
-                (
-                SELECT titulaires.IDfamille, individus.IDindividu, individus.nom, individus.prenom
-                FROM (
-                    SELECT rattachements.IDfamille, rattachements.titulaire, Min(rattachements.IDindividu) AS MinDeIDindividu
-                    FROM rattachements
-                    GROUP BY rattachements.IDfamille, rattachements.titulaire
-                    HAVING rattachements.titulaire = 1
-                     ) as titulaires
-				INNER JOIN individus ON titulaires.MinDeIDindividu = individus.IDindividu
-				) as nomsFamille
-			ON prestations.IDfamille = nomsFamille.IDfamille)
+            SELECT
+                prestations.IDprestation,
+                prestations.IDfamille,
+                prestations.categorie,
+                prestations.date,
+                prestations.montant,
+                prestations.label,
+                prestations.code_compta,
+                activites.abrege,
+                activites.code_comptable,
+                individus.nom,
+                individus.prenom,
+                matPlanComptable.pctCompte
+            FROM
+              ( ( ( prestations
+                    LEFT JOIN familles ON prestations.IDfamille = familles.IDfamille)
+                   LEFT JOIN activites ON prestations.IDactivite = activites.IDactivite)
+                LEFT JOIN matPlanComptable ON prestations.code_compta = matPlanComptable.pctCodeComptable)
+              LEFT JOIN individus ON familles.adresse_individu = individus.IDindividu
             WHERE %s
+            GROUP BY
+                prestations.IDprestation,prestations.IDfamille,prestations.categorie,
+                prestations.date,prestations.montant,prestations.label,prestations.code_compta,
+                activites.abrege,activites.code_comptable,individus.nom,individus.prenom,
+                matPlanComptable.pctCompte;
             ;""" % (condition)
 
         retour = DB.ExecuterReq(req,MsgBox = "ReqPrestations")
@@ -868,9 +872,8 @@ class Donnees():
 
         listeIDprestations = []
         for (IDprestation, IDfamille, categorie, datePrestation, montant, label, 
-             codeComptaPrestation, abregeActivite, actAnalytique, actAnalyTransp, 
-             nomFamille, prenomFamille, nomIndividu, prenomIndividu,
-             analytique) in listeDonnees :
+                codeCptaPrest, abregeActivite, actAnalytique,
+                nomFamille, prenomFamille,cptCptaPC) in listeDonnees :
             listeIDprestations.append(IDprestation)
             if Nz(montant) != FloatToDecimal(0.0) :
                 date = datePrestation
@@ -878,43 +881,82 @@ class Donnees():
                 if nomFamille == None : nomFamille = "fam: %s" % str(IDfamille)
                 if prenomFamille == None : prenomFamille = " "
                 nomFamille = nomFamille[:18] + " " + prenomFamille
-                if abregeActivite == None : reference = categorie.replace('import','Imp')
-                else: reference = abregeActivite
+                reference = categorie
+                if abregeActivite:
+                    reference += "/" + abregeActivite
 
-                if codeComptaPrestation == None: codeComptaPrestation = ""
                 journal = (self.dictParametres["journal_od_ventes"])
 
-                if codeComptaPrestation == "":
+                # recherche de compte compta
+                compteCpta = ""
+                if cptCptaPC:
+                    # priorité si la requête a trouvé le compte via le code dans prest
+                    compteCpta = cptCptaPC
+                elif codeCptaPrest.strip(" 0") in self.lstCptCptaPC:
+                    #cas de prestation avec numero au lieu de code de compte (ancienne version)
+                    compteCpta  = codeCptaPrest.strip(" 0")
+                    codeCptaPrest = self.lstCodesCptaPC[self.lstCptCptaPC.index(compteCpta)]
+                if not compteCpta:
+                    try: # vérifie si c'est bien un compte avec radical numérique
+                        i = int(codeCptaPrest[:3])
+                        compteCpta = codeCptaPrest.strip(" ") # on envoie quand même
+                    except:
+                        pass
+                if not compteCpta: # utilisation du compte par défaut défini en paramètres
                     if categorie[:3] == "don":
-                        codeComptaPrestation = self.dictParametres["dons"]
+                        compteCpta = self.dictParametres["dons"]
                     elif categorie == "debour":
-                        codeComptaPrestation = self.dictParametres["debours"]
+                        compteCpta = self.dictParametres["debours"]
                     elif categorie in ["importOD","importAnnul]"]:
-                        codeComptaPrestation = code_ventes
-                    else: codeComptaPrestation = self.dictParametres["autres"]
-                if actAnalytique == None: actAnalytique = "00"
-                if analytique == None: analytique = ""
-                code_compta = codeComptaPrestation
-                analytique = ("00" + actAnalytique)[-2:]
-                if analytique != None :
-                    if analytique == "00": analytique = ("00" + analytique)[-2:]
-                if analytique != "00" and len(analytique) == 2:
-                    code_compta = code_compta[:3] + analytique
-                    analytique = ''
-                libCompte = categorie
-                noPiece= IDprestation
-                libEcriture = categorie[:3]+ " "+ nomFamille[:5] +"-"+label
+                        compteCpta = code_ventes
+                    else: compteCpta = self.dictParametres["autres"]
+                compteCpta = (compteCpta + "00000000")[:10] # 10 caractères pour le compte
 
-                # -------------- Ventes crédit : Ventilation par prestation sans regroupement ---------------
-                dictLigne = self.DictEcritureComplete("ODprestation",str(date),journal,code_compta,libCompte,libEcriture ,noPiece,
-                                                      FloatToDecimal(montant),"C",reference=str(IDfamille),analytique=analytique)
+                # incrustation de l'activité
+                if actAnalytique:
+                    analytique = ("00" + actAnalytique)[-2:]
+                else: analytique = ""
+                if analytique and compteCpta[0] in ("6","7","8","9"):
+                    cible = compteCpta[3:5]
+                    if not cible  or cible == "00":
+                        compteCpta = (compteCpta + "000")[:3] + analytique + compteCpta[5:]
+                if analytique:
+                    label = "Act" + analytique + " %s"%label
+
+                # libellés (2 écritures + compte à créer éventuellement dans la compta)
+                libCompte = categorie + " " + codeCptaPrest
+                codeCpt = codeCptaPrest[:4]
+                if len(codeCptaPrest)>4:
+                    codeCpt += codeCptaPrest[-1] # conserve le dernier caracère
+
+                libEcritureC = codeCpt + " "+ nomFamille[:5] +"-"+label
+                libEcritureD = codeCptaPrest+ " "+ nomFamille[:25] +"-"+label
+
+                # no de pièce
+                noPiece= str(IDprestation)
+                if categorie[:3] == "don":
+                    noPiece = "dp" + noPiece
+
+                # -------------- OD crédit : Ventilation par prestation sans regroupement ---------------
+                dictLigne = self.DictEcritureComplete("ODprestation",
+                                                      str(date),
+                                                      journal,
+                                                      compteCpta,
+                                                      libCompte,
+                                                      libEcritureC,
+                                                      noPiece,
+                                                      FloatToDecimal(montant),
+                                                      "C",
+                                                      reference=str(IDfamille),
+                                                      analytique=analytique)
                 listeDictLignes.append((noPiece,dictLigne))
-                # -------------- Ventes débit : Ventilation par prestation sans regroupement ---------------
+
+                # -------------- OD débit : Ventilation par prestation sans regroupement ---------------
                 dictLigne2 = copy.deepcopy(dictLigne)
                 dictLigne2["sens"] = "D"
                 dictLigne2["compte"] = code_clients + ("00000" + str(IDfamille))[-5:]
                 dictLigne2["libCompte"] = nomFamille
-                dictLigne2["libEcriture"] = libEcriture
+                dictLigne2["libEcriture"] = libEcritureD
                 dictLigne2["reference"] = reference
                 self.ComposePC(dictLigne2["compte"], nomFamille,"")
                 listeDictLignes.append((noPiece,dictLigne2))
@@ -999,11 +1041,15 @@ class Donnees():
                 condition  = " ((ligMontant <> 0) OR (piePrixTranspAller IS NOT NULL )OR (piePrixTranspRetour IS NOT NULL ) ) AND (pieDateFacturation >= '%s' ) AND (pieDateFacturation <= '%s' ) %s " %(self.date_debut, self.date_fin, condTransfert)
 
                 req = """
-                    SELECT  matPieces.pieIDnumPiece, matPiecesLignes.ligIDnumLigne, matPieces.pieDateFacturation, activites.abrege,
-                    activites.code_comptable, activites.code_transport,
-                    groupes.analytique, matPieces.pieIDfamille, nomsFamille.nom, nomsFamille.prenom,individus.nom, individus.prenom, matPieces.pieNoFacture,
-                    matPieces.piePrixTranspAller, matPieces.piePrixTranspRetour, matPiecesLignes.ligLibelle, matPiecesLignes.ligMontant, matPiecesLignes.ligCodeArticle,
-                    matPlanComptable.pctCompte, matPlanComptable.pctCodeComptable, matPieces.pieIDprestation
+                    SELECT  matPieces.pieIDnumPiece, matPiecesLignes.ligIDnumLigne, 
+                        matPieces.pieDateFacturation, activites.abrege,
+                        activites.code_comptable, activites.code_transport,
+                        groupes.analytique, matPieces.pieIDfamille, nomsFamille.nom, 
+                        nomsFamille.prenom,individus.nom, individus.prenom, matPieces.pieNoFacture,
+                        matPieces.piePrixTranspAller, matPieces.piePrixTranspRetour, 
+                        matPiecesLignes.ligLibelle, matPiecesLignes.ligMontant, 
+                        matPiecesLignes.ligCodeArticle, matPlanComptable.pctCompte, 
+                        matPlanComptable.pctCodeComptable, matPieces.pieIDprestation
                     FROM ((((((matPieces
                     LEFT JOIN groupes ON matPieces.pieIDgroupe = groupes.IDgroupe)
                     LEFT JOIN activites  ON matPieces.pieIDactivite = activites.IDactivite)
@@ -1080,16 +1126,21 @@ class Donnees():
             oldIDnumpiece = 0
             #listeChampsLigne = ["IDnumPiece","IDnumLigne", "date", "abrege", "actAnalytique", "analytique", "IDfamille",
             # "nomFamille", "nomIndividu", "prenom", "noPiece", "prixTranspAller", "prixTranspRetour", "libelle", "montant",
-            # "codeArticle", "compte", "libCompte", "IDprestation]
-            for IDnumPiece, IDnumLigne, date, abrege, actAnalytique, actAnalyTransp, analytique, IDfamille, nomFamille, \
-                prenomFamille, nomIndividu, prenom, noPiece, prixTranspAller, prixTranspRetour, libelle, montant, codeArticle, \
-                compte, libCompte,IDprestation in listeDonnees :
+            # "codeArticle", "compte", "codeCompte", "IDprestation]
+            for (IDnumPiece, IDnumLigne, date, abrege, actAnalytique, actAnalyTransp,
+                    analytique, IDfamille, nomFamille, prenomFamille, nomIndividu, prenom,
+                    noPiece, prixTranspAller, prixTranspRetour, libelle, montant,
+                    codeArticle, compte, codeCompte,IDprestation) in listeDonnees :
                 montant = Nz(montant)
                 prixTranspAller = Nz(prixTranspAller)
                 prixTranspRetour = Nz(prixTranspRetour)
                 if codeArticle == None:
                     codeArticle = "noArt."
                 date = str(date)
+                if codeCompte.lower().startswith("don"):
+                    noPiece = "df" + str(noPiece)
+                else:
+                    noPiece = str(noPiece)
 
                 if actAnalytique == None : actAnalytique = "00"
                 if nomFamille == None : nomFamille = "Sans responsable"
@@ -1100,7 +1151,7 @@ class Donnees():
                     prenom = nomFamille
                 if prenom == None : prenom = " "
                 lgNom = len(nomIndividu[:10])
-                libVte = nomIndividu[:10] + " " + (prenom + "               ")[:16-lgNom] + " " + codeArticle[:7]
+                libVte = nomIndividu[:10] + " " + (prenom + "               ")[:16-lgNom] + " " + codeArticle
                 if abrege == None :
                     abrege = ""
                 else : abrege = " - " + abrege[:8]
@@ -1115,14 +1166,14 @@ class Donnees():
                 if compte == None :
                     if codeArticle in self.dictArtCptNull:
                         compte = self.dictArtCptNull[codeArticle]
-                        libCompte = self.dictArtLib[codeArticle]
+                        codeCompte = self.dictArtLib[codeArticle]
 
                 if compte == None and facture and Nz(montant) != 0.0:
                     GestionDB.MessageBox(None,"3 Pas de no de compte pour l'article %s " % codeArticle , titre="Compte vente par défaut")
                 if compte == None :
                     compte = self.dictParametres["code_ventes"]
 
-                if libCompte == None : libCompte = ""
+                if not codeCompte : codeCompte = ""
                 if len(compte)<5 :
                     compte = compte + "000"
                     compte = compte[:3]
@@ -1136,10 +1187,10 @@ class Donnees():
                 if montant != 0.0:
                     montant = round(montant,2)
                     if facture :
-                        dictTemp = self.DictEcritureComplete(cat,date,journal,compte,libCompte + abrege,libVte,noPiece,
+                        dictTemp = self.DictEcritureComplete(cat,date,journal,compte,codeCompte + abrege,libVte,noPiece,
                                                              montant,"C",reference=reference, analytique=analytique)
                     else :
-                        dictTemp = self.DictEcritureComplete(cat,date,journal,compte,libCompte + abrege,libVte,noPiece,
+                        dictTemp = self.DictEcritureComplete(cat,date,journal,compte,codeCompte + abrege,libVte,noPiece,
                                                              montant,"D",reference=reference, analytique=analytique)
                     listeDictLignes.append((noPiece,dictTemp))
                 mttTransp = 0.0
@@ -1649,7 +1700,7 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL):#(wxpg.PropertyGrid) :
         CPTCLIENTS = dictParametres["code_clients"]
         return dictParametres
 
-    def CreationFichier(self, nomFichier="", texte="", iso = "cp1252"):
+    def CreationFichier(self, nomFichier="", texte="", iso = 'cp1252'):
         # Demande à l'utilisateur le nom de fichier et le répertoire de destination
         wildcard = "Fichier texte (*.txt)|*.txt|" \
                         "All files (*.*)|*.*"
@@ -1818,7 +1869,7 @@ class CTRL_Lanceur(CTRL_Parametres):
         # Ventes: traitement des lignes de factures et prestations
         if dictParametres["export_ventes"] == True:
             lignesVentes = fDon.GetPieces()
-            if lignesVentes != False:
+            if lignesVentes:
                 for ID, ligne in sorted(lignesVentes, key=TakeFirst):
                     if ligne["montant"] != FloatToDecimal(0.0):
                         listeLignesTxt.append(self.FormateLigne(format, ligne, numLigne))
@@ -1919,7 +1970,6 @@ class Dialog(wx.Dialog):
             self.DB.SetParam(param="DebutCompta", value=dateDebut, type="date", user = "Any", unique= True)
 
         dateFin = DateDDenEng(datetime.date.today())
-        dateFin = "2025-04-30"  # pour tests JB
         self.DB.SetParam(param="FinCompta", value=dateFin, type="date", user = "Any", unique = True)
 
         # Bandeau

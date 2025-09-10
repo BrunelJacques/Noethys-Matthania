@@ -564,7 +564,7 @@ class SmtpV1(Base_messagerie):
             while True:
                 adresse = message.GetLabelDestinataires()
                 try:
-                    labelAdresse = adresse.decode("iso-8859-15")
+                    labelAdresse = adresse.decode('cp1252')
                 except:
                     labelAdresse = adresse
                 label = "Envoi %d/%d : %s..." % (index, len(messages), labelAdresse)
@@ -661,7 +661,7 @@ class SmtpV1(Base_messagerie):
             for message, erreur in listeAnomalies:
                 adresse = message.GetLabelDestinataires()
                 try:
-                    lignes.append(u"- %s : %s" % (adresse.decode("iso-8859-15"), erreur))
+                    lignes.append(u"- %s : %s" % (adresse.decode('cp1252'), erreur))
                 except:
                     lignes.append(u"- %s : %s" % (adresse, erreur))
             dlg = DLG_Messagebox.Dialog(None, titre="Compte-rendu de l'envoi", introduction=intro,
@@ -725,7 +725,7 @@ class SmtpV2(Base_messagerie):
             while True:
                 adresse = message.GetLabelDestinataires()
                 try:
-                    labelAdresse = adresse.decode("iso-8859-15")
+                    labelAdresse = adresse.decode('cp1252')
                 except:
                     labelAdresse = adresse
                 label = "Envoi %d/%d : %s..." % (index, len(messages), labelAdresse)
@@ -823,7 +823,7 @@ class SmtpV2(Base_messagerie):
             for message, erreur in listeAnomalies:
                 adresse = message.GetLabelDestinataires()
                 try:
-                    lignes.append(u"- %s : %s" % (adresse.decode("iso-8859-15"), erreur))
+                    lignes.append(u"- %s : %s" % (adresse.decode('cp1252'), erreur))
                 except:
                     lignes.append(u"- %s : %s" % (adresse, erreur))
             dlg = DLG_Messagebox.Dialog(None, titre="Compte-rendu de l'envoi", introduction=intro,
@@ -927,7 +927,7 @@ class Mailjet(Base_messagerie):
             while True:
                 adresse = message.GetLabelDestinataires()
                 try:
-                    labelAdresse = adresse.decode("iso-8859-15")
+                    labelAdresse = adresse.decode('cp1252')
                 except:
                     labelAdresse = adresse
                 label = "Envoi %d/%d : %s..." % (index, len(messages), labelAdresse)
@@ -944,7 +944,7 @@ class Mailjet(Base_messagerie):
                     self.Envoyer(message)
                     listeSucces.append(message)
                 except Exception as err:
-                    err = str(err).decode("iso-8859-15")
+                    err = str(err).decode('cp1252')
                     listeAnomalies.append((message, err))
                     print(("Erreur dans l'envoi d'un mail : %s...", err))
                     traceback.print_exc(file=sys.stdout)
@@ -1006,7 +1006,7 @@ class Mailjet(Base_messagerie):
             for message, erreur in listeAnomalies:
                 adresse = message.GetLabelDestinataires()
                 try:
-                    lignes.append(u"- %s : %s" % (adresse.decode("iso-8859-15"), erreur))
+                    lignes.append(u"- %s : %s" % (adresse.decode('cp1252'), erreur))
                 except:
                     lignes.append(u"- %s : %s" % (adresse, erreur))
             dlg = DLG_Messagebox.Dialog(None, titre="Compte-rendu de l'envoi", introduction=intro, detail="\n".join(lignes), icone=wx.ICON_INFORMATION, boutons=["Ok", ])

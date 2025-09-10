@@ -136,7 +136,7 @@ def Sauvegarde(listeFichiersLocaux=[], listeFichiersReseau=[], nom="", repertoir
                 print((out,))
                 try :
                     if six.PY2:
-                        out = str(out).decode("iso-8859-15")
+                        out = str(out).decode('cp1252')
                 except :
                     pass
                 dlgprogress.Destroy()
@@ -153,7 +153,7 @@ def Sauvegarde(listeFichiersLocaux=[], listeFichiersReseau=[], nom="", repertoir
                 print(("insertion sql dans zip : ", err,))
                 try :
                     if six.PY2:
-                        err = str(err).decode("iso-8859-15")
+                        err = str(err).decode('cp1252')
                 except :
                     pass
                 dlgErreur = wx.MessageDialog(None, _("Une erreur est survenue dans la sauvegarde !\n\nErreur : %s") % err, _("Erreur"), wx.OK | wx.ICON_ERROR)
@@ -208,7 +208,7 @@ def Sauvegarde(listeFichiersLocaux=[], listeFichiersReseau=[], nom="", repertoir
             dlgprogress.Destroy()
             print((err,))
             if six.PY2:
-                err = str(err).decode("iso-8859-15")
+                err = str(err).decode('cp1252')
             dlgErreur = wx.MessageDialog(None, _("Une erreur a été détectée dans l'envoi par Email !\n\nErreur : %s") % err, _("Erreur"), wx.OK | wx.ICON_ERROR)
             dlgErreur.ShowModal() 
             dlgErreur.Destroy()
@@ -351,14 +351,14 @@ def Restauration(parent=None, fichier="", listeFichiersLocaux=[], listeFichiersR
             args = """"%sbin/mysql" --defaults-extra-file="%s" %s < "%s" """ % (repMySQL, nomFichierLoginTemp, fichier, fichierRestore)
             print(("Chemin mysql =", args))
             if six.PY2:
-                args = args.encode("iso-8859-15")
+                args = args.encode('cp1252')
             proc = subprocess.Popen(args, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
             out, temp = proc.communicate()
 
             if out not in ("", b"") :
                 print(("subprocess de restauration mysql :", out))
                 if six.PY2:
-                    out = str(out).decode("iso-8859-15")
+                    out = str(out).decode('cp1252')
                 dlgprogress.Destroy()
                 dlgErreur = wx.MessageDialog(None, _("Une erreur a été détectée dans la procédure de restauration !\n\nErreur : %s") % out, _("Erreur"), wx.OK | wx.ICON_ERROR)
                 dlgErreur.ShowModal() 

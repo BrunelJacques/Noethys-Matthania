@@ -218,7 +218,7 @@ class Importation_CSV() :
         # Ouverture du fichier
         if self.fichierValide == True :
             try :
-                self.fichier = csv.reader(open(nomFichier,"rb"), encoding="iso-8859-15", delimiter=separation)
+                self.fichier = csv.reader(open(nomFichier,"rb"), encoding='cp1252', delimiter=separation)
             except :
                 self.fichierValide = False
                 

@@ -43,10 +43,10 @@ def GetAnnonce():
     #                 versionLogiciel = ConvertVersionTuple("1.0.5.6")#FonctionsPerso.GetVersionLogiciel())
     #                 version = ConvertVersionTuple(version)
     #                 if versionLogiciel < version :
-    #                     dictAnnonce = {"IDannonce":None, "image":image, "titre":titre.decode("iso-8859-15"), "texte_html":texte_html.decode("iso-8859-15")}
+    #                     dictAnnonce = {"IDannonce":None, "image":image, "titre":titre.decode('cp1252'), "texte_html":texte_html.decode('cp1252')}
     #                     found = True
     #             else :
-    #                 dictAnnonce = {"IDannonce":None, "image":image, "titre":titre.decode("iso-8859-15"), "texte_html":texte_html.decode("iso-8859-15")}
+    #                 dictAnnonce = {"IDannonce":None, "image":image, "titre":titre.decode('cp1252'), "texte_html":texte_html.decode('cp1252')}
     #                 found = True
     # except :
     #     pass

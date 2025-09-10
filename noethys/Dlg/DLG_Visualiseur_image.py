@@ -25,8 +25,8 @@ phrase2 = _("Opération interdite")
 
 try :
     if not wx.USE_UNICODE:
-        phrase1 = phrase1.encode("iso8859-15", "replace")
-        phrase1 = phrase1.encode("iso8859-15", "replace")
+        phrase1 = phrase1.encode('cp1252', 'replace')
+        phrase1 = phrase1.encode('cp1252', 'replace')
 except :
     pass
 

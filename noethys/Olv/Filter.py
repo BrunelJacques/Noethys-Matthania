@@ -109,7 +109,7 @@ class TextSearch(object):
 
     def EnleveAccents(self, texte):
         try :
-            return texte.decode("iso-8859-15")
+            return texte.decode('cp1252')
         except : return texte
 
 

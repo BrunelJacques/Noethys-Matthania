@@ -394,7 +394,7 @@ class Dialog(wx.Dialog):
 
         # Création du fichier texte
         f = open(cheminFichier, "w")
-        f.write(texte.encode("iso-8859-15"))
+        f.write(texte.encode('cp1252'))
         f.close()
         
         # Confirmation de création du fichier et demande d'ouverture directe dans Excel

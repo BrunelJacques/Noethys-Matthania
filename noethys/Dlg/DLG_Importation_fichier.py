@@ -315,7 +315,7 @@ class Dialog(wx.Dialog):
         if modeLocal == True :
             nomFichier = dictItem["titre"]
             if six.PY2:
-                nomFichier = nomFichier.decode("iso-8859-15")
+                nomFichier = nomFichier.decode('cp1252')
     
         # Version RESEAU
         if modeLocal == False :

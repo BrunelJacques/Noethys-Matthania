@@ -25,7 +25,7 @@ def InfosFichier(fichier=""):
         return None
 
     if six.PY2:
-        fichier = fichier.encode("iso-8859-15")
+        fichier = fichier.encode('cp1252')
     data = UTILS_Json.Lire(fichier)
     return data
 
@@ -150,7 +150,7 @@ class Exporter():
             "contenu": self.contenu,
         }
         if six.PY2:
-            fichier = fichier.encode("iso-8859-15")
+            fichier = fichier.encode('cp1252')
         UTILS_Json.Ecrire(nom_fichier=fichier, data=data)
 
     

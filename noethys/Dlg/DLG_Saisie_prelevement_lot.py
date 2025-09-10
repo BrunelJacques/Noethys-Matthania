@@ -116,7 +116,7 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL):
         # Options
         self.Append(wxpg.PropertyCategory(_("Options")))
 
-        propriete = CTRL_Propertygrid.Propriete_choix(label=_("Encodage"), name="encodage", liste_choix=[("utf-8", _("utf-8")), ("iso-8859-15", _("iso-8859-15"))], valeur="utf-8")
+        propriete = CTRL_Propertygrid.Propriete_choix(label=_("Encodage"), name="encodage", liste_choix=[("utf-8", _("utf-8")), ('cp1252', _('cp1252'))], valeur="utf-8")
         propriete.SetEditor("EditeurChoix")
         propriete.SetHelpString(_("Sélectionnez l'encodage du fichier"))
         propriete.SetAttribute("obligatoire", True)
@@ -676,7 +676,7 @@ class Dialog(wx.Dialog):
 
         # Création du fichier texte
         f = open(cheminFichier, "w")
-        f.write(texte.encode("iso-8859-15"))
+        f.write(texte.encode('cp1252'))
         f.close()
 
         # Confirmation de création du fichier et demande d'ouverture directe

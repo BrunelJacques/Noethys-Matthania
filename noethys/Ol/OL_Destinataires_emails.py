@@ -469,7 +469,7 @@ class ListView(FastObjectListView):
         texte = texte[:-1]
         # Création du fichier texte
         f = open(cheminFichier, "w")
-        f.write(texte.encode("iso-8859-15"))
+        f.write(texte.encode('cp1252'))
         f.close()
         # Confirmation de création du fichier et demande d'ouverture directe dans Excel
         txtMessage = _("Le fichier Texte a été créé avec succès. Souhaitez-vous l'ouvrir dès maintenant ?")

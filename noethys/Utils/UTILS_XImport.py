@@ -33,7 +33,7 @@ class DataType(object):
         # s'assure que la donnée soit bien en unicode
         if type(data) is str:
             if six.PY2:
-                data = data.decode("iso-8859-15")
+                data = data.decode('cp1252')
             data = six.text_type(data)
 
         # si l'on veux des entiers

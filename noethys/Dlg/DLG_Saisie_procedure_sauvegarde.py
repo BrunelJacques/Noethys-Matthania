@@ -137,7 +137,7 @@ class CTRL_Conditions(wx.Panel) :
         self.check_poste = wx.CheckBox(self, wx.ID_ANY, _("Si le poste est :"))
         try :
             if six.PY2:
-                labelPoste = _("Ce poste (%s)") % socket.gethostname().decode("iso-8859-15")
+                labelPoste = _("Ce poste (%s)") % socket.gethostname().decode('cp1252')
             else :
                 labelPoste = _("Ce poste (%s)") % socket.gethostname()
         except :

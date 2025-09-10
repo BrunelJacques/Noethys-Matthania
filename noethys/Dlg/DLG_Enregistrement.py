@@ -78,7 +78,7 @@ def GetValidite(identifiant="", code=""):
         return False
 
     if six.PY3:
-        html = html.decode("iso-8859-15")
+        html = html.decode('cp1252')
 
     # Analyse l'état
     if html.startswith("codeok") :
@@ -272,7 +272,7 @@ class Dialog(wx.Dialog):
             return False
 
         if six.PY3:
-            html = html.decode("iso-8859-15")
+            html = html.decode('cp1252')
 
         # Analyse l'état
         if html.startswith("codeok") :

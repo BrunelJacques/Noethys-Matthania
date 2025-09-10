@@ -304,7 +304,7 @@ class Page_recherche(wx.Panel):
 
         # Recherche du numéro de version
         if six.PY3:
-            self.texteNouveautes = self.texteNouveautes.decode("iso-8859-15")
+            self.texteNouveautes = self.texteNouveautes.decode('cp1252')
         pos_debut_numVersion = self.texteNouveautes.find("n")
         pos_fin_numVersion = self.texteNouveautes.find("(")
         self.versionData = self.texteNouveautes[pos_debut_numVersion+1:pos_fin_numVersion].strip()
@@ -365,7 +365,7 @@ class Page_recherche(wx.Panel):
                 self.parent.GetPage("page_disponible").label_introduction1.SetLabel(texteIntro1)
                 texteNouveautes = self.texteNouveautes
                 if six.PY2:
-                    texteNouveautes = texteNouveautes.decode("iso-8859-15")
+                    texteNouveautes = texteNouveautes.decode('cp1252')
                 self.parent.GetPage("page_disponible").textCtrl_nouveautes.SetValue(texteNouveautes)
                 self.parent.Active_page("page_disponible")
               

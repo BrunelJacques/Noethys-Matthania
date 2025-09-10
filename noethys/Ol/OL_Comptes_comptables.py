@@ -318,7 +318,7 @@ def ImportationComptes():
     DB = GestionDB.DB()
     for numero, nom in listeComptes :
         if six.PY2:
-            nom = nom.decode("iso-8859-15")
+            nom = nom.decode('cp1252')
         nom = nom.capitalize()
         listeDonnees = [ ("nom", nom), ("numero", numero)]
         DB.ReqInsert("compta_comptes_comptables", listeDonnees)

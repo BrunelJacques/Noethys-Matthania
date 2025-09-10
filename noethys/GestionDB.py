@@ -1475,7 +1475,7 @@ def Decod(valeur):
             valeurDecod = valeur.decode('utf8')
         except:
             try:
-                valeurDecod = valeur.decode('iso-8859-15')
+                valeurDecod = valeur.decode('cp1252')
             except:
                 valeurDecod = valeur
     return valeurDecod

@@ -159,7 +159,7 @@ def UploadCalendrier():
         
     # Création du fichier texte
     f = open("temp\calendrier.txt", "w")
-    f.write(texteFichier.encode("iso-8859-15"))
+    f.write(texteFichier.encode('cp1252'))
     f.close()
     
     # Mise en ligne du fichier texte
@@ -322,7 +322,7 @@ def UploadFichierIdentites():
         txtEnfants = ""
         if IDfamille in dictEnfants :
             for IDenfant, prenom in dictEnfants[IDfamille] :
-                txtEnfants += "%05d%s;" % (IDenfant, prenom.decode("iso-8859-15"))
+                txtEnfants += "%05d%s;" % (IDenfant, prenom.decode('cp1252'))
             if len(txtEnfants) > 0 : txtEnfants = txtEnfants[:-1]
         
         # Pieces
@@ -343,7 +343,7 @@ def UploadFichierIdentites():
         
     # Création du fichier texte
     f = open("temp\identites.txt", "w")
-    f.write(texteFichier.encode("iso-8859-15"))
+    f.write(texteFichier.encode('cp1252'))
     f.close()
     
     # Mise en ligne du fichier texte
@@ -444,7 +444,7 @@ def GetPiecesAFournir(dictPieces, dictCotisations, dictTypesPieces, dictEnfants,
                                 if date_debut <= str(datedujour) <= date_fin : 
                                     etat = "ok"
                         if six.PY2:
-                            prenom = prenom.decode("iso-8859-15")
+                            prenom = prenom.decode('cp1252')
                         labelPiece = nomTypePiece + " de " + prenom
                         if etat == "pasok" :
                             listeDonnees.append( "%d%d" % (IDtypePiece, IDenfant) ) 

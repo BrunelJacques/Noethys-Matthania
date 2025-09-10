@@ -89,7 +89,7 @@ def Exporter(IDmodele=None, fichier="", depuisFichierDefaut=False):
     # Enregistrement dans un fichier Json
     if fichier != "" :
         if six.PY2:
-            fichier = fichier.encode("iso-8859-15")
+            fichier = fichier.encode('cp1252')
         UTILS_Json.Ecrire(nom_fichier=fichier, data=data)
 
     return data
@@ -98,7 +98,7 @@ def Exporter(IDmodele=None, fichier="", depuisFichierDefaut=False):
 def InfosFichier(fichier=""):
     """ Récupère les infos principales sur un fichier """
     if six.PY2:
-        fichier = fichier.encode("iso-8859-15")
+        fichier = fichier.encode('cp1252')
     data = UTILS_Json.Lire(fichier)
     return data
 
@@ -109,7 +109,7 @@ def Importer(fichier="", dictDonnees={}, IDfond=None, defaut=0):
 
     if fichier != "" :
         if six.PY2:
-            fichier = fichier.encode("iso-8859-15")
+            fichier = fichier.encode('cp1252')
         data = UTILS_Json.Lire(fichier)
     else :
         data = dictDonnees
