@@ -1,3 +1,6 @@
+version 1.3.3.18 (15/09/2025)
+- Bug saisie prestation
+
 version 1.3.3.17 (10/09/2025)
 - Encodage cp1252 au lieu de iso-8859-15
 - Impressions avec bug dans ListCtrlPrinter

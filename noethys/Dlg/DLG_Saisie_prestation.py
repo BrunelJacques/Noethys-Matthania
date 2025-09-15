@@ -45,10 +45,10 @@ class Ctrl_compte(wx.Choice):
         self.planCpte += DATA_Types_prestations.GetLstComptes(DB)
         DB.Close()
         self.SetListeDonnees()
+        self.lstCodesCpte, self.lstLibCptes,self.lstComptes = [],[],[]
 
     def SetListeDonnees(self, filtre='conso-don-autre'):
         self.lstCodesCpte, self.lstLibCptes,self.lstComptes = [],[],[]
-
         def addItem():
             self.lstCodesCpte.append(code)
             self.lstLibCptes.append(lib)
@@ -76,8 +76,8 @@ class Ctrl_compte(wx.Choice):
             return
         compte = compte.strip("0 ")
         try: # teste si l'item est l'ancienne version en numero de compte
-            i = int(compte[:3])
-        except Exception as err: # supposé être déjà en code alpha
+            int(compte[:3])
+        except (Exception,): # supposé être déjà en code alpha
             return compte
         # teste si l'item est répertorié dans les numéros de compte
         lstIndex = [ self.lstComptes.index(x) for x in self.lstComptes if x == compte]
@@ -111,8 +111,8 @@ class Ctrl_categorie(wx.Choice):
         self.SetListeDonnees('autres-dons')
 
     def SetListeDonnees(self,filtre='conso-don-autre'):
-        kw = {}
-        kw['consos'] = 'conso' in filtre
+        kw = {'consos': (
+                'conso' in filtre)}
         kw['dons'] = 'don' in filtre
         kw['autres'] = 'autre' in filtre
         self.lstIDtypes, self.lstLibTypes = DATA_Types_prestations.GetLstTypesPrest(**kw)
@@ -167,7 +167,7 @@ class Ctrl_activite(wx.Choice):
         wx.Choice.__init__(self, parent, -1)
         self.parent = parent
         self.listeNoms = []
-        self.listeActivites = []
+        self.listeActivites = [{},]
     
     def SetListeDonnees(self, listeActivites):
         self.listeNoms = []
@@ -732,7 +732,7 @@ class Dialog(wx.Dialog):
         ]
         if not self.IDprestation:
             self.IDprestation = DB.ReqInsert("prestations", listeDonnees)
-            if isinstance(int,self.IDprestation):
+            if isinstance(self.IDprestation,int):
                 ret = 'ok'
             else: ret = self.IDprestation # l'échec d'insertion renvoie l'erreur
         else:
