@@ -908,7 +908,7 @@ class ScrolledThumbnail(wx.ScrolledWindow):
         if 'phoenix' in wx.PlatformInfo:
             self.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_LISTBOX))
         else :
-            self.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_LISTBOX))
+            self.SetBackgroundColour(wx.systemSettings.GetColour(wx.SYS_COLOUR_LISTBOX))
         t, b, s = getShadow()
         self.shadow = wx.MemoryDC()
         self.shadow.SelectObject(s)
@@ -1133,7 +1133,7 @@ class ScrolledThumbnail(wx.ScrolledWindow):
         """
         
         if colour is None:
-            colour = wx.SystemSettings_GetColour(wx.SYS_COLOUR_HIGHLIGHT)
+            colour = wx.systemSettings.GetColour(wx.SYS_COLOUR_HIGHLIGHT)
 
         self._selectioncolour = colour
         

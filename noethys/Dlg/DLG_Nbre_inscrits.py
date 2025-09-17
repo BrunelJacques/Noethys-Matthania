@@ -39,7 +39,7 @@ class Renderer_gauge(object):
         
         # Dessin du fond
         if highlighted:
-            mdc.SetBackground(wx.Brush(wx.SystemSettings_GetColour(wx.SYS_COLOUR_HIGHLIGHT)))
+            mdc.SetBackground(wx.Brush(wx.systemSettings.GetColour(wx.SYS_COLOUR_HIGHLIGHT)))
         else:
             couleurFond = self.parent.couleurFond
             mdc.SetBackground(wx.Brush(couleurFond))

@@ -1883,6 +1883,7 @@ class Forfaits():
         # Fixe IDfamille listeFamille (unique) listeNOms (des membres ) si l'individu est rattaché à d'autres familles
         parent.lstLibTypes = []
         parent.listeFamille = []
+        parent.listeNoms = []
         # Vérifie que l'individu est rattaché comme REPRESENTANT ou ENFANT à une famille
         if parent.dictFamillesRattachees == None: return False
         valide = False
@@ -1901,6 +1902,7 @@ class Forfaits():
             parent.IDfamille = lastIDfamille
             parent.listeFamille.append(lastIDfamille)
             parent.lstLibTypes.append(parent.dictFamillesRattachees[parent.IDfamille]["nomsTitulaires"])
+            parent.listeNoms.append(parent.dictFamillesRattachees[parent.IDfamille]["nomsTitulaires"])
         else:
             # Si rattachée à plusieurs familles
             listeTuplesFamilles = []
@@ -1909,6 +1911,7 @@ class Forfaits():
                 if IDcategorie in (1, 2) :
                     parent.listeFamille.append(IDfamille)
                     parent.lstLibTypes.append(dictFamille["nomsTitulaires"])
+                    parent.listeNoms.append(dictFamille["nomsTitulaires"])
                     listeTuplesFamilles.append((IDfamille,dictFamille["nomsTitulaires"]))
             # On demande à quelle famille rattacher cette inscription
             retour = GestionDB.Messages().Choix(listeTuples=listeTuplesFamilles, titre = ("Cet individu est rattaché à %d familles")
