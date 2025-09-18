@@ -198,7 +198,7 @@ class Dialog(wx.Dialog):
         wx.Dialog.__init__(self, parent, -1, name="DLG_Saisie_prestation",
             style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
         self.parent = parent
-        if mode != 'saisie':
+        if mode not in ('saisie','modif'):
             self.mode = 'visu'
         else:
             self.mode = 'saisie'
