@@ -47,6 +47,7 @@ def DateEngEnDateDD(dateEng):
 class Track(object):
     def __init__(self, parent, donnees):
         self.parent = parent
+        self.IDpiece = donnees[-1]  # numero de ligne dans le dépôt
         self.IDreglement = donnees[0]
         self.compte_payeur = donnees[1]
         self.date = DateEngEnDateDD(donnees[2])
@@ -85,6 +86,7 @@ class Track(object):
         # Etat
         if self.IDdepot == None or self.IDdepot == 0 :
             self.inclus = False
+            self.IDpiece = 0
         else:
             self.inclus = True
 
@@ -262,7 +264,8 @@ class Dialog(wx.Dialog):
         comptes_bancaires.nom,
         familles.IDfamille, 
         familles.adresse_intitule,
-        reglements.avis_depot
+        reglements.avis_depot,
+        reglements.IDpiece 
         FROM reglements
         LEFT JOIN modes_reglements ON reglements.IDmode=modes_reglements.IDmode
         LEFT JOIN emetteurs ON reglements.IDemetteur=emetteurs.IDemetteur

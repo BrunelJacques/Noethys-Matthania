@@ -4,6 +4,7 @@
 # Application :    Noethys branche Matthania
 # Site internet :  www.noethys.com
 # Auteur:           Ivan LUCAS, JB
+# Fonction: appelé à partir de OL_Depots gère le cartouche d'un dépot
 # Copyright:       (c) 2010-11 Ivan LUCAS, JB
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
@@ -243,6 +244,7 @@ class Dialog(wx.Dialog):
     def Init(self):
         # Importation des règlements
         self.tracks = self.GetTracks(self.IDdepot)
+        self.ctrl_reglements.numColonneTri = 0
         self.ctrl_reglements.MAJ(tracks=self.tracks) 
         self.MAJinfos()
 
@@ -518,10 +520,12 @@ class Dialog(wx.Dialog):
         for track in self.tracks :
             # Ajout
             if track.IDdepot == None and track.inclus == True :
-                DB.ReqMAJ("reglements", [("IDdepot", self.IDdepot),], "IDreglement", track.IDreglement)
+                lstDonnees = [("IDdepot", self.IDdepot), ('IDpiece',track.IDpiece)]
+                DB.ReqMAJ("reglements", lstDonnees, "IDreglement", track.IDreglement)
             # Retrait
             if track.IDdepot != None and track.inclus == False :
-                DB.ReqMAJ("reglements", [("IDdepot", None),], "IDreglement", track.IDreglement)
+                lstDonnees = [("IDdepot", None), ('IDpiece', 0)]
+                DB.ReqMAJ("reglements", lstDonnees, "IDreglement", track.IDreglement)
         DB.Close()
 
     def GetIDdepot(self):

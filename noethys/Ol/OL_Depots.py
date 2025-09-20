@@ -16,6 +16,7 @@ import wx
 from Ctrl import CTRL_Bouton_image
 import datetime
 import GestionDB
+from Dlg import DLG_Saisie_depot
 
 from Utils import UTILS_Config
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
@@ -349,8 +350,7 @@ class ListView(FastObjectListView):
             dlg.Destroy()
             return
         IDdepot = self.Selection()[0].IDdepot
-        from Dlg import DLG_Saisie_depot
-        dlg = DLG_Saisie_depot.Dialog(self, IDdepot=IDdepot)      
+        dlg = DLG_Saisie_depot.Dialog(self, IDdepot=IDdepot)
         dlg.ShowModal()
         self.MAJ(IDdepot)
         self.GetGrandParent().MAJreglements()

@@ -666,7 +666,7 @@ DB_DATA = {
                 ("IDutilisateur", "INTEGER", "Utilisateur qui a fait la saisie"),
                 ("IDprelevement", "INTEGER", "ID du prélèvement"),
                 ("avis_depot", "DATE", "Date de l'envoi de l'avis de dépôt"),
-                ("IDpiece", "INTEGER", "IDpiece pour PES V2 ORMC"),
+                ("IDpiece", "INTEGER", "complément à IDdepot, no ligne dans dépôt"),
                 ("compta", "INTEGER", "Pointeur de transfert en compta"),
                 ], # Règlements
     

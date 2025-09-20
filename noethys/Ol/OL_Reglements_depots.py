@@ -44,6 +44,7 @@ def DateEngEnDateDD(dateEng):
 
 class Track(object):
     def __init__(self, donnees):
+        self.IDpiece = donnees[-1] # numero de ligne dans le dépôt
         self.IDreglement = donnees[0]
         self.compte_payeur = donnees[1]
         self.date = DateEngEnDateDD(donnees[2])
@@ -84,8 +85,9 @@ class Track(object):
         self.compta = donnees[28]
 
         # Etat
-        if self.IDdepot == None or self.IDdepot == 0 :
+        if not self.IDdepot or self.IDdepot == 0 :
             self.inclus = False
+            self.IDpiece = 0
         else:
             self.inclus = True
 
@@ -107,8 +109,9 @@ class ListView(FastObjectListView):
         self.popupIndex = -1
         self.listeFiltres = []
         self.tracks = []
-        self.numColonneTri = 1
+        self.numColonneTri = 2
         self.ordreAscendant = True
+        self.noLigneDepot = 0
 
         self.tailleImagesMaxi = (132/4.0, 72/4.0) #(132/2.0, 72/2.0)
         self.tailleImagesMini = (16, 16)
@@ -152,7 +155,8 @@ class ListView(FastObjectListView):
         familles.IDfamille, 
         familles.adresse_intitule,
         reglements.avis_depot,
-        reglements.compta
+        reglements.compta,
+        reglements.IDpiece 
         FROM reglements
         LEFT JOIN ventilation ON reglements.IDreglement = ventilation.IDreglement
         LEFT JOIN modes_reglements ON reglements.IDmode=modes_reglements.IDmode
@@ -171,9 +175,12 @@ class ListView(FastObjectListView):
         db.Close()
 
         listeListeView = []
+        self.noLigneDepot = 0
         for item in listeDonnees:
             track = Track(item)
             listeListeView.append(track)
+            if track.inclus:
+                self.noLigneDepot = +1
         return listeListeView
 
     def OnClickColonne(self, indexColonne=None, ascendant=True):
@@ -212,8 +219,11 @@ class ListView(FastObjectListView):
         for track in tracks:
             if self.inclus == True :
                 track.inclus = False
+                track.IDpiece = 0
             else:
                 track.inclus = True
+                self.noLigneDepot += 1
+                track.IDpiece = self.noLigneDepot
         index = self.GetIndexOf(track)
         if index == len(self.innerList)-1 :
             if len(self.donnees) > 1 :
@@ -437,6 +447,7 @@ class ListView(FastObjectListView):
                     listItem.SetTextColour((255, 0, 0))
 
         liste_Colonnes = [
+            ColumnDefn(_("NoLigne"), "left",0 , "IDpiece", typeDonnee="entier"),
             ColumnDefn(_("ID"), "left", 70, "IDreglement", typeDonnee="entier"),
             ColumnDefn(_("Date"), 'left', 75, "date", typeDonnee="date", stringConverter=FormateDateCourt),
             ColumnDefn(_("Mode"), 'left', 95, "nom_mode", typeDonnee="texte", imageGetter=GetImageMode),
@@ -446,7 +457,6 @@ class ListView(FastObjectListView):
             ColumnDefn(_("Famille"), 'left', 160, "adresse_intitule", typeDonnee="texte"),
             ColumnDefn(_("Payeur"), 'left', 130, "nom_payeur", typeDonnee="texte"),
             ColumnDefn(_("Montant"), 'right', 75, "montant", typeDonnee="montant", stringConverter=FormateMontant),
-            #ColumnDefn(_("Avis"), 'left', 110, "avis_depot", typeDonnee="date", stringConverter=FormateDateCourt, imageGetter=GetImageAvisDepot),
             ColumnDefn(_("Compte"), 'left', 100, "nom_compte", typeDonnee="texte"),
             ColumnDefn(_("Différé"), 'left', 75, "date_differe", typeDonnee="date", stringConverter=FormateDateCourt), #, imageGetter=GetImageDiffere),
             #ColumnDefn(_("Attente"), 'left', 65, "encaissement_attente", typeDonnee="texte", stringConverter=FormateAttente), #, imageGetter=GetImageAttente),
@@ -462,7 +472,6 @@ class ListView(FastObjectListView):
         else:
             self.SetEmptyListMsg(_("Aucun règlement disponible"))
         self.SetEmptyListMsgFont(wx.FFont(11, wx.DEFAULT, False, "Tekton"))
-##        self.SetSortColumn(self.columns[self.numColonneTri])
         self.SortBy(self.numColonneTri, ascending=self.ordreAscendant)
         self.SetObjects(self.donnees)
        

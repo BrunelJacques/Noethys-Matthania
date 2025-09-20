@@ -10,7 +10,6 @@
 
 
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
@@ -20,6 +19,7 @@ from Ol import OL_Reglements_depots
 from Dlg import DLG_Messagebox
 from Ctrl import CTRL_Saisie_date
 from Ctrl.CTRL_ObjectListView import CTRL_Outils
+from Utils import UTILS_Parametres
 
 import GestionDB
 
@@ -147,14 +147,14 @@ class Dialog(wx.Dialog):
         if self.IDmode:
             self.ctrl_mode.SetID(self.IDmode)
 
-        self.label_tri = wx.StaticText(self, -1, _("Tri :"))
-        self.ctrl_tri = wx.Choice(self, -1, choices = (_("Ordre de saisie"), _("Date"), _("Mode de règlement"), _("Emetteur"), _("Numéro de pièce"), _("Famille"), _("Nom de payeur"), _("Montant"),
-                                                       _("Avis"), _("Compte"), _("Différé"), _("Attente"), _("Quittancier"), _("Observations")))
-        self.ctrl_tri.Select(1)
+        self.label_tri = wx.StaticText(self, -1, "Tri :")
+        choices = ("NoLigne","ID saisie", "Date", "Mode de règlement", "Numero","Emetteur",
+         "NoFamille","Nom Famille", "Nom de payeur", "Montant",
+         "Compte", "Différé", "Observations")
+        self.ctrl_tri = wx.Choice(self, -1, choices = choices)
 
-        self.label_ordre = wx.StaticText(self, -1, _("Ordre :"))
-        self.ctrl_ordre = wx.Choice(self, -1, choices = (_("Descendant"), _("Ascendant")))
-        self.ctrl_ordre.Select(1)
+        self.label_ordre = wx.StaticText(self, -1, "Ordre :")
+        self.ctrl_ordre = wx.Choice(self, -1, choices = ("Descendant", "Ascendant"))
         
         # Reglements disponibles
         self.staticbox_reglements_disponibles_staticbox = wx.StaticBox(self, -1, _("Règlements disponibles"))
@@ -189,7 +189,8 @@ class Dialog(wx.Dialog):
 
         self.__set_properties()
         self.__do_layout()
-        
+        self.ParamsImport()
+
         self.Bind(wx.EVT_BUTTON, self.OnBoutonBasTout, self.bouton_bas_tout)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonBas, self.bouton_bas)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonHaut, self.bouton_haut)
@@ -299,7 +300,25 @@ class Dialog(wx.Dialog):
         grid_sizer_base.AddGrowableCol(0)
         self.Layout()
         self.CenterOnScreen() 
-    
+
+    def ParamsImport(self):
+        ix = UTILS_Parametres.Parametres(mode="get", categorie="saisie_depots",
+                                         nom="tri_colonne", valeur=2)
+        sens = UTILS_Parametres.Parametres(mode="get", categorie="saisie_depots",
+                                         nom="tri_sens", valeur=0)
+        self.ctrl_reglements_disponibles.numColonneTri = ix
+        self.ctrl_reglements_disponibles.ordreAscendant = ix
+        self.ctrl_tri.SetSelection(ix)
+        self.ctrl_ordre.SetSelection(sens)
+
+    def ParamsSauve(self):
+        ix = self.ctrl_tri.GetSelection()
+        UTILS_Parametres.Parametres(mode="set", categorie="saisie_depots",
+                                    nom="tri_colonne", valeur=ix)
+        sens = self.ctrl_ordre.GetSelection()
+        UTILS_Parametres.Parametres(mode="set", categorie="saisie_depots",
+                                         nom="tri_sens", valeur=sens)
+
     def MAJListes(self, tracks=None, selectionTrack=None, nextTrack=None):
         if tracks != None :
             self.tracks = tracks
@@ -312,7 +331,9 @@ class Dialog(wx.Dialog):
                                              IDmode=IDmode, date=date)
         self.staticbox_reglements_disponibles_staticbox.SetLabel(self.ctrl_reglements_disponibles.GetLabelListe(_("règlements disponibles")))
         # MAJ Liste règlements du dépôt
-        self.ctrl_reglements_depot.MAJ(self.tracks, selectionTrack=selectionTrack, nextTrack=nextTrack) 
+        self.ctrl_reglements_disponibles.numColonneTri = self.ctrl_tri.GetSelection()
+        self.ctrl_reglements_depot.numColonneTri = self.ctrl_ordre.GetSelection()
+        self.ctrl_reglements_depot.MAJ(self.tracks, selectionTrack=selectionTrack, nextTrack=nextTrack)
         self.staticbox_reglements_depot_staticbox.SetLabel(self.ctrl_reglements_depot.GetLabelListe(_("règlements dans ce dépôt")))
     
     def DeplacerTout(self, inclus=True):
@@ -326,7 +347,7 @@ class Dialog(wx.Dialog):
                 track.inclus = inclus
             listeTracks.append(track)
         self.MAJListes(listeTracks)
-        
+
     def GetTracks(self):
         return self.tracks
 
@@ -340,13 +361,12 @@ class Dialog(wx.Dialog):
         self.MAJListes()
         
     def OnChoixTri(self, event):
-        selection = self.ctrl_tri.GetSelection() 
-        self.ctrl_reglements_disponibles.numColonneTri = selection
-        #self.ctrl_reglements_depot.numColonneTri = selection
+        numColonneTri = self.ctrl_tri.GetSelection()
+        self.ctrl_reglements_disponibles.numColonneTri = numColonneTri
         self.MAJListes()
 
     def OnChoixOrdre(self, event):
-        selection = self.ctrl_ordre.GetSelection() 
+        selection = self.ctrl_ordre.GetSelection()
         self.ctrl_reglements_disponibles.ordreAscendant = selection
         #self.ctrl_reglements_depot.ordreAscendant = selection
         self.MAJListes()
@@ -409,6 +429,7 @@ class Dialog(wx.Dialog):
                 return False
 
         # Fermeture
+        self.ParamsSauve()
         self.EndModal(wx.ID_OK)
 
 
