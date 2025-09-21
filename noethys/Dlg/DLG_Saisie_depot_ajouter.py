@@ -205,7 +205,8 @@ class Dialog(wx.Dialog):
         # Initialisation des contrôles
         self.OnChoixTri(None)
         self.OnChoixOrdre(None)
-        self.MAJListes(tracks=self.tracks) 
+        self.MAJListes(tracks=self.tracks)
+        self.ctrl_reglements_disponibles.SetFocus()
 
     def __set_properties(self):
         self.SetTitle(_("Ajouter ou retirer des règlements"))

@@ -214,7 +214,7 @@ class ListView(FastObjectListView):
             ColumnDefn(_("Observations"), 'left', 100, "observations", typeDonnee="texte"),
             ColumnDefn(_("Nbre"), 'centre', 40, "nbre", typeDonnee="entier"),
             ColumnDefn(_("Total"), 'right', 75, "total", typeDonnee="montant", stringConverter=FormateMontant),
-            ColumnDefn(_("Détail"), 'left', 210, "detail", typeDonnee="texte"),
+            ColumnDefn(_("Détail"), 'left', 300, "detail", typeDonnee="texte"),
             ]
         
         self.SetColumns(liste_Colonnes)

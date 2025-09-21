@@ -204,7 +204,9 @@ class ListView(FastObjectListView):
                 self.Deplacer()
             else:
                 self.Modifier(None)
-    
+        event.Skip()
+
+
     def Deplacer(self):
         if len(self.Selection()) == 0 :
             if self.inclus == True :
@@ -276,10 +278,7 @@ class ListView(FastObjectListView):
         # Recherche de l'image
         if buffer != None :
             io = six.BytesIO(buffer)
-            if 'phoenix' in wx.PlatformInfo:
-                img = wx.Image(io, wx.BITMAP_TYPE_JPEG)
-            else :
-                img = wx.ImageFromStream(io, wx.BITMAP_TYPE_JPEG)
+            img = wx.Image(io, wx.BITMAP_TYPE_JPEG)
             bmp = img.Rescale(width=int(taille[0]), height=int(taille[1]), quality=wx.IMAGE_QUALITY_HIGH)
             bmp = bmp.ConvertToBitmap()
             return bmp
