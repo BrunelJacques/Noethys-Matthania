@@ -1,6 +1,6 @@
-version 1.3.3.22 (21/09/2025)
-- Cohérence facturation: cas des factures orphelines
-- Getion des dépots ajout d'un contrôle sur exercice ouvert
+version 1.3.3.23 (23/09/2025)
+- Cohérence facturation: cas des factures orphelines géré
+- Gestion des dépots ajout d'un contrôle sur exercice ouvert
 
 version 1.3.3.22 (21/09/2025)
 - Amélioration de saisie des dépôts
