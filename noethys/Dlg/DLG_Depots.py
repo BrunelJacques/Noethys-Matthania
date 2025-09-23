@@ -24,9 +24,8 @@ from Ol import OL_Reglements_depots
 import GestionDB
 
 from Utils import UTILS_Config
+
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
-
-
 
 def DateEngFr(textDate):
     text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])

@@ -462,14 +462,20 @@ class Dialog(wx.Dialog):
             return False
 
         # Date
+        DB = GestionDB.DB()
         date = self.ctrl_date.GetDate()
-        if date == None :
-            dlg = wx.MessageDialog(self, _("Etes-vous sûr de ne pas vouloir saisir de date de dépôt ?"), _("Confirmation"), wx.YES_NO|wx.NO_DEFAULT|wx.CANCEL|wx.ICON_INFORMATION)
-            reponse = dlg.ShowModal()
+        if date:
+            debutExercice, finExercice = DB.GetExercice(date)
+        else:
+            debutExercice = None
+            dlg = wx.MessageDialog(self,
+                                   "Pas de date\n\nLa date comptable est obligatoire!",
+                                   "Erreur de saisie", wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
             dlg.Destroy()
-            if reponse !=  wx.ID_YES :
-                return False
-        
+        if not debutExercice:
+            DB.Close()
+            return False
         # Verrouillage
         verrouillage = self.ctrl_verrouillage.GetValue()
         if verrouillage == True :
@@ -485,6 +491,7 @@ class Dialog(wx.Dialog):
             reponse = dlg.ShowModal()
             dlg.Destroy()
             if reponse !=  wx.ID_YES :
+                DB.Close()
                 return False
         
         # Observations
@@ -497,9 +504,7 @@ class Dialog(wx.Dialog):
         nom = self.ctrl_nom.GetValue()
         if not nom in self.ctrl_nom.listeNoms:
             self.nom = nom
-
-        DB = GestionDB.DB()
-        listeDonnees = [    
+        listeDonnees = [
                 ("nom", self.nom),
                 ("date", date),
                 ("verrouillage", verrouillage),
@@ -512,7 +517,6 @@ class Dialog(wx.Dialog):
         else:
             DB.ReqMAJ("depots", listeDonnees, "IDdepot", self.IDdepot)
         DB.Close()
-        
         return True
         
     def Sauvegarde_reglements(self):

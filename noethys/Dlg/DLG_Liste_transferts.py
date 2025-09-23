@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: iso-8859-15 -*-
+# -*- coding: utf-8 -*-
 #------------------------------------------------------------------------
 # Application :    Noethys, Matthania liste des transferts en compta
 # Site internet :  www.noethys.com
@@ -22,8 +22,8 @@ class Dialog(wx.Dialog):
         wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
         self.parent = parent
         self.dateFin = dateFin
-        intro = _("Vous pouvez consulter ici le récapitulatif des transferts réalisés en compta.")
-        titre = _("Récapitulatif des transferts")
+        intro = _("Vous pouvez consulter ici le rÃ©capitulatif des transferts rÃ©alisÃ©s en compta.")
+        titre = _("RÃ©capitulatif des transferts")
         self.SetTitle("DLG_Liste_transferts")
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/22x22/Smiley_nul.png")
         
@@ -38,7 +38,7 @@ class Dialog(wx.Dialog):
         self.bouton_excel = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Excel.png"), wx.BITMAP_TYPE_ANY))
 
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage=Chemins.GetStaticPath("Images/32x32/Aide.png"))
-        self.bouton_nontrans = CTRL_Bouton_image.CTRL(self, texte=_("Récap NON transféré"), cheminImage=Chemins.GetStaticPath("Images/32x32/Facture.png"))
+        self.bouton_nontrans = CTRL_Bouton_image.CTRL(self, texte=_("RÃ©cap NON transfÃ©rÃ©"), cheminImage=Chemins.GetStaticPath("Images/32x32/Facture.png"))
         self.bouton_fermer = CTRL_Bouton_image.CTRL(self, id=wx.ID_CANCEL, texte=_("Fermer"), cheminImage=Chemins.GetStaticPath("Images/32x32/Fermer.png"))
 
         self.__set_properties()
@@ -51,16 +51,16 @@ class Dialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.ctrl_comptes.ExportTexte, self.bouton_texte)
         self.Bind(wx.EVT_BUTTON, self.ctrl_comptes.ExportExcel, self.bouton_excel)
 
-        # Init contrôles
+        # Init contrÃ´les
         self.ctrl_comptes.MAJ() 
 
     def __set_properties(self):
-        self.bouton_apercu.SetToolTip(_("Cliquez ici pour créer un aperçu de la liste"))
+        self.bouton_apercu.SetToolTip(_("Cliquez ici pour crÃ©er un aperÃ§u de la liste"))
         self.bouton_imprimer.SetToolTip(_("Cliquez ici pour imprimer la liste"))
         self.bouton_texte.SetToolTip(_("Cliquez ici pour exporter la liste au format Texte"))
         self.bouton_excel.SetToolTip(_("Cliquez ici pour exporter la liste au format Excel"))
         self.bouton_aide.SetToolTip(_("Cliquez ici pour obtenir de l'aide"))
-        self.bouton_nontrans.SetToolTip(_("Cliquez ici pour lancer le récap du non transféré en compta"))
+        self.bouton_nontrans.SetToolTip(_("Cliquez ici pour lancer le rÃ©cap du non transfÃ©rÃ© en compta"))
         self.bouton_fermer.SetToolTip(_("Cliquez ici pour fermer"))
         self.SetMinSize((800, 600))
 

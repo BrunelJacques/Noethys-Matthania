@@ -485,6 +485,7 @@ class ListView(FastObjectListView):
         from Dlg import DLG_Rattachement
         dlgRattach = DLG_Rattachement.Dialog(None, IDfamille=None)
         dataRattach = None
+        IDfamille = None
         if dlgRattach.ShowModal() == wx.ID_OK:
             dataRattach = dlgRattach.GetData()
             IDfamille = dlgRattach.GetIDfamille()

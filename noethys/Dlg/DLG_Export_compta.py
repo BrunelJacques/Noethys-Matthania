@@ -64,14 +64,16 @@ def FormateDate(dateDD=None, format="%d/%m/%y") :
     else :
         return dateDD.strftime(format)
 
-def GetKeysDictTries(dictValeurs={}, key=""):
+def GetKeysDictTries(dictValeurs=None, key=""):
     """ Renvoie une liste de keys de dictionnaire triés selon la sous key indiquée """
+    if not dictValeurs:
+        dictValeurs = {}
     listeKeys = []
     for ID, dictTemp in dictValeurs.items() :
         listeKeys.append((dictTemp[key], ID))
     listeKeys.sort()
     listeResultats = []
-    for keyTemp, ID in listeKeys() :
+    for keyTemp, ID in listeKeys :
         listeResultats.append(ID)
     return listeResultats
 
@@ -317,7 +319,6 @@ class XImportLine(object):
             str(self.coll)+\
             str(self.div2)
 
-
 def Export_compta_matt_delimite(ligne):
     """ Formate les lignes au format Matthania pseudo EBP Compta """
     dataTypes = dataTypesMatth
@@ -389,7 +390,9 @@ def Export_compta_EBP(ligne, numLigne):
 # ------- Fonctions de traitement des données  -------------------------------------------------------------------------
 
 class Donnees():
-    def __init__(self, dictParametres={}):
+    def __init__(self, dictParametres=None):
+        if not dictParametres:
+            dictParametres = {}
         self.date_debut = dictParametres["date_debut"]
         self.date_fin =dictParametres["date_fin"]
         self.dictParametres = dictParametres
@@ -398,8 +401,7 @@ class Donnees():
         # Premier contrôle idem aux accès facturation pour tout le non transféré
         dlgAttente = PBI.PyBusyInfo(_("Vérif cohérence du 'à transférer' ..."), parent=None, title=_("Veuillez patienter..."), icon=wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Logo.png"), wx.BITMAP_TYPE_ANY))
         wx.Yield()
-        gCoh = GestionCoherence.Diagnostic(self,None,inCpta=False, noInCpta=True,
-                                           params = self.dictParametres)
+        gCoh = GestionCoherence.Diagnostic(self,None,inCpta=False, noInCpta=True)
         self.coherent = gCoh.Coherence()
         del gCoh
         del dlgAttente
@@ -412,6 +414,7 @@ class Donnees():
             if dictParametres["export_reglements"] == True :
                 coherBqe = self.CoherenceBanques()
             self.coherent = coherVte and coherBqe
+
         self.nbreAttente = 0
         self.nbreDifferes = 0
         self.dictPC = {}
@@ -424,7 +427,10 @@ class Donnees():
 
     def CoherenceVentes(self):
         DB = GestionDB.DB()
-        dlgAttente = PBI.PyBusyInfo(_("Vérification de la cohérence des ventes..."), parent=None, title=_("Veuillez patienter..."), icon=wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Logo.png"), wx.BITMAP_TYPE_ANY))
+        dlgAttente = PBI.PyBusyInfo(_("Vérification de la cohérence des ventes..."),
+                                    parent=None, title=_("Veuillez patienter..."),
+                                    icon=wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Logo.png"),
+                                                   wx.BITMAP_TYPE_ANY))
         wx.Yield()
         if not self.dictParametres["retransfert"] :
             condTransfert = " AND ( prestations.compta IS NULL )"
@@ -558,6 +564,8 @@ class Donnees():
         comptesNull = DB.ResultatReq()
         self.dictArtCptNull={}
         self.dictArtLib = {}
+        compte = ''
+        record = ['','']
         for codeArticle, libelle in comptesNull:
             if not codeArticle in self.dictArtCptNull:
                 ok = False
@@ -577,6 +585,7 @@ class Donnees():
                             if compte != None:
                                 if len(compte) > 0 :
                                     ok = True
+                            break
                     if ok:
                         self.dictArtCptNull[codeArticle] = compte
                         self.dictArtLib[codeArticle] = record[1]
@@ -887,21 +896,27 @@ class Donnees():
 
                 journal = (self.dictParametres["journal_od_ventes"])
 
-                # recherche de compte compta
+                # la saisie du compte dans la prestation était manuelle(ancienne version)
+                if codeCptaPrest:
+                    codeCptaPrest = codeCptaPrest.strip(" 0")
+
+                # recherche de compte pour débits compteCpta
                 compteCpta = ""
                 if cptCptaPC:
-                    # priorité si la requête a trouvé le compte via le code dans prest
+                    # priorité si la requête a trouvé le compte via son code
                     compteCpta = cptCptaPC
-                elif codeCptaPrest.strip(" 0") in self.lstCptCptaPC:
-                    #cas de prestation avec numero au lieu de code de compte (ancienne version)
-                    compteCpta  = codeCptaPrest.strip(" 0")
+                elif codeCptaPrest in self.lstCptCptaPC:
+                    #cas de prestation avec numero au lieu de code de compte(ancienne version)
+                    compteCpta  = codeCptaPrest
                     codeCptaPrest = self.lstCodesCptaPC[self.lstCptCptaPC.index(compteCpta)]
-                if not compteCpta:
+                elif codeCptaPrest:
+                    # rattrapage si recherche échouée car compte saisie inconnu
                     try: # vérifie si c'est bien un compte avec radical numérique
                         i = int(codeCptaPrest[:3])
-                        compteCpta = codeCptaPrest.strip(" ") # on envoie quand même
+                        compteCpta = codeCptaPrest.strip(" 0") # on envoie quand même
                     except:
                         pass
+
                 if not compteCpta: # utilisation du compte par défaut défini en paramètres
                     if categorie[:3] == "don":
                         compteCpta = self.dictParametres["dons"]
@@ -922,9 +937,10 @@ class Donnees():
                         compteCpta = (compteCpta + "000")[:3] + analytique + compteCpta[5:]
                 if analytique:
                     label = "Act" + analytique + " %s"%label
-
+                if not codeCptaPrest:
+                    codeCptaPrest = compteCpta
                 # libellés (2 écritures + compte à créer éventuellement dans la compta)
-                libCompte = categorie + " " + codeCptaPrest
+                libCompte = categorie + " " + codeCptaPrest.strip('$')
                 codeCpt = codeCptaPrest[:4]
                 if len(codeCptaPrest)>4:
                     codeCpt += codeCptaPrest[-1] # conserve le dernier caracère
@@ -1137,7 +1153,7 @@ class Donnees():
                 if codeArticle == None:
                     codeArticle = "noArt."
                 date = str(date)
-                if codeCompte.lower().startswith("don"):
+                if codeCompte and codeCompte.lower().startswith("don"):
                     noPiece = "df" + str(noPiece)
                 else:
                     noPiece = str(noPiece)
@@ -1163,7 +1179,7 @@ class Donnees():
                     DB.Close()
                     del dlgAttente
                     return False
-                if compte == None :
+                if compte == None and hasattr(self,'dictArtCptNull') :
                     if codeArticle in self.dictArtCptNull:
                         compte = self.dictArtCptNull[codeArticle]
                         codeCompte = self.dictArtLib[codeArticle]
@@ -1215,7 +1231,8 @@ class Donnees():
                     if dictClients[(IDfamille,noPiece)]["cat"] == cat:
                         dictClients[(IDfamille,noPiece)]["montant"] += montant + mttTransp
                     else:
-                        GestionDB.MessageBox(None,"Le no de pièce %d est utilsé à la fois comme avoir et facture" % noPiece , titre="Anomalie à corriger")
+                        mess = f"Le no de pièce {noPiece} est utilsé à la fois comme avoir et facture"
+                        GestionDB.MessageBox(None,mess , titre="Anomalie à corriger")
                         dictClients[(IDfamille,noPiece)]["montant"] -= (montant + mttTransp)
                         DB.Close()
                         del dlgAttente
@@ -1570,6 +1587,7 @@ class CTRL_Codes(wxpg.PropertyGrid):
         couleurFond = "#e5ecf3"
         self.SetCaptionBackgroundColour(couleurFond)
         self.SetMarginColour(couleurFond)
+        intitule = ''
 
         # Remplissage des valeurs
         if keyStr == True:
@@ -1580,12 +1598,14 @@ class CTRL_Codes(wxpg.PropertyGrid):
                 if valeur == None: valeur = ""
                 propriete = wxpg.StringProperty(label=intitule, name=intitule, value=valeur)
                 self.Append(propriete)
-        else:
+
             for ID, dictValeurs in dictCodes.items():
                 valeur = dictValeurs["code_compta"]
                 if valeur == None: valeur = ""
-                if "label" in dictValeurs: intitule = dictValeurs["label"]
-                if "intitule" in dictValeurs: intitule = dictValeurs["intitule"]
+                if "label" in dictValeurs:
+                    intitule = dictValeurs["label"]
+                if "intitule" in dictValeurs:
+                    intitule = dictValeurs["intitule"]
                 propriete = wxpg.StringProperty(label=intitule, name=str(ID), value=valeur)
                 self.Append(propriete)
 
@@ -1611,7 +1631,8 @@ class CTRL_Codes(wxpg.PropertyGrid):
         return dictCodes
 
 class CTRL_Parametres(CTRL_Propertygrid.CTRL):#(wxpg.PropertyGrid) :
-    def __init__(self, parent, listeDonnees=[]):
+    def __init__(self, parent, listeDonnees=None):
+        if not listeDonnees: listeDonnees = []
         CTRL_Propertygrid.CTRL.__init__(self, parent)
         self.parent = parent
         self.listeDonnees = listeDonnees
@@ -1626,6 +1647,7 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL):#(wxpg.PropertyGrid) :
         # Autres lignes
         for valeur in self.listeDonnees :
             if type(valeur) == dict :
+                propriete = None
                 if valeur["cat"] == "chaine" :
                     propriete = wxpg.StringProperty(label=valeur["label"], name=valeur["code"], value=valeur["defaut"])
                 if valeur["cat"] == "choix" :
@@ -1633,7 +1655,8 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL):#(wxpg.PropertyGrid) :
                 if valeur["cat"] == "check" :
                     propriete = wxpg.BoolProperty(label=valeur["label"], name=valeur["code"], value=valeur["defaut"])
                     propriete.SetAttribute("UseCheckbox", True)
-                propriete.SetHelpString(valeur["tip"]) 
+                if propriete:
+                    propriete.SetHelpString(valeur["tip"])
                 self.Append(propriete)
             else :
                 self.Append(wxpg.PropertyCategory(valeur))
@@ -1724,8 +1747,8 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL):#(wxpg.PropertyGrid) :
         if os.path.isfile(cheminFichier) == True :
             dlg = wx.MessageDialog(None, _("Un fichier portant ce nom existe déjà. \n\nVoulez-vous le remplacer ?"), "Attention !", wx.YES_NO | wx.NO_DEFAULT | wx.ICON_EXCLAMATION)
             if dlg.ShowModal() == wx.ID_NO :
-                return False
                 dlg.Destroy()
+                return False
             else:
                 dlg.Destroy()
 

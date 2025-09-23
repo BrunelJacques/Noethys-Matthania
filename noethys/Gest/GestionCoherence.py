@@ -155,6 +155,7 @@ def GET_PARAMS_POINTEURS(dictPieces,dictPrestations,dictConsommations,dictInscri
 
         [dictPrestations,"IDfacture","IDfacture", dictFactures,"IDfacture"],
 
+        [dictFactures, "IDfacture","numero", dictPieces, "pieNoFacture"],
         [dictFactures,"IDfacture","total", dictFactures,"SUM(montant)"],
 
         [dictPrestations,"IDcontrat","IDcontrat", dictPieces,"pieIDnumPiece"],
@@ -184,13 +185,6 @@ def HarmonisationPiece(dPiece):
 
 class DiagDonnees():
     def __init__(self,DB,famille,**kw):
-        self.params = kw.pop("params",None)
-        self.conditionDate = None
-        try:
-            self.conditionDate = " BETWEEN '%s' and '%s'"%(self.params['date_debut'],
-                                    self.params['date_fin'])
-        except:
-            self.conditionDate = None
         self.withCompta = kw
         self.famille = famille
         self.DB = DB
@@ -273,13 +267,6 @@ class DiagDonnees():
             else: where = where1
         return where
 
-    def WhereDate(self,champ):
-        if not self.conditionDate:
-            whereDate = "TRUE"
-        else:
-            whereDate = "%s %s" % (champ,self.conditionDate)
-        return whereDate
-
     def WhereCompta(self,champ):
         # ni en compta ni à transférer
         if (self.withCompta["inCpta"] != True) and (self.withCompta["noInCpta"] != True):
@@ -331,15 +318,11 @@ class DiagDonnees():
         # Gestion du filtre pieces sur envoyé à la compta
         def setFiltrePieces():
             whereFamPay = self.WhereFamille("pieIDfamille","pieIDcompte_payeur")
-            whereDate = self.WhereDate("matPieces.pieDateModif")
             whereCptaFac = self.WhereCompta("matPieces.pieComptaFac")
             whereCptaAvo = self.WhereCompta("matPieces.pieComptaAvo")
             where = """
             WHERE (
                 (   %s
-                )
-                AND (
-                    %s
                 )
                 AND(
                     (%s)
@@ -347,7 +330,7 @@ class DiagDonnees():
                          AND ( pieNature = 'AVO')
                     )
                 )    
-            )"""%(whereFamPay,whereDate,whereCptaFac,whereCptaAvo)
+            )"""%(whereFamPay,whereCptaFac,whereCptaAvo)
             return where
         where = setFiltrePieces()
 
@@ -398,13 +381,11 @@ class DiagDonnees():
         # Gestion du filtre de prestations sur envoyé à la compta
         def setFiltrePrestations():
             whereFamille = self.WhereFamille("prestations.IDcompte_payeur")
-            whereDate = self.WhereDate("prestations.date")
             whereCompta = self.WhereCompta("prestations.compta")
             where = """
         WHERE(  (%s)
                 AND (%s)
-                AND (%s)
-        )"""%(whereFamille,whereDate,whereCompta)
+        )"""%(whereFamille,whereCompta)
             return where
             
         where = setFiltrePrestations()
@@ -430,14 +411,14 @@ class DiagDonnees():
         table = "factures"
         leftJoin = """
               LEFT JOIN prestations ON factures.IDfacture = prestations.IDfacture"""
-        lstChamps = ["factures.IDfacture","factures.IDcompte_payeur","factures.numero","factures.total",
-                     "SUM(prestations.montant)"]
-        groupBy = "GROUP BY %s"%(", ".join(lstChamps[:-1]))
+        lstChamps = ["factures.IDfacture","factures.IDcompte_payeur","factures.numero",
+                     "factures.total","SUM(prestations.montant)","MAX(prestations.IDprestation)"]
+        groupBy = "GROUP BY %s"%(", ".join(lstChamps[:-2]))
 
         # Gestion du filtre de factures sur liste venant des  prestations
         def setFiltreFactures():
             whereFamille = self.WhereFamille("factures.IDcompte_payeur")
-            whereDate = self.WhereDate("prestations.date")
+            condOrphan = "prestations.IDprestation IS NULL"
 
             if len(self.lstIDfactures) > 0:
                 condID = "(factures.IDfacture in (%s))"%str(self.lstIDfactures)[1:-1]
@@ -445,14 +426,15 @@ class DiagDonnees():
             if len(self.lstNoFactures) > 0:
                 condNo = "(numero in (%s))"%str(self.lstNoFactures)[1:-1]
             else: condNo = True
-            where = """
-            WHERE   (%s)
-                    AND (%s)
-                    AND ( 
-                            (%s)
-                            OR
-                            (%s)
-                        )"""%(whereFamille,whereDate,condID,condNo)
+            where = f"""
+            WHERE   ({whereFamille})
+                AND ( 
+                    ({condOrphan})
+                    OR
+                    ({condID})
+                    OR
+                    ({condNo})
+                )"""
             return where
         where = setFiltreFactures()
 
@@ -523,11 +505,11 @@ class DiagDonnees():
         dictPieces, dictPiecesMax = self.GetMatPieces()
         if self.echecGet != "ok": return self.echecGet
         if not self.famille:
-            attente = wx.BusyInfo("Lecture prestations...")
+            attente = wx.BusyInfo("Vérif cohérence: Lecture prestations...")
         dictPrestations = self.GetPrestations()
         if self.echecGet != "ok": return self.echecGet
         if not self.famille:
-            attente = wx.BusyInfo("Lecture factures...")
+            attente = wx.BusyInfo("Vérif cohérence: Lecture factures...")
         dictFactures,dictNumeros = self.GetFactures()
         if self.echecGet != "ok": return self.echecGet
         if not self.famille:
@@ -542,9 +524,8 @@ class DiagDonnees():
 
 # Diagnostic de cohérence des données principales de facturation
 class Diagnostic():
-    def __init__(self,parent,famille,inCpta=False,noInCpta=True,mute=True,params=None):
-        kw = {"inCpta": inCpta,"noInCpta":noInCpta,"params":params}
-        self.params = params
+    def __init__(self,parent,famille,inCpta=False,noInCpta=True,mute=True):
+        kw = {"inCpta": inCpta,"noInCpta":noInCpta}
         if not hasattr(parent,"fGest") :
             mute = False
             self.DB = GestionDB.DB() # on ne fermera pas DB car lancement manuel
@@ -940,18 +921,34 @@ class Diagnostic():
         if ret == "ok": return True
 
     def RebuildFacture(self,IDfamille,dLigne):
-        if (not dLigne["table"] == "factures") or (not dLigne["champCible"] == "SUM(montant)"):
-            raise Exception("Pb d'itineraire: %s"%str(dLigne))
-        # appel des pièces de la facture pour vérif du montant attendu
         mess = "DLGFactPiece.RebuildFacture"
         dFact = self.dictFactures[IDfamille]["dictDon"][dLigne["ID"]]
-        ddPieces = self.dictPieces[IDfamille]["dictDon"]
-        mttPieces = 0.0
-        for IDnumPiece, dPiece in ddPieces.items():
-            if dPiece["pieNoFacture"] == dFact["numero"] or dPiece["pieNoAvoir"] == dFact["numero"]:
-                mttPieces += dPiece["montant"]
-        if mttPieces == dFact["SUM(montant)"]:
-            return self.ReqMAJ(dLigne,"factures",[("total",mttPieces),],"IDfacture",dLigne["ID"],MsgBox=mess)
+        if not (dLigne["table"] == "factures"):
+            raise Exception("Pb d'itineraire: %s" % str(dLigne))
+
+        if (dLigne["champCible"] == "SUM(montant)"):
+            # appel des pièces de la facture pour vérif du montant attendu
+            ddPieces = self.dictPieces[IDfamille]["dictDon"]
+            mttPieces = 0.0
+            for IDnumPiece, dPiece in ddPieces.items():
+                if dPiece["pieNoFacture"] == dFact["numero"] or dPiece["pieNoAvoir"] == dFact["numero"]:
+                    mttPieces += dPiece["montant"]
+            if mttPieces == dFact["SUM(montant)"]:
+                return self.ReqMAJ(dLigne,"factures",[("total",mttPieces),],
+                                   "IDfacture",dLigne["ID"],MsgBox=mess)
+        if ((dLigne["tblCible"] == "matPieces")
+                and dLigne["champCible"].startswith("pieNo")
+                and dLigne["table"] == "factures"):
+            # la facture n'étant plus dans matPieces, vérif dans les prestations
+            ok = False
+            dfacture =  self.dictFactures[IDfamille]["dictDon"][dLigne["ID"]]
+            if not dfacture["MAX(IDprestation)"]:
+                # aucune prestation même en compta ne pointe cette facture
+                ok = True
+            if ok:
+                ret = self.ReqDEL(dLigne,"factures","IDfacture",dLigne["ID"],mess)
+                return ret
+        return False
 
     def RebuildInscription(self,IDfamille,dLigne):
         # Appel des tables en relation
@@ -1146,7 +1143,7 @@ class Diagnostic():
                 continue
             # récupération dans 'corr' du résultat de la tentative de correction
             corr = fn(self,IDfamille,dLigne)
-            if corr:
+            if corr == True:
                 # stockage de la dernière ligne du message d'anomalie enrichi de l'action de correction
                 comm = dLigne["mess"].split("\n")[-1]
                 self.fGest.Historise(None,IDfamille,"MiseEnCoherence",comm)
@@ -1370,10 +1367,14 @@ class Diagnostic():
 
             # -------------------------- Cohérence des pointeurs principaux --------------------------------------------
             for IDfamille, ddTblOrig in dddTblOrig.items():
+                # pour chaque famille
                 if IDfamille == "nomTable": continue
                 if IDfamille in dddTblCible:
                     tblCible = dddTblCible[IDfamille]
-                else: tblCible = None
+                else:
+                    tblCible = None
+
+                # pour chaque ligne dans l'origine
                 for ID, dict in ddTblOrig["dictDon"].items():
                     # définit la clé cible
                     if cleOrig:
@@ -1432,9 +1433,9 @@ class Diagnostic():
                     if pieNivFamille and (champCible in ("IDactivite","IDcategorie_tarif")):
                         continue
                     # exception pour les prestations absentes des devis et reservations
-                    if nomCible == "prestations" and dict["pieNature"] in ("DEV","RES"):
-                        continue
-
+                    if "pieNature" in dict: # Il s'agit de pièces pour la cible
+                        if nomCible == "prestations" and dict["pieNature"] in ("DEV","RES"):
+                            continue
                     # exception pour les consos dont l'IDprestation n'est pas dans la pièce désignée par IDcontrat
                     if nomOrig == "prestations":
                         if champCible == "pieIDprestation":
@@ -1515,6 +1516,20 @@ class Diagnostic():
                         if IDinscription in self.dictPiecesMax:
                             IDmax = self.dictPiecesMax[dict["pieIDinscription"]]
                             if ID != IDmax: continue
+                    # exception pour recherche de factures.numero dans pièces
+                    if nomCible == "matPieces" and champCible.startswith("pieNo"):
+                        ok = False
+                        if tblCible and "dictDon" in tblCible:
+                            for ix,piece in tblCible["dictDon"].items():
+                                if attendu == piece["pieNoFacture"] or attendu == piece["pieNoAvoir"]:
+                                    ok = True
+                                    break
+                        if not ok:
+                            mess = f"NoFacture ou Avoir {attendu} non trouvé dans {nomCible}"
+                            mess += f"pourtant présent dans {nomOrig}"
+                            ajoutAnomalie("NoFact", None, attendu,mess)
+                        continue
+
                     # ---- Fin des exceptions - analyse des accès -----------------------------------------------------
                     if not dictCible:
                         if not tblCible:
@@ -1691,5 +1706,5 @@ class DLG_Diagnostic():
 
 if __name__ == '__main__':
     app = wx.App(0)
-    f = DLG_Diagnostic(OneFamille=169)
+    f = DLG_Diagnostic(OneFamille=8025)
     print((f.coherence))

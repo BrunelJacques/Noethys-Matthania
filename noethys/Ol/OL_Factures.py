@@ -684,6 +684,8 @@ class ListView(FastObjectListView):
     def Supprimer(self, event):
         if self.IDcompte_payeur != None and UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_factures", "supprimer") == False : return
         if self.IDcompte_payeur == None and UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("facturation_factures", "supprimer") == False : return
+
+
         # Avertissements
         dlg = wx.MessageDialog(self, _("Passez par FACTURATION ou par INSCRIPTION pour gérer des avoirs"), _("Refus"), wx.CANCEL|wx.ICON_INFORMATION)
         dlg.ShowModal()
