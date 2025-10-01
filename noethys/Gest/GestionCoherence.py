@@ -366,7 +366,7 @@ class DiagDonnees():
                 # l'IDinscription pour la famille (IDindividu == 0) est l'année, ce n'est pas un ID
                 if dPiece["pieIDindividu"] > 0:
                     self.lstIDinscriptions.append(dPiece["pieIDinscription"])
-                # harmonisation utile pour comparer les familles lors des test pointeurs
+                # harmonisation utile pour comparer les familles lors des tests pointeurs
                 HarmonisationPiece(dPiece)
         return dictPieces,dictPiecesMax
 
@@ -419,22 +419,24 @@ class DiagDonnees():
         def setFiltreFactures():
             whereFamille = self.WhereFamille("factures.IDcompte_payeur")
             condOrphan = "prestations.IDprestation IS NULL"
-
+            whereCompta = self.WhereCompta("prestations.compta")
             if len(self.lstIDfactures) > 0:
-                condID = "(factures.IDfacture in (%s))"%str(self.lstIDfactures)[1:-1]
+                condID = f"(factures.IDfacture in ({str(self.lstIDfactures)[1:-1]}))"
             else: condID = True
             if len(self.lstNoFactures) > 0:
-                condNo = "(numero in (%s))"%str(self.lstNoFactures)[1:-1]
+                condNo = f"(numero in ({str(self.lstNoFactures)[1:-1]}))"
             else: condNo = True
             where = f"""
             WHERE   ({whereFamille})
+                AND ({whereCompta})
                 AND ( 
                     ({condOrphan})
                     OR
                     ({condID})
                     OR
-                    ({condNo})
-                )"""
+                    ({condNo}))
+                AND (prestations.montant <> 0)
+                """
             return where
         where = setFiltreFactures()
 
@@ -1646,17 +1648,6 @@ class Diagnostic():
             (self.dictPieces,self.dictPrestations,self.dictFactures,
              self.dictNumeros,self.dictConsommations,self.dictInscriptions,self.dictPiecesMax) = lstTables
             ret = "ok"
-        # pour tests de bonne lecture des tables
-        """
-        for table in lstTables:
-            idfam = 1673
-            if 'nomTable' in table:
-                print(table['nomTable'])
-            else: print('xxxxxx')
-            if idfam in table:
-                print(len(table[idfam]['dictDon']),table[idfam]['dictDon'].keys())
-            print("-------")
-        """
         return ret# fin GetDonnees
 
     # confirmation si demande de l'ensemble (risque de lenteur)
@@ -1706,5 +1697,5 @@ class DLG_Diagnostic():
 
 if __name__ == '__main__':
     app = wx.App(0)
-    f = DLG_Diagnostic(OneFamille=8025)
+    f = DLG_Diagnostic(OneFamille=3993)
     print((f.coherence))
