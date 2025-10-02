@@ -231,6 +231,7 @@ class Forfaits():
             self.DB = DB
         self.user = self.DB.UtilisateurActuel()
         self.fGest = self
+        self.dictPiece = {}
         
     def GetActivite(self,IDactivite):
         # Données de l'activité avec liste des unités, groupes auant des dates d'ouverture

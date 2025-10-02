@@ -10,7 +10,6 @@
 import wx
 import GestionDB
 import GestionInscription
-import GestionPieces as fGest
 from Data import DATA_Tables
 
 def Nz(valeur):
@@ -762,6 +761,7 @@ class Diagnostic():
         lstChamps = ("IDcompte_payeur","IDindividu","IDactivite","IDgroupe","IDcategorie_tarif")
         req = "SELECT %s FROM inscriptions WHERE IDinscription = %d"%(", ".join(lstChamps),IDinscription)
         ret = self.DB.ExecuterReq(req,MsgBox="DLG_FacturationPieces.SynchroInscrToConsos")
+        inscription = []
         if ret == "ok":
             recordset = self.DB.ResultatReq()
             if len(recordset)>0:
@@ -803,7 +803,6 @@ class Diagnostic():
     def CheckPrestationToFacture(self,dLigne):
         if dLigne["table"] != "prestations" or dLigne["cleOrig"] != "IDfacture":
             raise Exception("Pb d'itineraire: %s"%str(dLigne))
-            return False
         IDfamille = dLigne["IDfamille"]
         mess = "DLG_FacturationPieces.CheckPrestationToFacture"
         dPrest = DATA_Tables.GetDictRecord(self.DB,"prestations",dLigne["ID"],mess)
@@ -815,7 +814,6 @@ class Diagnostic():
     def CheckPrestationToPiece(self,dLigne):
         if dLigne["table"] != "prestations" or dLigne["cleOrig"] != "IDcontrat":
             raise Exception("Pb d'itineraire: %s"%str(dLigne))
-            return False
         IDfamille = dLigne["IDfamille"]
         # prestation orpheline de sa piece
         mess = "DLGFacPie.Corr_ptnPrinc GetDdRecords prestations"
@@ -985,6 +983,8 @@ class Diagnostic():
             dPiece = self.dictPieces[IDfamille]["dictDon"][dLigne["ID"]]
             IDprestation = dPiece["pieIDprestation"]
             dPrestation = self.dictPrestations[IDfamille]["dictDon"][IDprestation]
+        else:
+            return False
         if dPrestation["compta"] == None:
             # traitement du montant
             if dLigne["champ"] == "montant" and len(dPiece) > 0:
@@ -1079,19 +1079,19 @@ class Diagnostic():
                 recordset = self.DB.ResultatReq()
                 # récupére les données trouvées qui iront dans dLigne
                 for altIDfam,   ltIDinscr in recordset:
-                    altIDinscr
+                    altIDinscr = ltIDinscr
                     continue
             return altIDinscr
         if (len(dCons) > 0) and  (len(dInscr) == 0):
             altIDinscr = rechercheFloueInscription()
             if not altIDinscr:
                 # pas d'inscription alternative Consos orphelines à supprimer
-                return fGest.DelConsommations({"IDinscription":IDinscription})
+                return self.fGest.DelConsommations({"IDinscription":IDinscription})
             else:
                 # on raccroche les consos orphelines sur l'activité veuve
                 dictDonnees = DATA_Tables.GetDictRecord(self.DB,"inscriptions",altIDinscr,mess + "3")
                 dLigne["mess"] += "\nModifeConsos pour inscription '%s'"%(dLigne["IDinscription"])
-                return self.fGest.ModifieConsommations(self.dictDonnees,fromInscr=IDinscription)
+                return self.fGest.ModifieConsommations(dictDonnees,fromInscr=IDinscription)
 
         # les consos match une inscription: définit l'attendu
         if dInscr["parti"] == 1:
@@ -1300,7 +1300,7 @@ class Diagnostic():
                     testPointeur(ID,dictPiece,"pieIDprestation",["COM","FAC","AVO"])
                     testPointeur(ID,dictPiece,"pieNoFacture",["FAC","AVO"])
                     testPointeur(ID,dictPiece,"pieNoAvoir",["AVO",])
-                    testPointeur(ID,dictPiece,"pieIDinscription",None)
+                    testPointeur(ID,dictPiece,"pieIDinscription", [])
             return "ok"
             # fin pointeursSelonNaturePiece
 
@@ -1687,8 +1687,10 @@ class DLG_Diagnostic():
         self.fGest = GestionInscription.Forfaits(self,self.DB)
         if reponse == 0:
             diag = Diagnostic(self,OneFamille,inCpta=False,noInCpta=True,mute=False)
-        if reponse == 1:
+        elif reponse == 1:
             diag = Diagnostic(self,OneFamille,inCpta=True,noInCpta=True,mute=False)
+        else:
+            diag = None
         if reponse in (0,1):
             self.coherence = diag.Coherence()
             del diag
