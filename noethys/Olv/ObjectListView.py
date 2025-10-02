@@ -3766,7 +3766,7 @@ class ColumnDefn(object):
         try:
             return fmt % value
         except UnicodeError:
-            return unicode(fmt) % value
+            return str(fmt) % value
 
     def GetGroupKey(self, modelObject):
         """
@@ -4221,7 +4221,7 @@ class BatchedUpdate(object):
 
         self.objectsToRefresh.extend(modelObjects)
 
-    def RemoveObject(self, modelObjects):
+    def RemoveObject(self, modelObject):
         """
         Remember the given model objects so that they can be removed when the next update cycle occurs
         """

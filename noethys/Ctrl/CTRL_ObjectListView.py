@@ -300,7 +300,8 @@ class ObjectListView(OLV.ObjectListView):
 
         # DLG de la configuration de listes
         from Dlg import DLG_Configuration_listes
-        dlg = DLG_Configuration_listes.Dialog(self, colonnes_dispo=colonnes_dispo, colonnes_defaut=colonnes_defaut, colonnes_selection=colonnes_selection)
+        dlg = DLG_Configuration_listes.Dialog(self, listeDonnees=colonnes_dispo,
+                                              listeDonneesDefaut=colonnes_defaut)
         if dlg.ShowModal() == wx.ID_OK:
             listeColonnesSelection = dlg.GetSelections(mode="dict")
             dlg.Destroy()

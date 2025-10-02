@@ -180,7 +180,7 @@ class Dialog(wx.Dialog):
     def Dernier(self, event):
         self.Deplacer("dernier")
 
-    def Deplacer(self, deplacement=-1):
+    def Deplacer(self, deplacement=None):
         index = self.ctrl_colonnes.GetSelection()
         if index == wx.NOT_FOUND :
             return
