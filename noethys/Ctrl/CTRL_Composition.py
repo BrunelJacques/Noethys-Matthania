@@ -1834,7 +1834,7 @@ class CTRL_Liste(HTL.HyperTreeList):
                 if dictIndividu["titulaire"] == 1 : 
                     nbreTitulaires += 1
             if nbreTitulaires == 1 :
-                dlg = wx.MessageDialog(self, _("Vous devez avoir au moins un titulaire de dossier dans une famille !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
+                dlg = wx.MessageDialog(self, _("Vous devez avoir un titulaire de dossier dans une famille !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
                 return   

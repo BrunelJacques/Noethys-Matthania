@@ -367,15 +367,15 @@ def GetTitulaires(listeIDfamille=[], mode_adresse_facturation=False,
     for IDfamille, dictFamille in dictFamilles.items():
         # Il y a au moins un titulaire rattaché à la famille
         if IDfamille in dictRattachements:
-            listeIndividusFamilles = dictRattachements[IDfamille]
+            listeRattachementsFamille = dictRattachements[IDfamille]
             listeTitulaires = []
             nbreTitulaires = 0
             IDolderInd = 0
-            NaissanceOlder = "9999-99-99"
+            NaissanceOlder = "0000-00-00"
             listeMembres = []
 
             # constitution d'un dictTitulaires
-            for IDrattachement, IDindividuTmp, IDfamilleTmp, IDcategorie, titulaire in listeIndividusFamilles:
+            for IDrattachement, IDindividuTmp, IDfamilleTmp, IDcategorie, titulaire in listeRattachementsFamille:
                 if IDindividuTmp in dictIndividus:
                     listeMembres.append(IDindividuTmp)
                     if not dictIndividus[IDindividuTmp]["date_naiss"]:
@@ -483,6 +483,8 @@ def GetTitulaires(listeIDfamille=[], mode_adresse_facturation=False,
                 dictFamille["nom"] = dictFamille["designation"]
                 designation = dictFamille["designation"]
                 (civilite, nom) = CutCivilite(designation)
+                if not listeTitulaires:
+                    print()
                 nomsTitulaires = {
                     "IDcivilite": listeTitulaires[0]["IDcivilite"],
                     "sansCivilite": nom,

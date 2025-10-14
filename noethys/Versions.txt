@@ -1,3 +1,6 @@
+version 1.3.3.25 (14/10/2025)
+- Correction bug en cas de aucun titulaire dans une famille
+
 version 1.3.3.24 (01/10/2025)
 - Cohérence facturation: correction d'alertes faux-positif
 
