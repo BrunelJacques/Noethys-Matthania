@@ -28,7 +28,6 @@ class Dialog(wx.Dialog):
         titre = _("Liste des factures")
         self.SetTitle(titre)
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Facture.png")
-
         self.ctrl_factures = CTRL_Liste_factures.CTRL(self)
         
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -37,18 +36,26 @@ class Dialog(wx.Dialog):
 
         self.__set_properties()
         self.__do_layout()
-        
-        self.Bind(wx.EVT_BUTTON, self.OnBoutonAide, self.bouton_aide)
-        self.Bind(wx.EVT_BUTTON, self.OnBoutonRecap, self.bouton_recap)
 
-        # Init contrôles
-        self.ctrl_factures.MAJ() 
+        # Schedule __calledAfter to run once the dialog is idle (i.e., shown)
+        wx.CallAfter(self.__calledAfter)
+
+    def __calledAfter(self):
+        self.ctrl_factures.MAJ()
+        mess = "Pas de liste sans un filtre!\n\n"
+        mess += "Pour éviter une liste trop longue, posez au moins un filtre pour préciser votre besoin"
+        dlg = wx.MessageDialog(self,mess,"Préalable nécessaire", wx.OK | wx.ICON_INFORMATION)
+        dlg.ShowModal()
+        dlg.Destroy()
 
     def __set_properties(self):
         self.bouton_aide.SetToolTip(wx.ToolTip(_("Cliquez ici pour obtenir de l'aide")))
         self.bouton_recap.SetToolTip(wx.ToolTip(_("Cliquez ici pour imprimer un récapitulatif des factures cochées dans la liste")))
         self.bouton_fermer.SetToolTip(wx.ToolTip(_("Cliquez ici pour fermer")))
         self.SetMinSize((930, 700))
+
+        self.Bind(wx.EVT_BUTTON, self.OnBoutonAide, self.bouton_aide)
+        self.Bind(wx.EVT_BUTTON, self.OnBoutonRecap, self.bouton_recap)
 
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)

@@ -980,6 +980,8 @@ class PanelAvecFooter(wx.Panel):
         sizerbase.Add(self.ctrl_footer, 0, wx.ALL|wx.EXPAND, 0)
         self.SetSizer(sizerbase)
         self.Layout()
+        self.donnees = []
+
         
     def GetListview(self):
         return self.ctrl_listview

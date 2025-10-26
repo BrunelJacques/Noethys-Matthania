@@ -103,11 +103,8 @@ class ListView(FastObjectListView):
         # Binds perso
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnActivated)
         self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
-        self.donnees = []
-        self.InitObjectListView()
-        self.SetEmptyListMsg("Choisissez au moins un filtre pour afficher des factures")
-        self.stEmptyListMsg.Show(True)
-    
+
+
     def SetIDcompte_payeur(self, IDcompte_payeur=None):
         self.IDcompte_payeur = IDcompte_payeur
         
@@ -471,7 +468,7 @@ class ListView(FastObjectListView):
             if self.checkColonne == True : tri += 1
             self.SetSortColumn(self.columns[tri])
 
-        self.SetEmptyListMsg("Aucune facture")
+        self.SetEmptyListMsg("Aucune facture selectionnée, posez un filtre plus large")
         self.SetEmptyListMsgFont(wx.FFont(11, wx.DEFAULT, False, "Tekton"))
         self.SetObjects(self.donnees)
         self.stEmptyListMsg.Show(len(self.donnees) == 0)
