@@ -229,7 +229,7 @@ class Dialog(wx.Dialog):
         # Boutons de commande
         self.bouton_outils = CTRL_Bouton_image.CTRL(self, texte=_("Outils"), cheminImage=Chemins.GetStaticPath("Images/32x32/Configuration.png"))
         self.bouton_consommations = CTRL_Bouton_image.CTRL(self, texte=_("Consommations"), cheminImage=Chemins.GetStaticPath("Images/32x32/Calendrier.png"))
-		#JB ajout bouton facturation
+        #JB ajout bouton facturation
         self.bouton_famille = CTRL_Bouton_image.CTRL(self, texte=_("Famille"), cheminImage=Chemins.GetStaticPath("Images/32x32/Calculatrice.png"))
         self.bouton_facturation = CTRL_Bouton_image.CTRL(self, texte=_("Facturation"), cheminImage=Chemins.GetStaticPath("Images/32x32/Calculatrice.png"))
         self.bouton_saisie_reglement = CTRL_Bouton_image.CTRL(self, texte=_("Saisir un règlement"), cheminImage=Chemins.GetStaticPath("Images/32x32/Reglement.png"))
@@ -912,8 +912,7 @@ if __name__ == "__main__":
     heure_debut = time.time()
     # ramel 567; perez marc 1724; bartoOliv 1861; branco 4499;  bourrel 6191
     #7735 parrainage; 8107 multifactures; 709 Brunel jacques
-    dialog_1 = Dialog(None, IDfamille=10123
-                      )
+    dialog_1 = Dialog(None, IDfamille=8776)
     print("Temps de chargement fiche famille =", time.time() - heure_debut)
     app.SetTopWindow(dialog_1)
 

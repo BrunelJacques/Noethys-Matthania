@@ -17,13 +17,13 @@ import datetime
 
 from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
 
-from Utils import UTILS_Titulaires
 from Utils import UTILS_Dates
 from Utils import UTILS_Utilisateurs
 from Utils import UTILS_Config
+
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 
-from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, CTRL_Outils, PanelAvecFooter
+from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, PanelAvecFooter
 
 class Track(object):
     def __init__(self, donnees):
@@ -46,52 +46,47 @@ class Track(object):
         if self.etat == "annulation" :
             self.soldeActuel = None
         self.IDfamille = donnees["IDfamille"]
-        self.nomsTitulaires =  donnees["titulaires"]
-        self.IDlot =  donnees["IDlot"]
-        self.nomLot =  donnees["nomLot"]
-        self.adresse_famille = donnees["adresse_famille"]
-        self.titulaire_helios = donnees["titulaire_helios"]
-        
-        
-        # Prélèvement
-        self.prelevement_activation =  donnees["prelevement_activation"]
-        self.prelevement_etab =  donnees["prelevement_etab"]
-        self.prelevement_guichet =  donnees["prelevement_guichet"]
-        self.prelevement_numero =  donnees["prelevement_numero"]
-        self.prelevement_cle =  donnees["prelevement_cle"]
-        self.prelevement_banque =  donnees["prelevement_banque"]
-        self.prelevement_individu =  donnees["prelevement_individu"]
-        self.prelevement_nom =  donnees["prelevement_nom"]
-        self.prelevement_rue =  donnees["prelevement_rue"]
-        self.prelevement_cp =  donnees["prelevement_cp"]
-        self.prelevement_ville =  donnees["prelevement_ville"]
-        self.prelevement_cle_iban =  donnees["prelevement_cle_iban"]
-        self.prelevement_iban =  donnees["prelevement_iban"]
-        self.prelevement_bic =  donnees["prelevement_bic"]
-        self.prelevement_reference_mandat =  donnees["prelevement_reference_mandat"]
-        self.prelevement_date_mandat =  donnees["prelevement_date_mandat"]
+        self.compta =  donnees["compta"]
+        self.nomFamille = donnees["nomFamille"]
+        self.nomPayeur = donnees["nomFamille"]
+        if self.nomPayeur == None: self.nomPayeur = ""
 
-        if self.prelevement_activation == 1 :
-            self.prelevement = True
-        else :
-            self.prelevement = False
-        
-        self.nomPayeur = donnees["nomPayeur"]
-        self.prenomPayeur = donnees["prenomPayeur"]
-        if self.nomPayeur == None : self.nomPayeur = ""
-        if self.prenomPayeur == None : self.prenomPayeur = ""
-        if self.prelevement_individu == None :
-            self.prelevement_payeur = self.prelevement_nom
-        else :
-            self.prelevement_payeur = "%s %s" % (self.nomPayeur, self.prenomPayeur)
-        
-        # Envoi par Email
-        self.email_factures =  donnees["email_factures"]
-        
-        if self.email_factures != None :
-            self.email = True
-        else :
-            self.email = False
+        if "prelevement_activation" in donnees:
+            # Prélèvement
+            self.prelevement_activation =  donnees["prelevement_activation"]
+            self.prelevement_etab =  donnees["prelevement_etab"]
+            self.prelevement_guichet =  donnees["prelevement_guichet"]
+            self.prelevement_numero =  donnees["prelevement_numero"]
+            self.prelevement_cle =  donnees["prelevement_cle"]
+            self.prelevement_banque =  donnees["prelevement_banque"]
+            self.prelevement_individu =  donnees["prelevement_individu"]
+            self.prelevement_nom =  donnees["prelevement_nom"]
+            self.prelevement_rue =  donnees["prelevement_rue"]
+            self.prelevement_cp =  donnees["prelevement_cp"]
+            self.prelevement_ville =  donnees["prelevement_ville"]
+            self.prelevement_cle_iban =  donnees["prelevement_cle_iban"]
+            self.prelevement_iban =  donnees["prelevement_iban"]
+            self.prelevement_bic =  donnees["prelevement_bic"]
+            self.prelevement_reference_mandat =  donnees["prelevement_reference_mandat"]
+            self.prelevement_date_mandat =  donnees["prelevement_date_mandat"]
+
+            if self.prelevement_activation == 1 :
+                self.prelevement = True
+            else :
+                self.prelevement = False
+
+            if self.prelevement_individu == None :
+                self.prelevement_payeur = self.prelevement_nom
+            else :
+                self.prelevement_payeur = "%s %s" % (self.nomPayeur, self.prenomPayeur)
+
+            # Envoi par Email
+            self.email_factures =  donnees["email_factures"]
+
+            if self.email_factures != None :
+                self.email = True
+            else :
+                self.email = False
 
 class ListView(FastObjectListView):
     def __init__(self, *args, **kwds):
@@ -108,6 +103,10 @@ class ListView(FastObjectListView):
         # Binds perso
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnActivated)
         self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
+        self.donnees = []
+        self.InitObjectListView()
+        self.SetEmptyListMsg("Choisissez au moins un filtre pour afficher des factures")
+        self.stEmptyListMsg.Show(True)
     
     def SetIDcompte_payeur(self, IDcompte_payeur=None):
         self.IDcompte_payeur = IDcompte_payeur
@@ -116,14 +115,17 @@ class ListView(FastObjectListView):
         self.Reedition(None)
 
     def InitModel(self):
-        self.donnees = self.GetTracks()
+        if self.filtres or self.IDcompte_payeur:
+            self.donnees = self.GetTracks()
+        else:
+            self.donnees = []
     
     def SetFiltres(self, filtres=None):
         """
         None ->                     filtre = None
         IDfacture_intervalle ->  filtre = {"type" : "IDfacture_intervalle", "IDfacture_min" : 22, "IDfacture_max" : 28}
         IDfacture_liste ->         filtre = {"type" : "IDfacture_liste", "liste" : [10, 300, 20] }
-        Lot de factures ->        filtre = {"type" : "lot", "IDlot" : 22}
+        Compta           ->        filtre = {"type" : "cpta", "IDcpta" : 22}
         Date d'émission ->      filtre = {"type" : "date_emission", "date_debut" : ___, "date_fin" : ___}
         Date d'échéance ->      filtre = {"type" : "date_echance", "date_debut" : ___, "date_fin" : ___}
         numero_intervalle ->    filtre = {"type" : "numero_intervalle", "numero_min" : 210, "numero_max" : 215}
@@ -132,147 +134,154 @@ class ListView(FastObjectListView):
         self.filtres = filtres
 
     def GetListeFactures(self):
-        dictTitulaires = UTILS_Titulaires.GetTitulaires([self.IDcompte_payeur,])
-
         DB = GestionDB.DB()
         
         # Conditions
-        listeConditions = []
-        
-        if self.IDcompte_payeur != None :
-            listeConditions.append("prestations.IDcompte_payeur = %d" % self.IDcompte_payeur)
+        lstConditions = []
+        lstPrestCond =[]
+
+        if self.IDcompte_payeur:
+            lstConditions.append("prestations.IDcompte_payeur = %d" % self.IDcompte_payeur)
         
         # 1ère série de filtres
-        if self.filtres != None :
+        if self.filtres:
             for filtre in self.filtres :
             
                 # IDfacture_intervalle
                 if filtre["type"] == "IDfacture_intervalle" :
-                    listeConditions.append( "(factures.IDfacture>=%d AND factures.IDfacture<=%d)" % (filtre["IDfacture_min"], filtre["IDfacture_max"]) )
+                    lstConditions.append( "(factures.IDfacture>=%d AND factures.IDfacture<=%d)" % (filtre["IDfacture_min"], filtre["IDfacture_max"]) )
 
                 # IDfacture_liste
                 if filtre["type"] == "IDfacture_liste" :
                     if len(filtre["liste"]) == 0 : listeTemp = "()" 
                     elif len(filtre["liste"]) == 1 : listeTemp = "(%d)" % filtre["liste"][0]
                     else : listeTemp = str(tuple(filtre["liste"]))
-                    listeConditions.append( "factures.IDfacture IN %s" % listeTemp)
+                    lstConditions.append( "factures.IDfacture IN %s" % listeTemp)
 
-                # Lot de factures
-                if filtre["type"] == "lot" :
-                    listeConditions.append( "factures.IDlot=%d" % filtre["IDlot"] )
+                # Situation comptable
+                if filtre["type"] == "cpta" and filtre["IDcpta"] > 0:
+                    if filtre["IDcpta"] == 2:
+                        cond = " is NULL"
+                    else: cond = " > 0 "
+                    lstPrestCond.append("prestations.compta %s" %(cond))
             
                 # Date d'émission
                 if filtre["type"] == "date_emission" :
-                    listeConditions.append( "(factures.date_edition>='%s' AND factures.date_edition<='%s')" % (filtre["date_min"], filtre["date_max"]) )
+                    lstConditions.append( "(factures.date_edition>='%s' AND factures.date_edition<='%s')" % (filtre["date_min"], filtre["date_max"]) )
 
                 # Date d'échéance
                 if filtre["type"] == "date_echeance" :
-                    listeConditions.append( "(factures.date_echeance>='%s' AND factures.date_echeance<='%s')" % (filtre["date_min"], filtre["date_max"]) )
+                    lstConditions.append( "(factures.date_echeance>='%s' AND factures.date_echeance<='%s')" % (filtre["date_min"], filtre["date_max"]) )
 
                 # numero_intervalle
                 if filtre["type"] == "numero_intervalle" :
-                    listeConditions.append( "(factures.numero>=%d AND factures.numero<=%d)" % (filtre["numero_min"], filtre["numero_max"]) )
+                    lstConditions.append( "(factures.numero>=%d AND factures.numero<=%d)" % (filtre["numero_min"], filtre["numero_max"]) )
 
                 # numero_liste
                 if filtre["type"] == "numero_liste" :
                     if len(filtre["liste"]) == 0 : listeTemp = "()" 
                     elif len(filtre["liste"]) == 1 : listeTemp = "(%d)" % filtre["liste"][0]
                     else : listeTemp = str(tuple(filtre["liste"]))
-                    listeConditions.append( "factures.numero IN %s" % listeTemp)
+                    lstConditions.append( "factures.numero IN %s" % listeTemp)
 
-        if len(listeConditions) > 0 :
-            conditions = "WHERE %s" % " AND ".join(listeConditions)
+
+        if len(lstConditions) > 0 or len(lstPrestCond) > 0:
+            conditions = "WHERE %s" % " AND ".join(lstConditions + lstPrestCond)
         else :
-            conditions = ""
-        
+            # En l'absence de condition on ne lance pas la recherche sur l'ensemble des factures émises
+            conditions = "WHERE FALSE "
+
         # Récupération des totaux des prestations pour chaque facture
         req = """
-        SELECT 
-        prestations.IDfacture, SUM(prestations.montant)
-        FROM prestations
+        SELECT prestations.IDfacture, SUM(prestations.montant), familles.adresse_intitule,
+                MAX(prestations.compta),SUM(ventilation.montant)
+        FROM (prestations
+        LEFT JOIN familles ON prestations.IDfamille = familles.IDfamille)
         LEFT JOIN factures ON factures.IDfacture = prestations.IDfacture
+        LEFT JOIN ventilation ON ventilation.IDprestation = prestations.IDprestation
         %s
-        GROUP BY prestations.IDfacture
-        ;""" % conditions
-        DB.ExecuterReq(req,MsgBox="OL_Factures")
+        GROUP BY prestations.IDfacture, familles.adresse_intitule
+        ;""" %(conditions)
+        DB.ExecuterReq(req,MsgBox="OL_Factures.prestations")
         listeDonnees = DB.ResultatReq()     
         dictPrestations = {}
-        for IDfacture, totalPrestations in listeDonnees :
-            if IDfacture != None :
-                dictPrestations[IDfacture] = totalPrestations
-        
+        dictFamilles = {}
+        dictVentilation = {}
+        for IDfacture,totalPrestations,nomFamille,compta,mttVentilation in listeDonnees :
+            if IDfacture:
+                dictPrestations[IDfacture] = [totalPrestations,compta]
+                dictFamilles[IDfacture] = nomFamille
+                dictVentilation[IDfacture] = mttVentilation
+
         # Récupération des factures
+        lstIDfactures = [ x for x in dictPrestations.keys()]
+        condFactures = "WHERE IDfacture in ( %s )"%str(lstIDfactures)[1:-1]
         req = """
         SELECT factures.IDfacture, factures.numero, factures.IDcompte_payeur, 
         factures.date_edition, factures.date_echeance, factures.IDutilisateur,
         factures.date_debut, factures.date_fin, factures.total, factures.regle, factures.solde,
-        comptes_payeurs.IDfamille, factures.IDlot, lots_factures.nom, factures.etat
+        IDcompte_payeur, factures.etat
         FROM factures
-        LEFT JOIN comptes_payeurs ON comptes_payeurs.IDcompte_payeur = factures.IDcompte_payeur
-        LEFT JOIN lots_factures ON lots_factures.IDlot = factures.IDlot
         %s
         ORDER BY factures.date_edition
-        ;""" % conditions.replace("prestations.IDcompte_payeur", "comptes_payeurs.IDcompte_payeur")
-        DB.ExecuterReq(req,MsgBox="OL_Factures")
+        ;""" % condFactures
+        DB.ExecuterReq(req,MsgBox="OL_Factures.factures")
         listeFactures = DB.ResultatReq()
-        
-        # Récupération de la ventilation
-        req = """
-        SELECT prestations.IDfacture, SUM(ventilation.montant)
-        FROM ventilation
-        LEFT JOIN prestations ON prestations.IDprestation = ventilation.IDprestation
-        LEFT JOIN comptes_payeurs ON comptes_payeurs.IDcompte_payeur = prestations.IDcompte_payeur
-        LEFT JOIN factures ON factures.IDfacture = prestations.IDfacture
-        %s
-        GROUP BY prestations.IDfacture
-        ;""" % conditions
-        DB.ExecuterReq(req,MsgBox="OL_Factures")
-        listeVentilation = DB.ResultatReq()
-        dictVentilation = {}
-        for IDfacture, montantVentilation in listeVentilation :
-            if IDfacture != None :
-                dictVentilation[IDfacture] = montantVentilation
-        
-        # Infos Prélèvement + Envoi par Email des factures
-        if self.IDcompte_payeur != None :
-            conditions = "WHERE comptes_payeurs.IDcompte_payeur = %d" % self.IDcompte_payeur
-        else:
-            conditions = ""
 
-        req = """
-        SELECT 
-        prelevement_activation, prelevement_etab, prelevement_guichet, prelevement_numero, prelevement_cle, prelevement_banque,
-        prelevement_individu, prelevement_nom, prelevement_rue, prelevement_cp, prelevement_ville, 
-        prelevement_cle_iban, prelevement_iban, prelevement_bic, prelevement_reference_mandat, prelevement_date_mandat, 
-        email_factures,
-        comptes_payeurs.IDcompte_payeur,
-        individus.nom, individus.prenom,
-        titulaire_helios
-        FROM familles
-        LEFT JOIN comptes_payeurs ON comptes_payeurs.IDfamille = familles.IDfamille
-        LEFT JOIN individus ON individus.IDindividu = prelevement_individu
-        %s
-        ;""" % conditions
-        DB.ExecuterReq(req,MsgBox="OL_Factures")
-        listeInfosFamilles = DB.ResultatReq()
+        # teste l'utilité de la requête sur les prélèvements ou filtre email
+        filtrePrelev = False
+        if self.filtres != None:
+            for filtre in self.filtres:
+                # IDfacture_intervalle
+                if filtre["type"] in ['prelevement', 'email']:
+                    filtrePrelev = True
+
+        # complément Infos Prélèvement + Envoi par Email des factures
         dictInfosFamilles = {}
-        for prelevement_activation, prelevement_etab, prelevement_guichet, prelevement_numero, prelevement_cle, prelevement_banque, prelevement_individu, prelevement_nom, prelevement_rue, prelevement_cp, prelevement_ville, prelevement_cle_iban, prelevement_iban, prelevement_bic, prelevement_reference_mandat, prelevement_date_mandat, email_factures, IDcompte_payeur, nomPayeur, prenomPayeur, titulaire_helios in listeInfosFamilles :
-            prelevement_date_mandat = UTILS_Dates.DateEngEnDateDD(prelevement_date_mandat) 
-            dictInfosFamilles[IDcompte_payeur] = {
-                    "prelevement_activation" : prelevement_activation, "prelevement_etab" : prelevement_etab, "prelevement_guichet" : prelevement_guichet, 
-                    "prelevement_numero" : prelevement_numero, "prelevement_cle" : prelevement_cle, "prelevement_banque" : prelevement_banque, 
-                    "prelevement_individu" : prelevement_individu, "prelevement_nom" : prelevement_nom, "prelevement_rue" : prelevement_rue, 
-                    "prelevement_cp" : prelevement_cp, "prelevement_ville" : prelevement_ville, 
-                    "prelevement_cle_iban" : prelevement_cle_iban, "prelevement_iban" : prelevement_iban, "prelevement_bic" : prelevement_bic,
-                    "prelevement_reference_mandat" : prelevement_reference_mandat, "prelevement_date_mandat" : prelevement_date_mandat,
-                    "email_factures" : email_factures, "nomPayeur" : nomPayeur, "prenomPayeur" : prenomPayeur, "titulaire_helios" : titulaire_helios,
-                    }
+        if filtrePrelev:
+            if self.IDcompte_payeur != None :
+                conditions = "WHERE comptes_payeurs.IDcompte_payeur = %d" % self.IDcompte_payeur
+            else:
+                conditions = ""
+            conditions  += " AND total <> 0 AND IDfacture IN ( %s )" % str(lstIDfactures)[1:-1]
+            req = """
+            SELECT 
+            prelevement_activation, prelevement_etab, prelevement_guichet, prelevement_numero, prelevement_cle, prelevement_banque,
+            prelevement_individu, prelevement_nom, prelevement_rue, prelevement_cp, prelevement_ville, 
+            prelevement_cle_iban, prelevement_iban, prelevement_bic, prelevement_reference_mandat, prelevement_date_mandat, 
+            email_factures,
+            comptes_payeurs.IDcompte_payeur,
+            individus.nom, individus.prenom,
+            titulaire_helios
+            FROM familles
+            LEFT JOIN comptes_payeurs ON comptes_payeurs.IDfamille = familles.IDfamille
+            LEFT JOIN individus ON individus.IDindividu = prelevement_individu
+            %s
+            ;""" %(conditions)
+            DB.ExecuterReq(req,MsgBox="OL_Factures.prelevements")
+            listeInfosFamilles = DB.ResultatReq()
+            for prelevement_activation, prelevement_etab, prelevement_guichet, prelevement_numero, prelevement_cle, prelevement_banque, prelevement_individu, prelevement_nom, prelevement_rue, prelevement_cp, prelevement_ville, prelevement_cle_iban, prelevement_iban, prelevement_bic, prelevement_reference_mandat, prelevement_date_mandat, email_factures, IDcompte_payeur, nomPayeur, prenomPayeur, titulaire_helios in listeInfosFamilles :
+                prelevement_date_mandat = UTILS_Dates.DateEngEnDateDD(prelevement_date_mandat)
+                dictInfosFamilles[IDcompte_payeur] = {
+                        "prelevement_activation" : prelevement_activation, "prelevement_etab" : prelevement_etab, "prelevement_guichet" : prelevement_guichet,
+                        "prelevement_numero" : prelevement_numero, "prelevement_cle" : prelevement_cle, "prelevement_banque" : prelevement_banque,
+                        "prelevement_individu" : prelevement_individu, "prelevement_nom" : prelevement_nom, "prelevement_rue" : prelevement_rue,
+                        "prelevement_cp" : prelevement_cp, "prelevement_ville" : prelevement_ville,
+                        "prelevement_cle_iban" : prelevement_cle_iban, "prelevement_iban" : prelevement_iban, "prelevement_bic" : prelevement_bic,
+                        "prelevement_reference_mandat" : prelevement_reference_mandat, "prelevement_date_mandat" : prelevement_date_mandat,
+                        "email_factures" : email_factures, "nomPayeur" : nomPayeur, "prenomPayeur" : prenomPayeur, "titulaire_helios" : titulaire_helios,
+                        }
         
         DB.Close() 
                 
         listeResultats = []
-        for IDfacture, numero, IDcompte_payeur, date_edition, date_echeance, IDutilisateur, date_debut, date_fin, \
-                    total, regle, solde, IDfamille, IDlot, nomLot, etat in listeFactures :
+
+        """SELECT factures.IDfacture, factures.numero, factures.IDcompte_payeur, 
+        factures.date_edition, factures.date_echeance, factures.IDutilisateur,
+        factures.date_debut, factures.date_fin, factures.total, factures.regle, factures.solde,
+        IDcompte_payeur, factures.etat"""
+        for (IDfacture, numero,IDcompte_payeur,date_edition,date_echeance,IDutilisateur,
+             date_debut,date_fin,total,regle,solde,IDfamille,etat) in listeFactures :
             if numero == None : numero = 0
             date_edition = UTILS_Dates.DateEngEnDateDD(date_edition) 
             date_debut = UTILS_Dates.DateEngEnDateDD(date_debut)
@@ -284,58 +293,60 @@ class ListView(FastObjectListView):
             else :
                 totalVentilation = FloatToDecimal(0.0)
             if IDfacture in dictPrestations :
-                totalPrestations = FloatToDecimal(dictPrestations[IDfacture])
+                totalPrestations = FloatToDecimal(dictPrestations[IDfacture][0])
+                compta = FloatToDecimal(dictPrestations[IDfacture][1])
+                nomFamille = dictFamilles[IDfacture]
             else :
                 totalPrestations = FloatToDecimal(0.0)
+                compta = None
+                nomFamille = "Famille inconnue..."
+
             solde_actuel = totalPrestations - totalVentilation
-            if (IDfamille in dictTitulaires) == True :
-                
-                titulaires = dictTitulaires[IDfamille]["titulairesSansCivilite"]
-                adresse_famille = dictTitulaires[IDfamille]["adresse"]
-                
-                dictTemp = {
-                    "IDfacture" : IDfacture, "numero" : numero, "IDcompte_payeur" : IDcompte_payeur, "date_edition" : date_edition, "date_echeance" : date_echeance,
-                    "IDutilisateur" : IDutilisateur, "date_debut" : date_debut, "date_fin" : date_fin, "total" : total, "regle" : regle, "solde" : solde, 
-                    "totalPrestations" : totalPrestations, "totalVentilation" : totalVentilation, "IDfamille" : IDfamille, "titulaires" : titulaires, "IDlot" : IDlot, "nomLot" : nomLot,
-                    "adresse_famille" : adresse_famille, "etat" : etat,
-                    }
-                
-                if IDcompte_payeur in dictInfosFamilles :
-                    dictTemp.update(dictInfosFamilles[IDcompte_payeur])
+            dictTemp = {
+                "IDfacture": IDfacture,"numero": numero,"IDcompte_payeur": IDcompte_payeur,
+                "date_edition": date_edition,"date_echeance": date_echeance,
+                "IDutilisateur": IDutilisateur,"date_debut": date_debut,"date_fin": date_fin,
+                "total": total,"regle": regle,"solde": solde,
+                "totalPrestations": totalPrestations,"totalVentilation": totalVentilation,
+                "IDfamille": IDfamille,
+                "compta": compta,"nomFamille": nomFamille,"etat": etat,
+                }
 
-                valide = True
-                
-                # 2ème série de filtres
-                if self.filtres != None :
-                    for filtre in self.filtres :
-                
-                        # IDfacture_intervalle
-                        if filtre["type"] == "solde_initial" :
-                            if self.ComparateurFiltre(-solde, filtre["operateur"], filtre["montant"]) == False :
-                                valide = False
+            if dictInfosFamilles :
+                dictTemp.update(dictInfosFamilles[IDcompte_payeur])
 
-                        if filtre["type"] == "solde_actuel" :
-                            if self.ComparateurFiltre(-solde_actuel, filtre["operateur"], filtre["montant"]) == False :
-                                valide = False
+            valide = True
 
-                        if filtre["type"] == "prelevement" :
-                            if filtre["choix"] == True :
-                                if dictTemp["prelevement_activation"] == None : valide = False
-                            else :
-                                if dictTemp["prelevement_activation"] != None : valide = False
+            # 2ème série de filtres
+            if self.filtres != None :
+                for filtre in self.filtres :
+                    # IDfacture_intervalle
+                    if filtre["type"] == "solde_initial" :
+                        if self.ComparateurFiltre(-solde, filtre["operateur"], filtre["montant"]) == False :
+                            valide = False
 
-                        if filtre["type"] == "email" :
-                            if filtre["choix"] == True :
-                                if dictTemp["email_factures"] == None : valide = False
-                            else :
-                                if dictTemp["email_factures"] != None : valide = False
-                
-                if etat == "annulation" and self.afficherAnnulations == False :
-                    valide = False
-                    
-                # Mémorisation des valeurs
-                if valide == True :                    
-                    listeResultats.append(dictTemp)
+                    if filtre["type"] == "solde_actuel" :
+                        if self.ComparateurFiltre(-solde_actuel, filtre["operateur"], filtre["montant"]) == False :
+                            valide = False
+
+                    if filtre["type"] == "prelevement" :
+                        if filtre["choix"] == True :
+                            if dictTemp["prelevement_activation"] == None : valide = False
+                        else :
+                            if dictTemp["prelevement_activation"] != None : valide = False
+
+                    if filtre["type"] == "email" :
+                        if filtre["choix"] == True :
+                            if dictTemp["email_factures"] == None : valide = False
+                        else :
+                            if dictTemp["email_factures"] != None : valide = False
+
+            if etat == "annulation" and self.afficherAnnulations == False :
+                valide = False
+
+            # Mémorisation des valeurs
+            if valide == True :
+                listeResultats.append(dictTemp)
             
         return listeResultats
     
@@ -392,11 +403,11 @@ class ListView(FastObjectListView):
             return self.imgRouge
         
         def GetImagePrelevement(track):
-            if track.prelevement == True :
+            if hasattr(track,'prelevement') and  track.prelevement == True :
                 return self.imgPrelevement
 
         def GetImageEmail(track):
-            if track.email == True :
+            if hasattr(track,'email') and  track.email == True :
                 return self.imgEmail
         
         def FormateNumero(numero):
@@ -429,16 +440,17 @@ class ListView(FastObjectListView):
             "IDfacture" : ColumnDefn("", "left", 0, "IDfacture", typeDonnee="entier"),
             "date" : ColumnDefn(_("Date"), "centre", 80, "date_edition", typeDonnee="date", stringConverter=FormateDate),
             "numero" : ColumnDefn("N°", "centre", 65, "numero", typeDonnee="entier", stringConverter=FormateNumero),
-            "famille" : ColumnDefn(_("Famille"), "left", 180, "nomsTitulaires", typeDonnee="texte"),
+            "famille" : ColumnDefn(_("Famille"), "left", 180, "nomFamille", typeDonnee="texte"),
             "date_debut" : ColumnDefn(_("Date début"), "centre", 80, "date_debut", typeDonnee="date", stringConverter=FormateDate),
             "date_fin" : ColumnDefn(_("Date fin"), "centre", 80, "date_fin", typeDonnee="date", stringConverter=FormateDate),
             "total" : ColumnDefn(_("Total"), "right", 65, "total", typeDonnee="montant", stringConverter=FormateMontant),
             "regle" : ColumnDefn(_("Réglé"), "right", 65, "regle", typeDonnee="montant", stringConverter=FormateMontant),
             "solde_actuel" : ColumnDefn(_("Solde"), "right", 90, "soldeActuel", typeDonnee="montant", stringConverter=FormateMontant, imageGetter=GetImageSoldeActuel),
             "date_echeance" : ColumnDefn(_("Echéance"), "centre", 80, "date_echeance", typeDonnee="date", stringConverter=FormateDate),
-            "nom_lot" : ColumnDefn(_("Lot"), "left", 150, "nomLot", typeDonnee="texte"),
+            "compta" : ColumnDefn(_("Lot"), "left", 150, "nomCpta", typeDonnee="texte"),
             "prelevement" : ColumnDefn("P", "left", 20, "", imageGetter=GetImagePrelevement),
             "email" : ColumnDefn("E", "left", 20, "", imageGetter=GetImageEmail),
+            "solde" : ColumnDefn(_("Solde_"), "right", 90, "solde", typeDonnee="montant", stringConverter=FormateMontant, imageGetter=GetImageSoldeActuel),
             }
             
         listeColonnes = []
@@ -459,9 +471,10 @@ class ListView(FastObjectListView):
             if self.checkColonne == True : tri += 1
             self.SetSortColumn(self.columns[tri])
 
-        self.SetEmptyListMsg(_("Aucune facture"))
+        self.SetEmptyListMsg("Aucune facture")
         self.SetEmptyListMsgFont(wx.FFont(11, wx.DEFAULT, False, "Tekton"))
         self.SetObjects(self.donnees)
+        self.stEmptyListMsg.Show(len(self.donnees) == 0)
 
     def MAJ(self, ID=None):
         if ID != None :
@@ -707,7 +720,6 @@ class ListView(FastObjectListView):
             self.MAJ(IDfacture)
         dlg.Destroy()
 
-
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
 class BarreRecherche(wx.SearchCtrl):
@@ -754,7 +766,7 @@ class BarreRecherche(wx.SearchCtrl):
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
 class ListviewAvecFooter(PanelAvecFooter):
-    def __init__(self, parent, kwargs={}):
+    def __init__(self, parent, kwargs=None):
         dictColonnes = {
             "date_edition" : {"mode" : "nombre", "singulier" : _("facture"), "pluriel" : _("factures"), "alignement" : wx.ALIGN_CENTER},
             "total" : {"mode" : "total"},
@@ -775,7 +787,9 @@ class MyFrame(wx.Frame):
         self.SetSizer(sizer_1)
 
         IDcompte_payeur = None
-        codesColonnes = ["IDfacture", "date", "numero", "famille", "prelevement", "email", "date_debut", "date_fin", "total", "regle", "solde_actuel", "date_echeance", "nom_lot"]
+        codesColonnes = ["IDfacture", "date", "numero", "famille", "prelevement", "email",
+                         "date_debut", "date_fin", "total", "regle", "solde_actuel",
+                         "date_echeance", "nom_cpta"]
         checkColonne = True
         triColonne = "numero"
 

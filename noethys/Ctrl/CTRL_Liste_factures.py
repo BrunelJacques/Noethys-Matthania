@@ -10,15 +10,15 @@
 
 
 import Chemins
-from Utils import UTILS_Adaptations
+#from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
-from Ctrl import CTRL_Bouton_image
+#from Ctrl import CTRL_Bouton_image
 import wx.lib.agw.hyperlink as Hyperlink
 
 from Ol import OL_Factures
 from Dlg import DLG_Filtres_factures
-from Utils import UTILS_Utilisateurs
+#from Utils import UTILS_Utilisateurs
 
 
 class Hyperlien(Hyperlink.HyperLinkCtrl):
@@ -46,7 +46,10 @@ class Hyperlien(Hyperlink.HyperLinkCtrl):
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class CTRL(wx.Panel):
-    def __init__(self, parent, filtres=[], codesColonnes = ["IDfacture", "date", "numero", "famille", "prelevement", "email", "total", "solde", "solde_actuel", "date_echeance", "nom_lot"], checkColonne = True, triColonne = "numero"):
+    def __init__(self, parent, filtres=[],
+                 codesColonnes = ["IDfacture", "date", "numero", "famille", "prelevement",
+                                  "email", "total", "solde_actuel", "date_echeance", "compta"],
+                 checkColonne = True, triColonne = "numero"):
         wx.Panel.__init__(self, parent, id=-1, name="CTRL_Liste_factures", style=wx.TAB_TRAVERSAL)
         self.parent = parent
         
@@ -178,8 +181,6 @@ class CTRL(wx.Panel):
     def OnCheckAnnulations(self, event=None):
         self.ctrl_factures.afficherAnnulations = self.ctrl_afficher_annulations.GetValue() 
         self.MAJ() 
-
-
 
 
 class MyFrame(wx.Frame):

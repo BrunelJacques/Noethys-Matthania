@@ -10,19 +10,15 @@
 
 
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
-import datetime
 import wx.html as html
 
 import GestionDB
 from Ctrl import CTRL_Bandeau
 from Ctrl import CTRL_Saisie_date
 from Ctrl import CTRL_Saisie_euros
-from Dlg.DLG_Factures_generation_parametres import CTRL_Lot_factures
-from Dlg.DLG_Factures_generation_parametres import CTRL_Prefixe_factures
 
 from Utils import UTILS_Config
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
@@ -31,8 +27,6 @@ SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 def DateEngFr(textDate):
     text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
     return text
-
-
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -43,16 +37,9 @@ def GetTexteFiltres(filtres):
     
     listeTextes = []
     for filtre in filtres :
-
-        # Lots de factures
-         if filtre["type"] == "lot" :
-            DB = GestionDB.DB()
-            req = """SELECT IDlot, nom FROM lots_factures WHERE IDlot=%d;""" % filtre["IDlot"]
-            DB.ExecuterReq(req,MsgBox="ExecuterReq")
-            listeDonnees = DB.ResultatReq()
-            DB.Close()
-            if len(listeDonnees) > 0 :
-                listeTextes.append(_("Lot de factures '%s'") % listeDonnees[0][1])
+        # situatuation comptable
+         if filtre["type"] == "cpta" :
+            listeTextes.append(_("Transfert compta: '%s'") % str(filtre["item"]))
         
         # Date d'émission
          if filtre["type"] == "date_emission" :
@@ -61,19 +48,6 @@ def GetTexteFiltres(filtres):
         # Date d'échéance
          if filtre["type"] == "date_echeance" :
             listeTextes.append(_("Date d'échéance de %s à %s") % (DateEngFr(str(filtre["date_min"])), DateEngFr(str(filtre["date_max"]))))
-
-        # Préfixes de factures
-         if filtre["type"] == "prefixe" :
-            if filtre["IDprefixe"] == None :
-                listeTextes.append(_("Préfixe de factures 'Aucun préfixe'"))
-            else :
-                DB = GestionDB.DB()
-                req = """SELECT IDprefixe, prefixe FROM factures_prefixes WHERE IDprefixe=%d;""" % filtre["IDprefixe"]
-                DB.ExecuterReq(req,MsgBox="ExecuterReq")
-                listeDonnees = DB.ResultatReq()
-                DB.Close()
-                if len(listeDonnees) > 0 :
-                    listeTextes.append(_("Préfixe de factures '%s'") % listeDonnees[0][1])
 
         # Numéros Intervalle
          if filtre["type"] == "numero_intervalle" :
@@ -119,7 +93,6 @@ def GetTexteFiltres(filtres):
         texte = _("Aucun.")
     return texte
 
-
 # -------------------------------------------------------------------------------------------------------------------------------
 
 class MyHtml(html.HtmlWindow):
@@ -136,7 +109,12 @@ class MyHtml(html.HtmlWindow):
     def SetTexte(self, texte=u""):
         self.SetPage(texte)
         self.SetBackgroundColour(self.couleurFond)
-        
+
+class CTRL_Choice(wx.Choice):
+    def __init__(self, parent, lstItems):
+        wx.Choice.__init__(self, parent, -1)
+        self.listeItems = lstItems
+        self.SetItems(self.listeItems)
 
 class CTRL_Filtres(wx.Panel):
     def __init__(self, parent, filtres=[], ctrl_factures=None):
@@ -183,7 +161,6 @@ class CTRL_Filtres(wx.Panel):
             self.ctrl_factures.SetFiltres(self.filtres)
             self.ctrl_factures.MAJ()
 
-
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class Dialog(wx.Dialog):
@@ -194,12 +171,13 @@ class Dialog(wx.Dialog):
         # Bandeau
         intro = _("Sélectionnez ici les filtres de sélection de votre choix à appliquer sur la liste des factures.")
         titre = _("Filtres de sélection des factures")
+        lstItemsCpta = ["Factures transférées ou pas","Transférées en compta seulement", "Non encore transférées"]
         self.SetTitle(titre)
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Filtre.png")
         
         # Filtres
-        self.check_lot = wx.CheckBox(self, -1, _("Lot de factures :"))
-        self.ctrl_lot = CTRL_Lot_factures(self)
+        self.check_cpta = wx.CheckBox(self, -1, _("Transfert en compta situation:"))
+        self.ctrl_cpta = CTRL_Choice(self, lstItemsCpta)
         
         self.check_emission = wx.CheckBox(self, -1, _("Date d'émission de"))
         self.ctrl_emission_min = CTRL_Saisie_date.Date2(self)
@@ -210,9 +188,6 @@ class Dialog(wx.Dialog):
         self.ctrl_echeance_min = CTRL_Saisie_date.Date2(self)
         self.label_echeance_a = wx.StaticText(self, -1, "à")
         self.ctrl_echeance_max = CTRL_Saisie_date.Date2(self)
-
-        self.check_prefixe = wx.CheckBox(self, -1, _("Préfixe de numéro :"))
-        self.ctrl_prefixe = CTRL_Prefixe_factures(self)
 
         self.check_numeros_intervalle = wx.CheckBox(self, -1, _("Numéros de factures de"))
         self.ctrl_numeros_intervalle_min = wx.SpinCtrl(self, -1, "", min=0, max=9999999)
@@ -252,10 +227,9 @@ class Dialog(wx.Dialog):
         self.__set_properties()
         self.__do_layout()
 
-        self.Bind(wx.EVT_CHECKBOX, self.OnCheck, self.check_lot)
+        self.Bind(wx.EVT_CHECKBOX, self.OnCheck, self.check_cpta)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheck, self.check_emission)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheck, self.check_echeance)
-        self.Bind(wx.EVT_CHECKBOX, self.OnCheck, self.check_prefixe)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheck, self.check_numeros_intervalle)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheck, self.check_numeros_liste)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheck, self.check_solde_initial)
@@ -268,19 +242,17 @@ class Dialog(wx.Dialog):
         
         # Init contrôles
         self.OnCheck(None)
-        
+
 
     def __set_properties(self):
-        self.check_lot.SetToolTip(wx.ToolTip(_("Filtre Lot de factures")))
-        self.ctrl_lot.SetToolTip(wx.ToolTip(_("Sélectionnez un lot de factures dans la liste")))
+        self.check_cpta.SetToolTip(wx.ToolTip(_("Filtre sur le transfert en compta")))
+        self.ctrl_cpta.SetToolTip(wx.ToolTip(_("Sélectionnez la situation comptable des factures dans la liste")))
         self.check_emission.SetToolTip(wx.ToolTip(_("Filtre Date d'émission")))
         self.ctrl_emission_min.SetToolTip(wx.ToolTip(_("Sélectionnez une date min")))
         self.ctrl_emission_max.SetToolTip(wx.ToolTip(_("Sélectionnez une date max")))
         self.check_echeance.SetToolTip(wx.ToolTip(_("Filtre Date d'échéance")))
         self.ctrl_echeance_min.SetToolTip(wx.ToolTip(_("Sélectionnez une date min")))
         self.ctrl_echeance_max.SetToolTip(wx.ToolTip(_("Sélectionnez une date max")))
-        self.check_prefixe.SetToolTip(wx.ToolTip(_("Filtre Préfixe de factures")))
-        self.ctrl_prefixe.SetToolTip(wx.ToolTip(_("Sélectionnez un préfixe de factures dans la liste")))
         self.check_numeros_intervalle.SetToolTip(wx.ToolTip(_("Filtre Intervalle de numéros de facture")))
         self.ctrl_numeros_intervalle_min.SetToolTip(wx.ToolTip(_("Saisissez un numéro de facture min")))
         self.ctrl_numeros_intervalle_max.SetToolTip(wx.ToolTip(_("Saisissez un numéro de facture max")))
@@ -307,11 +279,11 @@ class Dialog(wx.Dialog):
         # Filtres
         grid_sizer_contenu = wx.FlexGridSizer(rows=10, cols=1, vgap=10, hgap=10)
                 
-        grid_sizer_lot = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
-        grid_sizer_lot.Add(self.check_lot, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer_lot.Add(self.ctrl_lot, 0, wx.EXPAND, 0)
-        grid_sizer_lot.AddGrowableCol(1)
-        grid_sizer_contenu.Add(grid_sizer_lot, 1, wx.EXPAND, 0)
+        grid_sizer_cpta = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
+        grid_sizer_cpta.Add(self.check_cpta, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer_cpta.Add(self.ctrl_cpta, 0, wx.EXPAND, 0)
+        grid_sizer_cpta.AddGrowableCol(1)
+        grid_sizer_contenu.Add(grid_sizer_cpta, 1, wx.EXPAND, 0)
         
         grid_sizer_emission = wx.FlexGridSizer(rows=1, cols=4, vgap=5, hgap=5)
         grid_sizer_emission.Add(self.check_emission, 0, wx.ALIGN_CENTER_VERTICAL, 0)
@@ -326,12 +298,6 @@ class Dialog(wx.Dialog):
         grid_sizer_echeance.Add(self.label_echeance_a, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_echeance.Add(self.ctrl_echeance_max, 0, 0, 0)
         grid_sizer_contenu.Add(grid_sizer_echeance, 1, wx.EXPAND, 0)
-
-        grid_sizer_prefixe = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
-        grid_sizer_prefixe.Add(self.check_prefixe, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer_prefixe.Add(self.ctrl_prefixe, 0, wx.EXPAND, 0)
-        grid_sizer_prefixe.AddGrowableCol(1)
-        grid_sizer_contenu.Add(grid_sizer_prefixe, 1, wx.EXPAND, 0)
 
         grid_sizer_numeros_intervalle = wx.FlexGridSizer(rows=1, cols=4, vgap=5, hgap=5)
         grid_sizer_numeros_intervalle.Add(self.check_numeros_intervalle, 0, wx.ALIGN_CENTER_VERTICAL, 0)
@@ -395,15 +361,13 @@ class Dialog(wx.Dialog):
         self.EndModal(wx.ID_CANCEL)
 
     def OnCheck(self, event): 
-        self.ctrl_lot.Enable(self.check_lot.GetValue())
+        self.ctrl_cpta.Enable(self.check_cpta.GetValue())
 
         self.ctrl_emission_min.Enable(self.check_emission.GetValue())
         self.ctrl_emission_max.Enable(self.check_emission.GetValue())
 
         self.ctrl_echeance_min.Enable(self.check_echeance.GetValue())
         self.ctrl_echeance_max.Enable(self.check_echeance.GetValue())
-
-        self.ctrl_prefixe.Enable(self.check_prefixe.GetValue())
 
         self.ctrl_numeros_intervalle_min.Enable(self.check_numeros_intervalle.GetValue())
         self.ctrl_numeros_intervalle_max.Enable(self.check_numeros_intervalle.GetValue())
@@ -423,17 +387,18 @@ class Dialog(wx.Dialog):
     def GetFiltres(self):
         filtres = []
         
-        # Lots de factures
-        if self.check_lot.GetValue() == True :
-            IDlot = self.ctrl_lot.GetID()
-            if IDlot == None :
-                dlg = wx.MessageDialog(self, _("Filtre Lot de factures : Vous n'avez sélectionné aucun lot dans la liste proposée !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
+        # Situation comptable de factures
+        if self.check_cpta.GetValue() == True :
+            IDcpta = self.ctrl_cpta.GetSelection()
+            item = self.ctrl_cpta.GetStringSelection()
+            if IDcpta == None :
+                dlg = wx.MessageDialog(self, _("Filtre sitation comptable des factures : Vous n'avez sélectionné aucune option dans la liste proposée !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
                 return False
             
-            filtres.append({"type" : "lot", "IDlot" : IDlot})
-        
+            filtres.append({"type":"cpta", "IDcpta":IDcpta, "item":item})
+
         # Date d'émission
         if self.check_emission.GetValue() == True :
             date_min = self.ctrl_emission_min.GetDate()
@@ -457,11 +422,6 @@ class Dialog(wx.Dialog):
                 return False
         
             filtres.append({"type" : "date_echeance", "date_min" : date_min, "date_max" : date_max})
-
-        # Préfixes de factures
-        if self.check_prefixe.GetValue() == True :
-            IDprefixe = self.ctrl_prefixe.GetID()
-            filtres.append({"type" : "prefixe", "IDprefixe" : IDprefixe})
 
         # Numéros Intervalle
         if self.check_numeros_intervalle.GetValue() == True :
@@ -549,10 +509,10 @@ class Dialog(wx.Dialog):
         
         for filtre in filtres :
             
-            # Lot de factures
-            if filtre["type"] == "lot" :
-                self.check_lot.SetValue(True)
-                self.ctrl_lot.SetID(filtre["IDlot"])
+            # Situation comptable des factures
+            if filtre["type"] == "cpta" :
+                self.check_cpta.SetValue(True)
+                self.ctrl_cpta.SetSelection(filtre["IDcpta"])
         
             # Date d'émission
             if filtre["type"] == "date_emission" :
@@ -565,11 +525,6 @@ class Dialog(wx.Dialog):
                 self.check_echeance.SetValue(True)
                 self.ctrl_echeance_min.SetDate(filtre["date_min"])
                 self.ctrl_echeance_max.SetDate(filtre["date_max"])
-
-            # Préfixe de factures
-            if filtre["type"] == "prefixe" :
-                self.check_prefixe.SetValue(True)
-                self.ctrl_prefixe.SetID(filtre["IDprefixe"])
 
             # numero_intervalle
             if filtre["type"] == "numero_intervalle" :
@@ -606,8 +561,6 @@ class Dialog(wx.Dialog):
 
         self.OnCheck(None)
         
-    
-
 
 # -------------------- POUR TESTER CTRL_Filtres -----------------------------------------------------------------------------------
 
