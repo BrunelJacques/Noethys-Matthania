@@ -732,7 +732,6 @@ def GetCorrespondants(listeIDfamille=[]):
 
     # Constitution du dictionnaire famille
 
-
     # alimenentation des coordonnées du représentant, (un record maxi)
     for record in listeDonnees:
         dRepres = {}

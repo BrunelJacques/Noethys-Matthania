@@ -99,11 +99,11 @@ class Panel(wx.Panel):
         self.staticbox_factures = wx.StaticBox(self, -1, "Factures")
                 
         # OL Factures
-        codesColonnes = ["IDfacture", "date", "numero", "date_debut", "date_fin", "total", "regle", "solde_actuel", "date_echeance"]
+        codesColonnes = ["IDfacture", "date", "numero", "date_debut", "date_fin", "total", "regle", "solde_actuel", "date_echeance","compta"]
         checkColonne = True
         triColonne = "date"
 
-        self.listviewAvecFooter = OL_Factures.ListviewAvecFooter(self, kwargs={"codesColonnes" : codesColonnes, "checkColonne" : checkColonne, "triColonne" : triColonne, "afficherAnnulations" : True}) 
+        self.listviewAvecFooter = OL_Factures.ListviewAvecFooter(self, kwargs={"codesColonnes" : codesColonnes, "checkColonne" : checkColonne, "triColonne" : triColonne})
         self.ctrl_listview = self.listviewAvecFooter.GetListview()
 
         self.ctrl_recherche = CTRL_Outils(self, listview=self.ctrl_listview, afficherCocher=True)
@@ -165,28 +165,7 @@ class Panel(wx.Panel):
         grid_sizer_base.AddGrowableRow(0)
     
     def OnBoutonAjouter(self, event):
-        """ Créer une facture """
-        if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_factures", "creer") == False : return
-        
-        from Dlg import DLG_Verification_ventilation
-        tracks = DLG_Verification_ventilation.Verification(self.IDcompte_payeur)
-        if len(tracks) > 0 :
-            dlg = wx.MessageDialog(self, "Un ou plusieurs règlements peuvent être ventilés.\n\nSouhaitez-vous le faire maintenant (conseillé) ?", "Ventilation", wx.YES_NO|wx.YES_DEFAULT|wx.CANCEL|wx.ICON_EXCLAMATION)
-            reponse = dlg.ShowModal()
-            dlg.Destroy()
-            if reponse == wx.ID_YES :
-                dlg = DLG_Verification_ventilation.Dialog(self, tracks=tracks, IDcompte_payeur=self.IDcompte_payeur) #, tracks=tracks)
-                dlg.ShowModal() 
-                dlg.Destroy()
-            if reponse == wx.ID_CANCEL :
-                return False
-
-        from Dlg import DLG_Factures_generation
-        dlg = DLG_Factures_generation.Dialog(self)
-        dlg.SetFamille(self.IDfamille)
-        dlg.ShowModal() 
-        dlg.Destroy()
-        self.ctrl_listview.MAJ() 
+        self.ctrl_listview.Ajouter(None)
 
     def OnBoutonSupprimer(self, event):
         self.ctrl_listview.Supprimer(None)

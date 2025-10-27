@@ -63,15 +63,14 @@ class CTRL(wx.Panel):
         # Commandes de liste
         self.bouton_apercu = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Apercu.png"), wx.BITMAP_TYPE_ANY))
         self.bouton_email = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Emails_exp.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
         self.bouton_liste_apercu = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Apercu.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_liste_imprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_imprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
         self.bouton_liste_export_texte = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Texte2.png"), wx.BITMAP_TYPE_ANY))
         self.bouton_liste_export_excel = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Excel.png"), wx.BITMAP_TYPE_ANY))
         
         # Options de liste
         self.ctrl_recherche = OL_Factures.BarreRecherche(self, listview=self.ctrl_factures)
-        self.ctrl_afficher_annulations = wx.CheckBox(self, -1, "Afficher les factures annulées")
+        self.ctrl_afficher_annulations = wx.CheckBox(self, -1, "N'afficher que les avoirs")
         self.hyper_tout = Hyperlien(self, label=_("Tout cocher"), infobulle=_("Cliquez ici pour tout cocher"), URL="tout")
         self.label_separation = wx.StaticText(self, -1, "|")
         self.hyper_rien = Hyperlien(self, label=_("Tout décocher"), infobulle=_("Cliquez ici pour tout décocher"), URL="rien")
@@ -81,9 +80,8 @@ class CTRL(wx.Panel):
 
         self.Bind(wx.EVT_BUTTON, self.OnBoutonApercu, self.bouton_apercu)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonEmail, self.bouton_email)
-        self.Bind(wx.EVT_BUTTON, self.OnBoutonSupprimer, self.bouton_supprimer)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonListeApercu, self.bouton_liste_apercu)
-        self.Bind(wx.EVT_BUTTON, self.OnBoutonListeImprimer, self.bouton_liste_imprimer)
+        self.Bind(wx.EVT_BUTTON, self.OnBoutonImprimer, self.bouton_imprimer)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonListeExportTexte, self.bouton_liste_export_texte)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonListeExportExcel, self.bouton_liste_export_excel)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckAnnulations, self.ctrl_afficher_annulations)
@@ -91,12 +89,12 @@ class CTRL(wx.Panel):
     def __set_properties(self):
         self.bouton_apercu.SetToolTip(wx.ToolTip(_("Cliquez ici pour afficher un aperçu de la facture sélectionnée")))
         self.bouton_email.SetToolTip(wx.ToolTip(_("Cliquez ici envoyer la facture sélectionnée par Email")))
-        self.bouton_supprimer.SetToolTip(wx.ToolTip(_("Cliquez ici pour supprimer la facture sélectionnée ou les factures cochées")))
         self.bouton_liste_apercu.SetToolTip(wx.ToolTip(_("Cliquez ici pour afficher un aperçu avant impression de cette liste")))
-        self.bouton_liste_imprimer.SetToolTip(wx.ToolTip(_("Cliquez ici pour imprimer cette liste")))
+        self.bouton_imprimer.SetToolTip(wx.ToolTip(_("Cliquez ici pour imprimer l'ensemble des factures listées")))
         self.bouton_liste_export_texte.SetToolTip(wx.ToolTip(_("Cliquez ici pour exporter cette liste au format Texte")))
         self.bouton_liste_export_excel.SetToolTip(wx.ToolTip(_("Cliquez ici pour exporter cette liste au format Excel")))
         self.ctrl_afficher_annulations.SetToolTip(wx.ToolTip(_("Cochez cette case pour afficher les factures annulées dans la liste")))
+
 
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=2, cols=1, vgap=5, hgap=5)
@@ -108,14 +106,13 @@ class CTRL(wx.Panel):
         # Commandes de liste
         grid_sizer_commandes = wx.FlexGridSizer(rows=10, cols=1, vgap=5, hgap=5)
         grid_sizer_commandes.Add(self.bouton_apercu, 0, 0, 0)
+        grid_sizer_commandes.Add(self.bouton_imprimer, 0, 0, 0)
         grid_sizer_commandes.Add(self.bouton_email, 0, 0, 0)
         grid_sizer_commandes.Add((5, 5), 0, wx.EXPAND, 0)
 
-        grid_sizer_commandes.Add(self.bouton_supprimer, 0, 0, 0)
         grid_sizer_commandes.Add((5, 5), 0, wx.EXPAND, 0)
 
         grid_sizer_commandes.Add(self.bouton_liste_apercu, 0, 0, 0)
-        grid_sizer_commandes.Add(self.bouton_liste_imprimer, 0, 0, 0)
         grid_sizer_commandes.Add((5, 5), 0, wx.EXPAND, 0)
         
         grid_sizer_commandes.Add(self.bouton_liste_export_texte, 0, 0, 0)
@@ -148,17 +145,15 @@ class CTRL(wx.Panel):
     def OnBoutonApercu(self, event): 
         self.ctrl_factures.Reedition(None)
 
+    def OnBoutonImprimer(self, event):
+        self.ctrl_factures.CocheTout(None)
+        self.ctrl_factures.Reedition(None)
+
     def OnBoutonEmail(self, event): 
         self.ctrl_factures.EnvoyerEmail(None)
 
-    def OnBoutonSupprimer(self, event): 
-        self.ctrl_factures.Supprimer(None)
-
     def OnBoutonListeApercu(self, event): 
         self.ctrl_factures.Apercu(None)
-
-    def OnBoutonListeImprimer(self, event): 
-        self.ctrl_factures.Imprimer(None)
 
     def OnBoutonListeExportTexte(self, event): 
         self.ctrl_factures.ExportTexte(None)
@@ -206,6 +201,8 @@ class MyFrame(wx.Frame):
         pass
 
 if __name__ == '__main__':
+    import os
+    os.chdir("..")
     app = wx.App(0)
     #wx.InitAllImageHandlers()
     frame_1 = MyFrame(None, -1, _("TEST"), size=(700, 500))

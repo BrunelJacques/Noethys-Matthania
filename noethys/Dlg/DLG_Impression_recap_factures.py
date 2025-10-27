@@ -562,10 +562,8 @@ class Dialog(wx.Dialog):
             for track in self.tracks :
 
                 numero = track.numero
-                if track.etat == "annulation" :
-                    numero = "%s (Annulée)" % numero
-                
-                solde = track.solde
+
+                solde = track.soldeActuel
                 if solde != 0.0 :
                     solde = -solde
                     
@@ -589,14 +587,6 @@ class Dialog(wx.Dialog):
                 story.append(tableau)
 
                 # Famille
-                if track.prelevement == True :
-                    if track.IDfacture in dictPrelevements :
-                        textePrelevement = _("IBAN : %s | RUM : %s | Titulaire : %s | Le : %s ") % (dictPrelevements[track.IDfacture]["iban"], dictPrelevements[track.IDfacture]["rum"], dictPrelevements[track.IDfacture]["titulaire"], dictPrelevements[track.IDfacture]["datePrelevement"])
-                    else :
-                        textePrelevement = _("N° Compte : %s | Etab : %s | Guichet : %s | Clé : %s | Titulaire : %s") % (track.prelevement_numero, track.prelevement_etab, track.prelevement_guichet, track.prelevement_cle, track.prelevement_payeur)
-                else :
-                    textePrelevement = ""
-                
                 if track.adresse_famille["rue"] != None : rue = track.adresse_famille["rue"]
                 else : rue = ""
                 if track.adresse_famille["cp"] != None : cp = track.adresse_famille["cp"]
@@ -605,8 +595,13 @@ class Dialog(wx.Dialog):
                 else : ville = ""
 
                 dataTableau = []
-                dataTableau.append((Paragraph(_("Famille"), styleLabel), Paragraph(_("Adresse"), styleLabel), Paragraph(_("Prélèvement bancaire"), styleLabel)))
-                dataTableau.append((Paragraph(track.nomsTitulaires, styleTexte), (Paragraph(rue, styleTexte), Paragraph(u"%s %s" % (cp, ville), styleTexte)),Paragraph(textePrelevement, styleTexte)))
+                dataTableau.append((Paragraph(_("Famille"), styleLabel),
+                                    Paragraph(_("Adresse"), styleLabel),
+                                    Paragraph(_("Prélèvement bancaire"), styleLabel)))
+                dataTableau.append((Paragraph(track.nom_famille, styleTexte),
+                                    (Paragraph(rue, styleTexte),
+                                     Paragraph(u"%s %s" % (cp, ville), styleTexte)),
+                                    ))
 
                 largeursColonnes = [180, 140, largeurContenu-320]
                 tableau = Table(dataTableau, largeursColonnes)
@@ -687,11 +682,12 @@ class Dialog(wx.Dialog):
                                 labelActivite = dictActivites[dictTemp["IDactivite"]]
                             else :
                                 labelActivite = ""
-                            
-                            listeActivites.append(Paragraph(labelActivite[:35], styleTexte2)) 
-                            listeLabels.append(Paragraph(labelPrestation[:40], styleTexte2)) 
-                            listeQuantites.append(Paragraph(str(dictTemp["quantite"]), styleTexte2)) 
-                            listeMontants.append(Paragraph(u"%.2f %s" % (dictTemp["montant"], SYMBOLE), styleMontant))
+                            try:
+                                listeActivites.append(Paragraph(labelActivite[:35], styleTexte2))
+                                listeLabels.append(Paragraph(labelPrestation[:40], styleTexte2))
+                                listeQuantites.append(Paragraph(str(dictTemp["quantite"]), styleTexte2))
+                                listeMontants.append(Paragraph(u"%.2f %s" % (dictTemp["montant"], SYMBOLE), styleMontant))
+                            except: pass
 
                         ligne = [
                             Paragraph(labelIndividu, styleTexte2),
@@ -775,13 +771,14 @@ class Dialog(wx.Dialog):
             listeLabels.append(Paragraph(_("<b><i>Total de l'activité</i></b>"), styleTexte2)) 
             listeQuantites.append(Paragraph("<b><i>%d</i></b>" % quantiteActivite, styleTexte2)) 
             listeMontants.append(Paragraph(u"<b><i>%.2f %s</i></b>" % (totalActivite, SYMBOLE), styleMontant))
-            
-            dataTableau.append((
-                Paragraph(nomActivite, styleTexte2), 
-                listeLabels,
-                listeQuantites,
-                listeMontants,
-                ))
+            try:
+                dataTableau.append((
+                    Paragraph(nomActivite, styleTexte2),
+                    listeLabels,
+                    listeQuantites,
+                    listeMontants,
+                    ))
+            except: pass
 
         tableau = Table(dataTableau, largeursColonnes)
         listeStyles = [

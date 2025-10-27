@@ -57,13 +57,13 @@ def GetTexteFiltres(filtres):
          if filtre["type"] == "numero_liste" :
             listeTextes.append(_("Numéros de factures suivants : %s") % ";".join([str(x) for x in filtre["liste"]]))
 
-        # Solde initial
-         if filtre["type"] == "solde_initial" :
+        # Montant initial
+         if filtre["type"] == "montant_initial" :
             operateur = filtre["operateur"]
             if operateur == "<>" : operateur = "&#60;&#62;"
             if operateur == "<" : operateur = "&#60;"
             if operateur == ">" : operateur = "&#62;"
-            listeTextes.append(_("Solde initial %s %.2f %s") % (operateur, filtre["montant"], SYMBOLE))
+            listeTextes.append(_("Montant initial %s %.2f %s") % (operateur, filtre["montant"], SYMBOLE))
 
         # Solde actuel
          if filtre["type"] == "solde_actuel" :
@@ -201,10 +201,10 @@ class Dialog(wx.Dialog):
         
         listeOperateurs = (u"=", "<>", ">", "<", ">=", "<=")
         
-        self.check_solde_initial = wx.CheckBox(self, -1, _("Solde initial"))
-        self.ctrl_solde_initial_operateur = wx.Choice(self, -1, choices=listeOperateurs)
-        self.ctrl_solde_initial_operateur.SetSelection(0)
-        self.ctrl_solde_initial_montant = CTRL_Saisie_euros.CTRL(self)
+        self.check_montant_initial = wx.CheckBox(self, -1, _("Montant initial"))
+        self.ctrl_montant_initial_operateur = wx.Choice(self, -1, choices=listeOperateurs)
+        self.ctrl_montant_initial_operateur.SetSelection(0)
+        self.ctrl_montant_initial_montant = CTRL_Saisie_euros.CTRL(self)
         
         self.check_solde_actuel = wx.CheckBox(self, -1, _("Solde actuel"))
         self.ctrl_solde_actuel_operateur = wx.Choice(self, -1, choices=listeOperateurs)
@@ -232,7 +232,7 @@ class Dialog(wx.Dialog):
         self.Bind(wx.EVT_CHECKBOX, self.OnCheck, self.check_echeance)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheck, self.check_numeros_intervalle)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheck, self.check_numeros_liste)
-        self.Bind(wx.EVT_CHECKBOX, self.OnCheck, self.check_solde_initial)
+        self.Bind(wx.EVT_CHECKBOX, self.OnCheck, self.check_montant_initial)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheck, self.check_solde_actuel)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheck, self.check_prelevement)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheck, self.check_email)
@@ -258,9 +258,9 @@ class Dialog(wx.Dialog):
         self.ctrl_numeros_intervalle_max.SetToolTip(wx.ToolTip(_("Saisissez un numéro de facture max")))
         self.check_numeros_liste.SetToolTip(wx.ToolTip(_("Filtre Liste de numéros de factures")))
         self.ctrl_numeros_liste.SetToolTip(wx.ToolTip(_("Saisissez les numéros de factures souhaités en les séparant par un point-virgule (;)")))
-        self.check_solde_initial.SetToolTip(wx.ToolTip(_("Filtre Solde initial")))
-        self.ctrl_solde_initial_operateur.SetToolTip(wx.ToolTip(_("Sélectionnez un opération de comparaison")))
-        self.ctrl_solde_initial_montant.SetToolTip(wx.ToolTip(_("Saisissez un montant")))
+        self.check_montant_initial.SetToolTip(wx.ToolTip(_("Filtre Montant initial")))
+        self.ctrl_montant_initial_operateur.SetToolTip(wx.ToolTip(_("Sélectionnez un opération de comparaison")))
+        self.ctrl_montant_initial_montant.SetToolTip(wx.ToolTip(_("Saisissez un montant")))
         self.check_solde_actuel.SetToolTip(wx.ToolTip(_("Filtre Solde actuel")))
         self.ctrl_solde_actuel_operateur.SetToolTip(wx.ToolTip(_("Sélectionnez un opération de comparaison")))
         self.ctrl_solde_actuel_montant.SetToolTip(wx.ToolTip(_("Saisissez un montant")))
@@ -312,11 +312,11 @@ class Dialog(wx.Dialog):
         grid_sizer_numeros_liste.AddGrowableCol(1)
         grid_sizer_contenu.Add(grid_sizer_numeros_liste, 1, wx.EXPAND, 0)
         
-        grid_sizer_solde_initial = wx.FlexGridSizer(rows=1, cols=3, vgap=5, hgap=5)
-        grid_sizer_solde_initial.Add(self.check_solde_initial, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        grid_sizer_solde_initial.Add(self.ctrl_solde_initial_operateur, 0, 0, 0)
-        grid_sizer_solde_initial.Add(self.ctrl_solde_initial_montant, 0, 0, 0)
-        grid_sizer_contenu.Add(grid_sizer_solde_initial, 1, wx.EXPAND, 0)
+        grid_sizer_montant_initial = wx.FlexGridSizer(rows=1, cols=3, vgap=5, hgap=5)
+        grid_sizer_montant_initial.Add(self.check_montant_initial, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer_montant_initial.Add(self.ctrl_montant_initial_operateur, 0, 0, 0)
+        grid_sizer_montant_initial.Add(self.ctrl_montant_initial_montant, 0, 0, 0)
+        grid_sizer_contenu.Add(grid_sizer_montant_initial, 1, wx.EXPAND, 0)
         
         grid_sizer_solde_actuel = wx.FlexGridSizer(rows=1, cols=3, vgap=5, hgap=5)
         grid_sizer_solde_actuel.Add(self.check_solde_actuel, 0, wx.ALIGN_CENTER_VERTICAL, 0)
@@ -374,8 +374,8 @@ class Dialog(wx.Dialog):
 
         self.ctrl_numeros_liste.Enable(self.check_numeros_liste.GetValue())
 
-        self.ctrl_solde_initial_operateur.Enable(self.check_solde_initial.GetValue())
-        self.ctrl_solde_initial_montant.Enable(self.check_solde_initial.GetValue())
+        self.ctrl_montant_initial_operateur.Enable(self.check_montant_initial.GetValue())
+        self.ctrl_montant_initial_montant.Enable(self.check_montant_initial.GetValue())
 
         self.ctrl_solde_actuel_operateur.Enable(self.check_solde_actuel.GetValue())
         self.ctrl_solde_actuel_montant.Enable(self.check_solde_actuel.GetValue())
@@ -450,17 +450,17 @@ class Dialog(wx.Dialog):
         
             filtres.append({"type" : "numero_liste", "liste" : listeNumeros})
 
-        # Solde initial
-        if self.check_solde_initial.GetValue() == True :
-            operateur = self.ctrl_solde_initial_operateur.GetStringSelection()
-            montant = self.ctrl_solde_initial_montant.GetMontant()
+        # Montant initial
+        if self.check_montant_initial.GetValue() == True :
+            operateur = self.ctrl_montant_initial_operateur.GetStringSelection()
+            montant = self.ctrl_montant_initial_montant.GetMontant()
             if montant == None :
-                dlg = wx.MessageDialog(self, _("Filtre Solde initial : Le montant saisi n'est pas valide !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
+                dlg = wx.MessageDialog(self, _("Filtre Montant initial : Le montant saisi n'est pas valide !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
                 return False
         
-            filtres.append({"type" : "solde_initial", "operateur" : operateur, "montant" : montant})
+            filtres.append({"type" : "montant_initial", "operateur" : operateur, "montant" : montant})
 
         # Solde actuel
         if self.check_solde_actuel.GetValue() == True :
@@ -537,11 +537,11 @@ class Dialog(wx.Dialog):
                 self.check_numeros_liste.SetValue(True)
                 self.ctrl_numeros_liste.SetValue(";".join([str(x) for x in filtre["liste"]]))
 
-            # Solde initial
-            if filtre["type"] == "solde_initial" :
-                self.check_solde_initial.SetValue(True)
-                self.ctrl_solde_initial_operateur.SetStringSelection(filtre["operateur"])
-                self.ctrl_solde_initial_montant.SetMontant(filtre["montant"])
+            # Montant initial
+            if filtre["type"] == "montant_initial" :
+                self.check_montant_initial.SetValue(True)
+                self.ctrl_montant_initial_operateur.SetStringSelection(filtre["operateur"])
+                self.ctrl_montant_initial_montant.SetMontant(filtre["montant"])
 
             # Solde actuel
             if filtre["type"] == "solde_actuel" :
@@ -603,7 +603,7 @@ if __name__ == '__main__':
 ##    # Test d'importation de filtres
 ##    dlg.SetFiltres([
 ##        {"type" : "numero_intervalle", "numero_min" : 210, "numero_max" : 215},
-##        {"type" : "solde_initial", "operateur" : ">=", "montant" : 2.15},
+##        {"type" : "montant_initial", "operateur" : ">=", "montant" : 2.15},
 ##        ])
 ##    
 ##    app.SetTopWindow(dlg)

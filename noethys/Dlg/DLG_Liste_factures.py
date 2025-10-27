@@ -98,10 +98,10 @@ class Dialog(wx.Dialog):
         dlg.Destroy()
 
 
-
 if __name__ == "__main__":
+    import os
+    os.chdir("..")
     app = wx.App(0)
-    #wx.InitAllImageHandlers()
     dialog_1 = Dialog(None)
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()
