@@ -19,15 +19,19 @@ from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
 from Utils import UTILS_Fichiers
 from Dlg import DLG_Noedoc
 from Utils import UTILS_Config
-from reportlab.platypus.doctemplate import PageTemplate, BaseDocTemplate, NextPageTemplate
-from reportlab.platypus import Paragraph, Spacer, Table, TableStyle, PageBreak
+from reportlab.platypus.doctemplate import PageTemplate, BaseDocTemplate
+import reportlab.platypus.Paragraph as Paragraph
+import reportlab.platypus.Spacer as Spacer
+import reportlab.platypus.Table as Table
+import reportlab.platypus.TableStyle as TableStyle
+import reportlab.platypus.PageBreak as PageBreak
 from reportlab.platypus.flowables import Image
 from reportlab.platypus.frames import Frame
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm, mm
-from reportlab.lib import colors
+import  reportlab.lib.colors as colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.graphics.barcode import code39, qr
+import reportlab.graphics.barcode.code39 as code39
 from reportlab.platypus.flowables import DocAssign, Flowable
 
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
@@ -272,11 +276,11 @@ class Impression():
         # ----------- Insertion du contenu des frames --------------
         listeNomsSansCivilite = []
         for IDcompte, dictValeur in dictValeurs.items() :
-            listeNomsSansCivilite.append((dictValeur["nomSansCivilite"], IDcompte))
+            listeNomsSansCivilite.append((IDcompte, dictValeur["nomSansCivilite"]))
         listeNomsSansCivilite.sort()
 
         # déroulé des pages (comptes)
-        for nomSansCivilite, IDcompte in listeNomsSansCivilite :
+        for IDcompte, nomSansCivilite in listeNomsSansCivilite :
             dictValeur = dictValeurs[IDcompte]
             if not "montant" in dictValeur:
                 dictValeur["montant"] = dictValeur["total"]
@@ -705,7 +709,7 @@ class Impression():
                     dictValeur["{LIB_SOLDE}"] = "Reste à régler :"
                 dataTableau.append((listeMessages, libTotal, "%.02f %s" % (dictValeur["montant"], SYMBOLE)))
                 if dictValeur["ventilation"] != 0 :
-                    dataTableau.append(("", _("Règlements affectés :"), "%.02f %s" % (dictValeur["ventilation"], SYMBOLE)))
+                    dataTableau.append(("", "Règlements affectés :", "%.02f %s" % (dictValeur["ventilation"], SYMBOLE)))
                     dataTableau.append(("", dictValeur["{LIB_SOLDE}"], "%.02f %s" % (dictValeur["solde"], SYMBOLE)))
                 #gestion reports
                 if ("total_reports" in dictValeur) and  dictValeur["total_reports"] != 0 \

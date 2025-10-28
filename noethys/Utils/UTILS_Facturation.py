@@ -171,7 +171,7 @@ def ContrepartieReglement(lettreOrigine,IDreglement,recordset):
         return test
 
     def extraitContrepartie(record):
-        (IDreglement, date_reglement, differe, mode, observations, emetteur, payeur, \
+        (IDreglement, date_reglement, differe, mode, observations, emetteur, payeur,
         ventile, surMontant, IDprestation, IDfamille, lblPrest, dtePrest, lettre) = record
         if lettre and testLettre(lettreOrigine,lettre):
             if observations:
@@ -417,6 +417,7 @@ class Facturation():
         cp_resid = dictInfosTitulaires["adresse"]["cp"]
         ville_resid = dictInfosTitulaires["adresse"]["ville"]
         facturesNo = dictDonPage["facturesNo"]
+        txtNumeroA = ""
         # Compose un texte numéro de page et de facture
         def composeNo():
             if nature == "AVO" : txtNumeroA = "Avoir  N°:"

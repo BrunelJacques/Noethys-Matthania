@@ -9,8 +9,6 @@
 #------------------------------------------------------------------------
 
 
-import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
@@ -23,10 +21,10 @@ from Utils import UTILS_Facturation
 
 
 class Dialog(wx.Dialog):
-    def __init__(self, parent, filtres=[]):
+    def __init__(self, parent, filtres=None):
         wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
         self.parent = parent
-        
+
         # Bandeau
         intro = _("Cochez les factures à imprimer puis cliquez sur le bouton 'Aperçu' pour visualiser le ou les documents dans votre lecteur PDF.")
         titre = _("Impression de factures")
