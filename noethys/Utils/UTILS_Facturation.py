@@ -37,7 +37,7 @@ MONNAIE_SINGULIER = UTILS_Config.GetParametre("monnaie_singulier", _("Euro"))
 MONNAIE_DIVISION = UTILS_Config.GetParametre("monnaie_division", _("Centime"))
 DICT_CIVILITES = Civilites.GetDictCivilites()
 
-def Supprime_accent(self, texte):
+def Supprime_accent(texte):
     liste = [("/", " "), ("\\", " "),(":", " "),(".", " "),(",", " "),("<", " "),
              (">", " "),("*", " "),("?", " ")]
     for a, b in liste :
@@ -424,7 +424,7 @@ class Facturation():
             if nature == "FAC" : txtNumeroA = "Facture  N°:"
             if nature in ("DEV","RES","COM") : txtNumeroA = "Ref N°:"
 
-            if facturesNo == 0: # cas des devis ou commande
+            if not facturesNo: # cas des devis ou commande
                 txtNumeroB = "%s %s-%03d"%(nature[0:1],str(IDfamille), datetime.date.today().timetuple().tm_yday)
                 numFacture = ""
             else:
@@ -1665,11 +1665,15 @@ class Facturation():
                 condition = "IDfacture = %d"%listeFactures[0]
             # appel du nom de la famille
             try:
-                ret = self.DB.ReqSelect(table,condition,mess,lstChamps=lstChamps)
+                self.DB.ReqSelect(table,condition,mess,lstChamps=lstChamps)
                 ret = self.DB.ResultatReq()
-                nomDoc = self.DB.GetNomFamille(ret[0][0], first="nom")
+                if len(ret) == 1:
+                    nomDoc = self.DB.GetNomFamille(ret[0][0], first="nom")
+                else:
+                    nomDoc = "factures"
                 nomDoc = fp.NoPunctuation(nomDoc)
-            except: pass
+            except:
+                nomDoc = "factures"
             now = str(datetime.datetime.strftime(datetime.datetime.now(),
                                                  "%Y-%m-%d %Hh%M %S%f"))[:22]
             # l'unicitié du nom de fichier est obtenue par les secondes et millisecondes
@@ -1678,6 +1682,7 @@ class Facturation():
         # ajout du chemin devant le nom
         if not nomDoc.endswith(".pdf"):
             nomDoc = "%s.pdf" %(nomDoc)
+
         if not repertoire:
             nomDoc = UTILS_Fichiers.GetRepTemp(nomDoc)
 
@@ -1725,11 +1730,11 @@ class Facturation():
                 index = 0
                 for noFact, dictToPage in dictToPdf.items() :
                     if dictToPage["select"] == True :
-                        num_facture = dictToPage["num_facture"]
+                        num_facture = dictToPage["numero"]
                         nomTitulaires = Supprime_accent(dictToPage["nomSansCivilite"])
                         nomTitulaires = fp.NoPunctuation(nomTitulaires)
-                        nomFichier = _("Facture %d - %s") % (num_facture, nomTitulaires)
-                        cheminFichier = "%s/%s.pdf" % (repertoireCible, nomFichier)
+                        nomFichier = "%s - %s" % (num_facture, nomTitulaires)
+                        cheminFichier = "%s\\%s.pdf" % (repertoireCible, nomFichier)
                         dictToPdfTemp = {noFact : dictToPage}
                         self.EcritStatusbar(_("Edition de la facture %d/%d : %s") % (index, len(dictToPdf), nomFichier))
                         UTILS_Impression_facture.Impression(dictToPdfTemp, dictOptions, IDmodele=dictOptions["IDmodele"],
@@ -1749,7 +1754,7 @@ class Facturation():
             #fin CreationPDFeclates
         
         # Répertoire souhaité par l'utilisateur
-        if repertoire not in (None, "",'') :
+        if not repertoire  :
             resultat = CreationPDFeclates(repertoire)
             if resultat == False :
                 return False

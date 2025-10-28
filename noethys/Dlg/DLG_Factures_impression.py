@@ -33,36 +33,40 @@ class Dialog(wx.Dialog):
         
         # Factures
         self.box_factures_staticbox = wx.StaticBox(self, -1, _("Liste des factures"))
-        self.ctrl_liste_factures = CTRL_Liste_factures.CTRL(self, filtres=filtres)
+        self.ctrl_factures = CTRL_Liste_factures.CTRL(self, filtres=filtres)
         
         # Options
         self.ctrl_options = CTRL_Factures_options.CTRL(self)
         
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
-        self.bouton_recap = CTRL_Bouton_image.CTRL(self, texte=_("Récapitulatif"), cheminImage="Images/32x32/Imprimante.png")
-        self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Aperçu"), cheminImage="Images/32x32/Apercu.png")
+        self.bouton_imprime = CTRL_Bouton_image.CTRL(self, texte=_("Impression"), cheminImage="Images/32x32/Imprimante.png")
+        self.bouton_visu = CTRL_Bouton_image.CTRL(self, texte=_("Aperçu"), cheminImage="Images/32x32/Apercu.png")
         self.bouton_annuler = CTRL_Bouton_image.CTRL(self, texte=_("Fermer"), cheminImage="Images/32x32/Fermer.png")
 
         self.__set_properties()
         self.__do_layout()
-        
-        self.Bind(wx.EVT_CLOSE, self.OnBoutonAnnuler)
-        self.Bind(wx.EVT_BUTTON, self.OnBoutonAide, self.bouton_aide)
-        self.Bind(wx.EVT_BUTTON, self.OnBoutonRecap, self.bouton_recap)
-        self.Bind(wx.EVT_BUTTON, self.OnBoutonApercu, self.bouton_ok)
-        self.Bind(wx.EVT_BUTTON, self.OnBoutonAnnuler, self.bouton_annuler)
-        
-        # Init Contrôles
-        self.ctrl_liste_factures.MAJ() 
-                
+
+        # Schedule __calledAfter to run once the dialog is idle (i.e., shown)
+        wx.CallAfter(self.__calledAfter)
+
+    def __calledAfter(self):
+        self.ctrl_factures.MAJ()
+        self.ctrl_factures.ctrl_filtres.OnBoutonParametres(None)
 
     def __set_properties(self):
         self.bouton_aide.SetToolTip(wx.ToolTip(_("Cliquez ici pour obtenir de l'aide")))
-        self.bouton_recap.SetToolTip(wx.ToolTip(_("Cliquez ici pour imprimer un récapitulatif des factures cochées dans la liste")))
-        self.bouton_ok.SetToolTip(wx.ToolTip(_("Cliquez ici pour afficher le PDF")))
+        self.bouton_imprime.SetToolTip(wx.ToolTip(
+            _("Cliquez ici pour imprimer les factures cochées dans la liste")))
+        self.bouton_visu.SetToolTip(wx.ToolTip(_("Cliquez ici pour afficher le PDF")))
         self.bouton_annuler.SetToolTip(wx.ToolTip(_("Cliquez ici pour annuler")))
         self.SetMinSize((850, 700))
+
+        self.Bind(wx.EVT_CLOSE, self.OnBoutonAnnuler)
+        self.Bind(wx.EVT_BUTTON, self.OnBoutonAide, self.bouton_aide)
+        self.Bind(wx.EVT_BUTTON, self.OnBoutonImprime, self.bouton_imprime)
+        self.Bind(wx.EVT_BUTTON, self.OnBoutonApercu, self.bouton_visu)
+        self.Bind(wx.EVT_BUTTON, self.OnBoutonAnnuler, self.bouton_annuler)
 
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
@@ -70,7 +74,7 @@ class Dialog(wx.Dialog):
                 
         # Factures
         box_factures = wx.StaticBoxSizer(self.box_factures_staticbox, wx.VERTICAL)
-        box_factures.Add(self.ctrl_liste_factures, 1, wx.ALL|wx.EXPAND, 10)
+        box_factures.Add(self.ctrl_factures, 1, wx.ALL | wx.EXPAND, 10)
         grid_sizer_base.Add(box_factures, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
 
         # Options
@@ -79,11 +83,11 @@ class Dialog(wx.Dialog):
         # Boutons
         grid_sizer_boutons = wx.FlexGridSizer(rows=1, cols=5, vgap=10, hgap=10)
         grid_sizer_boutons.Add(self.bouton_aide, 0, 0, 0)
-        grid_sizer_boutons.Add(self.bouton_recap, 0, 0, 0)
+        grid_sizer_boutons.Add(self.bouton_imprime, 0, 0, 0)
+        grid_sizer_boutons.Add(self.bouton_visu, 0, 0, 0)
         grid_sizer_boutons.Add((20, 20), 0, wx.EXPAND, 0)
-        grid_sizer_boutons.Add(self.bouton_ok, 0, 0, 0)
         grid_sizer_boutons.Add(self.bouton_annuler, 0, 0, 0)
-        grid_sizer_boutons.AddGrowableCol(1)
+        grid_sizer_boutons.AddGrowableCol(3)
         grid_sizer_base.Add(grid_sizer_boutons, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 10)
         
         self.SetSizer(grid_sizer_base)
@@ -93,6 +97,18 @@ class Dialog(wx.Dialog):
         self.Layout()
         self.CenterOnScreen() 
 
+    def GetTracksCoches(self):
+        tracks = self.ctrl_factures.GetTracksCoches()
+        if not tracks:
+            self.ctrl_factures.ctrl_factures.CocheTout()
+            tracks = self.ctrl_factures.GetTracksCoches()
+        if not tracks :
+            dlg = wx.MessageDialog(self, _("Vous devez avoir au moins une facture dans la liste !"), _("Erreur"), wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
+        return tracks
+
     def OnBoutonAide(self, event): 
         from Utils import UTILS_Aide
         UTILS_Aide.Aide("Imprimer")
@@ -101,39 +117,20 @@ class Dialog(wx.Dialog):
         self.ctrl_options.MemoriserParametres() 
         self.EndModal(wx.ID_CANCEL)
 
-    def OnBoutonRecap(self, event): 
-        """ Aperçu PDF du récapitulatif des factures """
-        tracks = self.ctrl_liste_factures.GetTracksCoches() 
-        if len(tracks) == 0 : 
-            dlg = wx.MessageDialog(self, _("Vous devez cocher au moins une facture dans la liste !"), _("Erreur"), wx.OK | wx.ICON_EXCLAMATION)
-            dlg.ShowModal()
-            dlg.Destroy()
-            return
+    def OnBoutonImprime(self, event):
+        self.Impression(afficherDoc=True)
 
-        from Dlg import DLG_Impression_recap_factures
-        dlg = DLG_Impression_recap_factures.Dialog(self, dictOptions={}, tracks=tracks)
-        dlg.ShowModal() 
-        dlg.Destroy()
+    def OnBoutonApercu(self, event):
+        self.Impression(afficherDoc=True)
 
-    def OnBoutonApercu(self, event): 
+    def Impression(self,afficherDoc=False):
         """ Aperçu PDF des factures """
         # Validation des données saisies
-        tracks = self.ctrl_liste_factures.GetTracksCoches() 
-        if len(tracks) == 0 : 
-            dlg = wx.MessageDialog(self, _("Vous n'avez sélectionné aucune facture à imprimer !"), _("Erreur"), wx.OK | wx.ICON_EXCLAMATION)
-            dlg.ShowModal()
-            dlg.Destroy()
+        tracks = self.GetTracksCoches()
+        if not tracks:
             return
-
         listeIDfacture = []
         for track in tracks :
-            # Avertissements
-            if track.etat == "annulation" : 
-                dlg = wx.MessageDialog(self, _("La facture n°%s a été annulée.\n\nVous ne pouvez pas l'imprimer !") % track.numero, _("Erreur"), wx.OK | wx.ICON_EXCLAMATION)
-                dlg.ShowModal()
-                dlg.Destroy()
-                return
-            
             # Ajout
             listeIDfacture.append(track.IDfacture) 
         
@@ -142,16 +139,12 @@ class Dialog(wx.Dialog):
         if dictOptions == False :
             return False
         
-        # for nom, valeur in dictOptions.items() :
-        #     print (nom, valeur)
-            
         # Impression des factures sélectionnées
         facturation = UTILS_Facturation.Facturation()
-        facturation.Impression(listeFactures=listeIDfacture, afficherDoc=True, dictOptions=dictOptions, repertoire=dictOptions["repertoire_copie"])
-        
-    
-
-
+        facturation.Impression(listeFactures=listeIDfacture,
+                               afficherDoc=afficherDoc,
+                               dictOptions=dictOptions,
+                               repertoire=dictOptions["repertoire_copie"])
 
 
 

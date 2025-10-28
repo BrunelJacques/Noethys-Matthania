@@ -9,11 +9,10 @@
 #------------------------------------------------------------------------
 
 
-import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
+
 from Ctrl import CTRL_Bandeau
 from Ctrl import CTRL_Liste_factures
 
@@ -42,11 +41,7 @@ class Dialog(wx.Dialog):
 
     def __calledAfter(self):
         self.ctrl_factures.MAJ()
-        mess = "Pas de liste sans un filtre!\n\n"
-        mess += "Pour éviter une liste trop longue, posez au moins un filtre pour préciser votre besoin"
-        dlg = wx.MessageDialog(self,mess,"Préalable nécessaire", wx.OK | wx.ICON_INFORMATION)
-        dlg.ShowModal()
-        dlg.Destroy()
+        self.ctrl_factures.ctrl_filtres.OnBoutonParametres(None)
 
     def __set_properties(self):
         self.bouton_aide.SetToolTip(wx.ToolTip(_("Cliquez ici pour obtenir de l'aide")))

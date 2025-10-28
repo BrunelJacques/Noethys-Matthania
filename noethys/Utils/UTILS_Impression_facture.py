@@ -20,11 +20,7 @@ from Utils import UTILS_Fichiers
 from Dlg import DLG_Noedoc
 from Utils import UTILS_Config
 from reportlab.platypus.doctemplate import PageTemplate, BaseDocTemplate
-import reportlab.platypus.Paragraph as Paragraph
-import reportlab.platypus.Spacer as Spacer
-import reportlab.platypus.Table as Table
-import reportlab.platypus.TableStyle as TableStyle
-import reportlab.platypus.PageBreak as PageBreak
+from reportlab.platypus import Paragraph, Spacer, Table, TableStyle, PageBreak
 from reportlab.platypus.flowables import Image
 from reportlab.platypus.frames import Frame
 from reportlab.lib.pagesizes import A4

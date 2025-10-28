@@ -621,7 +621,8 @@ class ListView(FastObjectListView):
         if lstIDfactures:
             from Utils import UTILS_Facturation
             facturation = UTILS_Facturation.Facturation()
-            facturation.Impression(listeFactures=lstIDfactures,typeLancement="factures")
+            facturation.Impression(listeFactures=lstIDfactures,
+                                   typeLancement="factures")
     
     def EnvoyerEmail(self, event):
         """ Envoyer la facture par Email """

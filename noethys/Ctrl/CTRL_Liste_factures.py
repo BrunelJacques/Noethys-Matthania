@@ -54,7 +54,8 @@ class CTRL(wx.Panel):
         self.parent = parent
         
         # Liste des factures
-        self.listviewAvecFooter = OL_Factures.ListviewAvecFooter(self, kwargs={"codesColonnes" : codesColonnes, "checkColonne" : checkColonne, "triColonne" : triColonne}) 
+        kwargs = {"codesColonnes": codesColonnes, "checkColonne": checkColonne,"triColonne": triColonne}
+        self.listviewAvecFooter = OL_Factures.ListviewAvecFooter(self, kwargs=kwargs)
         self.ctrl_factures = self.listviewAvecFooter.GetListview()
         
         # Ctrl des filtres de sélection
@@ -146,7 +147,6 @@ class CTRL(wx.Panel):
         self.ctrl_factures.Reedition(None)
 
     def OnBoutonImprimer(self, event):
-        self.ctrl_factures.CocheTout(None)
         self.ctrl_factures.Reedition(None)
 
     def OnBoutonEmail(self, event): 
