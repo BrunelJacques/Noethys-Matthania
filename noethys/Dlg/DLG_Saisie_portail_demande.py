@@ -1862,7 +1862,8 @@ class Edition_facture():
     def CreationPDF(self, nomDoc="", afficherDoc=True):
         """ Création du PDF pour Email """
         facturation = UTILS_Facturation.Facturation()
-        resultat = facturation.Impression(listeFactures=[self.IDfacture,], nomDoc=nomDoc, afficherDoc=afficherDoc, afficherOptions=self.afficherOptions)
+        resultat = facturation.Impression(listeFactures=[self.IDfacture,], nomDoc=nomDoc,
+                                          afficherDoc=afficherDoc, afficherOptions=self.afficherOptions)
         if resultat == False :
             return False
         dictChampsFusion, dictPieces = resultat

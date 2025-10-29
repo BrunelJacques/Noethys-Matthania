@@ -64,8 +64,8 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL) :
         self.Append(propriete)
 
         # Répertoire de sauvegarde
-        propriete = wxpg.DirProperty(label=_("Répertoire pour copie unique"), name="repertoire_copie", value="")
-        propriete.SetHelpString(_("Enregistrer une copie unique de chaque document dans le répertoire sélectionné. Sinon laissez vide ce champ."))
+        propriete = wxpg.DirProperty(label=_("Répertoire pour copie du fichier"), name="repertoire_copie", value="")
+        propriete.SetHelpString(_("Enregistrer une copie de chaque document dans le répertoire sélectionné. Sinon laissez vide ce champ."))
         self.Append(propriete)
 
         # Catégorie 

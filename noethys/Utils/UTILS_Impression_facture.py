@@ -19,6 +19,7 @@ from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
 from Utils import UTILS_Fichiers
 from Dlg import DLG_Noedoc
 from Utils import UTILS_Config
+import wx.lib.agw.pybusyinfo as PBI
 from reportlab.platypus.doctemplate import PageTemplate, BaseDocTemplate
 from reportlab.platypus import Paragraph, Spacer, Table, TableStyle, PageBreak
 from reportlab.platypus.flowables import Image
@@ -276,7 +277,10 @@ class Impression():
         listeNomsSansCivilite.sort()
 
         # déroulé des pages (comptes)
+        kw = {"parent":None, "title":"Veuillez patienter...",
+              "icon":wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Logo.png"), wx.BITMAP_TYPE_ANY)}
         for IDcompte, nomSansCivilite in listeNomsSansCivilite :
+            dlgAttente = PBI.PyBusyInfo(_("Finalisation %s ..."%nomSansCivilite), **kw)
             dictValeur = dictValeurs[IDcompte]
             if not "montant" in dictValeur:
                 dictValeur["montant"] = dictValeur["total"]
@@ -808,7 +812,9 @@ class Impression():
                 story.append(PageBreak())
 
         # Finalisation du PDF
+        dlgAttente = PBI.PyBusyInfo(_("Finalisation du document ..."),**kw)
         doc.build(story)
+        del dlgAttente
         # Ouverture du PDF
         if ouverture == True :
             FonctionsPerso.LanceFichierExterne(nomDoc)

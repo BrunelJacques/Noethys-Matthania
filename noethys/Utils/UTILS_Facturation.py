@@ -1653,25 +1653,26 @@ class Facturation():
                 return False
 
         if not nomDoc:
-            # recherche de la première famille
+            # recherche des familles dans le lot
             mess = 'UTILS_Facturation.Impression'
             if len(listePieces) > 0:
                 lstChamps = ["pieIDcompte_payeur", ]
                 table = "matPieces"
-                condition = "pieIDnumPiece = %d"%listePieces[0]
+                condition = "pieIDnumPiece in( %s )"%str(listePieces)[1:-1]
             elif len(listeFactures) > 0:
                 lstChamps = ["IDcompte_payeur", ]
                 table = "factures"
-                condition = "IDfacture = %d"%listeFactures[0]
-            # appel du nom de la famille
+                condition = "IDfacture in( %s )"%str(listeFactures)[1:-1]
+            # appel des noms de familles
             try:
                 self.DB.ReqSelect(table,condition,mess,lstChamps=lstChamps)
                 ret = self.DB.ResultatReq()
                 if len(ret) == 1:
+                    # un seule famille son nom sera dans le nom du fichier
                     nomDoc = self.DB.GetNomFamille(ret[0][0], first="nom")
+                    nomDoc = fp.NoPunctuation(nomDoc)
                 else:
                     nomDoc = "factures"
-                nomDoc = fp.NoPunctuation(nomDoc)
             except:
                 nomDoc = "factures"
             now = str(datetime.datetime.strftime(datetime.datetime.now(),
@@ -1679,12 +1680,18 @@ class Facturation():
             # l'unicitié du nom de fichier est obtenue par les secondes et millisecondes
             nomDoc = "%s %s"%(nomDoc ,now)
 
-        # ajout du chemin devant le nom
         if not nomDoc.endswith(".pdf"):
             nomDoc = "%s.pdf" %(nomDoc)
 
+        # ajout du chemin devant le nom
         if not repertoire:
             nomDoc = UTILS_Fichiers.GetRepTemp(nomDoc)
+        else:
+            if "/" in repertoire:
+                sep = "/"
+            else:
+                sep = "\\"
+            nomDoc = f"{repertoire}{sep}{nomDoc}"
 
         self.dictChampsFusion = {}
 
@@ -1699,33 +1706,34 @@ class Facturation():
             return False
 
         # alimenter le dictPieces et les autres dictionnaires complémentaires
-        dlgAttente = PBI.PyBusyInfo(_("Recherche des données générales..."),
-                                    parent=None, title=_("Veuillez patienter..."),
-                                    icon=wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Logo.png"), wx.BITMAP_TYPE_ANY))
+        kw = {"parent":None, "title":"Veuillez patienter...",
+              "icon":wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Logo.png"), wx.BITMAP_TYPE_ANY)}
+        dlgAttente = PBI.PyBusyInfo(_("Recherche des pièces..."),**kw)
         self.GetPieces()
+        dlgAttente = PBI.PyBusyInfo(_("Recherche des infos..."),**kw)
         self.GetInfos()
+        dlgAttente = PBI.PyBusyInfo(_("Recherche des ventilations..."),**kw)
         self.GetVentilations()
+        dlgAttente = PBI.PyBusyInfo(_("Recherche des soldes..."),**kw)
         self.GetSoldes()
-        del dlgAttente
-
+        dlgAttente = PBI.PyBusyInfo(_("Agrégation des données..."),**kw)
         # Récupération des données
         dictToPdf = self.GetDonnees(dictOptions)
+        del dlgAttente
         self.DB.Close()
         if len(dictToPdf) == 0 :
             return False
+        dictCheminsPdf = {}
 
         # Création des PDF à l'unité
         def CreationPDFeclates(repertoireCible=""):
-            if repertoireCible in (None, "",''):
+            if not repertoireCible:
                 if "repertoire_copie" in dictOptions:
                     repertoireCible = dictOptions["repertoire_copie"]
     
             dictCheminsPdf = {}
             dlgAttente = PBI.PyBusyInfo(_("Génération des factures à l'unité au format PDF..."), parent=None, title=_("Veuillez patienter..."), icon=wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Logo.png"), wx.BITMAP_TYPE_ANY))
-            try :
-                wx.Yield() 
-            except :
-                pass
+
             try :
                 index = 0
                 for noFact, dictToPage in dictToPdf.items() :
@@ -1752,15 +1760,8 @@ class Facturation():
                 dlg.Destroy()
                 return False
             #fin CreationPDFeclates
-        
-        # Répertoire souhaité par l'utilisateur
-        if not repertoire  :
-            resultat = CreationPDFeclates(repertoire)
-            if resultat == False :
-                return False
 
-        # Répertoire TEMP (pour Emails)
-        dictCheminsPdf = {}
+        # Répertoire TEMP (pour Emails) PDF éclatés
         if repertoireTemp == True :
             dictCheminsPdf = CreationPDFeclates("Temp")
             if dictCheminsPdf == False :
@@ -1768,11 +1769,7 @@ class Facturation():
 
         # Fabrication du PDF global
         if repertoireTemp == False :
-            dlgAttente = PBI.PyBusyInfo(_("Création du PDF des factures..."), parent=None, title=_("Veuillez patienter..."), icon=wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Logo.png"), wx.BITMAP_TYPE_ANY))
-            try :
-                wx.Yield() 
-            except :
-                pass
+            dlgAttente = PBI.PyBusyInfo("Création du PDF des factures...", **kw)
             self.EcritStatusbar(_("Création du PDF des factures en cours... veuillez patienter..."))
             try :
                 # ------------------------------------Lancement de l'impression ----------------------------------------
@@ -1788,6 +1785,7 @@ class Facturation():
                 dlg.ShowModal()
                 dlg.Destroy()
                 return False
+
         # pointeurs d'impression
         self.DB = GestionDB.DB()
         req = """SELECT pieIDnumPiece, pieNature, pieEtat, pieCommentaire
@@ -1804,6 +1802,23 @@ class Facturation():
                     self.DB.ReqMAJ('matPieces',[('pieEtat',etat),('pieCommentaire',commentaire)],
                                    'pieIDnumPiece',IDnumPiece,MsgBox = 'UTILS_Facturation.MAJpointeurs')
         self.DB.Close()
+
+        # final effacement
+        removeFile = True
+        mess = f"Fichier créé ! \n\n{nomDoc}\nVoulez-vous le supprimer?"
+        ret = wx.MessageBox(mess,"Fin d'impression",style=wx.ICON_EXCLAMATION|wx.YES_NO)
+        if ret != wx.YES:
+            removeFile = False
+        if removeFile:
+            import os
+            if os.path.isfile(nomDoc):
+                os.remove(nomDoc)
+                print(nomDoc, "Supprimé")
+            else:
+                print(nomDoc, "fichier non trouvé")
+        else:
+            print(nomDoc,"non supprimé")
+
         return self.dictChampsFusion, dictCheminsPdf
         #fin Impression
 

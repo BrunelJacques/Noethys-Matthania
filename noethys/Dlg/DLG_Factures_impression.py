@@ -118,7 +118,7 @@ class Dialog(wx.Dialog):
         self.EndModal(wx.ID_CANCEL)
 
     def OnBoutonImprime(self, event):
-        self.Impression(afficherDoc=True)
+        self.Impression(afficherDoc=False)
 
     def OnBoutonApercu(self, event):
         self.Impression(afficherDoc=True)
