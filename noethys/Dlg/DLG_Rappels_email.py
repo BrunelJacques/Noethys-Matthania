@@ -124,7 +124,10 @@ class Dialog(wx.Dialog):
         if dictOptions == False :
             return
 
-        resultat = facturation.Impression(listeRappels=listeIDrappel, nomDoc=None, afficherDoc=False, dictOptions=dictOptions, repertoire=dictOptions["repertoire"], repertoireTemp=True)
+        resultat = facturation.Impression(listeRappels=listeIDrappel, nomDoc=None,
+                                          afficherDoc=False, dictOptions=dictOptions,
+                                          repertoire=dictOptions["repertoire"],
+                                          repertoireTemp=True)
         if resultat == False : 
             return
         dictChampsFusion, dictPieces = resultat

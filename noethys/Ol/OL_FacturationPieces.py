@@ -505,12 +505,13 @@ class ListView(ObjectListView):
         menuPop.Destroy()
 
     def EnvoyerEmail(self, event):
-        listePieces = self.GetListeIDpieces()
+        listePieces = self.GetSelectedObjects()
+
         if listePieces != None:
             if len(listePieces) > 0 :
                 # Envoi du mail
                 from Utils import UTILS_Envoi_email
-                firstPiece = self.GetCheckedObjects()[0]
+                firstPiece = listePieces[0]
                 nature = firstPiece.nature
                 if nature == "FAC":
                     ID = firstPiece.noFacture
@@ -520,13 +521,16 @@ class ListView(ObjectListView):
                 horodatage = datetime.datetime.now().strftime("%Y%m%d")
                 IDdoc = "%s-%d" % (horodatage,ID)
                 IDfamille = firstPiece.IDfamille
-                from Utils import UTILS_Fichiers
-                nomDoc = UTILS_Fichiers.GetRepTemp("%s%s.pdf" %(nature,IDdoc))
+                #from Utils import UTILS_Fichiers
+                #repertoire = UTILS_Fichiers.GetRepTemp()
+                nomDoc = "%s%s.pdf" %(nature,IDdoc)
                 UTILS_Envoi_email.EnvoiEmailFamille(parent=self, IDfamille=IDfamille,
                                                     nomDoc= nomDoc ,
                                                     categorie="facture")
+                print(nomDoc)
+                print()
 
-    def CreationPDF(self, nomDoc="", afficherDoc=True):
+    def CreationPDF(self, nomDoc="", afficherDoc=True,repertoireTemp=False):
         """ Création du PDF pour Email """
         dictChampsFusion = {}
         dictChampsFusion["zz"] = None
@@ -535,7 +539,10 @@ class ListView(ObjectListView):
             if len(listePieces) > 0 :
                 #from Utils import UTILS_Facturation
                 facturation = UTILS_Facturation.Facturation()
-                resultat = facturation.Impression(listePieces=listePieces, nomDoc=nomDoc, afficherDoc=True)
+                resultat = facturation.Impression(listePieces=listePieces,
+                                                  nomDoc=nomDoc,
+                                                  afficherDoc=afficherDoc,
+                                                  repertoireTemp=repertoireTemp)
                 if resultat == False :
                     return False
                 dictChampsFusion, dictPieces = resultat

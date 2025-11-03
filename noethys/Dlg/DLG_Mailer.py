@@ -591,9 +591,6 @@ class Dialog(wx.Dialog):
         self.ctrl_pieces.SetFichiers(listeFichiers)
 
 
-
-
-
 if __name__ == "__main__":
     app = wx.App(0)
     dlg = Dialog(None)

@@ -34,13 +34,12 @@ import mimetypes
 
 from Outils import mail
 
-def EnvoiEmailFamille(parent=None, IDfamille=None, nomDoc="", categorie="", listeAdresses=[], visible=True, log=None, CreationPDF=None, IDmodele=None):
+def EnvoiEmailFamille(parent=None, IDfamille=None, nomDoc="", categorie="", listeAdresses=[],
+                      visible=True, log=None, CreationPDF=None, IDmodele=None):
     # Création du PDF
     if CreationPDF != None :
         temp = CreationPDF
-    else :
-        temp = parent.CreationPDF
-    dictChamps = temp(nomDoc=nomDoc, afficherDoc=False)
+    dictChamps = temp(nomDoc=nomDoc, afficherDoc=False, repertoireTemp=True)
     if dictChamps == False :
         return False
 

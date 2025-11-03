@@ -76,7 +76,7 @@ class Track(object):
             if self.prelevement_individu == None :
                 self.prelevement_payeur = self.prelevement_nom
             else :
-                self.prelevement_payeur = "%s %s" % (self.nomPayeur, self.prenomPayeur)
+                self.prelevement_payeur = "%s" % (self.nomPayeur)
 
             # Envoi par Email
             self.email_factures =  donnees["email_factures"]
@@ -236,19 +236,24 @@ class ListView(FastObjectListView):
         else:
             condAdresse = "WHERE FALSE"
         req = """
-        SELECT IDindividu,nom,prenom,rue_resid,ville_resid,cp_resid,adresse_auto
+        SELECT IDindividu,nom,prenom,rue_resid,ville_resid,cp_resid,adresse_auto,
+            mail,travail_mail
         FROM individus
         %s
         ;""" % condAdresse
         DB.ExecuterReq(req,MsgBox="OL_Factures.adresses")
         listeAdresses = DB.ResultatReq()
-        for ID,nom,prenom,rue_resid,ville_resid,cp_resid,adresse_auto in listeAdresses:
+        for ID,nom,prenom,rue_resid,ville_resid,cp_resid,adresse_auto,\
+                mail, travail_mail in listeAdresses:
+            dictAdresses[ID]['IDadresse']=ID
             dictAdresses[ID]['nom']=nom
             dictAdresses[ID]['prenom']=prenom
             dictAdresses[ID]['rue']=rue_resid
             dictAdresses[ID]['ville']=ville_resid
             dictAdresses[ID]['cp']=cp_resid
             dictAdresses[ID]['auto']=adresse_auto
+            dictAdresses[ID]['mail'] = mail
+            if not mail: dictAdresses[ID]['mail'] = travail_mail
 
         # teste l'utilité de la requête sur les prélèvements ou filtre email
         filtrePrelev = False
@@ -450,8 +455,7 @@ class ListView(FastObjectListView):
             return "%.2f %s" % (montant, SYMBOLE)
                    
         def rowFormatter(listItem, track):
-            if False:
-                listItem.SetTextColour(wx.Colour(255, 0, 0))
+            pass
                 
         # Couleur en alternance des lignes
         self.oddRowsBackColor = wx.Colour(255, 255, 255) #"#EEF4FB" # Bleu
@@ -621,8 +625,7 @@ class ListView(FastObjectListView):
         if lstIDfactures:
             from Utils import UTILS_Facturation
             facturation = UTILS_Facturation.Facturation()
-            facturation.Impression(listeFactures=lstIDfactures,
-                                   typeLancement="factures")
+            facturation.Impression(listeFactures=lstIDfactures)
     
     def EnvoyerEmail(self, event):
         """ Envoyer la facture par Email """
@@ -639,17 +642,22 @@ class ListView(FastObjectListView):
             IDfamille = self.Selection()[0].IDfamille
             from Utils import UTILS_Fichiers
             nomDoc = UTILS_Fichiers.GetRepTemp("%s%s.pdf" %(nature,IDdoc))
-            UTILS_Envoi_email.EnvoiEmailFamille(parent=self, IDfamille=IDfamille,
+            UTILS_Envoi_email.EnvoiEmailFamille(parent=self,
+                                                IDfamille=IDfamille,
                                                 nomDoc= nomDoc ,
+                                                CreationPDF=self.CreationPDF_mail,
                                                 categorie="facture")
 
-    def CreationPDF(self, nomDoc="", afficherDoc=True):        
+    def CreationPDF_mail(self, nomDoc="",afficherDoc=True,repertoireTemp=True):
         """ Création du PDF pour Email  Indissociable de EnvoyerEmail car appelé par UTILS_Envoi_email"""
         lstIDfactures = self.GetlstIDfactures()
         if lstIDfactures:
             from Utils import UTILS_Facturation
             facturation = UTILS_Facturation.Facturation()
-            resultat = facturation.Impression(listeFactures=lstIDfactures, nomDoc=nomDoc, afficherDoc=afficherDoc)
+            resultat = facturation.Impression(listeFactures=lstIDfactures,
+                                              nomDoc=nomDoc,
+                                              afficherDoc=afficherDoc,
+                                              repertoireTemp=repertoireTemp)
             if resultat == False :
                 return False
             dictChampsFusion, dictPieces = resultat

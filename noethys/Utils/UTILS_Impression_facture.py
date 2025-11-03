@@ -224,7 +224,7 @@ def ComposeLigneReglement(key,dicRegl):
     return texte
 
 class Impression():
-    def __init__(self, dictValeurs={}, dictOptions={}, IDmodele=None, mode="_", ouverture=True, nomFichier=None, titre=None):
+    def __init__(self, dictValeurs={}, dictOptions={}, IDmodele=None, mode="_", ouverture=True, nomFichier=None, **kw):
         """ Impression """
         global DICT_VALEURS, DICT_OPTIONS
         DICT_VALEURS = dictValeurs
@@ -245,7 +245,7 @@ class Impression():
         if nomFichier == None :
             nomFichier = _("%ss_%s.pdf") % (mode, FonctionsPerso.GenerationIDdoc())
         nomDoc = nomFichier
-        if not "\\" in nomFichier:
+        if not "\\" in nomFichier and  not "\\" in nomFichier:
             nomDoc = UTILS_Fichiers.GetRepTemp(nomFichier)
 
         doc = BaseDocTemplate(nomDoc, pagesize=TAILLE_PAGE, showBoundary=False)
@@ -272,9 +272,9 @@ class Impression():
 
         # ----------- Insertion du contenu des frames --------------
         listeNomsSansCivilite = []
-        for IDcompte, dictValeur in dictValeurs.items() :
+        for IDcompte in sorted(dictValeurs.keys(),reverse=True):
+            dictValeur = dictValeurs[IDcompte]
             listeNomsSansCivilite.append((IDcompte, dictValeur["nomSansCivilite"]))
-        listeNomsSansCivilite.sort()
 
         # déroulé des pages (comptes)
         kw = {"parent":None, "title":"Veuillez patienter...",

@@ -36,6 +36,10 @@ SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 MONNAIE_SINGULIER = UTILS_Config.GetParametre("monnaie_singulier", _("Euro"))
 MONNAIE_DIVISION = UTILS_Config.GetParametre("monnaie_division", _("Centime"))
 DICT_CIVILITES = Civilites.GetDictCivilites()
+if "linux" in sys.platform:
+    SEP = "/"
+else:
+    SEP = "\\"
 
 def Supprime_accent(texte):
     liste = [("/", " "), ("\\", " "),(":", " "),(".", " "),(",", " "),("<", " "),
@@ -240,29 +244,6 @@ class Facturation():
                 texte = texte.replace(key, valeur)
         return texte
 
-    # ----------------------------- Structure de dictToPdf -------------------------------------------------------------
-    """
-    [IDfamille]
-        [IDpage] as dictToPage
-            ["individus"][IDindividu] as dictToIndividu
-                                ["activites"][IDactivite] as dictToActivite
-                                                   ["presences"][date]
-                                                                   ["unites"] = list[dictPrestation,]
-                                                                   ["montant"] = decimal
-                                ["nom"] = str
-                                ["texte"] = str
-                                ["montant"] = decimal
-                                ["ventilation"] = decimal
-            ["reports"][str(periode)]
-                                [nature] = decimal 
-            ["reglements"][IDreglement] = dictReglement
-            autres clé  int: IDfamille,IDpage,noPage,noFact,select,nature,nomSansCivilite,texte_introduction,
-                        str: numero, date_echeance,nature,{LIB_MONTANT},{LIB_SOLDE},{LIB_REPORTS},{LIB_SOLDE_DU}
-                        decimal: montant,ventilation,solde,total_reports,solde_du, 
-                        date: date_edition,date_debut,date_fin, 
-                                
-    """
-
     # gestion d'une activité correspondant à une pièce pour ce IDpage
     def GetActivite(self,**kw):
         IDactivite = kw["IDactivite"]
@@ -399,7 +380,7 @@ class Facturation():
 
         date_edition = UTILS_Dates.DateEngEnDateDD(dictDonPage["date_edition"])
         date_echeance = UTILS_Dates.DateEngEnDateDD(dictDonPage["date_echeance"])
-
+        IDfacture = dictDonPage["IDfacture"]
         nature = dictDonPage["nature"]
         if nature == "FAC" : titre = _("Facture")
         elif nature == "AVO" : titre = _("Avoir")
@@ -437,6 +418,7 @@ class Facturation():
         # création de la page
         dictToPage = {
             "IDpage": IDpage,
+            "IDfacture": IDfacture,
             "date_debut" : date_debut,
             "date_fin" : date_fin,
             "date_edition" : date_edition,
@@ -661,10 +643,10 @@ class Facturation():
             dictToPage["prelevement"] = None"""
 
         # Champs de fusion pour Email par famille
-        IDfamille = dictToPage['IDfamille']
-        if not IDfamille in list(self.dictChampsFusion.keys()):
-            self.dictChampsFusion[IDfamille] = {}
-        dictChampsFusion = self.dictChampsFusion[IDfamille]
+        IDpage = dictToPage['IDpage']
+        if not IDpage in list(self.dictChampsFusion.keys()):
+            self.dictChampsFusion[IDpage] = {}
+        dictChampsFusion = self.dictChampsFusion[IDpage]
 
         # stockage des valeurs dates
         lstKeysTxt = ["DATE_DEBUT","DATE_FIN","DATE_ECHEANCE"]
@@ -731,7 +713,7 @@ class Facturation():
         # Génération des pages :passe par le squelette l'ensemble des infos de page est appelé
         for IDfamille in list(self.dictDonnees.keys()):
             for IDpage in list(self.dictDonnees[IDfamille].keys()):
-                # dictToPdf a pour clé: IDpage, dictChampsFusion: IDfamille usage pour mails (sous ensemble de champs)
+                # dictToPdf a pour clé: IDpage
                 dictToPage = self.GetPage(IDfamille,IDpage, dictOptions)
                 # l'échec de cohérence peut avoir renvoyé None: on n'imprime pas
                 if dictToPage:
@@ -1448,6 +1430,28 @@ class Facturation():
                 ...etc
     """
 
+    # --------------------------------- Structure de dictToPdf ---------------------------------------------------------
+    """
+    [IDpage] as dictToPage
+        ["individus"][IDindividu] as dictToIndividu
+                            ["activites"][IDactivite] as dictToActivite
+                                               ["presences"][date]
+                                                               ["unites"] = list[dictPrestation,]
+                                                               ["montant"] = decimal
+                            ["nom"] = str
+                            ["texte"] = str
+                            ["montant"] = decimal
+                            ["ventilation"] = decimal
+        ["reports"][str(periode)]
+                            [nature] = decimal 
+        ["reglements"][IDreglement] = dictReglement
+        autres clé  int: IDfamille,IDpage,noPage,noFact,select,nature,nomSansCivilite,texte_introduction,
+                    str: numero, date_echeance,nature,{LIB_MONTANT},{LIB_SOLDE},{LIB_REPORTS},{LIB_SOLDE_DU}
+                    decimal: montant,ventilation,solde,total_reports,solde_du, 
+                    date: date_edition,date_debut,date_fin, 
+
+    """
+
     # Composition des listes de base pour self
     def ConstruitSquelette(self, listePieces, listeFactures):
         self.dictDonnees = {}
@@ -1461,19 +1465,21 @@ class Facturation():
         self.lstIDpieces = []
         self.lstIDprestations = [] # pour alimenter les Ventilations
         self.lstIDfamilles = []
-        lstNoFactAvo = [] # stocke temporairement la liste qui permet d'étendre la recherche des pièces aux conjointes
-
+        dictIDfournis = {}
+        lstNoFact = []
+        lstNoAvo = [] # stocke temporairement la liste qui permet d'étendre la recherche des pièces aux conjointes
         if len(listeFactures) + len(listePieces) == 0:
             return False
 
         # -------- fonction qui alimente les clés dictVentilations, dictDonnees -----------
         def ajoutSquelette(retourReq):
             ix = 0 # indice du record dans recordset
-            for IDpiece,IDfamille,IDprestation,IDindividu,IDactivite,IDgroupe,IDtarif,nature,noFacture,noAvoir,\
-                facturesNo,date_edition, date_echeance, IDfacture in retourReq:
-
+            for (IDpiece,IDfamille,IDprestation,IDindividu,IDactivite,IDgroupe,IDtarif,
+                 nature,noFacture,noAvoir,noFactures,date_edition, date_echeance,
+                 IDfacture) in retourReq:
                 # alimente les listes générales qui seront reprises pour alimenter les dictionnaires
-                listes = [self.lstIDpieces,self.lstIDfamilles,self.lstIDprestations,self.lstIDindividus,self.lstIDactivites]
+                listes = [self.lstIDpieces,self.lstIDfamilles,self.lstIDprestations,
+                          self.lstIDindividus,self.lstIDactivites]
                 for ixx in range(len(listes)):
                     val = retourReq[ix][ixx]
                     if val and (not val in listes[ixx]):
@@ -1485,9 +1491,9 @@ class Facturation():
                     self.dictVentilations[IDfamille] = {"prestations":{},"impayes":{}, "reglementsLibres":{}}
                 if IDprestation and (IDprestation not in self.dictVentilations[IDfamille]["prestations"]):
                     nat = None
-                    if facturesNo and facturesNo == noFacture:
+                    if noFactures and noFactures == noFacture:
                         nat = "FAC"
-                    if facturesNo and facturesNo == noAvoir:
+                    if noFactures and noFactures == noAvoir:
                         nat = "AVO"
                     self.dictVentilations[IDfamille]["prestations"][IDprestation] = {"nature":nat,
                                                                                      "montant": FloatToDecimal(0.0),
@@ -1498,15 +1504,15 @@ class Facturation():
                 tplDevis = ("DEV", "RES", "COM")
                 if nature in tplDevis:
                     IDpage = tplDevis.index(nature)
-                    facturesNo = 0
-                elif facturesNo == noFacture and (nature in ("FAC", "AVO")):
-                    IDpage = facturesNo
+                    noFactures = 0
+                elif noFactures == noFacture and (nature in ("FAC", "AVO")):
+                    IDpage = noFactures
                     nature = "FAC"
-                elif facturesNo == noAvoir  and (nature == "AVO"):
-                    IDpage = facturesNo
+                elif noFactures == noAvoir  and (nature == "AVO"):
+                    IDpage = noFactures
                 else:
                     raise Exception("Pb Piece %d!!! nature %s, noFacture %d, noAvoir %d, facture %d"%(IDpiece, nature,noFacture,
-                                                                                            noAvoir, facturesNo))
+                                                                                            noAvoir, noFactures))
 
                 # Alimente DictDonnees niveau famille
                 if IDfamille not in self.dictDonnees:
@@ -1519,7 +1525,7 @@ class Facturation():
                         dictDonPage = {"nature": nature,
                                        "date_edition": date_edition,
                                        "date_echeance": date_echeance,
-                                       "facturesNo": facturesNo,
+                                       "facturesNo": noFactures,
                                        "IDfacture": IDfacture}
                         for cle in ["lstIDpieces","lstIDprestations","lstIDindividus","lstIDactivites"]:
                             dictDonPage[cle] = []
@@ -1547,17 +1553,16 @@ class Facturation():
                     # niveau piece
                     if IDpiece not in self.dictDonnees[IDfamille][IDpage][IDindividu][cle]:
                         self.dictDonnees[IDfamille][IDpage][IDindividu][cle][IDpiece] = {}
-
-
                 ajoutPage(IDpage)
 
                 # ajoute la partie avoir
                 if nature in ("FAC","AVO"):
                     if noAvoir:
-                        if not noAvoir in lstNoFactAvo:
-                            lstNoFactAvo.append(noAvoir)
-                    if not facturesNo in lstNoFactAvo:
-                        lstNoFactAvo.append(facturesNo)
+                        if not noAvoir in lstNoAvo:
+                            lstNoFact.append(noAvoir)
+                    if not noFactures in lstNoFact:
+                        lstNoFact.append(noFactures)
+            return
 
         # Premier appel selon la listePieces  fournie
         conditionWhere = ""
@@ -1567,29 +1572,37 @@ class Facturation():
             conditionWhere ="(matPieces.pieIDnumPiece In (%s)) "% str(listePieces)[1:-1]
             req = """
                 SELECT pieIDnumPiece, pieIDfamille, pieIDprestation, pieIDindividu, 
-                        pieIDactivite, pieIDgroupe, pieIDcategorie_tarif, pieNature, pieNoFacture, pieNoAvoir,
+                        pieIDactivite, pieIDgroupe, pieIDcategorie_tarif, pieNature, 
+                        pieNoFacture, pieNoAvoir,
                         Null, pieDateModif, pieDateEcheance,Null
                 FROM matPieces 
                 WHERE %s        
             ;""" % conditionWhere
-            retour = self.DB.ExecuterReq(req, MsgBox="UTILS_facturation.ConstruitListe")
+            self.DB.ExecuterReq(req, MsgBox="UTILS_facturation.ConstruitListe")
             retourReq = self.DB.ResultatReq()
             # Sépare les devis des factures
             ixNat,ixFact, ixAvo = 7, 8, 8  # position des champs dans le record
             lstDevis = []
             for record in retourReq:
-                if record[ixNat] in ("DEV", "RES", "COM"):
+                (IDpiece,IDfamille,prestation,individu,act,grp,tar,nature,noFacture,noAvoir,
+                 nul1,modif,ech, nul2) = record
+                if nature in ("DEV", "RES", "COM"):
                     lstDevis.append(record)
-                elif record[ixFact] > 0:
-                    lstNoFactAvo.append(record[ixFact])
+                    IDpage = IDpiece
+                elif noFacture > 0:
+                    lstNoFact.append(noFacture)
+                    IDpage = noFacture
                     # a la fois facture et avoir
-                    if record[ixAvo] > 0:
-                        lstNoFactAvo.append(record[ixAvo])
+                    if noAvoir and noAvoir > 0:
+                        lstNoAvo.append(noAvoir)
+                        IDpage = noAvoir
                 # avoir seulement pas facture (cas impossible à ce jour)
-                elif record[ixAvo] > 0:
-                    lstNoFactAvo.append(record[ixAvo])
+                elif noAvoir > 0:
+                    lstNoAvo.append(noAvoir)
+                    IDpage = noAvoir
                 else:
-                    raise Exception("pieIDnumPiece '%d' nature '%s': type facture sans numéro facture"%(record[0],record[ixNat]))
+                    raise Exception("pieIDnumPiece '%d' nature '%s': type facture sans numéro facture"%(IDpiece,nature))
+                dictIDfournis[IDpiece] = IDpage
 
             # ajoute les non-factures dans le squelette
             ajoutSquelette(lstDevis)
@@ -1598,21 +1611,24 @@ class Facturation():
         if len(listeFactures) > 0:
             #recherche des éléments de base dans factures
             req = """
-                SELECT factures.numero
+                SELECT factures.IDfacture,factures.numero 
                 FROM factures
                 WHERE (factures.IDfacture In ( %s ))
                 ;""" % str(listeFactures)[1:-1]
-            retour = self.DB.ExecuterReq(req, MsgBox="UTILS_facturation.ConstruitListe.2")
+            self.DB.ExecuterReq(req, MsgBox="UTILS_facturation.ConstruitListe.2")
             retourReq = self.DB.ResultatReq()
-            for (facturesNo,) in retourReq:
-                if not (facturesNo in lstNoFactAvo):
-                    lstNoFactAvo.append(facturesNo)
+            for (IDfacture,noFacture,) in retourReq:
+                if not (noFacture in lstNoFact):
+                    lstNoFact.append(noFacture)
+                    dictIDfournis[IDfacture] = noFacture
 
-        # deuxième appel à partir des no : étend aux pièces avec numeroFacture ou Avoir commun
-        if len(lstNoFactAvo) > 0:
-            conditionWhere = """(matPieces.pieNoFacture In ( %s ))  
-                            OR (((matPieces.pieNoAvoir) In ( %s )))"""% (str(lstNoFactAvo)[1:-1],
-                                                                         str(lstNoFactAvo)[1:-1])
+        # étend aux pièces regroupées sous numéro correspondant aux IDfournis par la liste
+        conditionWhere = ""
+        if len(lstNoFact) > 0:
+            conditionWhere = "(matPieces.pieNoFacture In ( %s )) "%(str(lstNoFact)[1:-1])
+        if len(lstNoAvo) > 0:
+            if not conditionWhere: conditionWhere += "OR "
+            conditionWhere += "(((matPieces.pieNoAvoir) In ( %s )))"%(str(lstNoAvo)[1:-1])
 
         req = """
             SELECT matPieces.pieIDnumPiece, matPieces.pieIDfamille, prestations.IDprestation, matPieces.pieIDindividu,
@@ -1628,19 +1644,26 @@ class Facturation():
                     matPieces.pieNature, matPieces.pieNoFacture, matPieces.pieNoAvoir,
                     factures.numero, factures.date_edition
         ;""" % conditionWhere
-        retour = self.DB.ExecuterReq(req, MsgBox="UTILS_facturation.ConstruitListe3")
+        self.DB.ExecuterReq(req, MsgBox="UTILS_facturation.ConstruitListe3")
         retourReq = self.DB.ResultatReq()
-        ajoutSquelette(retourReq)
-        return True
+        if retourReq:
+            ajoutSquelette(retourReq)
+        return dictIDfournis
         #fin ConstruitSquelette
 
-    def Impression(self, listeFactures=[], listePieces=[], nomDoc=None,afficherDoc=True,
+    def Impression(self,listeFactures=[],listePieces=[],nomDoc=None,afficherDoc=True,
                    dictOptions=None, repertoire= None , repertoireTemp=False,**kwd):
-        """ Impression des factures à partie de trois listes possibles """
+        # Impression des factures à partir de deux listes possibles IDfacture ou IDpiece
+        """
+            repertoireTemp: pour les envois mail
+            conservation du ou des fichiers pour pieces jointes en mail
+            le retour contient les champsFusion pour mail,
+            les adresses fichiers dans dictCheminsPdf (liste reçue en clés)
+        """
         self.DB = GestionDB.DB()
 
         # Récupération des paramètres d'affichage
-        if dictOptions == None :
+        if not dictOptions :
             dlg = DLG_Apercu_facture.Dialog(None,
                         titre=_("Sélection des paramètres de la facture"),
                         intro=_("Sélectionnez ici les paramètres d'affichage de la facture à envoyer par Email."))
@@ -1683,15 +1706,18 @@ class Facturation():
         if not nomDoc.endswith(".pdf"):
             nomDoc = "%s.pdf" %(nomDoc)
 
-        # ajout du chemin devant le nom
+        # ajout d'un chemin devant le nom, car sinon créé dans les sources
+        if "repertoire_copie" in dictOptions:
+            repertoire = dictOptions["repertoire_copie"]
         if not repertoire:
-            nomDoc = UTILS_Fichiers.GetRepTemp(nomDoc)
+            repertoire = UTILS_Fichiers.GetRepTemp()
+        if SEP in nomDoc: # au cas où le repertoire serait déjà dans le nom
+            nomFichier = nomDoc
         else:
-            if "/" in repertoire:
-                sep = "/"
-            else:
-                sep = "\\"
-            nomDoc = f"{repertoire}{sep}{nomDoc}"
+            nomFichier = f"{repertoire}{SEP}{nomDoc}"
+        if f"{SEP}{SEP}" in nomDoc:
+            nomFichier = nomFichier.replace(f"{SEP}{SEP}",f"{SEP}")
+
 
         self.dictChampsFusion = {}
 
@@ -1701,7 +1727,7 @@ class Facturation():
             self.impFacAvo = dictOptions["imprimer_factures"]
 
         # Structurer les données nécessaires aux listes fournies, étendue aux factures concernées
-        ret = self.ConstruitSquelette(listePieces, listeFactures)
+        dictIDfournis = self.ConstruitSquelette(listePieces, listeFactures)
         if len(self.dictDonnees) == 0:
             return False
 
@@ -1717,6 +1743,7 @@ class Facturation():
         dlgAttente = PBI.PyBusyInfo(_("Recherche des soldes..."),**kw)
         self.GetSoldes()
         dlgAttente = PBI.PyBusyInfo(_("Agrégation des données..."),**kw)
+
         # Récupération des données
         dictToPdf = self.GetDonnees(dictOptions)
         del dlgAttente
@@ -1727,13 +1754,10 @@ class Facturation():
 
         # Création des PDF à l'unité
         def CreationPDFeclates(repertoireCible=""):
-            if not repertoireCible:
-                if "repertoire_copie" in dictOptions:
-                    repertoireCible = dictOptions["repertoire_copie"]
-    
             dictCheminsPdf = {}
-            dlgAttente = PBI.PyBusyInfo(_("Génération des factures à l'unité au format PDF..."), parent=None, title=_("Veuillez patienter..."), icon=wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Logo.png"), wx.BITMAP_TYPE_ANY))
-
+            dlgAttente = PBI.PyBusyInfo("Génération pdf des factures à l'unité...",
+                                        **kw)
+            # impression
             try :
                 index = 0
                 for noFact, dictToPage in dictToPdf.items() :
@@ -1742,7 +1766,10 @@ class Facturation():
                         nomTitulaires = Supprime_accent(dictToPage["nomSansCivilite"])
                         nomTitulaires = fp.NoPunctuation(nomTitulaires)
                         nomFichier = "%s - %s" % (num_facture, nomTitulaires)
-                        cheminFichier = "%s\\%s.pdf" % (repertoireCible, nomFichier)
+                        cheminFichier = "%s%s%s.pdf" % (repertoireCible,SEP,nomFichier)
+                        if f"{SEP}{SEP}" in cheminFichier:
+                            cheminFichier = cheminFichier.replace(f"{SEP}{SEP}", f"{SEP}")
+                        PBI.PyBusyInfo(_("Recherche des ventilations..."), **kw)
                         dictToPdfTemp = {noFact : dictToPage}
                         self.EcritStatusbar(_("Edition de la facture %d/%d : %s") % (index, len(dictToPdf), nomFichier))
                         UTILS_Impression_facture.Impression(dictToPdfTemp, dictOptions, IDmodele=dictOptions["IDmodele"],
@@ -1763,9 +1790,7 @@ class Facturation():
 
         # Répertoire TEMP (pour Emails) PDF éclatés
         if repertoireTemp == True :
-            dictCheminsPdf = CreationPDFeclates("Temp")
-            if dictCheminsPdf == False :
-                return False
+            dictCheminsPdf = CreationPDFeclates(repertoire)
 
         # Fabrication du PDF global
         if repertoireTemp == False :
@@ -1774,14 +1799,17 @@ class Facturation():
             try :
                 # ------------------------------------Lancement de l'impression ----------------------------------------
                 UTILS_Impression_facture.Impression(dictToPdf, dictOptions, IDmodele=dictOptions["IDmodele"],
-                                                     ouverture=afficherDoc, nomFichier=nomDoc, mode=None)
+                                                     ouverture=afficherDoc, nomFichier=nomFichier, mode=None)
                 self.EcritStatusbar("")
+                # Le zero signifie l'ensemble des IDpage
+                dictCheminsPdf = {0:nomFichier}
                 del dlgAttente
             except Exception as err:
                 del dlgAttente
                 traceback.print_exc(file=sys.stdout)
                 err = str(err)
-                dlg = wx.MessageDialog(None, _("Désolé, le problème suivant a été rencontré dans l'édition des factures : \n\n%s") % err, _("Erreur"), wx.OK | wx.ICON_ERROR)
+                mess = "Désolé, le problème suivant a été rencontré dans l'édition des factures : \n\n%s" % err
+                dlg = wx.MessageDialog(None, mess, "Erreur UTILS_Facturation.Impression PDF global", wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()
                 return False
@@ -1804,22 +1832,48 @@ class Facturation():
         self.DB.Close()
 
         # final effacement
-        removeFile = True
-        mess = f"Fichier créé ! \n\n{nomDoc}\nVoulez-vous le supprimer?"
-        ret = wx.MessageBox(mess,"Fin d'impression",style=wx.ICON_EXCLAMATION|wx.YES_NO)
-        if ret != wx.YES:
+        if repertoireTemp:
             removeFile = False
+        elif afficherDoc:
+            removeFile = True
+        else:
+            # cas d'impression factures en lot, non affiché
+            removeFile = True
+            mess = f"Supprimer le fichier créé ! \n\n{nomFichier}\n\nVoulez-vous le supprimer?"
+            ret = wx.MessageBox(mess,"Fin d'impression",style=wx.ICON_EXCLAMATION|wx.YES_NO)
+            if ret != wx.YES:
+                removeFile = False
+
+        def DelFile(nomFichier):
+            try:
+                os.remove(nomFichier)
+                print(nomFichier, "Supprimé")
+                return False
+            except Exception as err:
+                mess = "Suppression échouée\n\n{err}\nVoulez vous réessayer après fermeture."
+                ret = wx.MsgBox(mess, "Erreur DelFile", style=(wx.YES_NO|wx.ICON_ERROR))
+                ok = False
+                if ret == wx.YES:
+                    ok = True
+                return ok
+
         if removeFile:
             import os
-            if os.path.isfile(nomDoc):
-                os.remove(nomDoc)
-                print(nomDoc, "Supprimé")
+            if os.path.isfile(nomFichier):
+                go = True
+                while go:
+                    go = DelFile(nomFichier)
             else:
-                print(nomDoc, "fichier non trouvé")
-        else:
-            print(nomDoc,"non supprimé")
+                print(nomFichier, "fichier non trouvé")
 
-        return self.dictChampsFusion, dictCheminsPdf
+        # Réorganisation du fichier retour pour se caler sur les ID fournis pour PJ mails
+        if repertoireTemp == True:
+            retDictCheminsPdf = {}
+            for IDfourni, IDpage in dictIDfournis.items():
+                retDictCheminsPdf[IDfourni] = dictCheminsPdf[IDpage]
+            return self.dictChampsFusion, retDictCheminsPdf
+        else:
+            return
         #fin Impression
 
 def SuppressionFacture(listeIDFactures=[]):
@@ -1838,8 +1892,8 @@ def SuppressionFacture(listeIDFactures=[]):
 
 if __name__ == '__main__':
     app = wx.App(0)
-    listePieces = [19300]
-    listeIDfactures = []
+    listePieces = []
+    listeIDfactures = [8006,8002,8001]
     dictOptions =  {'inversion_solde': True, 'largeur_colonne_date': 50, 'texte_conclusion': '',
                     'image_signature': '', 'taille_texte_prestation': 7,
                     'afficher_avis_prelevements': True, 'taille_texte_messages': 7, 'afficher_qf_dates': True,

@@ -9,8 +9,6 @@
 #------------------------------------------------------------------------
 
 
-import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
@@ -136,13 +134,6 @@ class Dialog(wx.Dialog):
         # Création des factures sélectionnées
         listeIDfacture = []
         for track in tracks :
-            # Avertissements
-            if track.etat == "annulation" : 
-                dlg = wx.MessageDialog(self, _("La facture n°%s a été annulée.\n\nVous ne pouvez pas l'envoyer par Email !") % track.numero, _("Erreur"), wx.OK | wx.ICON_EXCLAMATION)
-                dlg.ShowModal()
-                dlg.Destroy()
-                return
-            
             # Ajout
             listeIDfacture.append(track.IDfacture) 
             
@@ -151,7 +142,10 @@ class Dialog(wx.Dialog):
         if dictOptions == False :
             return
 
-        resultat = facturation.Impression(listeFactures=listeIDfacture, nomDoc=None, afficherDoc=False, dictOptions=dictOptions, repertoire=dictOptions["repertoire_copie"], repertoireTemp=True)
+        resultat = facturation.Impression(listeFactures=listeIDfacture, nomDoc=None,
+                                          afficherDoc=False, dictOptions=dictOptions,
+                                          repertoire=dictOptions["repertoire_copie"],
+                                          repertoireTemp=True)
         if resultat == False : 
             return
         dictChampsFusion, dictPieces = resultat
@@ -163,56 +157,27 @@ class Dialog(wx.Dialog):
                 except :
                     pass
 
-        # Récupération de toutes les adresses Emails
-        DB = GestionDB.DB()
-        req = """SELECT IDindividu, mail, travail_mail
-        FROM individus;"""
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
-        listeAdressesIndividus = DB.ResultatReq()
-        DB.Close() 
-        dictAdressesIndividus = {}
-        for IDindividu, mail, travail_mail in listeAdressesIndividus :
-            dictAdressesIndividus[IDindividu] = {"perso" : mail, "travail" : travail_mail}
-                
         # Récupération des données adresse + champs + pièces
         listeDonnees = []
         listeAnomalies = []
         listeEnvoiNonDemande = []
         for track in tracks :
             liste_adresses = []
-
-            if track.email == True :
-                # Si Famille inscrite à l'envoi par Email :
-                for valeur in track.email_factures.split("##"):
-                    IDindividu, categorie, adresse = valeur.split(";")
-                    if IDindividu != "" :
-                        if int(IDindividu) in dictAdressesIndividus :
-                            adresse = dictAdressesIndividus[int(IDindividu)][categorie]
-                            liste_adresses.append(adresse)
-                    else :
-                        liste_adresses.append(adresse)
-
-            else :
-                # Si famille non inscrite à l'envoi par Email
-                adresse = UTILS_Envoi_email.GetAdresseFamille(track.IDfamille, choixMultiple=False, muet=True, nomTitulaires=track.nomsTitulaires)
-                if adresse == False:
-                    return False
-                liste_adresses.append(adresse)
+            dictAdresse = track.adresse_famille
+            track.titulairesSansCivilite = track.nom_famille
+            liste_adresses.append(dictAdresse)
 
             # Mémorisation des données
             for adresse in liste_adresses :
-                if adresse not in (None, "", []) :
-                    if track.IDfacture in dictPieces :
-                        fichier = dictPieces[track.IDfacture]
-                        champs = dictChampsFusion[track.IDfacture]
+                if adresse['mail']:
+                    if track.numero in dictPieces :
+                        fichier = dictPieces[track.numero]
+                        champs = dictChampsFusion[track.IDfamille]
                         listeDonnees.append({"adresse" : adresse, "pieces" : [fichier,], "champs" : champs})
-                        if track.email == False :
-                            if track.nomsTitulaires not in listeEnvoiNonDemande :
-                                listeEnvoiNonDemande.append(track.nomsTitulaires)
                 else :
-                    listeAnomalies.append(track.nomsTitulaires)
+                    listeAnomalies.append(track.nom_famille)
 
-        
+
         # Annonce les anomalies trouvées
         if len(listeAnomalies) > 0 :
             texte = _("%d des familles sélectionnées n'ont pas d'adresse Email.\n\n") % len(listeAnomalies)
