@@ -243,6 +243,7 @@ class ChampsEtReponses():
         Q = Questionnaires(lstIDfamilles=lstIDfamilles)
         self.listeQuestions = Q.GetQuestions(type=type)
         self.dictReponses = Q.GetReponses(type=type)
+        print()
 
     def GetDonnees(self, ID, formatStr=True):
         listeDonnees = []
@@ -259,6 +260,7 @@ class ChampsEtReponses():
         return listeDonnees
 
 if __name__ == '__main__':
+    print(ChampsEtReponses())
     pass
     
     

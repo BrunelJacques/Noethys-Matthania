@@ -205,8 +205,9 @@ class Facturation():
         self.dictActivites = {}
         self.dictGroupes = {}
         self.reportInclus = False
+        self.dictChampsFusion = {}
         # " Récupération des questionnaires"
-        self.Questionnaires = ChampsEtReponses(type="famille")
+        self.Questionnaires = None
         # "fin __init__"
 
     def RechercheAgrement(self, IDactivite, date):
@@ -1157,9 +1158,6 @@ class Facturation():
             for IDgroupe, nom in recordset:
                 self.dictGroupes[IDgroupe] = {"nom": nom}
 
-        # Récupération des questionnaires
-        self.Questionnaires = ChampsEtReponses(type="famille")
-
     # Recherche des prestations recomposées par les lignes de toutes les pièces
     def GetPieces(self):
         champsLignes=["IDnumPiece","label","quantite", "prixUnit", "montant", "typeLigne"]
@@ -1652,7 +1650,7 @@ class Facturation():
         #fin ConstruitSquelette
 
     def Impression(self,listeFactures=[],listePieces=[],nomDoc=None,afficherDoc=True,
-                   dictOptions=None, repertoire= None , repertoireTemp=False,**kwd):
+                   dictOptions=None, repertoireTemp=False,**kwd):
         # Impression des factures à partir de deux listes possibles IDfacture ou IDpiece
         """
             repertoireTemp: pour les envois mail
@@ -1675,51 +1673,36 @@ class Facturation():
                 self.DB.Close()
                 return False
 
-        if not nomDoc:
-            # recherche des familles dans le lot
+        # recherche des familles dans le lot
+        def getFamilles():
             mess = 'UTILS_Facturation.Impression'
             if len(listePieces) > 0:
-                lstChamps = ["pieIDcompte_payeur", ]
-                table = "matPieces"
-                condition = "pieIDnumPiece in( %s )"%str(listePieces)[1:-1]
+                champ = 'pieIDcompte_payeur'
+                table = 'matPieces'
+                condition = 'pieIDnumPiece in( %s )'%str(listePieces)[1:-1]
             elif len(listeFactures) > 0:
-                lstChamps = ["IDcompte_payeur", ]
-                table = "factures"
-                condition = "IDfacture in( %s )"%str(listeFactures)[1:-1]
+                champ = 'IDcompte_payeur'
+                table = 'factures'
+                condition = 'IDfacture in( %s )'%str(listeFactures)[1:-1]
+            else:
+                return 'err: Ni IDpieces ni IDFactures à imprimer, cas non prévu'
             # appel des noms de familles
-            try:
-                self.DB.ReqSelect(table,condition,mess,lstChamps=lstChamps)
-                ret = self.DB.ResultatReq()
-                if len(ret) == 1:
-                    # un seule famille son nom sera dans le nom du fichier
-                    nomDoc = self.DB.GetNomFamille(ret[0][0], first="nom")
-                    nomDoc = fp.NoPunctuation(nomDoc)
-                else:
-                    nomDoc = "factures"
-            except:
-                nomDoc = "factures"
-            now = str(datetime.datetime.strftime(datetime.datetime.now(),
-                                                 "%Y-%m-%d %Hh%M %S%f"))[:22]
-            # l'unicitié du nom de fichier est obtenue par les secondes et millisecondes
-            nomDoc = "%s %s"%(nomDoc ,now)
+            on = f'ON {table}.{champ} = familles.IDfamille'
+            req = f"""
+            SELECT {table}.{champ}, familles.adresse_intitule
+            FROM {table}
+            LEFT JOIN familles {on}
+            WHERE {condition}
+            """
+            self.DB.ExecuterReq(req, MsgBox="UTILS_facturation.Impression nomFamilles")
+            ret = self.DB.ResultatReq()
+            return ([x[0] for x in ret],[x[1] for x in ret])
+        (lstIDfamilles,lstNomFamilles) = getFamilles()
 
-        if not nomDoc.endswith(".pdf"):
-            nomDoc = "%s.pdf" %(nomDoc)
-
-        # ajout d'un chemin devant le nom, car sinon créé dans les sources
-        if "repertoire_copie" in dictOptions:
-            repertoire = dictOptions["repertoire_copie"]
-        if not repertoire:
-            repertoire = UTILS_Fichiers.GetRepTemp()
-        if SEP in nomDoc: # au cas où le repertoire serait déjà dans le nom
-            nomFichier = nomDoc
+        if len(lstIDfamilles) == 0:
+            return 'err: Aucune famille connue pour ce lot, cas non prévu'
         else:
-            nomFichier = f"{repertoire}{SEP}{nomDoc}"
-        if f"{SEP}{SEP}" in nomDoc:
-            nomFichier = nomFichier.replace(f"{SEP}{SEP}",f"{SEP}")
-
-
-        self.dictChampsFusion = {}
+            self.Questionnaires = ChampsEtReponses(type="famille",lstIDfamilles=lstIDfamilles)
 
         # imprimer les factures si pièce de type AVO
         self.impFacAvo = 1
@@ -1751,6 +1734,28 @@ class Facturation():
         if len(dictToPdf) == 0 :
             return False
         dictCheminsPdf = {}
+        
+        # Recherche du répertoire pour les fichiers pdf
+        repertoire = UTILS_Fichiers.GetRepTemp()
+        if 'repertoire_copie' in dictOptions and dictOptions['repertoire_copie']:
+            repertoire = dictOptions["repertoire_copie"]
+        else:
+            dictOptions["repertoire_copie"] = None # sera lu en final pour suppressions
+
+        # composition d'un nom de fichier complet avec path
+        def getNomFichier(nom = nomDoc):
+            today = str(datetime.datetime.today())[:10]
+            if not nom:
+                if len(lstNomFamilles) == 1:
+                    # un seule famille son nom sera dans le nom du fichier
+                    nom = f"{lstNomFamilles[0]}"
+                else:
+                    nom = "Factures"
+            if not nom.endswith(".pdf"):
+                nom = "%s.pdf" % (nom)
+            nom = fp.NoPunctuation(nom)
+            nom = "%s %s" % (nom, today)
+            return f"{repertoire}{SEP}{nom}"
 
         # Création des PDF à l'unité
         def CreationPDFeclates(repertoireCible=""):
@@ -1762,16 +1767,17 @@ class Facturation():
                 index = 0
                 for noFact, dictToPage in dictToPdf.items() :
                     if dictToPage["select"] == True :
-                        num_facture = dictToPage["numero"]
+                        noFacture = dictToPage["IDpage"]
+                        nature = dictToPage["nature"]
                         nomTitulaires = Supprime_accent(dictToPage["nomSansCivilite"])
                         nomTitulaires = fp.NoPunctuation(nomTitulaires)
-                        nomFichier = "%s - %s" % (num_facture, nomTitulaires)
-                        cheminFichier = "%s%s%s.pdf" % (repertoireCible,SEP,nomFichier)
+                        nomDoc = f"{nature}-{noFacture} {nomTitulaires}"
+                        cheminFichier = f"{repertoireCible}{SEP}{nomDoc}.pdf"
                         if f"{SEP}{SEP}" in cheminFichier:
                             cheminFichier = cheminFichier.replace(f"{SEP}{SEP}", f"{SEP}")
-                        PBI.PyBusyInfo(_("Recherche des ventilations..."), **kw)
+                        dlgAttente = PBI.PyBusyInfo(f"Génération {cheminFichier}", **kw)
                         dictToPdfTemp = {noFact : dictToPage}
-                        self.EcritStatusbar(_("Edition de la facture %d/%d : %s") % (index, len(dictToPdf), nomFichier))
+                        self.EcritStatusbar(_("Edition de la facture %d/%d : %s") % (index, len(dictToPdf), nomDoc))
                         UTILS_Impression_facture.Impression(dictToPdfTemp, dictOptions, IDmodele=dictOptions["IDmodele"],
                                                             ouverture=False, nomFichier=cheminFichier, mode = None)
                         dictCheminsPdf[noFact] = cheminFichier
@@ -1793,6 +1799,9 @@ class Facturation():
             dictCheminsPdf = CreationPDFeclates(repertoire)
 
         # Fabrication du PDF global
+        nomFichier = getNomFichier()
+
+
         if repertoireTemp == False :
             dlgAttente = PBI.PyBusyInfo("Création du PDF des factures...", **kw)
             self.EcritStatusbar(_("Création du PDF des factures en cours... veuillez patienter..."))
@@ -1867,7 +1876,7 @@ class Facturation():
                 print(nomFichier, "fichier non trouvé")
 
         # Réorganisation du fichier retour pour se caler sur les ID fournis pour PJ mails
-        if repertoireTemp == True:
+        if repertoireTemp == True and len(listePieces) > 0:
             retDictCheminsPdf = {}
             for IDfourni, IDpage in dictIDfournis.items():
                 retDictCheminsPdf[IDfourni] = dictCheminsPdf[IDpage]
@@ -1913,11 +1922,15 @@ if __name__ == '__main__':
                     'largeur_colonne_montant_ht': 50, 'messages': [],
                     'memoriser_parametres': True, 'afficher_messages': True, 'largeur_colonne_montant_ttc': 70,
                     'taille_texte_montants_totaux': 10, 'alignement_texte_conclusion': 0,
-                    'style_texte_introduction': 0, 'style_texte_conclusion': 0, 'repertoire_copie': '',
+                    'style_texte_introduction': 0, 'style_texte_conclusion': 0, 'repertoire_copie': 'c:\\temp\\',
                     'largeur_colonne_montant_tva': 50}
     facturation = Facturation()
-    retour = facturation.Impression(listePieces=listePieces, listeFactures= listeIDfactures, dictOptions=dictOptions,
-                                    afficherDoc=True,repertoire=dictOptions["repertoire_copie"])
+    retour = facturation.Impression(listePieces=listePieces,
+                                    listeFactures= listeIDfactures,
+                                    dictOptions=dictOptions,
+                                    afficherDoc=True,
+                                    repertoireTemp=True,
+                                    )
     app.MainLoop()
     # mettre un point d'arrêt pour voir le pdf
     print("fin")
