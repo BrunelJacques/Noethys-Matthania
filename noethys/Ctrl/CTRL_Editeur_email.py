@@ -14,7 +14,7 @@ from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 import wx.richtext as rt
-import six
+import io
 import copy
 import datetime
 import os
@@ -637,10 +637,10 @@ class BarreOutils2(wx.ToolBar):
 
 class Editeur(rt.RichTextCtrl):
     def __init__(self, parent, id=-1, style=wx.VSCROLL|wx.HSCROLL|wx.WANTS_CHARS ):
-        rt.RichTextCtrl.__init__(self, parent, id=id, style=style)
+        rt.RichTextCtrl.__init__(self, parent, id=id,size=(800,1200), style=style)
 
     def GetXML(self):
-        out = six.BytesIO()
+        out = io.BytesIO()
         handler = wx.richtext.RichTextXMLHandler()
         buffer = self.GetBuffer()
         handler.SaveFile(buffer, out)
@@ -649,11 +649,12 @@ class Editeur(rt.RichTextCtrl):
         return content
     
     def SetXML(self, texteXml=""):
-        out = six.BytesIO()
+        out = io.BytesIO()
         handler = wx.richtext.RichTextXMLHandler()
         buf = self.GetBuffer()
         buf.AddHandler(handler)
-        texteXml = texteXml.encode("utf8")
+        if isinstance(texteXml, str):
+            texteXml = texteXml.encode("utf8")
         out.write(texteXml)
         out.seek(0)
         handler.LoadFile(buf, out)
@@ -664,13 +665,15 @@ class Editeur(rt.RichTextCtrl):
 
 class CTRL(wx.Panel):
     def __init__(self, parent, size=(-1, -1)):
-        wx.Panel.__init__(self, parent, id=-1, size=size, style=wx.TAB_TRAVERSAL)
+        wx.Panel.__init__(self, parent, id=-1,size=size,style=wx.TAB_TRAVERSAL,
+                          name="CTRL_Editeur_email.CTRL")
         
         # Contrôles
         self.barre_outils1 = BarreOutils1(self)
         self.barre_outils2 = BarreOutils2(self)
         self.AddRTCHandlers()
         self.ctrl_editeur = Editeur(self)
+        self.SetMinSize((400, 600))
 
         # Layout
         grid_sizer = wx.FlexGridSizer(rows=3, cols=1, vgap=0, hgap=0)
@@ -680,7 +683,7 @@ class CTRL(wx.Panel):
         grid_sizer.AddGrowableRow(2)
         grid_sizer.AddGrowableCol(0)
         self.SetSizer(grid_sizer)
-        grid_sizer.Fit(self)
+        #grid_sizer.Fit(self)
         self.Layout()
 
 
@@ -714,48 +717,6 @@ class CTRL(wx.Panel):
             dlg.Destroy()
             return False            
         self.ctrl_editeur.SaveFile(cheminFichier, wx.richtext.RICHTEXT_TYPE_ANY)
-
-    def OnPreview(self, event):
-        xml = self.GetXML()
-        printout1 = wx.richtext.RichTextPrintout()
-        printout1.SetRichTextBuffer(self.ctrl_editeur.GetBuffer()) 
-        printout2 = wx.richtext.RichTextPrintout()
-        printout2.SetRichTextBuffer(self.ctrl_editeur.GetBuffer()) 
-        data = wx.PrintDialogData() 
-        data.SetAllPages(True)
-        data.SetCollate(True) # Pour assembler les pages
-        # définit les paramètres de l'impression
-        datapr = wx.PrintData()
-        data.SetPrintData(datapr)
-        # Impression
-        preview = wx.PrintPreview(printout1, printout2, data)
-        if not preview.Ok():
-            print("Probleme dans le preview du richTextCtrl.")
-            return
-        
-        from Utils import UTILS_Printer
-        pfrm = UTILS_Printer.FramePreview(self, _("Aperçu avant impression"), preview)
-        pfrm.SetPosition(self.GetPosition())
-        pfrm.SetSize(self.GetSize())
-        pfrm.Show(True)     
-        # Pour éviter le bug des marges qui se rajoutent après l'aperçu
-        self.SetXML(xml)  
-            
-    def OnPrint(self, event):
-        xml = self.GetXML()
-        printout = wx.richtext.RichTextPrintout() #wx.html.HtmlPrintout() 
-        printout.SetRichTextBuffer(self.ctrl_editeur.GetBuffer()) 
-        data = wx.PrintDialogData() 
-        data.SetAllPages(True)
-        data.SetCollate(True) # Pour assembler les pages
-        # définit les paramètres de l'impression
-        datapr = wx.PrintData()
-        data.SetPrintData(datapr)
-        # Impression
-        printer = wx.Printer(data) 
-        printer.Print(self, printout, True) 
-        # Pour éviter le bug des marges qui se rajoutent après l'aperçu
-        self.SetXML(xml)  
 
     def OnBold(self, evt):
         self.ctrl_editeur.ApplyBoldToSelection()
@@ -1025,42 +986,78 @@ class CTRL(wx.Panel):
         # to store the images in the memory file system.
         wx.FileSystem.AddHandler(wx.MemoryFSHandler())
 
+    def OnPreview(self, event):
+        xml = self.GetXML()
+        printout1 = rt.RichTextPrintout()
+        printout1.SetRichTextBuffer(self.ctrl_editeur.GetBuffer())
+        printout2 = rt.RichTextPrintout()
+        printout2.SetRichTextBuffer(self.ctrl_editeur.GetBuffer())
+        data = wx.PrintDialogData()
+        data.SetCollate(True)
+        datapr = wx.PrintData()
+        data.SetPrintData(datapr)
+        preview = wx.PrintPreview(printout1, printout2, data)
+        if not preview.IsOk():
+            print("Probleme dans le preview du richTextCtrl.")
+            return
+
+        from Utils import UTILS_Printer
+        pfrm = UTILS_Printer.FramePreview(self, "Aperçu avant impression", preview)
+        pfrm.SetPosition(self.GetPosition())
+        pfrm.SetSize(self.GetSize())
+        pfrm.Show(True)
+
+        # ? Delay buffer reset to avoid redraw conflicts
+        wx.CallAfter(self.SetXML, xml)
+
     def OnFileViewHTML(self):
-        # Get an instance of the html file handler, use it to save the
-        # document to a StringIO stream, and then display the
-        # resulting html text in a dialog with a HtmlWindow.
         handler = rt.RichTextHTMLHandler()
         handler.SetFlags(rt.RICHTEXT_HANDLER_SAVE_IMAGES_TO_MEMORY)
-        handler.SetFontSizeMapping([7,9,11,12,14,22,100])
+        handler.SetFontSizeMapping([7, 9, 11, 12, 14, 22, 100])
 
-        stream = six.BytesIO()
-        if not handler.SaveStream(self.ctrl_editeur.GetBuffer(), stream):
+        stream = io.BytesIO()
+        buffer = self.ctrl_editeur.GetBuffer()
+
+        if not handler.SaveFile(buffer, stream):
             return
-        
-        source = stream.getvalue()
-        head = """
+
+        head = b"""
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /> 
 </head>
         """
-        source = source.replace("<head></head>", head)
-        if six.PY2:
-            source = source.decode("utf-8")
+        stream.seek(0)
+        html_bytes = stream.read()
+        html_bytes = html_bytes.replace(b"<head></head>", head)
+        html_text = html_bytes.decode("utf-8")
 
-        import wx.html
-        dlg = wx.Dialog(self, title="HTML", style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
-        html = wx.html.HtmlWindow(dlg, size=(500,400), style=wx.BORDER_SUNKEN)
-        html.SetPage(source)
-        btn = wx.Button(dlg, wx.ID_CANCEL)
+        # Display HTML in a wx.HtmlWindow or dialog
+        dlg = wx.Dialog(self, title="HTML Preview", size=(600, 400))
+        html_win = wx.html.HtmlWindow(dlg)
+        html_win.SetPage(html_text)
+
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(html, 1, wx.ALL|wx.EXPAND, 5)
-        sizer.Add(btn, 0, wx.ALL|wx.CENTER, 10)
+        sizer.Add(html_win, 1, wx.EXPAND | wx.ALL, 10)
         dlg.SetSizer(sizer)
-        sizer.Fit(dlg)
-
         dlg.ShowModal()
+        dlg.Destroy()
 
-        handler.DeleteTemporaryImages()
+    def OnPrint(self, event):
+        buffer = self.ctrl_editeur.GetBuffer()
+
+        printout1 = wx.richtext.RichTextPrintout()
+        printout1.SetRichTextBuffer(buffer)
+
+        printout2 = wx.richtext.RichTextPrintout()
+        printout2.SetRichTextBuffer(buffer)
+
+        preview = wx.PrintPreview(printout1, printout2, wx.PrintDialogData())
+        if preview.IsOk():
+            frame = wx.PreviewFrame(preview, self, "Aperçu avant impression")
+            frame.Initialize()
+            frame.Show()
+        else:
+            wx.MessageBox("Impossible d'afficher l'aperçu", "Erreur", wx.ICON_ERROR)
 
     def GetHTML(self, imagesIncluses=True, base64=False):
         # Récupération de la source HTML
@@ -1073,13 +1070,10 @@ class CTRL(wx.Panel):
         else:
             handler.SetFlags(rt.RICHTEXT_HANDLER_SAVE_IMAGES_TO_MEMORY)
         handler.SetFontSizeMapping([7,9,11,12,14,22,100])
-        stream = six.BytesIO()
-        if 'phoenix' in wx.PlatformInfo:
-            if not handler.SaveFile(self.ctrl_editeur.GetBuffer(), stream):
-                return False
-        else :
-            if not handler.SaveStream(self.ctrl_editeur.GetBuffer(), stream):
-                return False
+        stream = io.BytesIO()
+        if not handler.SaveFile(self.ctrl_editeur.GetBuffer(), stream):
+            return False
+
         source = stream.getvalue()
         source = source.decode("utf-8")
         listeImages = handler.GetTemporaryImageLocations()
@@ -1090,20 +1084,15 @@ class CTRL(wx.Panel):
         handler = rt.RichTextHTMLHandler()
         handler.SetFlags(rt.RICHTEXT_HANDLER_SAVE_IMAGES_TO_BASE64)
         handler.SetFontSizeMapping([7, 9, 11, 12, 14, 22, 100])
-        stream = six.BytesIO()
+        stream = io.BytesIO()
 
-        if 'phoenix' in wx.PlatformInfo:
-            if not handler.SaveFile(self.ctrl_editeur.GetBuffer(), stream):
-                return False
-        else:
-            if not handler.SaveStream(self.ctrl_editeur.GetBuffer(), stream):
-                return False
+        if not handler.SaveFile(self.ctrl_editeur.GetBuffer(), stream):
+            return False
 
         source = stream.getvalue()
-        if six.PY2:
-            source = source.decode("utf-8")
+        source = source.decode("utf-8")
         for balise in ("<html>", "</html>", "<head>", "</head>", "<body>", "</body>"):
-            if six.PY3 and isinstance(balise, str):
+            if isinstance(balise, str):
                 balise = balise.encode("utf-8")
                 source = source.replace(balise, b"")
             else:
@@ -1136,18 +1125,23 @@ class MyFrame(wx.Frame):
         sizer_1.Add(panel, 1, wx.ALL|wx.EXPAND)
         self.SetSizer(sizer_1)
         self.ctrl = CTRL(panel)
-        self.bouton_test = wx.Button(panel, -1, "Test")
+        self.bouton_test = wx.Button(panel, -1, "Test fileView")
+        self.bouton_2 = wx.Button(panel, -1, "Test preview html")
         sizer_2 = wx.BoxSizer(wx.VERTICAL)
         sizer_2.Add(self.ctrl, 1, wx.ALL|wx.EXPAND, 4)
         sizer_2.Add(self.bouton_test, 0, wx.ALL | wx.EXPAND, 4)
+        sizer_2.Add(self.bouton_2, 0, wx.ALL | wx.EXPAND, 4)
         panel.SetSizer(sizer_2)
         self.Layout()
         self.Bind(wx.EVT_BUTTON, self.OnBoutonTest, self.bouton_test)
+        self.Bind(wx.EVT_BUTTON, self.OnBouton2, self.bouton_2)
 
     def OnBoutonTest(self, event):
         print(self.ctrl.GetHTML(base64=True)[0])
         self.ctrl.OnFileViewHTML()
 
+    def OnBouton2(self, event):
+        self.ctrl.OnPreview(event)
 
 
 if __name__ == '__main__':

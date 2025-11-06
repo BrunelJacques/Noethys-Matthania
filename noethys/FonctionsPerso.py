@@ -796,9 +796,13 @@ def GenerationIDdoc():
     IDdoc = "%s%s%d" % (horodatage, IDfichier, numAleatoire)
     return IDdoc
 
-def GenerationNomDoc(prefixe="", extension="pdf"):
+def GenerationNomDoc(prefixe="", extension="pdf", unique=True):
     """ Génération d'un nom de document dans le répertoire Temp"""
-    nomDoc = "%s%s.%s" % (prefixe, GenerationIDdoc() , extension)
+    if unique:
+        corps = GenerationIDdoc()
+    else:
+        corps = datetime.datetime.now().strftime("%Y%m%d")
+    nomDoc = "%s%s.%s" % (prefixe, corps, extension)
     return UTILS_Fichiers.GetRepTemp(nomDoc)
 
 def InsertThemeDansOL():

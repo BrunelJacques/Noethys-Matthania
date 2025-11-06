@@ -27,14 +27,11 @@ MONNAIE_DIVISION = UTILS_Config.GetParametre("monnaie_division", _("Centime"))
 
 from reportlab.platypus.doctemplate import PageTemplate, BaseDocTemplate, NextPageTemplate
 from reportlab.platypus import Paragraph, Spacer, Table, TableStyle, PageBreak
-from reportlab.platypus.flowables import ParagraphAndImage, Image
-from reportlab.platypus.frames import Frame, ShowBoundaryValue
+from reportlab.platypus.frames import Frame
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.units import inch, cm, mm
-from reportlab.lib.utils import ImageReader
+from reportlab.lib.units import cm
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.pdfgen.canvas import Canvas
 
 TAILLE_PAGE = A4
 LARGEUR_PAGE = TAILLE_PAGE[0]
@@ -42,11 +39,9 @@ HAUTEUR_PAGE = TAILLE_PAGE[1]
 TAILLE_CADRE_CONTENU = (5*cm, 5*cm, 14*cm, 17*cm)
 DICT_VALEURS = {}
 
-
 def DateEngFr(textDate):
     text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
     return text
-
 
 def Template(canvas, doc):
     """ Première page de l'attestation """
@@ -74,10 +69,12 @@ class MyPageTemplate(PageTemplate):
         doc.modeleDoc.DessineTextes(canvas, dictChamps=DICT_VALEURS)
         doc.modeleDoc.DessineCodesBarres(canvas, dictChamps=DICT_VALEURS)
 
-        
-        
+
 class Impression():
-    def __init__(self, dictValeurs={}, IDmodele=None, nomDoc=FonctionsPerso.GenerationNomDoc("RECU_REGLEMENT", "pdf"), afficherDoc=True):
+    def __init__(self, dictValeurs={}, IDmodele=None,nomDoc=None,afficherDoc=True):
+
+        if not nomDoc:
+            nomDoc = FonctionsPerso.GenerationNomDoc("RECU_REGLEMENT", "pdf")
         """ Impression """
         global DICT_VALEURS
         DICT_VALEURS = dictValeurs

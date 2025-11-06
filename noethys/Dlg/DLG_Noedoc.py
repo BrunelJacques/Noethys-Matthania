@@ -3160,7 +3160,7 @@ class MovingScaledBitmap(FloatCanvas.ScaledBitmap, MovingObjectMixin):
         """ Surcharge pour contrer le bug des images trop petites """
         XY = WorldToPixel(self.XY)
         H = ScaleWorldToPixel(self.Height)[0]
-        W = H * (1.0 * self.bmpWidth / self.bmpHeight)
+        W = int(H * (1.0 * self.bmpWidth / self.bmpHeight))
         if (self.ScaledBitmap is None) or (H != self.ScaledHeight) :
             self.ScaledHeight = H
             if W < 1 : W = 1
@@ -3259,7 +3259,7 @@ class MovingScaledText(FloatCanvas.ScaledText, MovingObjectMixin):
     
     def SetTaillePolicePDF(self, taille=8):
         self.taillePolicePDF = taille
-        self.Size = taille / 3.7
+        self.Size = int(taille / 3.7)
         self.LayoutText()
             
     def GetTaillePolicePDF(self):
@@ -3306,7 +3306,7 @@ class MovingScaledTextBox(FloatCanvas.ScaledTextBox, MovingObjectMixin):
 
     def SetTaillePolicePDF(self, taille=8):
         self.taillePolicePDF = taille
-        self.Size = taille / 3.7
+        self.Size = int(taille / 3.7)
         self.LayoutText()
             
     def GetTaillePolicePDF(self):
@@ -3610,7 +3610,8 @@ class Panel_canvas(wx.Panel):
                 self.canvas.AddObject(groupe)
 
                 # Centrer
-                centre_texte = numpy.array([objet.GetCentre()[0] - objet_label.BoxWidth / 2, objet.GetCentre()[1] + objet_label.BoxHeight / 2])
+                centre_texte = numpy.array([objet.GetCentre()[0] - int(objet_label.BoxWidth / 2),
+                                            objet.GetCentre()[1] + int(objet_label.BoxHeight / 2)])
                 objet_label.SetXY(centre_texte)
 
                 # Binds visualisation
@@ -4035,8 +4036,8 @@ class Panel_canvas(wx.Panel):
 
                 # Poignées du milieu
                 if objet.verrouillageProportions != True:
-                    poignees[0].XY = numpy.array((points[0][0], points[0][1] + ((points[1][1] - points[0][1]) / 2.0)))
-                    poignees[1].XY = numpy.array((points[2][0], points[0][1] + ((points[1][1] - points[0][1]) / 2.0)))
+                    poignees[0].XY = numpy.array((points[0][0], points[0][1] + int((points[1][1] - points[0][1]) / 2)))
+                    poignees[1].XY = numpy.array((points[2][0], points[0][1] + int((points[1][1] - points[0][1]) / 2)))
 
         else:
             # ----- Sélection rectangulaire hors texte -----
@@ -4048,10 +4049,10 @@ class Panel_canvas(wx.Panel):
             
             # Poignées du milieu
             if objet.verrouillageProportions != True :
-                poignees[4].XY = numpy.array((points[0][0],  points[0][1] + ((points[1][1] - points[0][1] ) / 2.0)))
-                poignees[5].XY = numpy.array((points[2][0] - (points[2][0] - points[1][0]) / 2.0, points[1][1])) 
-                poignees[6].XY = numpy.array((points[2][0], points[0][1] + ((points[1][1] - points[0][1] ) / 2.0) )) 
-                poignees[7].XY = numpy.array((points[2][0] - (points[2][0] - points[1][0]) / 2.0, points[0][1])) 
+                poignees[4].XY = numpy.array((points[0][0],  points[0][1] + int((points[1][1] - points[0][1] ) / 2)))
+                poignees[5].XY = numpy.array(int(points[2][0] - (points[2][0] - points[1][0]) / 2), points[1][1])
+                poignees[6].XY = numpy.array((points[2][0], points[0][1] + int((points[1][1] - points[0][1] ) / 2) ))
+                poignees[7].XY = numpy.array(int(points[2][0] - (points[2][0] - points[1][0]) / 2), points[0][1])
             
             # Poignées des coins
             if objet.categorie not in ["ligne_texte", "bloc_texte"] :
@@ -4104,8 +4105,9 @@ class Panel_canvas(wx.Panel):
             listeNoms = ["BG", "HG", "HD", "BD"]
 
             # Création des poignées du milieu
-            points = numpy.append(points, [numpy.array((points[0][0], points[0][1] + ((points[1][1] - points[0][1]) / 2.0)))], axis=0)  # MG
-            points = numpy.append(points, [numpy.array((points[2][0], points[0][1] + ((points[1][1] - points[0][1]) / 2.0)))], axis=0)  # MD
+            points = numpy.append(points, [numpy.array((points[0][0], points[0][1] + ((points[1][1] - int(points[0][1]) / 2))))], axis=0)  # MG
+            points = numpy.append(points, [numpy.array((points[2][0], points[0][1] + ((points[1][1] - int(points[0][1]) / 2))))], axis=0)  # MD
+
             listeNoms.extend(["MG", "MD"])
 
             # Création des poignées des coins
@@ -4132,10 +4134,10 @@ class Panel_canvas(wx.Panel):
             
             # Création des poignées du milieu
             if objet.verrouillageProportions != True :
-                points = numpy.append(points, [numpy.array((points[0][0],  points[0][1] + ((points[1][1] - points[0][1] ) / 2.0))) ],axis=0 ) # MG
-                points = numpy.append(points, [numpy.array((points[2][0] - (points[2][0] - points[1][0]) / 2.0, points[1][1])) ],axis=0 ) # MH
-                points = numpy.append(points, [numpy.array((points[2][0], points[0][1] + ((points[1][1] - points[0][1] ) / 2.0) )) ],axis=0 ) # MD
-                points = numpy.append(points, [numpy.array((points[2][0] - (points[2][0] - points[1][0]) / 2.0, points[0][1])) ],axis=0 )  # MB
+                points = numpy.append(points, [numpy.array((points[0][0],  points[0][1] + int((points[1][1] - points[0][1] ) / 2.0))) ],axis=0 ) # MG
+                points = numpy.append(points, [numpy.array((points[2][0] - int((points[2][0] - points[1][0]) / 2.0), points[1][1])) ],axis=0 ) # MH
+                points = numpy.append(points, [numpy.array((points[2][0], points[0][1] + int((points[1][1] - points[0][1] ) / 2.0) )) ],axis=0 ) # MD
+                points = numpy.append(points, [numpy.array((points[2][0] - int((points[2][0] - points[1][0]) / 2.0), points[0][1])) ],axis=0 )  # MB
                 listeNoms.extend(["MG", "MH", "MD", "MB"])
             
             # Création des poignées des coins
@@ -4439,8 +4441,8 @@ class Panel_canvas(wx.Panel):
 
         # Recherche le centre de l'objet
         tailleDC = wx.ClientDC(self.canvas).GetSize()
-        x, y = self.canvas.PixelToWorld((tailleDC[0] / 2, tailleDC[1] / 2))
-        x, y = Arrondir(x - taille[0] / 2), Arrondir(y - taille[1] / 2)
+        x, y = self.canvas.PixelToWorld((int(tailleDC[0] / 2), int(tailleDC[1] / 2)))
+        x, y = Arrondir(x - int(taille[0] / 2)), Arrondir(y - int(taille[1] / 2))
 
         # Insertion
         objet = AjouterRectangle(xy=(x, y), taille=taille,
@@ -4455,8 +4457,8 @@ class Panel_canvas(wx.Panel):
         longueurLigne = 100
         # Recherche le centre de l'objet
         tailleDC = wx.ClientDC(self.canvas).GetSize()
-        x, y = self.canvas.PixelToWorld((tailleDC[0] / 2, tailleDC[1] / 2))
-        x = x - longueurLigne / 2
+        x, y = self.canvas.PixelToWorld((int(tailleDC[0] / 2), int(tailleDC[1] / 2)))
+        x = x - int(longueurLigne / 2)
         x, y = Arrondir(x), Arrondir(y)
         points = [(x, y), (x + longueurLigne, y)]
         # Insertion
@@ -4470,8 +4472,8 @@ class Panel_canvas(wx.Panel):
         taille = (80, 80)
         # Recherche le centre de l'objet
         tailleDC = wx.ClientDC(self.canvas).GetSize()
-        x, y = self.canvas.PixelToWorld((tailleDC[0] / 2, tailleDC[1] / 2))
-        x, y = Arrondir(x - taille[0] / 2), Arrondir(y - taille[1] / 2)
+        x, y = self.canvas.PixelToWorld((int(tailleDC[0] / 2), int(tailleDC[1] / 2)))
+        x, y = Arrondir(x - int(taille[0] / 2)), Arrondir(y - int(taille[1] / 2))
         # Insertion
         objet = AjouterEllipse(xy=(x, y), taille=taille,
                                couleurTrait=(0, 0, 0), epaissTrait=0.25,
@@ -4485,8 +4487,8 @@ class Panel_canvas(wx.Panel):
         taille = (90, 80)
         # Recherche le centre de l'objet
         tailleDC = wx.ClientDC(self.canvas).GetSize()
-        x, y = self.canvas.PixelToWorld((tailleDC[0] / 2, tailleDC[1] / 2))
-        x, y = Arrondir(x - taille[0] / 2), Arrondir(y + 12)
+        x, y = self.canvas.PixelToWorld((int(tailleDC[0] / 2), int(tailleDC[1] / 2)))
+        x, y = Arrondir(x - int(taille[0] / 2)), int(Arrondir(y + 12))
         points = [(x, y), (x + 45, y + 30), (x + 90, y), (x + 70, y - 50), (x + 20, y - 50)]
         # Insertion
         objet = AjouterPolygone(points,
@@ -4551,10 +4553,10 @@ class Panel_canvas(wx.Panel):
                 largeur, hauteur = img.GetSize()
                 if max(largeur, hauteur) > tailleMaxi:
                     if largeur > hauteur:
-                        hauteur = hauteur * tailleMaxi / largeur
+                        hauteur = int(hauteur * tailleMaxi / largeur)
                         largeur = tailleMaxi
                     else:
-                        largeur = largeur * tailleMaxi / hauteur
+                        largeur = int(largeur * tailleMaxi / hauteur)
                         hauteur = tailleMaxi
                 img.Rescale(width=largeur, height=hauteur, quality=wx.IMAGE_QUALITY_HIGH)
                 if 'phoenix' in wx.PlatformInfo:
@@ -4645,10 +4647,10 @@ class Panel_canvas(wx.Panel):
             tailleMaxi = max(self.taille_page)
             if max(largeur, hauteur) > tailleMaxi:
                 if largeur > hauteur:
-                    hauteur = 1.0 * hauteur * tailleMaxi / largeur
+                    hauteur = int(1.0 * hauteur * tailleMaxi / largeur)
                     largeur = tailleMaxi
                 else:
-                    largeur = 1.0 * largeur * tailleMaxi / hauteur
+                    largeur = int(1.0 * largeur * tailleMaxi / hauteur)
                     hauteur = tailleMaxi
 
         if 'phoenix' in wx.PlatformInfo:
@@ -4658,8 +4660,8 @@ class Panel_canvas(wx.Panel):
 
         # Recherche le centre de l'objet
         tailleDC = wx.ClientDC(self.canvas).GetSize()
-        x, y = self.canvas.PixelToWorld((tailleDC[0] / 2, tailleDC[1] / 2))
-        x, y = Arrondir(x - largeur / 2), Arrondir(y - hauteur / 2)
+        x, y = self.canvas.PixelToWorld((int(tailleDC[0] / 2), int(tailleDC[1] / 2)))
+        x, y = Arrondir(x - int(largeur / 2)), Arrondir(y - int(hauteur / 2))
 
         # Insertion
         objet = AjouterImage(bmp, (x, y), hauteur, typeImage=typeImage)

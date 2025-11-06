@@ -14,9 +14,7 @@ from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
-import six
 import re
-import traceback
 import copy
 import datetime
 import GestionDB
@@ -97,6 +95,7 @@ class Dialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnBoutonEnvoyer, self.bouton_envoyer)
         
         # Init contrôles
+
         self.ctrl_objet.SetFocus()
         
     def __set_properties(self):
@@ -111,7 +110,7 @@ class Dialog(wx.Dialog):
         self.bouton_outils.SetToolTip(wx.ToolTip(_("Cliquez ici pour accéder aux outils")))
         self.bouton_envoyer.SetToolTip(wx.ToolTip(_("Cliquez ici pour envoyer le mail")))
         self.bouton_annuler.SetToolTip(wx.ToolTip(_("Cliquez ici pour annuler")))
-        self.SetMinSize((800, 680))
+        self.SetMinSize((700, 500))
 
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)

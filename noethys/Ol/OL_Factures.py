@@ -636,12 +636,9 @@ class ListView(FastObjectListView):
             total = self.Selection()[0].total
             if total < 0: nature = "AVOIR"
             else: nature = "FACTURE"
-            ID = self.Selection()[0].numero
-            horodatage = datetime.datetime.now().strftime("%Y%m%d")
-            IDdoc = "%s-%d" % (horodatage,ID)
+            noFacture = self.Selection()[0].numero
             IDfamille = self.Selection()[0].IDfamille
-            from Utils import UTILS_Fichiers
-            nomDoc = UTILS_Fichiers.GetRepTemp("%s%s.pdf" %(nature,IDdoc))
+            nomDoc = f"{nature } {noFacture}"
             UTILS_Envoi_email.EnvoiEmailFamille(parent=self,
                                                 IDfamille=IDfamille,
                                                 nomDoc= nomDoc ,
@@ -660,9 +657,8 @@ class ListView(FastObjectListView):
                                               repertoireTemp=repertoireTemp)
             if resultat == False :
                 return False
-            dictChampsFusion, dictPieces = resultat
             del facturation
-            return dictChampsFusion[list(dictChampsFusion.keys())[0]]
+            return resultat
     
     def GetTextesImpression(self):
         total = _("%d factures. ") % len(self.donnees)

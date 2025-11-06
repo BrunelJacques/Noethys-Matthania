@@ -10,12 +10,10 @@
 
 
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
 import datetime
-import os
 import wx.grid as gridlib
 import six
 from Utils import UTILS_Config
@@ -84,14 +82,19 @@ def DateFrEng(textDate):
     text = str(textDate[6:10]) + "-" + str(textDate[3:5]) + "-" + str(textDate[:2])
     return text
 
-
-
-class CTRL_Signataires(wx.Choice):
+class CTRL_Signataires(wx.ComboBox):
     def __init__(self, parent):
         wx.Choice.__init__(self, parent, -1) 
         self.parent = parent
+        self.dictUtilisateur = self.GetUtilisateur()
         self.MAJ() 
-    
+
+    def GetUtilisateur(self):
+        duser = UTILS_Identification.GetDictUtilisateur()
+        if not duser:
+            duser = {'nom': "Matthania", 'prenom':"Association","IDutilisateur":None}
+        return duser
+
     def MAJ(self, listeActivites=[] ):
         listeItems, indexDefaut = self.GetListeDonnees()
         if len(listeItems) == 0 :
@@ -103,19 +106,19 @@ class CTRL_Signataires(wx.Choice):
             self.Select(indexDefaut)
         
         # Recherche le nom de l'utilisateur parmi la liste des signataires
-        dictUtilisateur = UTILS_Identification.GetDictUtilisateur()
+        duser = self.dictUtilisateur
         for index, dictDonnees in self.dictDonnees.items() :
-            if dictUtilisateur != None :
-                texte1 = "%s %s" % (dictUtilisateur["prenom"], dictUtilisateur["nom"])
-                texte2 = "%s %s" % (dictUtilisateur["nom"], dictUtilisateur["prenom"])
-                if dictDonnees["nom"].lower() == texte1.lower() or dictDonnees["nom"].lower() == texte2.lower() :
-                    self.SetSelection(index)
-                                        
+            texte1 = "%s %s" % (duser["prenom"], duser["nom"])
+            texte2 = "%s %s" % (duser["nom"], duser["prenom"])
+            if dictDonnees["nom"].lower() == texte1.lower() or dictDonnees["nom"].lower() == texte2.lower() :
+                self.SetSelection(index)
+                break
+
     def GetListeDonnees(self):
         db = GestionDB.DB()
         req = """SELECT IDresponsable, IDactivite, nom, fonction, defaut, sexe
         FROM responsables_activite
-        ORDER BY nom;"""
+        ORDER BY nom ASC, IDactivite DESC;"""
         db.ExecuterReq(req,MsgBox="ExecuterReq")
         listeDonnees = db.ResultatReq()
         db.Close()
@@ -123,13 +126,18 @@ class CTRL_Signataires(wx.Choice):
         self.dictDonnees = {}
         indexDefaut = None
         index = 0
-        for IDresponsable, IDactivite, nom, fonction, defaut, sexe in listeDonnees :
+        for (IDresponsable, IDactivite, nom, fonction, defaut, sexe) in listeDonnees:
+        #    ) in  sorted(listeDonnees, key=lambda index : f'{index[2]} {str(-index[1])}'):
             if nom not in listeItems :
-                if indexDefaut == None and defaut == 1 : indexDefaut = index
+                if not indexDefaut and defaut == 1 :
+                    indexDefaut = index
                 self.dictDonnees[index] = { 
-                    "ID" : IDresponsable, "IDactivite" : IDactivite,
-                    "nom" : nom, "fonction" : fonction,
-                    "defaut" : defaut, "sexe" : sexe, 
+                    "ID" : IDresponsable,
+                    "IDactivite" : IDactivite,
+                    "nom" : nom,
+                    "fonction" : fonction,
+                    "defaut" : defaut,
+                    "sexe" : sexe,
                     }
                 listeItems.append(nom)
                 index += 1
@@ -138,7 +146,8 @@ class CTRL_Signataires(wx.Choice):
     def SetID(self, ID=0):
         for index, values in self.dictDonnees.items():
             if values["ID"] == ID :
-                 self.SetSelection(index)
+                self.SetSelection(index)
+                break
 
     def GetID(self):
         index = self.GetSelection()
@@ -148,10 +157,17 @@ class CTRL_Signataires(wx.Choice):
     def GetInfos(self):
         """ Récupère les infos sur le signataire sélectionné """
         index = self.GetSelection()
-        if index == -1 : return None
+        if index == -1 :
+            txt = self.GetValue()
+            if not txt:
+                return None
+            lstTxt = txt.split(',')
+            if len(lstTxt)>1:
+                dict = {"nom": lstTxt[0],"fonction":lstTxt[1],"sexe":"H"}
+            else:
+                dict = {"nom": txt,"fonction":"","sexe":"H"}
+            return dict
         return self.dictDonnees[index]
-        
-    
 
 # -----------------------------------------------------------------------------------------------------------------------
 
@@ -227,10 +243,7 @@ class CTRL_Donnees(gridlib.Grid):
                 key += 1
             
         # test all the events
-        if 'phoenix' in wx.PlatformInfo:
-            self.Bind(gridlib.EVT_GRID_CELL_CHANGED, self.OnCellChange)
-        else :
-            self.Bind(gridlib.EVT_GRID_CELL_CHANGE, self.OnCellChange)
+        self.Bind(gridlib.EVT_GRID_CELL_CHANGED, self.OnCellChange)
         self.moveTo = (1, 1)
 
     def OnCellChange(self, evt):
@@ -343,14 +356,21 @@ class Dialog(wx.Dialog):
 
         # Options
         self.staticbox_options_staticbox = wx.StaticBox(self, -1, _("Options"))
-        self.label_modele = wx.StaticText(self, -1, _("Modèle :"))
+
+        self.label_email = wx.StaticText(self, -1, _("Modèle email:"))
+        self.ctrl_email = CTRL_Choix_modele.CTRL_Choice(self,
+                                                        categorie="recu_reglement",
+                                                        table="modeles_emails")
+        self.bouton_email_modeles = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_ANY))
+
+        self.label_modele = wx.StaticText(self, -1, _("Modèle pdf:"))
         self.ctrl_modele = CTRL_Choix_modele.CTRL_Choice(self, categorie="reglement")
         self.bouton_gestion_modeles = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_ANY))
-        
+
         self.label_signataire = wx.StaticText(self, -1, _("Signataire :"))
         self.ctrl_signataire = CTRL_Signataires(self)
         
-        self.label_intro = wx.StaticText(self, -1, _("Intro :"))
+        self.label_intro = wx.StaticText(self, -1, _("Intro pdf:"))
         self.ctrl_intro = wx.CheckBox(self, -1, "")
         self.ctrl_intro.SetValue(True)
         self.ctrl_texte_intro = wx.TextCtrl(self, -1, TEXTE_INTRO)
@@ -367,6 +387,7 @@ class Dialog(wx.Dialog):
         self.__do_layout()
 
         self.Bind(wx.EVT_BUTTON, self.OnBoutonModeles, self.bouton_gestion_modeles)
+        self.Bind(wx.EVT_BUTTON, self.OnBoutonEmailModeles, self.bouton_email_modeles)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckIntro, self.ctrl_intro)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAide, self.bouton_aide)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonEmail, self.bouton_email)
@@ -375,19 +396,24 @@ class Dialog(wx.Dialog):
         self.Bind(wx.EVT_CLOSE, self.OnBoutonAnnuler)
 
         # Importation des paramètres perso
+
         dictValeursDefaut = {
             "intro_activer" : True,
             "intro_texte" : TEXTE_INTRO,
             "prestations_afficher" : False,
+            "signataire": 0
             }
-        dictParametres = UTILS_Parametres.ParametresCategorie(mode="get", categorie="impression_recu", dictParametres=dictValeursDefaut)
+        dictParametres = UTILS_Parametres.ParametresCategorie(mode="get",
+                                                              categorie="impression_recu",
+                                                              dictParametres=dictValeursDefaut)
         
         # Init contrôles
         self.ctrl_intro.SetValue(dictParametres["intro_activer"])
         if dictParametres["intro_texte"] != None :
             self.ctrl_texte_intro.SetValue(dictParametres["intro_texte"])
         self.ctrl_prestations.SetValue(dictParametres["prestations_afficher"])
-            
+        self.ctrl_signataire.SetID(dictParametres["signataire"])
+        self.dictUtilisateur = self.ctrl_signataire.dictUtilisateur
         self.OnCheckIntro(None) 
     
     def MemorisationParametres(self):
@@ -395,23 +421,27 @@ class Dialog(wx.Dialog):
             "intro_activer" : self.ctrl_intro.GetValue(),
             "intro_texte" : self.ctrl_texte_intro.GetValue(),
             "prestations_afficher" : self.ctrl_prestations.GetValue(),
+            "signataire": self.ctrl_signataire.GetID()
             }
-        UTILS_Parametres.ParametresCategorie(mode="set", categorie="impression_recu", dictParametres=dictValeurs)
+        UTILS_Parametres.ParametresCategorie(mode="set", categorie="impression_recu",
+                                             dictParametres=dictValeurs)
         
     def __set_properties(self):
         self.SetTitle(_("Edition d'un reçu de règlement"))
         self.ctrl_donnees.SetToolTip(wx.ToolTip(_("Vous pouvez modifier ici les données de base")))
+        self.ctrl_email.SetToolTip(wx.ToolTip(_("Selectionnez un modèle de texte mail")))
         self.ctrl_modele.SetToolTip(wx.ToolTip(_("Selectionnez un modèle de documents")))
         self.ctrl_signataire.SetToolTip(wx.ToolTip(_("Sélectionnez ici le signataire du document")))
         self.ctrl_intro.SetToolTip(wx.ToolTip(_("Cochez cette case pour inclure le texte d'introduction : 'Je soussigné... atteste...' ")))
         self.ctrl_texte_intro.SetToolTip(wx.ToolTip(_("Vous pouvez modifier ici le texte d'introduction. \n\nUtilisez les mots-clés {GENRE}, {NOM}, {FONCTION}, {ENFANTS}, \n{DATE_DEBUT} et {DATE_FIN} pour inclure dynamiquement les \nvaleurs correspondantes.")))
         self.ctrl_prestations.SetToolTip(wx.ToolTip(_("Afficher la liste des prestations payées avec ce règlement")))
-        self.bouton_gestion_modeles.SetToolTip(wx.ToolTip(_("Cliquez ici pour accéder à la gestion des modèles de documents")))
+        self.bouton_gestion_modeles.SetToolTip(wx.ToolTip(_("Cliquez ici pour accéder à la gestion des modèles de documents PDF")))
+        self.bouton_email_modeles.SetToolTip(wx.ToolTip(_("Cliquez ici pour accéder à la gestion des modèles de texte email")))
         self.bouton_aide.SetToolTip(wx.ToolTip(_("Cliquez ici pour obtenir de l'aide")))
         self.bouton_email.SetToolTip(wx.ToolTip(_("Cliquez ici pour envoyer ce document par Email")))
         self.bouton_ok.SetToolTip(wx.ToolTip(_("Cliquez ici pour afficher le PDF")))
         self.bouton_annuler.SetToolTip(wx.ToolTip(_("Cliquez ici pour annuler")))
-        self.SetMinSize((570, 500))
+        self.SetMinSize((570, 600))
 
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
@@ -424,9 +454,17 @@ class Dialog(wx.Dialog):
         
         # Options
         staticbox_options = wx.StaticBoxSizer(self.staticbox_options_staticbox, wx.VERTICAL)
-        grid_sizer_options = wx.FlexGridSizer(rows=4, cols=2, vgap=5, hgap=10)
+        grid_sizer_options = wx.FlexGridSizer(rows=5, cols=2, vgap=5, hgap=10)
         
-        # Modèle
+        # Modèle email
+        grid_sizer_options.Add(self.label_email, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
+        grid_sizer_email = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
+        grid_sizer_email.Add(self.ctrl_email, 0, wx.EXPAND, 0)
+        grid_sizer_email.Add(self.bouton_email_modeles, 0, 0, 0)
+        grid_sizer_email.AddGrowableCol(0)
+        grid_sizer_options.Add(grid_sizer_email, 1, wx.EXPAND, 0)
+
+        # Modèle pdf
         grid_sizer_options.Add(self.label_modele, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_modele = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_modele.Add(self.ctrl_modele, 0, wx.EXPAND, 0)
@@ -476,6 +514,13 @@ class Dialog(wx.Dialog):
             self.ctrl_texte_intro.Enable(True)
         else:
             self.ctrl_texte_intro.Enable(False)
+
+    def OnBoutonEmailModeles(self, event):
+        from Dlg import DLG_Modeles_emails
+        dlg = DLG_Modeles_emails.Dialog(self, categorie="recu_reglement")
+        dlg.ShowModal()
+        dlg.Destroy()
+        self.ctrl_email.MAJ()
 
     def OnBoutonModeles(self, event): 
         from Dlg import DLG_Modeles_docs
@@ -588,10 +633,23 @@ class Dialog(wx.Dialog):
     def OnBoutonOk(self, event): 
         self.CreationPDF()
 
-    def OnBoutonEmail(self, event): 
+    def OnBoutonEmail(self, event):
+        IDmodelEmail = self.ctrl_email.GetID()
+        if IDmodelEmail == None :
+            dlg = wx.MessageDialog(self, _("Vous devez obligatoirement sélectionner un modèle de texte mail!"), _("Erreur"), wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
+
         """ Envoi par mail """
-        from Utils import UTILS_Envoi_email
-        UTILS_Envoi_email.EnvoiEmailFamille(parent=self, IDfamille=self.IDfamille, nomDoc=FonctionsPerso.GenerationNomDoc("RECU", "pdf"), categorie="recu_reglement", listeAdresses=self.listeAdresses)
+        from Utils import UTILS_Envoi_email, UTILS_Fichiers
+        nomDoc = FonctionsPerso.GenerationNomDoc(f"RECU-{self.IDfamille}-", "pdf",unique=False)
+        UTILS_Envoi_email.EnvoiEmailFamille(parent=self,
+                                            IDfamille=self.IDfamille,
+                                            IDmodele=IDmodelEmail,
+                                            nomDoc= nomDoc,
+                                            categorie="recu_reglement",
+                                            listeAdresses=self.listeAdresses)
     
     def GetPrestations(self):
         DB = GestionDB.DB()
@@ -642,9 +700,10 @@ class Dialog(wx.Dialog):
                 }
             listePrestations.append(dictTemp)
         return listePrestations
-    
 
-    def CreationPDF(self, nomDoc=FonctionsPerso.GenerationNomDoc("RECU_REGLEMENT", "pdf"), afficherDoc=True):
+    def CreationPDF(self, nomDoc=None, afficherDoc=True,repertoireTemp=False):
+        if not nomDoc:
+            nomDoc = FonctionsPerso.GenerationNomDoc("RECU_REGLEMENT", "pdf")
         dictChampsFusion = {}
         
         # Récupération des valeurs de base
@@ -658,7 +717,8 @@ class Dialog(wx.Dialog):
         DB.ExecuterReq(req,MsgBox="ExecuterReq")
         listeDonnees = DB.ResultatReq()      
         dictOrganisme = {}
-        for nom, rue, cp, ville, tel, fax, mail, site, num_agrement, num_siret, code_ape in listeDonnees :
+        for (nom, rue, cp, ville, tel, fax, mail, site, num_agrement,
+             num_siret, code_ape) in listeDonnees :
             dictOrganisme["nom"] = nom
             dictOrganisme["rue"] = rue
             dictOrganisme["cp"] = cp
@@ -685,8 +745,6 @@ class Dialog(wx.Dialog):
             "IDfamille" : self.IDfamille,
             "{IDFAMILLE}" : str(self.IDfamille),
             "num_recu" : dictDonnees["numero"],
-
-            "{DATE_EDITION}": dictDonnees["date"],
             "{LIEU_EDITION}" : dictDonnees["lieu"],
             "{DESTINATAIRE_NOM}" : dictDonnees["nom"],
             "{DESTINATAIRE_RUE}" : dictDonnees["rue"],
@@ -712,7 +770,9 @@ class Dialog(wx.Dialog):
 
         # Récupération des infos de base individus et familles
         self.infosIndividus = UTILS_Infos_individus.Informations(lstIDfamilles=[self.IDfamille,])
-        dictValeurs.update(self.infosIndividus.GetDictValeurs(mode="famille", ID=IDfamille, formatChamp=True))
+        dictValeurs.update(self.infosIndividus.GetDictValeurs(mode="famille",
+                                                              ID=IDfamille,
+                                                              formatChamp=True))
 
         # Récupération des questionnaires
         Questionnaires = UTILS_Questionnaires.ChampsEtReponses(type="famille")
@@ -777,13 +837,16 @@ class Dialog(wx.Dialog):
             dictValeurs["prestations"] = self.GetPrestations() 
         else :
             dictValeurs["prestations"] = []
-        
+
+        if self.dictUtilisateur:
+            dictValeurs.update(self.dictUtilisateur)
+
         # Préparation des données pour une sauvegarde de l'attestation
         self.dictSave = {}
         self.dictSave["numero"] = dictDonnees["numero"]
         self.dictSave["IDfamille"] = self.IDfamille
         self.dictSave["date_edition"] = DateFrEng(dictDonnees["date"])
-        self.dictSave["IDutilisateur"] = UTILS_Identification.GetIDutilisateur()
+        self.dictSave["IDutilisateur"] = dictValeurs['IDutilisateur']
         self.dictSave["IDreglement"] = self.IDreglement
         
         # Récupération du modèle
@@ -793,7 +856,7 @@ class Dialog(wx.Dialog):
             dlg.ShowModal()
             dlg.Destroy()
             return
-        
+
         dictChampsFusion["{DATE_EDITION_RECU}"] = DateFrEng(dictDonnees["date"])
         dictChampsFusion["{NUMERO_RECU}"] = dictDonnees["numero"]
         dictChampsFusion["{ID_REGLEMENT}"] = str(dictValeurs["{IDREGLEMENT}"])
@@ -806,18 +869,19 @@ class Dialog(wx.Dialog):
         dictChampsFusion["{NUM_QUITTANCIER}"] = dictValeurs["{NUM_QUITTANCIER}"]
         dictChampsFusion["{DATE_SAISIE}"] = dictValeurs["{DATE_SAISIE}"]
         dictChampsFusion["{DATE_DIFFERE}"] = dictValeurs["{DATE_DIFFERE}"]
+        dictChampsFusion["{UTILISATEUR_NOM_COMPLET}"] = f"{dictValeurs['prenom']} {dictValeurs['nom']}"
 
         # Fabrication du PDF
         from Utils import UTILS_Impression_recu
-        UTILS_Impression_recu.Impression(dictValeurs, IDmodele=IDmodele, nomDoc=nomDoc, afficherDoc=afficherDoc)
-        
+        UTILS_Impression_recu.Impression(dictValeurs, IDmodele=IDmodele, nomDoc=nomDoc,
+                                         afficherDoc=afficherDoc)
         return dictChampsFusion
     
 
 if __name__ == "__main__":
     app = wx.App(0)
     #wx.InitAllImageHandlers()
-    dlg = Dialog(None, IDreglement=2)
+    dlg = Dialog(None, IDreglement=38658)
     app.SetTopWindow(dlg)
 ##    dlg.ctrl_prestations.SetValue(True)
     dlg.ShowModal()

@@ -1876,7 +1876,7 @@ class Facturation():
                 print(nomFichier, "fichier non trouvé")
 
         # Réorganisation du fichier retour pour se caler sur les ID fournis pour PJ mails
-        if repertoireTemp == True and len(listePieces) > 0:
+        if repertoireTemp == True and len(listePieces + listeFactures) > 0:
             retDictCheminsPdf = {}
             for IDfourni, IDpage in dictIDfournis.items():
                 retDictCheminsPdf[IDfourni] = dictCheminsPdf[IDpage]

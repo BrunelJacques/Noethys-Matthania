@@ -19,12 +19,12 @@ import GestionDB
 
 
 class CTRL_Choice(wx.Choice):
-    def __init__(self, parent, categorie=""):
+    def __init__(self, parent, categorie="",table="documents_modeles"):
         wx.Choice.__init__(self, parent, -1) 
         self.parent = parent
         self.categorie = categorie
         self.defaut = None
-        self.MAJ() 
+        self.MAJ(table)
     
     def SetCategorie(self, categorie=""):
         self.categorie = categorie
@@ -32,9 +32,9 @@ class CTRL_Choice(wx.Choice):
         self.MAJ() 
         self.SetID(self.defaut)
     
-    def MAJ(self):
+    def MAJ(self, table="documents_modeles"):
         selectionActuelle = self.GetID()
-        listeItems = self.GetListeDonnees()
+        listeItems = self.GetListeDonnees(table)
         if len(listeItems) == 0 :
             self.Enable(False)
         else:
@@ -47,19 +47,20 @@ class CTRL_Choice(wx.Choice):
             # Sélection par défaut
             self.SetID(self.defaut)
                                         
-    def GetListeDonnees(self):
+    def GetListeDonnees(self,table="documents_modeles"):
         listeItems = []
         self.dictDonnees = {}
         DB = GestionDB.DB()
-        req = """SELECT IDmodele, nom, largeur, hauteur, observations, defaut
-        FROM documents_modeles
-        WHERE categorie='%s'
-        ORDER BY nom;""" % self.categorie
+        req = f"""SELECT IDmodele, nom, defaut
+        FROM {table}
+        WHERE categorie='{self.categorie}'
+        ORDER BY nom;"""
         DB.ExecuterReq(req,MsgBox="ExecuterReq")
         listeDonnees = DB.ResultatReq()
         DB.Close()
         index = 0
-        for IDmodele, nom, largeur, hauteur, observations, defaut in listeDonnees :
+        for IDmodele, nom, defaut in listeDonnees :
+
             listeItems.append(nom)
             self.dictDonnees[index] = {"ID" : IDmodele}
             if defaut == 1 :
@@ -80,11 +81,11 @@ class CTRL_Choice(wx.Choice):
 # -------------------------------------------------------------------------------------------------------------------------------------------
     
 
-def DemandeModele(categorie=""):
+def zzzDemandeModele(categorie="",table="documents_modeles"):
     IDmodele = None
     DB = GestionDB.DB()
-    req = """SELECT IDmodele, nom, defaut
-    FROM documents_modeles
+    req = f"""SELECT IDmodele, nom, defaut
+    FROM {table}
     WHERE categorie='%s'
     ORDER BY nom;""" % categorie
     DB.ExecuterReq(req,MsgBox="ExecuterReq")

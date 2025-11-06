@@ -260,8 +260,9 @@ class Dialog(wx.Dialog):
     def Importation(self):
         """ Importation des données """
         db = GestionDB.DB()
-        req = """SELECT nom, rue, cp, ville, tel, fax, mail, site, num_agrement, num_siret, code_ape, logo
-        FROM organisateur WHERE IDorganisateur=1;"""
+        req = """SELECT nom, rue, cp, ville, tel, fax, mail, site, num_agrement, 
+                num_siret, code_ape, logo
+                FROM organisateur WHERE IDorganisateur=1;"""
         db.ExecuterReq(req,MsgBox="ExecuterReq")
         listeDonnees = db.ResultatReq()
         db.Close()

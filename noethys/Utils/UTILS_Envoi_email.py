@@ -37,16 +37,17 @@ from Outils import mail
 def EnvoiEmailFamille(parent=None, IDfamille=None, nomDoc="", categorie="", listeAdresses=[],
                       visible=True, log=None, CreationPDF=None, IDmodele=None):
     # Création du PDF
-    if CreationPDF != None :
-        temp = CreationPDF
-    dictChamps = temp(nomDoc=nomDoc, afficherDoc=False, repertoireTemp=True)
+    if CreationPDF == None and hasattr(parent,"CreationPDF"):
+        CreationPDF = parent.CreationPDF
+    if not CreationPDF:
+        mess = "Lancement CreationPDF non trouvé, pb logique"
+        raise Exception(mess)
+
+    dictChamps = CreationPDF(nomDoc=nomDoc, afficherDoc=False,repertoireTemp=True)
+
     if dictChamps == False :
         return False
-
-    if nomDoc != False :
-        liste_pieces = [nomDoc,]
-    else :
-        liste_pieces = []
+    liste_pieces = [nomDoc,]
 
     # Recherche adresse famille
     if len(listeAdresses) == 0 :
@@ -74,7 +75,6 @@ def EnvoiEmailFamille(parent=None, IDfamille=None, nomDoc="", categorie="", list
     if visible == True :
         # Fenêtre visible
         dlg.ShowModal()
-
     else :
         # Fenêtre cachée
         dlg.OnBoutonEnvoyer(None)
@@ -1017,11 +1017,13 @@ class Mailjet(Base_messagerie):
     def Fermer(self):
         pass
 
+# Envoie un mail test à l'adresse de la famille 709
 if __name__ == u"__main__":
+    raise "envoie le mail test sans sommation, masquer la ligne pour tests"
     from Utils import UTILS_Titulaires
     dictDest = UTILS_Titulaires.GetCorrespondant(IDfamille=709)
     lstDest = dictDest["mails"].split(";")
-    pathFichier = 'C:\\Users\\jbrun\\AppData\\Roaming\\noethys\\Temp\\ATTESTATION20240929152045XIL984.pdf'
+    pathFichier = ''
     dictExp = GetAdresseExp()
     dictEnvoi = {
         "backend" : "smtp",
@@ -1039,7 +1041,7 @@ if __name__ == u"__main__":
     # Préparation du message
     message = Message(destinataires=lstDest, sujet=u"Sujet du mail",
                       texte_html="<p>Ceci est le <b>texte</b> html</p>", 
-                      fichiers=[pathFichier,],
+                      fichiers=[],
                       images=[])
 
     # Envoi du message

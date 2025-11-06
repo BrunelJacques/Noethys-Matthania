@@ -485,7 +485,7 @@ class FramePreview(wx.Frame):
         self.bouton_fermer = wx.BitmapButton(self.panel, -1, wx.Bitmap(Chemins.GetStaticPath("Images/32x32/Fermer.png"), wx.BITMAP_TYPE_ANY))
         
         self.ctrl_zoom = wx.Slider(self.panel, -1, 100, 1, 200, size=(200, -1), style=wx.SL_HORIZONTAL | wx.SL_AUTOTICKS)
-        self.ctrl_zoom.SetTickFreq(5, 1)
+        self.ctrl_zoom.SetTickFreq(2)
 
         # Canvas preview
         self.previewCanvas = wx.PreviewCanvas(self.printPreview, self.panel, style=wx.SUNKEN_BORDER)
@@ -501,12 +501,14 @@ class FramePreview(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.OnDernierePage, self.bouton_dernier)
         self.Bind(wx.EVT_BUTTON, self.OnFermer, self.bouton_fermer)
         self.Bind(wx.EVT_SCROLL, self.OnZoom, self.ctrl_zoom)
+        self.previewCanvas.Bind(wx.EVT_MOUSEWHEEL, self.on_mouse_scroll)
+
         
     def __set_properties(self):
 ##        _icon = wx.EmptyIcon()
 ##        _icon.CopyFromBitmap(wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Logo.png"), wx.BITMAP_TYPE_ANY))
 ##        self.SetIcon(_icon)
-        self.SetMinSize((200, 200))
+        self.SetMinSize((560, 680))
 
     def __do_layout(self):
         sizer_base = wx.BoxSizer(wx.VERTICAL)
@@ -539,6 +541,11 @@ class FramePreview(wx.Frame):
         # Initialisation des contrôles
         self.OnZoom(None)
 
+
+    def on_mouse_scroll(self, event):
+        print("scrolling neutralisé")
+        del event
+
     def OnPremierePage(self, event): # wxGlade: MyFrame.<event_handler>
         self.printPreview.SetCurrentPage(self.printPreview.GetMinPage())
 
@@ -562,5 +569,58 @@ class FramePreview(wx.Frame):
         self.previewCanvas.Refresh()
     
     def OnFermer(self, event):
-        self.Destroy() 
+        self.Close()
 
+# Dialog lanceur pour test -------------------------------------------------------
+
+class DLG(wx.Dialog):
+    def __init__(self, *args, **kwds):
+        super().__init__(*args, **kwds)
+
+        # Create a panel to hold the controls
+        panel = wx.Panel(self)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        panel.SetSizer(sizer)
+
+        # Create a RichTextCtrl and populate it with some sample text
+        self.rich_text_ctrl = rt.RichTextCtrl(panel, style=0)
+        self.rich_text_ctrl.SetValue("This is a preview example.\n"
+                                     "You can modify it and show html effect by button.")
+
+        # Add the RichTextCtrl to the sizer
+        sizer.Add(self.rich_text_ctrl, 1, flag=wx.EXPAND)
+
+        # Create a button to trigger the print preview
+        self.preview_button = wx.Button(panel, label="Show Preview")
+        sizer.Add(self.preview_button, 0, flag=wx.ALL | wx.EXPAND, border=5)
+
+        # Bind the button event
+        self.preview_button.Bind(wx.EVT_BUTTON, self.on_show_preview)
+
+        self.SetSize((600, 400))
+
+    def on_show_preview(self, event):
+        # Create the printout from the RichTextCtrl
+        printout = rt.RichTextPrintout()
+        printout.SetRichTextBuffer(self.rich_text_ctrl.GetBuffer())
+
+        # Create a preview of the printout
+        preview = wx.PrintPreview(printout, printout)
+
+        # Check if preview is created successfully
+        if not preview.IsOk():
+            wx.MessageBox("There was an error creating the print preview.", "Error", wx.OK | wx.ICON_ERROR)
+            return
+
+        # Create a PrintPreviewDialog to display the preview
+        self.frm = FramePreview(self, title="FramePreview", printPreview=preview)
+        self.frm.Show()
+
+if __name__ == '__main__':
+    app = wx.App(0)
+
+    import wx.richtext as rt
+    dlg = DLG(None,-1,title="Test FramePreview" )
+    app.SetTopWindow(dlg)
+    dlg.Show()
+    app.MainLoop()
