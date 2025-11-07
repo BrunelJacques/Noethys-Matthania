@@ -10,7 +10,6 @@
 
 
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
@@ -18,7 +17,6 @@ import GestionDB
 import datetime
 from Ctrl import CTRL_Editeur_email
 from Utils import UTILS_Dates
-import six
 
 
 class Dialog(wx.Dialog):
@@ -151,8 +149,7 @@ class Dialog(wx.Dialog):
         xml = self.texte_xml
         if xml == None :
             return
-        if six.PY3:
-            xml = xml.decode("utf-8")
+        xml = xml.decode("utf-8")
         # Remplacement des champs standards
         for motcle, valeur in CTRL_Editeur_email.GetChampsStandards().items():
             xml = xml.replace(motcle, valeur)

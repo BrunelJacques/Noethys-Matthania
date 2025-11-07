@@ -16,7 +16,10 @@ import GestionDB
 
 def GetListeUtilisateurs(nomFichier=""):
     """ Récupère la liste des utilisateurs et de leurs droits """
-    DB = GestionDB.DB(nomFichier=nomFichier)
+    if nomFichier:
+        DB = GestionDB.DB(nomFichier=nomFichier)
+    else:
+        DB = GestionDB.DB()
 
     # Droits
     req = """SELECT IDdroit, IDutilisateur, IDmodele, categorie, action, etat
@@ -43,22 +46,7 @@ def GetListeUtilisateurs(nomFichier=""):
     resultat = DB.ExecuterReq(req)
     if resultat == "ok" :
         listeDonnees = DB.ResultatReq()
-    """
-    else :
-        # Fonction provisoire pour pouvoir ouvrir Noethys avant la version 1.1.8.7.
-        req = ""SELECT IDutilisateur, sexe, nom, prenom, mdp, profil, actif
-        FROM utilisateurs
-        WHERE actif=1;""
-        DB.ExecuterReq(req,MsgBox="UTILS_Utilsateurs")
-        listeDonneesTemp = DB.ResultatReq()
-        listeDonnees = []
-        for IDutilisateur, sexe, nom, prenom, mdp, profil, actif in listeDonneesTemp :
-            if len(mdp) < 60 :
-                mdpcrypt = SHA256.new(mdp.encode('utf-8')).hexdigest()
-            else :
-                mdpcrypt = mdp
-            listeDonnees.append((IDutilisateur, sexe, nom, prenom, mdp, mdpcrypt, profil, actif))
-    """
+
     listeUtilisateurs = []
     
     # chargement avatars
@@ -91,7 +79,9 @@ def GetListeUtilisateurs(nomFichier=""):
         else :
             image = "Automatique"
 
-        dictTemp = { "IDutilisateur":IDutilisateur, "nom":nom, "prenom":prenom, "sexe":sexe, "mdp":mdp, "mdpcrypt" : mdpcrypt, "profil":profil, "actif":actif, "image":image, "droits":droits }
+        dictTemp = { "IDutilisateur":IDutilisateur, "nom":nom, "prenom":prenom, "sexe":sexe,
+                     "mdp":mdp, "mdpcrypt" : mdpcrypt, "profil":profil, "actif":actif,
+                     "image":image, "droits":droits }
         listeUtilisateurs.append(dictTemp)
     
     DB.Close()

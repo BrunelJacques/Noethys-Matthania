@@ -9,7 +9,7 @@
 #-----------------------------------------------------------
 
 import wx
-import DLG_Saisie_utilisateur
+from Dlg import DLG_Saisie_utilisateur
 from Ctrl import CTRL_Bouton_image
 from Crypto.Hash import SHA256
 
@@ -57,13 +57,14 @@ class CTRL(wx.TextCtrl):
             listeUtilisateurs = self.GetGrandParent().listeUtilisateurs
         # Recherche de l'utilisateur
         okMdp = False
+        dictUtilisateur = None
         for dictUtilisateur in listeUtilisateurs :
             if (txtSearch == dictUtilisateur["mdp"] or mdpcrypt == dictUtilisateur["mdpcrypt"]) : # txtSearch == dictUtilisateur["mdp"] or à retirer plus tard
                 okMdp = True
                 break
 
         # Fin de la recherche si ok, on contrôle la validité
-        if okMdp:
+        if okMdp and dictUtilisateur:
             IDutilisateur = dictUtilisateur['IDutilisateur']
             titre = "CHANGEZ VOTRE MOT DE PASSE"
             intro = "Veuillez saisir un NOUVEAU mot de passe plus complexe:"
@@ -98,7 +99,11 @@ class Dialog(wx.Dialog):
     def __init__(self, parent, id=-1, title="Identification", listeUtilisateurs=[], nomFichier=None):
         wx.Dialog.__init__(self, parent, id, title, name="DLG_mdp")
         self.parent = parent
-        self.listeUtilisateurs = listeUtilisateurs
+        if not listeUtilisateurs:
+            self.listeUtilisateurs = self.GetListeUtilisateurs()
+        else:
+            self.listeUtilisateurs = listeUtilisateurs
+
         self.nomFichier = nomFichier
         self.dictUtilisateur = None
         
@@ -154,6 +159,11 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Fit(self)
         self.Layout()
         self.CentreOnScreen()
+
+    def GetListeUtilisateurs(self):
+        """ Récupère la liste des utilisateurs dans la base """
+        from Utils import UTILS_Utilisateurs
+        return UTILS_Utilisateurs.GetListeUtilisateurs()
 
     def ChargeUtilisateur(self, dictUtilisateur={}):
         self.dictUtilisateur = dictUtilisateur

@@ -17,9 +17,10 @@ import re
 import traceback
 import base64
 from Utils import UTILS_Html2text
-from Utils import UTILS_Titulaires
 from Utils import UTILS_Parametres
+from Utils import UTILS_Titulaires
 from Dlg import DLG_Messagebox
+from Dlg import DLG_Mailer
 
 import smtplib
 import six
@@ -56,16 +57,15 @@ def EnvoiEmailFamille(parent=None, IDfamille=None, nomDoc="", categorie="", list
             return False
     
     # DLG Mailer
-    listeDonnees = []
+    ldDonnees = []
     for adresse in listeAdresses :
-        listeDonnees.append({
+        ldDonnees.append({
             "adresse" : adresse, 
             "pieces" : [],
             "champs" : dictChamps,
             })
-    from Dlg import DLG_Mailer
     dlg = DLG_Mailer.Dialog(parent, categorie=categorie, afficher_confirmation_envoi=visible)
-    dlg.SetDonnees(listeDonnees, modificationAutorisee=True)
+    dlg.SetDonnees(ldDonnees, modificationAutorisee=True)
     dlg.SetPiecesJointes(liste_pieces)
     if IDmodele == None :
         dlg.ChargerModeleDefaut()
@@ -1020,7 +1020,6 @@ class Mailjet(Base_messagerie):
 # Envoie un mail test à l'adresse de la famille 709
 if __name__ == u"__main__":
     raise "envoie le mail test sans sommation, masquer la ligne pour tests"
-    from Utils import UTILS_Titulaires
     dictDest = UTILS_Titulaires.GetCorrespondant(IDfamille=709)
     lstDest = dictDest["mails"].split(";")
     pathFichier = ''

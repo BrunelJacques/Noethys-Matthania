@@ -8,7 +8,6 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
 import Chemins
 from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
@@ -21,7 +20,6 @@ import os
 import wx.lib.agw.hyperlink as Hyperlink
 import GestionDB
 from Utils import UTILS_Identification
-
 
 CATEGORIES = [
     ("saisie_libre", _("Saisie libre")),
@@ -50,7 +48,6 @@ CATEGORIES = [
     ("inscription", _("Inscription")),
     ("devis", _("Devis")),
 ]
-
 
 MOTSCLES_STANDARDS = [
                 ( "{UTILISATEUR_NOM_COMPLET}", _("Nom complet de l'utilisateur") ),
@@ -306,32 +303,33 @@ MOTSCLES = {
 
 }
 
-
 def GetMotscles(categorie=""):
     listeTemp = copy.deepcopy(MOTSCLES_STANDARDS)
     if categorie in MOTSCLES :
         listeTemp.extend(MOTSCLES[categorie])
     return listeTemp
 
-def GetChampsStandards():
+def GetChampsStandards(dictUtilisateur=None):
     dictTemp  = {}
     
     # Utilisateur en cours
-    dictUtilisateur = UTILS_Identification.GetDictUtilisateur()
+    if not dictUtilisateur:
+        dictUtilisateur = UTILS_Identification.GetDictUtilisateur()
     if dictUtilisateur != None :
         dictTemp["{UTILISATEUR_NOM_COMPLET}"] = "%s %s" % (dictUtilisateur["nom"], dictUtilisateur["prenom"])
         dictTemp["{UTILISATEUR_NOM}"] = dictUtilisateur["nom"]
         dictTemp["{UTILISATEUR_PRENOM}"] = dictUtilisateur["prenom"]
-    
+    else:
+        dictTemp["{UTILISATEUR_NOM_COMPLET}"] ="Bénévole de l'ASSOCIATION"
+        dictTemp["{UTILISATEUR_NOM}"] = "ASSOCIATION"
+        dictTemp["{UTILISATEUR_PRENOM}"] = "Bénévole"
+
     # Dates
     dictTemp["{DATE_COURTE}"] = DateEngFr(str(datetime.date.today()))
     dictTemp["{DATE_LONGUE}"] = DateComplete(datetime.date.today())
-    
-    
+
     return dictTemp
-        
-    
-    
+
 # ------------------------------------------------------------------------------------------------------------------------------
 
 class Hyperlien(Hyperlink.HyperLinkCtrl):
@@ -351,8 +349,6 @@ class Hyperlien(Hyperlink.HyperLinkCtrl):
     def OnLeftLink(self, event):
         self.UpdateLink()
         
-        
-
 
 class Hyperlien_inserer_motcle(Hyperlien):
     def __init__(self, parent, label="", infobulle="", listeMotscles=[], editeur=None):
@@ -432,8 +428,6 @@ def DateComplete(dateDD):
     return dateComplete
 
 
-
-
 class CTRL_Expediteur(wx.Choice):
     def __init__(self, parent):
         wx.Choice.__init__(self, parent, -1) 
@@ -509,7 +503,7 @@ class Panel_Expediteur(wx.Panel):
         grid_sizer.AddGrowableRow(0)
         grid_sizer.AddGrowableCol(0)
         self.SetSizer(grid_sizer)
-        grid_sizer.Fit(self)
+        #grid_sizer.Fit(self)
         self.Layout()
         
         # Binds
@@ -637,7 +631,7 @@ class BarreOutils2(wx.ToolBar):
 
 class Editeur(rt.RichTextCtrl):
     def __init__(self, parent, id=-1, style=wx.VSCROLL|wx.HSCROLL|wx.WANTS_CHARS ):
-        rt.RichTextCtrl.__init__(self, parent, id=id,size=(800,1200), style=style)
+        rt.RichTextCtrl.__init__(self, parent, id=id, style=style)
 
     def GetXML(self):
         out = io.BytesIO()
@@ -673,7 +667,6 @@ class CTRL(wx.Panel):
         self.barre_outils2 = BarreOutils2(self)
         self.AddRTCHandlers()
         self.ctrl_editeur = Editeur(self)
-        self.SetMinSize((400, 600))
 
         # Layout
         grid_sizer = wx.FlexGridSizer(rows=3, cols=1, vgap=0, hgap=0)
@@ -685,7 +678,6 @@ class CTRL(wx.Panel):
         self.SetSizer(grid_sizer)
         #grid_sizer.Fit(self)
         self.Layout()
-
 
     def OnFileOpen(self, evt):
         """ Ouvrir un texte """
@@ -986,12 +978,35 @@ class CTRL(wx.Panel):
         # to store the images in the memory file system.
         wx.FileSystem.AddHandler(wx.MemoryFSHandler())
 
+    def oldGetBuffer(self):
+        buffer = self.ctrl_editeur.GetBuffer()
+        text = buffer.Text
+        if "{" in text and hasattr(self.Parent, "TransposeMotsCle"):
+            text = self.Parent.TransposeMotsCle(text)
+        #self.ctrl_editeur.ChangeValue(text)
+        editeurTemp = Editeur(self)
+        editeurTemp.WriteText(text)
+        buffer = editeurTemp.GetBuffer()
+        return buffer
+
+    # fourni une nouvelle version du buffer façon MAJ_Apercu()
+    def GetBuffer(self):
+        textXml = self.GetXML()
+        text = textXml.decode('UTF-8')
+        if "{" in text and hasattr(self.Parent, "TransposeMotsCle"):
+            text = self.Parent.TransposeMotsCle(text)
+        editeurTemp = Editeur(self) # Double pour ne pas modifier l'original'
+        editeurTemp.SetXML(text)
+        buffer = editeurTemp.GetBuffer()
+        return buffer
+
     def OnPreview(self, event):
-        xml = self.GetXML()
         printout1 = rt.RichTextPrintout()
-        printout1.SetRichTextBuffer(self.ctrl_editeur.GetBuffer())
+        printout1.SetRichTextBuffer(self.GetBuffer())
+
         printout2 = rt.RichTextPrintout()
-        printout2.SetRichTextBuffer(self.ctrl_editeur.GetBuffer())
+        printout2.SetRichTextBuffer(self.GetBuffer())
+
         data = wx.PrintDialogData()
         data.SetCollate(True)
         datapr = wx.PrintData()
@@ -1007,9 +1022,6 @@ class CTRL(wx.Panel):
         pfrm.SetSize(self.GetSize())
         pfrm.Show(True)
 
-        # ? Delay buffer reset to avoid redraw conflicts
-        wx.CallAfter(self.SetXML, xml)
-
     def OnFileViewHTML(self):
         handler = rt.RichTextHTMLHandler()
         handler.SetFlags(rt.RICHTEXT_HANDLER_SAVE_IMAGES_TO_MEMORY)
@@ -1018,7 +1030,7 @@ class CTRL(wx.Panel):
         stream = io.BytesIO()
         buffer = self.ctrl_editeur.GetBuffer()
 
-        if not handler.SaveFile(buffer, stream):
+        if not handler.SaveFile(self.GetBuffer(), stream):
             return
 
         head = b"""
@@ -1043,13 +1055,11 @@ class CTRL(wx.Panel):
         dlg.Destroy()
 
     def OnPrint(self, event):
-        buffer = self.ctrl_editeur.GetBuffer()
-
         printout1 = wx.richtext.RichTextPrintout()
-        printout1.SetRichTextBuffer(buffer)
+        printout1.SetRichTextBuffer(self.GetBuffer())
 
         printout2 = wx.richtext.RichTextPrintout()
-        printout2.SetRichTextBuffer(buffer)
+        printout2.SetRichTextBuffer(self.GetBuffer())
 
         preview = wx.PrintPreview(printout1, printout2, wx.PrintDialogData())
         if preview.IsOk():
@@ -1147,7 +1157,7 @@ class MyFrame(wx.Frame):
 if __name__ == '__main__':
     app = wx.App(0)
     #wx.InitAllImageHandlers()
-    frame_1 = MyFrame(None, -1, "OL TEST")
+    frame_1 = MyFrame(None, -1, "CTRL_Editeur_email",size = (500,600))
     app.SetTopWindow(frame_1)
     frame_1.Show()
     app.MainLoop()

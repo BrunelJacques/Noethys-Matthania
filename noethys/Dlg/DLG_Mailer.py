@@ -48,7 +48,8 @@ class Dialog(wx.Dialog):
         
         # Destinataires
         self.box_destinataires_staticbox = wx.StaticBox(self, -1, _("Destinataires"))
-        self.ctrl_destinataires = OL_Destinataires_emails.ListView(self, id=-1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
+        self.ctrl_destinataires = OL_Destinataires_emails.ListView(self, id=-1,
+                                                                   style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         self.ctrl_destinataires.MAJ() 
         self.bouton_modifier_dest = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Email_destinataires.png"), wx.BITMAP_TYPE_ANY))
         self.bouton_ajouter_piece_spec = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
@@ -62,7 +63,7 @@ class Dialog(wx.Dialog):
         # Pièces jointes
         self.box_pieces_staticbox = wx.StaticBox(self, -1, _("Pièces jointes communes"))
         self.ctrl_pieces = OL_Pieces_jointes_emails.ListView(self, id=-1, style=wx.LC_NO_HEADER|wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
-        self.ctrl_pieces.SetMinSize((250, 70))
+        self.ctrl_pieces.SetMinSize((100, 40))
         self.ctrl_pieces.MAJ() 
         
         self.bouton_ajouter_piece = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
@@ -72,7 +73,7 @@ class Dialog(wx.Dialog):
         self.box_texte_staticbox = wx.StaticBox(self, -1, _("Message"))
         self.label_objet = wx.StaticText(self, -1, _("Objet :"))
         self.ctrl_objet = wx.TextCtrl(self, -1, "")
-        self.ctrl_objet.SetMinSize((200, -1))
+        self.ctrl_objet.SetMinSize((100, -1))
 
         self.ctrl_editeur = CTRL_Editeur_email.CTRL(self)
         
@@ -110,7 +111,7 @@ class Dialog(wx.Dialog):
         self.bouton_outils.SetToolTip(wx.ToolTip(_("Cliquez ici pour accéder aux outils")))
         self.bouton_envoyer.SetToolTip(wx.ToolTip(_("Cliquez ici pour envoyer le mail")))
         self.bouton_annuler.SetToolTip(wx.ToolTip(_("Cliquez ici pour annuler")))
-        self.SetMinSize((700, 500))
+        self.SetMinSize((530, 580))
 
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
@@ -120,7 +121,7 @@ class Dialog(wx.Dialog):
         
         # Destinataires
         box_destinataires = wx.StaticBoxSizer(self.box_destinataires_staticbox, wx.VERTICAL)
-        grid_sizer_destinataires = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
+        grid_sizer_destinataires = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_boutons_dest = wx.FlexGridSizer(rows=4, cols=1, vgap=5, hgap=5)
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
         grid_sizer_destinataires.Add(self.ctrl_destinataires, 1, wx.EXPAND, 0)
@@ -162,7 +163,8 @@ class Dialog(wx.Dialog):
         grid_sizer_haut.Add(grid_sizer_haut_droit, 1, wx.EXPAND, 0)
         grid_sizer_haut.AddGrowableRow(0)
         grid_sizer_haut.AddGrowableCol(0)
-        
+        grid_sizer_haut.AddGrowableCol(1)
+
         grid_sizer_base.Add(grid_sizer_haut, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         
         # Texte
@@ -237,9 +239,9 @@ class Dialog(wx.Dialog):
         WHERE categorie='%s'
         ORDER BY nom;""" % self.categorie
         DB.ExecuterReq(req,MsgBox="ExecuterReq")
-        listeDonnees = DB.ResultatReq()
+        lstDonnees = DB.ResultatReq()
         DB.Close()
-        for IDmodele, nom, description in listeDonnees :
+        for IDmodele, nom, description in lstDonnees :
             id = 20000 + IDmodele
             item = wx.MenuItem(menuPop, id, nom)
             item.SetBitmap(wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Emails_modele.png"), wx.BITMAP_TYPE_PNG))
@@ -247,7 +249,7 @@ class Dialog(wx.Dialog):
             self.Bind(wx.EVT_MENU, self.ChargerModeleMenu, id=id)
                         
         item = menuPop.AppendMenu(20, _("Charger un modèle d'Email"), sousMenuModeles)
-        if len(listeDonnees) == 0 :
+        if len(lstDonnees) == 0 :
             if item != None :
                 item.Enable(False)
             
@@ -275,8 +277,8 @@ class Dialog(wx.Dialog):
     def ApercuFusion(self, event):
         """ Aperçu de la fusion """
         # Préparation des données de fusion
-        donnees = self.ctrl_destinataires.GetDonneesDict()  
-        if len(donnees) == 0 :
+        ldDonnees = self.ctrl_destinataires.GetDonneesDict()
+        if len(ldDonnees) == 0 :
             dlg = wx.MessageDialog(self, _("Vous devez sélectionner au moins un destinataire !"), _("Erreur"), wx.OK | wx.ICON_EXCLAMATION)
             dlg.ShowModal()
             dlg.Destroy()
@@ -290,7 +292,7 @@ class Dialog(wx.Dialog):
         # Aperçu de la fusion
         texte_xml = self.ctrl_editeur.GetXML() 
         from Dlg import DLG_Apercu_fusion_emails
-        dlg = DLG_Apercu_fusion_emails.Dialog(self, donnees=donnees, texte_xml=texte_xml)
+        dlg = DLG_Apercu_fusion_emails.Dialog(self, donnees=ldDonnees, texte_xml=texte_xml)
         dlg.ShowModal() 
         dlg.Destroy()
         
@@ -589,15 +591,28 @@ class Dialog(wx.Dialog):
     def SetPiecesJointes(self, listeFichiers=[]):
         self.ctrl_pieces.SetFichiers(listeFichiers)
 
+    def TransposeMotsCle(self,txt):
+        ldDonnees = self.ctrl_destinataires.GetDonneesDict()
+        #xml = txtXml.decode("utf-8")
+        if len(ldDonnees) > 0:
+            lstMotscles = CTRL_Editeur_email.GetMotscles("saisie_libre")
+            for mot, libelle in lstMotscles:
+                champs = ldDonnees[0]['champs']
+                # tronquer les {}
+                if mot[1:-1] in champs.keys():
+                    txt = txt.replace(mot,champs[mot[1:-1]])
+        return txt
+
 
 if __name__ == "__main__":
     app = wx.App(0)
     dlg = Dialog(None)
-    listeDonnees = [
-        {"adresse" : "test@gmail.com", "pieces" : [], "champs" : {} },
+    champs= {"UTILISATEUR_NOM":"user Test"}
+    ldDonnees = [
+        {"adresse" : "test@gmail.com", "pieces" : [], "champs" : champs },
         ]
-    dlg.SetDonnees(listeDonnees, modificationAutorisee=True)
-    dlg.ctrl_editeur.EcritTexte(u"Ceci est un texte de test.")
+    dlg.SetDonnees(ldDonnees, modificationAutorisee=True)
+    dlg.ctrl_editeur.EcritTexte("-Ceci est un texte test de {UTILISATEUR_NOM}-")
     dlg.ctrl_objet.SetValue(u"Test")
     app.SetTopWindow(dlg)
     dlg.ShowModal()

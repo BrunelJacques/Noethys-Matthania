@@ -31,6 +31,7 @@ from Utils import UTILS_Titulaires
 from Utils import UTILS_Questionnaires
 from Utils import UTILS_Infos_individus
 from Utils import UTILS_Parametres
+from Ctrl import CTRL_Editeur_email
 
 from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
 
@@ -54,7 +55,7 @@ LISTE_DONNEES = [
         ] },
     ]
 
-TEXTE_INTRO = _("Je soussigné{GENRE} {NOM}, {FONCTION}, certifie avoir reçu pour la famille de {FAMILLE} la somme de {MONTANT}.")
+TEXTE_INTRO = "Je soussigné{GENRE} {NOM}, {FONCTION}, certifie avoir reçu pour la famille de {FAMILLE} la somme de {MONTANT}."
 
 DICT_DONNEES = {}
 
@@ -86,17 +87,10 @@ class CTRL_Signataires(wx.ComboBox):
     def __init__(self, parent):
         wx.Choice.__init__(self, parent, -1) 
         self.parent = parent
-        self.dictUtilisateur = self.GetUtilisateur()
-        self.MAJ() 
+        self.MAJ()
 
-    def GetUtilisateur(self):
-        duser = UTILS_Identification.GetDictUtilisateur()
-        if not duser:
-            duser = {'nom': "Matthania", 'prenom':"Association","IDutilisateur":None}
-        return duser
-
-    def MAJ(self, listeActivites=[] ):
-        listeItems, indexDefaut = self.GetListeDonnees()
+    def MAJ(self):
+        listeItems, indexDefaut = self.GetListeSignataires()
         if len(listeItems) == 0 :
             self.Enable(False)
         else:
@@ -104,17 +98,8 @@ class CTRL_Signataires(wx.ComboBox):
         self.SetItems(listeItems)
         if indexDefaut != None :
             self.Select(indexDefaut)
-        
-        # Recherche le nom de l'utilisateur parmi la liste des signataires
-        duser = self.dictUtilisateur
-        for index, dictDonnees in self.dictDonnees.items() :
-            texte1 = "%s %s" % (duser["prenom"], duser["nom"])
-            texte2 = "%s %s" % (duser["nom"], duser["prenom"])
-            if dictDonnees["nom"].lower() == texte1.lower() or dictDonnees["nom"].lower() == texte2.lower() :
-                self.SetSelection(index)
-                break
 
-    def GetListeDonnees(self):
+    def GetListeSignataires(self):
         db = GestionDB.DB()
         req = """SELECT IDresponsable, IDactivite, nom, fonction, defaut, sexe
         FROM responsables_activite
@@ -123,7 +108,7 @@ class CTRL_Signataires(wx.ComboBox):
         listeDonnees = db.ResultatReq()
         db.Close()
         listeItems = []
-        self.dictDonnees = {}
+        self.dictSignataires = {}
         indexDefaut = None
         index = 0
         for (IDresponsable, IDactivite, nom, fonction, defaut, sexe) in listeDonnees:
@@ -131,7 +116,7 @@ class CTRL_Signataires(wx.ComboBox):
             if nom not in listeItems :
                 if not indexDefaut and defaut == 1 :
                     indexDefaut = index
-                self.dictDonnees[index] = { 
+                self.dictSignataires[index] = {
                     "ID" : IDresponsable,
                     "IDactivite" : IDactivite,
                     "nom" : nom,
@@ -144,7 +129,7 @@ class CTRL_Signataires(wx.ComboBox):
         return listeItems, indexDefaut
 
     def SetID(self, ID=0):
-        for index, values in self.dictDonnees.items():
+        for index, values in self.dictSignataires.items():
             if values["ID"] == ID :
                 self.SetSelection(index)
                 break
@@ -152,7 +137,7 @@ class CTRL_Signataires(wx.ComboBox):
     def GetID(self):
         index = self.GetSelection()
         if index == -1 : return None
-        return self.dictDonnees[index]["ID"]
+        return self.dictSignataires[index]["ID"]
     
     def GetInfos(self):
         """ Récupère les infos sur le signataire sélectionné """
@@ -167,7 +152,7 @@ class CTRL_Signataires(wx.ComboBox):
             else:
                 dict = {"nom": txt,"fonction":"","sexe":"H"}
             return dict
-        return self.dictDonnees[index]
+        return self.dictSignataires[index]
 
 # -----------------------------------------------------------------------------------------------------------------------
 
@@ -413,7 +398,6 @@ class Dialog(wx.Dialog):
             self.ctrl_texte_intro.SetValue(dictParametres["intro_texte"])
         self.ctrl_prestations.SetValue(dictParametres["prestations_afficher"])
         self.ctrl_signataire.SetID(dictParametres["signataire"])
-        self.dictUtilisateur = self.ctrl_signataire.dictUtilisateur
         self.OnCheckIntro(None) 
     
     def MemorisationParametres(self):
@@ -642,12 +626,13 @@ class Dialog(wx.Dialog):
             return
 
         """ Envoi par mail """
-        from Utils import UTILS_Envoi_email, UTILS_Fichiers
+        from Utils import UTILS_Envoi_email
         nomDoc = FonctionsPerso.GenerationNomDoc(f"RECU-{self.IDfamille}-", "pdf",unique=False)
         UTILS_Envoi_email.EnvoiEmailFamille(parent=self,
                                             IDfamille=self.IDfamille,
                                             IDmodele=IDmodelEmail,
                                             nomDoc= nomDoc,
+                                            CreationPDF=self.CreationPDF,
                                             categorie="recu_reglement",
                                             listeAdresses=self.listeAdresses)
     
@@ -701,21 +686,45 @@ class Dialog(wx.Dialog):
             listePrestations.append(dictTemp)
         return listePrestations
 
-    def CreationPDF(self, nomDoc=None, afficherDoc=True,repertoireTemp=False):
-        if not nomDoc:
-            nomDoc = FonctionsPerso.GenerationNomDoc("RECU_REGLEMENT", "pdf")
-        dictChampsFusion = {}
-        
-        # Récupération des valeurs de base
+    def GetTexteIntro(self):
+        # Transpose les champs du texte Intro
         dictDonnees = DICT_DONNEES
+        # Récupération du signataire
+        infosSignataire = self.ctrl_signataire.GetInfos()
+        if infosSignataire == None:
+            dlg = wx.MessageDialog(self, _("Vous n'avez sélectionné aucun signataire !"),
+                                   _("Annulation"), wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return False
 
-        # Récupération des infos sur l'organisme
+        nomSignataire = infosSignataire["nom"]
+        fonctionSignataire = infosSignataire["fonction"]
+        sexeSignataire = infosSignataire["sexe"]
+        if sexeSignataire == "H":
+            genreSignataire = ""
+        else:
+            genreSignataire = "e"
+
+        # Récupération et transformation du texte d'intro
+        textIntro = self.ctrl_texte_intro.GetValue()
+        textIntro = textIntro.replace("{GENRE}", genreSignataire)
+        textIntro = textIntro.replace("{NOM}", nomSignataire)
+        textIntro = textIntro.replace("{FONCTION}", fonctionSignataire)
+        textIntro = textIntro.replace("{FAMILLE}", dictDonnees["nom"])
+        textIntro = textIntro.replace("{MONTANT}", "<b>%.2f %s</b>" % (
+            self.dictReglement["montant"], SYMBOLE))
+
+        return textIntro
+
+    # Récupération des infos sur l'organisme
+    def GetDictOrganisme(self):
         DB = GestionDB.DB()
         req = """SELECT nom, rue, cp, ville, tel, fax, mail, site, num_agrement, num_siret, code_ape
         FROM organisateur
-        WHERE IDorganisateur=1;""" 
+        WHERE IDorganisateur=1;"""
         DB.ExecuterReq(req,MsgBox="ExecuterReq")
-        listeDonnees = DB.ResultatReq()      
+        listeDonnees = DB.ResultatReq()
         dictOrganisme = {}
         for (nom, rue, cp, ville, tel, fax, mail, site, num_agrement,
              num_siret, code_ape) in listeDonnees :
@@ -731,8 +740,27 @@ class Dialog(wx.Dialog):
             dictOrganisme["num_agrement"] = num_agrement
             dictOrganisme["num_siret"] = num_siret
             dictOrganisme["code_ape"] = code_ape
-        DB.Close() 
+        DB.Close()
+        return dictOrganisme
+
+    # Récup les infos de l'utilsateur courant
+    def GetDictUtilisateur(self):
+        dUser = UTILS_Identification.GetDictUtilisateur()
+        if not dUser:
+            dUser = UTILS_Identification.GetDictUtilSqueleton()
+        return CTRL_Editeur_email.GetChampsStandards(dUser)
+
+    def CreationPDF(self, nomDoc=None, afficherDoc=True,repertoireTemp=False):
+        if not nomDoc:
+            nomDoc = FonctionsPerso.GenerationNomDoc("RECU_REGLEMENT", "pdf")
+        dictChampsFusion = {}
         
+        # Récupération des valeurs de base
+        dictDonnees = DICT_DONNEES
+
+        # Récupération des infos sur l'organisme
+        dictOrganisme = self.GetDictOrganisme()
+
         date_edition = dictDonnees["date"]
         try :
             date_editionDD = DateEngEnDateDD(DateFrEng(date_edition))
@@ -781,31 +809,9 @@ class Dialog(wx.Dialog):
             if dictReponse["controle"] == "codebarres" :
                 dictValeurs["{CODEBARRES_QUESTION_%d}" % dictReponse["IDquestion"]] = dictReponse["reponse"]
 
-        # Récupération du signataire
-        infosSignataire = self.ctrl_signataire.GetInfos()
-        if infosSignataire == None :
-            dlg = wx.MessageDialog(self, _("Vous n'avez sélectionné aucun signataire !"), _("Annulation"), wx.OK | wx.ICON_EXCLAMATION)
-            dlg.ShowModal()
-            dlg.Destroy()
-            return False
-        
-        nomSignataire = infosSignataire["nom"]
-        fonctionSignataire = infosSignataire["fonction"]
-        sexeSignataire = infosSignataire["sexe"]
-        if sexeSignataire == "H" :
-            genreSignataire = ""
-        else:
-            genreSignataire = "e"
-        
-        # Récupération et transformation du texte d'intro
-        if self.ctrl_intro.GetValue() == True :
-            textIntro = self.ctrl_texte_intro.GetValue()         
-            textIntro = textIntro.replace("{GENRE}", genreSignataire)
-            textIntro = textIntro.replace("{NOM}", nomSignataire)
-            textIntro = textIntro.replace("{FONCTION}", fonctionSignataire)
-            textIntro = textIntro.replace("{FAMILLE}", dictDonnees["nom"] )
-            textIntro = textIntro.replace("{MONTANT}", "<b>%.2f %s</b>" % (self.dictReglement["montant"], SYMBOLE))
-            dictValeurs["intro"] = textIntro
+        # Récupération du texte d'intro
+        if self.ctrl_intro.GetValue() == True:
+            dictValeurs["intro"] = self.GetTexteIntro()
         else:
             dictValeurs["intro"] = None
     
@@ -838,9 +844,6 @@ class Dialog(wx.Dialog):
         else :
             dictValeurs["prestations"] = []
 
-        if self.dictUtilisateur:
-            dictValeurs.update(self.dictUtilisateur)
-
         # Préparation des données pour une sauvegarde de l'attestation
         self.dictSave = {}
         self.dictSave["numero"] = dictDonnees["numero"]
@@ -857,6 +860,9 @@ class Dialog(wx.Dialog):
             dlg.Destroy()
             return
 
+
+        dictChampsFusion.update(self.GetDictUtilisateur())
+
         dictChampsFusion["{DATE_EDITION_RECU}"] = DateFrEng(dictDonnees["date"])
         dictChampsFusion["{NUMERO_RECU}"] = dictDonnees["numero"]
         dictChampsFusion["{ID_REGLEMENT}"] = str(dictValeurs["{IDREGLEMENT}"])
@@ -869,14 +875,13 @@ class Dialog(wx.Dialog):
         dictChampsFusion["{NUM_QUITTANCIER}"] = dictValeurs["{NUM_QUITTANCIER}"]
         dictChampsFusion["{DATE_SAISIE}"] = dictValeurs["{DATE_SAISIE}"]
         dictChampsFusion["{DATE_DIFFERE}"] = dictValeurs["{DATE_DIFFERE}"]
-        dictChampsFusion["{UTILISATEUR_NOM_COMPLET}"] = f"{dictValeurs['prenom']} {dictValeurs['nom']}"
+
 
         # Fabrication du PDF
         from Utils import UTILS_Impression_recu
         UTILS_Impression_recu.Impression(dictValeurs, IDmodele=IDmodele, nomDoc=nomDoc,
                                          afficherDoc=afficherDoc)
         return dictChampsFusion
-    
 
 if __name__ == "__main__":
     app = wx.App(0)
