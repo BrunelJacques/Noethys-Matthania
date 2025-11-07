@@ -8,7 +8,6 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
 import Chemins
 from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
@@ -28,7 +27,6 @@ from Utils import UTILS_Dates
 from Ctrl import CTRL_Editeur_email
 from Ol import OL_Destinataires_emails
 from Ol import OL_Pieces_jointes_emails
-
 
 class Dialog(wx.Dialog):
     def __init__(self, parent, categorie="saisie_libre", afficher_confirmation_envoi=True):
@@ -297,7 +295,7 @@ class Dialog(wx.Dialog):
         dlg.Destroy()
         
     def SetDonnees(self, donnees=[], modificationAutorisee=True):
-        # MAJ contrôles Adresses
+        # MAJ contrôles [{'adresse':"mail@net",'pieces:[],'champs'}:{},]
         self.ctrl_destinataires.SetDonneesManuelles(listeDonnees=donnees, modificationAutorisee=modificationAutorisee)
         self.bouton_modifier_dest.Enable(modificationAutorisee)
         
@@ -593,14 +591,15 @@ class Dialog(wx.Dialog):
 
     def TransposeMotsCle(self,txt):
         ldDonnees = self.ctrl_destinataires.GetDonneesDict()
-        #xml = txtXml.decode("utf-8")
         if len(ldDonnees) > 0:
-            lstMotscles = CTRL_Editeur_email.GetMotscles("saisie_libre")
+            lstMotscles = CTRL_Editeur_email.GetMotscles('saisie_libre')
+            lstMotscles += CTRL_Editeur_email.GetMotscles(self.categorie)
             for mot, libelle in lstMotscles:
                 champs = ldDonnees[0]['champs']
-                # tronquer les {}
-                if mot[1:-1] in champs.keys():
-                    txt = txt.replace(mot,champs[mot[1:-1]])
+                if mot in champs.keys():
+                    txt = txt.replace(mot,champs[mot])
+                if not "{" in txt:
+                    break
         return txt
 
 
