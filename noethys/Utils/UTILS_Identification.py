@@ -10,6 +10,8 @@
 
 import wx
 
+DICT_UTILISATEUR = {} # utilIsé comme variable globale
+
 def GetIDutilisateur():
     """ Récupère le IDutilisateur actif dans la fenêtre principale """
     IDutilisateur = None
@@ -19,22 +21,33 @@ def GetIDutilisateur():
     else: nomWindow = None
     if nomWindow == "general" : 
         dictUtilisateur = topWindow.dictUtilisateur
-        if dictUtilisateur:
-            IDutilisateur = dictUtilisateur["IDutilisateur"]
+    else: dictUtilisateur = GetDictUtilisateur()
+
+    if dictUtilisateur:
+        IDutilisateur = dictUtilisateur["IDutilisateur"]
     return IDutilisateur
 
 def GetDictUtilisateur():
-    """ Récupère le dictUtilisateur actif dans la fenêtre principale """
-    topWindow = wx.GetApp().GetTopWindow()
-    nomWindow = topWindow.GetName()
-    if nomWindow == "general" : 
-        dictUtilisateur = topWindow.dictUtilisateur
-    else:
+    global DICT_UTILISATEUR
+    dictUtilisateur = {}
+    # Recherche les identifications précédentes encore actives
+    if DICT_UTILISATEUR:
+        # teste une recherche précédente par ce module
+        dictUtilisateur = DICT_UTILISATEUR
+    elif wx.GetApp().GetTopWindow():
+        # teste le dictUtilisateur actif dans la fenêtre Noethys
+        topWindow = wx.GetApp().GetTopWindow()
+        nomWindow = topWindow.GetName()
+        if nomWindow == "general" :
+            dictUtilisateur = topWindow.dictUtilisateur
+    if not dictUtilisateur:
+        # nouvelle identification
         from Ctrl import CTRL_Identification
         dlg = CTRL_Identification.Dialog(None)
         dlg.ShowModal()
         dictUtilisateur = dlg.GetDictUtilisateur()
-    return dictUtilisateur
+    DICT_UTILISATEUR = dictUtilisateur
+    return DICT_UTILISATEUR
 
 def GetAutreDictUtilisateur(IDutilisateur=None):
     """ Récupère un dictUtilisateur autre que l'utilisateur actif """
@@ -53,3 +66,12 @@ def GetDictUtilSqueleton():
     return { "IDutilisateur":0, "nom":"nom", "prenom":"prenom", "sexe":"H",
              "mdp": "", "mdpcrypt": "", "profil": "", "actif": 1,
              "image":"", "droits":{} }
+
+if __name__ == '__main__':
+    app = wx.App(0)
+    frame = wx.Frame()
+    #frame.Show()
+    print(GetDictUtilisateur())
+    app.MainLoop()
+
+

@@ -20,9 +20,10 @@ from Utils import UTILS_Dates
 
 
 class Dialog(wx.Dialog):
-    def __init__(self, parent, donnees=[], texte_xml=None):
+    def __init__(self, parent, donnees=None, texte_xml=None):
         wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
-        self.parent = parent  
+        self.parent = parent
+
         self.donnees = donnees 
         self.texte_xml = texte_xml
         
@@ -155,14 +156,17 @@ class Dialog(wx.Dialog):
             xml = xml.replace(motcle, valeur)
         # Remplacement des champs spécifiques
         dictDonnee = self.donnees[index]
-        for motcle, valeur in dictDonnee["champs"].items() :
+        for motcle, valeur in dictDonnee['champs'].items() :
             if valeur == None or valeur == "//None" :
                 valeur = ""
             if type(valeur) == int :
                 valeur = str(valeur)
             if type(valeur) == datetime.date:
                 valeur = UTILS_Dates.DateDDEnFr(valeur)
-            xml = xml.replace(motcle, valeur)
+            try:
+                xml = xml.replace(motcle, str(valeur))
+            except:
+                print()
         # MAJ éditeur
         self.ctrl_editeur.SetXML(xml)
         

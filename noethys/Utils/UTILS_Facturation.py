@@ -644,10 +644,10 @@ class Facturation():
             dictToPage["prelevement"] = None"""
 
         # Champs de fusion pour Email par famille
-        IDpage = dictToPage['IDpage']
-        if not IDpage in list(self.dictChampsFusion.keys()):
-            self.dictChampsFusion[IDpage] = {}
-        dictChampsFusion = self.dictChampsFusion[IDpage]
+        IDfamille = dictToPage['IDfamille']
+        if not IDfamille in list(self.dictChampsFusion.keys()):
+            self.dictChampsFusion[IDfamille] = {}
+        dictChampsFusion = self.dictChampsFusion[IDfamille]
 
         # stockage des valeurs dates
         lstKeysTxt = ["DATE_DEBUT","DATE_FIN","DATE_ECHEANCE"]
@@ -679,12 +679,15 @@ class Facturation():
         # vers cumuls tts pièces "{MONTANT}","{VENTILATION}","{SOLDE}"
         lstKeys = ["montant","ventilation","solde"]
         for key in lstKeys:
+            keyup = f"{key.upper()}"
             # présence d'un pièce précédente on cumule dans la clé lower
             if key in list(dictChampsFusion.keys()):
-                valeur = dictChampsFusion[key] + dictDonPage[key]
-                dictChampsFusion["{%s}"%key.upper()] = "%.2f %s" % (valeur, SYMBOLE)
+                valeur = dictChampsFusion[key] + dictToPage[key]
+                dictChampsFusion[key] += dictToPage[key]
+                dictChampsFusion["{%s}"%keyup] = "%.2f %s" % (valeur, SYMBOLE)
             else:
-                dictChampsFusion["{%s}"%key.upper()] = "%.2f %s" % (dictToPage[key], SYMBOLE)
+                dictChampsFusion[key] = dictToPage[key]
+                dictChampsFusion["{%s}"%keyup] = "%.2f %s" % (dictToPage[key], SYMBOLE)
 
         dictToPage["{SOLDE_LETTRES}"] = UTILS_Conversion.trad(dictToPage["solde"],
                                                               MONNAIE_SINGULIER,
@@ -1655,8 +1658,8 @@ class Facturation():
         """
             repertoireTemp: pour les envois mail
             conservation du ou des fichiers pour pieces jointes en mail
-            le retour contient les champsFusion pour mail,
-            les adresses fichiers dans dictCheminsPdf (liste reçue en clés)
+            le retour contient les champsFusion pour mail par famille (compte),
+            les adresses fichiers dans dictCheminsPdf (liste reçue en clés ID pas numeros!
         """
         self.DB = GestionDB.DB()
 
@@ -1880,9 +1883,11 @@ class Facturation():
             retDictCheminsPdf = {}
             for IDfourni, IDpage in dictIDfournis.items():
                 retDictCheminsPdf[IDfourni] = dictCheminsPdf[IDpage]
-            return self.dictChampsFusion, retDictCheminsPdf
+            resultat = self.dictChampsFusion, retDictCheminsPdf
         else:
-            return
+            resultat = None
+
+        return resultat
         #fin Impression
 
 def SuppressionFacture(listeIDFactures=[]):

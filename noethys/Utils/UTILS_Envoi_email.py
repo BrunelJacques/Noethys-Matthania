@@ -44,11 +44,16 @@ def EnvoiEmailFamille(parent=None, IDfamille=None, nomDoc="", categorie="", list
         mess = "Lancement CreationPDF non trouvé, pb logique"
         raise Exception(mess)
 
-    dictChamps = CreationPDF(nomDoc=nomDoc, afficherDoc=False,repertoireTemp=True)
+    resultat = CreationPDF(nomDoc=nomDoc, afficherDoc=False,repertoireTemp=True)
+
+    (dictChamps, dictPieces) = resultat
 
     if dictChamps == False :
         return False
-    liste_pieces = [nomDoc,]
+    liste_pieces = []
+
+    for key,lstDocs in dictPieces.items():
+        liste_pieces.append(lstDocs)
 
     # Recherche adresse famille
     if len(listeAdresses) == 0 :
@@ -61,11 +66,14 @@ def EnvoiEmailFamille(parent=None, IDfamille=None, nomDoc="", categorie="", list
     for adresse in listeAdresses :
         ldDonnees.append({
             "adresse" : adresse, 
-            "pieces" : [],
-            "champs" : dictChamps,
+            "pieces" : [], # une seule famille, toutes les adresses auront toutes les pièces
+            "champs" : dictChamps[IDfamille],
             })
     dlg = DLG_Mailer.Dialog(parent, categorie=categorie, afficher_confirmation_envoi=visible)
+
+    # envoi des adresses
     dlg.SetDonnees(ldDonnees, modificationAutorisee=True)
+    # envoi des pièces jointes communes à toutes les adresses
     dlg.SetPiecesJointes(liste_pieces)
     if IDmodele == None :
         dlg.ChargerModeleDefaut()
@@ -1019,7 +1027,7 @@ class Mailjet(Base_messagerie):
 
 # Envoie un mail test à l'adresse de la famille 709
 if __name__ == u"__main__":
-    raise "envoie le mail test sans sommation, masquer la ligne pour tests"
+    raise "SECURITE EN TEST: envoie le mail test sans sommation, masquer la ligne pour tester un envoi voulu"
     dictDest = UTILS_Titulaires.GetCorrespondant(IDfamille=709)
     lstDest = dictDest["mails"].split(";")
     pathFichier = ''

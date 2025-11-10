@@ -56,7 +56,10 @@ class Track(object):
                 extension = fichier.split('.')[-1].lower()
                 if extension not in listeExtensions :
                     listeExtensions.append(extension)
-                taille = os.path.getsize(fichier)
+                try:
+                    taille = os.path.getsize(fichier)
+                except:
+                    taille = None
                 if taille != None :
                     if taille >= 1000000 :
                         texteTaille = "%s Mo" % (taille/1000000)
@@ -168,11 +171,11 @@ class ListView(FastObjectListView):
         self.SetEmptyListMsgFont(wx.FFont(11, wx.DEFAULT, faceName="Tekton"))
         self.SetSortColumn(self.columns[1])
         self.SetObjects(self.donnees)
-        first = True
+        #first = True
         for obj in self.GetObjects():
-            if first:
-                self.SetCheckState(obj, True)
-                first = False
+            #if first:
+            self.SetCheckState(obj, True)
+            #    first = False
 
     def CocheTout(self):
         objects = self.GetObjects()
@@ -414,7 +417,6 @@ class ListView(FastObjectListView):
             fichier = track.pieces[0]
         # Ouverture du fichier
         FonctionsPerso.LanceFichierExterne(fichier)
-
 
     def Apercu(self, event):
         from Utils import UTILS_Printer

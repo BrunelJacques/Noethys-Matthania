@@ -18,7 +18,6 @@ import copy
 import datetime
 import GestionDB
 from Ctrl import CTRL_Bandeau
-import  wx.lib.dialogs
 from Dlg import DLG_Messagebox
 from Utils import UTILS_Envoi_email
 from Utils import UTILS_Parametres
@@ -291,11 +290,11 @@ class Dialog(wx.Dialog):
         texte_xml = self.ctrl_editeur.GetXML() 
         from Dlg import DLG_Apercu_fusion_emails
         dlg = DLG_Apercu_fusion_emails.Dialog(self, donnees=ldDonnees, texte_xml=texte_xml)
-        dlg.ShowModal() 
+        dlg.ShowModal()
         dlg.Destroy()
-        
+
+    # MAJ contrôle destinataires [{'adresse':"mail@net",'pieces:[],'champs'}:{},]
     def SetDonnees(self, donnees=[], modificationAutorisee=True):
-        # MAJ contrôles [{'adresse':"mail@net",'pieces:[],'champs'}:{},]
         self.ctrl_destinataires.SetDonneesManuelles(listeDonnees=donnees, modificationAutorisee=modificationAutorisee)
         self.bouton_modifier_dest.Enable(modificationAutorisee)
         
@@ -586,6 +585,7 @@ class Dialog(wx.Dialog):
         else :
             return True
 
+    # Pieces communes à toutes les adresses, adresses propre à chaque dans SetDonnees
     def SetPiecesJointes(self, listeFichiers=[]):
         self.ctrl_pieces.SetFichiers(listeFichiers)
 
@@ -608,9 +608,17 @@ if __name__ == "__main__":
     dlg = Dialog(None)
     champs= {"UTILISATEUR_NOM":"user Test"}
     ldDonnees = [
-        {"adresse" : "test@gmail.com", "pieces" : [], "champs" : champs },
+        {"adresse" : "test@gmail.com",
+         "pieces" : ["c:\\temp\\FAC-5931 BRUNEL Jacques et Nicole.pdf",
+                     "c:\\temp\\FAC-7155 BRUNEL Jacques et Nicole.pdf"],
+         "champs" : champs },
+        {"adresse": "test2@gmail.com",
+         "pieces": ["c:\\temp\\FAC-8412 BRUNEL Jacques et Nicole.pdf",],
+         "champs": champs},
         ]
+    lstPieces = ["c:\\temp\\FAC-8412 BRUNEL Jacques et Nicole.pdf",]
     dlg.SetDonnees(ldDonnees, modificationAutorisee=True)
+    dlg.SetPiecesJointes(lstPieces)
     dlg.ctrl_editeur.EcritTexte("-Ceci est un texte test de {UTILISATEUR_NOM}-")
     dlg.ctrl_objet.SetValue(u"Test")
     app.SetTopWindow(dlg)

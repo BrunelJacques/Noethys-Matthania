@@ -881,7 +881,7 @@ class Dialog(wx.Dialog):
         from Utils import UTILS_Impression_recu
         UTILS_Impression_recu.Impression(dictValeurs, IDmodele=IDmodele, nomDoc=nomDoc,
                                          afficherDoc=afficherDoc)
-        return dictChampsFusion
+        return ({self.IDfamille:dictChampsFusion}, {0:[nomDoc,]})
 
 if __name__ == "__main__":
     app = wx.App(0)
