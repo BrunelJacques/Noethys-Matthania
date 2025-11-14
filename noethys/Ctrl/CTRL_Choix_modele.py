@@ -24,7 +24,9 @@ class CTRL_Choice(wx.Choice):
         self.parent = parent
         self.categorie = categorie
         self.defaut = None
-        self.MAJ(table)
+        self.table = table
+        self.MAJ()
+
     
     def SetCategorie(self, categorie=""):
         self.categorie = categorie
@@ -32,9 +34,9 @@ class CTRL_Choice(wx.Choice):
         self.MAJ() 
         self.SetID(self.defaut)
     
-    def MAJ(self, table="documents_modeles"):
+    def MAJ(self):
         selectionActuelle = self.GetID()
-        listeItems = self.GetListeDonnees(table)
+        listeItems = self.GetListeDonnees(self.table)
         if len(listeItems) == 0 :
             self.Enable(False)
         else:

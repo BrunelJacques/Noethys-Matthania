@@ -8,7 +8,6 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
 import Chemins
 from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
@@ -20,25 +19,34 @@ from Ctrl import CTRL_Choix_modele
 from Utils import UTILS_Config
 from Ctrl import CTRL_Factures_options
 
-
-
 class Dialog(wx.Dialog):
-    def __init__(self, parent, provisoire=False, titre=_("Aperçu d'une facture"), intro=_("Vous pouvez ici créer un aperçu PDF de la facture sélectionnée.")):
+    def __init__(self, parent,
+                 provisoire=False,
+                 titre="Options d'impression des factures",
+                 intro="Vous pouvez ici créer un aperçu PDF de factures sélectionnées.",
+                 mail=True):
         wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
-        self.parent = parent
-        
+
         # Bandeau
         if provisoire == True :
-            intro += _(" <FONT COLOR = '#FF0000'>Attention, il ne s'agit que d'une facture provisoire avant génération !</FONT>")
-        self.SetTitle(titre)
+            intro += " <FONT COLOR = '#FF0000'>Attention, il ne s'agit que d'une exemple !</FONT>"
+        else:
+            intro += "pour l'imprimer où l'envoyer par mail"
+
+        parentName = "Test"
+        if parent and parent.Name: parentName = parent.Name
+        self.SetTitle(parentName + "-DLG_Apercu_facture")
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Apercu.png")
         
         # Paramètres
-        self.ctrl_parametres = CTRL_Factures_options.CTRL(self, affichage="vertical")
+        self.ctrl_parametres = CTRL_Factures_options.CTRL(self, affichage="vertical",mail=mail)
                 
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
-        self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Aperçu"), cheminImage="Images/32x32/Apercu.png")
+        if mail:
+            label = "Envoi mail"
+        else: label = "Aperçu"
+        self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=label, cheminImage="Images/32x32/Apercu.png")
         self.bouton_annuler = CTRL_Bouton_image.CTRL(self, texte=_("Annuler"), cheminImage="Images/32x32/Annuler.png")
 
         self.__set_properties()
@@ -52,7 +60,7 @@ class Dialog(wx.Dialog):
         self.bouton_aide.SetToolTip(wx.ToolTip(_("Cliquez ici pour obtenir de l'aide")))
         self.bouton_ok.SetToolTip(wx.ToolTip(_("Cliquez ici pour valider")))
         self.bouton_annuler.SetToolTip(wx.ToolTip(_("Cliquez ici pour annuler")))
-        self.SetMinSize((540, 500))
+        self.SetMinSize((540, 800))
 
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
@@ -84,7 +92,7 @@ class Dialog(wx.Dialog):
         self.EndModal(wx.ID_CANCEL)
 
     def GetParametres(self):
-        """ Retourne les paramètres sélectionnés """
+        """ Retourne les paramètres sélectionnés dans le ProperGrid """
         dictOptions = self.ctrl_parametres.GetOptions()
         if dictOptions == False :
             return False
@@ -96,8 +104,6 @@ class Dialog(wx.Dialog):
             return
         self.ctrl_parametres.ctrl_parametres.Sauvegarde() 
         self.EndModal(wx.ID_OK)
-
-
 
 
 if __name__ == "__main__":

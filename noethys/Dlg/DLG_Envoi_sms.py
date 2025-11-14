@@ -598,8 +598,8 @@ class Page_Parametres(wx.Panel):
         self.staticbox_parametres_staticbox = wx.StaticBox(self, -1, _("1. Renseignez les paramètres"))
         self.ctrl_parametres = CTRL_Parametres(self)
         self.ctrl_parametres.Importation()
-        self.bouton_reinitialisation = CTRL_Propertygrid.Bouton_reinitialisation(self, self.ctrl_parametres)
-        self.bouton_sauvegarde = CTRL_Propertygrid.Bouton_sauvegarde(self, self.ctrl_parametres)
+        self.bouton_reinit = CTRL_Propertygrid.Bouton_reinit(self, self.ctrl_parametres)
+        self.bouton_sauve = CTRL_Propertygrid.Bouton_sauve(self, self.ctrl_parametres)
 
         self.__set_properties()
         self.__do_layout()
@@ -615,8 +615,8 @@ class Page_Parametres(wx.Panel):
         grid_sizer_parametres.Add(self.ctrl_parametres, 1, wx.EXPAND, 0)
 
         grid_sizer_boutons = wx.FlexGridSizer(rows=3, cols=1, vgap=5, hgap=5)
-        grid_sizer_boutons.Add(self.bouton_reinitialisation, 0, 0, 0)
-        grid_sizer_boutons.Add(self.bouton_sauvegarde, 0, 0, 0)
+        grid_sizer_boutons.Add(self.bouton_reinit, 0, 0, 0)
+        grid_sizer_boutons.Add(self.bouton_sauve, 0, 0, 0)
 
         grid_sizer_parametres.Add(grid_sizer_boutons, 0, 0, 0)
         grid_sizer_parametres.AddGrowableRow(0)

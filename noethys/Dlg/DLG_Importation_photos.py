@@ -214,7 +214,7 @@ class Dialog(wx.Dialog):
         
         self.ctrl_image = wx.StaticBitmap(self, -1, bitmap=wx.NullBitmap, size=TAILLE_IMAGE_ORIGINALE, style=wx.SUNKEN_BORDER)
         self.bouton_image = wx.Button(self, -1, _("Charger une image"))
-        self.bouton_sauvegarder = wx.Button(self, -1, _("Enregistrer les photos identifiées"))
+        self.bouton_sauver = wx.Button(self, -1, _("Enregistrer les photos identifiées"))
         self.label_infos = wx.StaticText(self, -1, _("Cliquez le bouton Charger\npour rechercher la photo de\ngroupe à analyser."), style=wx.ALIGN_CENTER)
 
         self.ctrl_listview = ListView(self, id=-1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
@@ -227,14 +227,14 @@ class Dialog(wx.Dialog):
         self.__do_layout()
         
         self.Bind(wx.EVT_BUTTON, self.OnBoutonFichier, self.bouton_image)
-        self.Bind(wx.EVT_BUTTON, self.OnBoutonEnregistrer, self.bouton_sauvegarder)
+        self.Bind(wx.EVT_BUTTON, self.OnBoutonEnregistrer, self.bouton_sauver)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAide, self.bouton_aide)
         
         self.AnalysePhoto() 
 
     def __set_properties(self):
         self.bouton_image.SetToolTip(wx.ToolTip(_("Cliquez ici pour charger une image")))
-        self.bouton_sauvegarder.SetToolTip(wx.ToolTip(_("Cliquez ici pour enregistrer les images identifiées dans les fiches individuelles correspondantes")))
+        self.bouton_sauver.SetToolTip(wx.ToolTip(_("Cliquez ici pour enregistrer les images identifiées dans les fiches individuelles correspondantes")))
         self.bouton_aide.SetToolTip(wx.ToolTip(_("Cliquez ici pour obtenir de l'aide")))
         self.bouton_fermer.SetToolTip(wx.ToolTip(_("Cliquez ici pour fermer")))
         self.SetMinSize((820, 650))
@@ -250,7 +250,7 @@ class Dialog(wx.Dialog):
         grid_sizer_gauche = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
         grid_sizer_gauche.Add(self.ctrl_image, 0, wx.EXPAND, 0)
         grid_sizer_gauche.Add(self.bouton_image, 0, wx.EXPAND, 0)
-        grid_sizer_gauche.Add(self.bouton_sauvegarder, 0, wx.EXPAND, 0)
+        grid_sizer_gauche.Add(self.bouton_sauver, 0, wx.EXPAND, 0)
         grid_sizer_gauche.Add(self.label_infos, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_gauche.AddGrowableRow(3)
         grid_sizer_gauche.AddGrowableCol(0)

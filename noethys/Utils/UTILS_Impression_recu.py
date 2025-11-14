@@ -252,6 +252,3 @@ class Impression():
         if afficherDoc == True :
             FonctionsPerso.LanceFichierExterne(nomDoc)
 
-
-if __name__ == "__main__":
-    Impression()

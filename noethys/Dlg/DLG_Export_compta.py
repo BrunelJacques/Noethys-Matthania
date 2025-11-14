@@ -2018,8 +2018,8 @@ class Dialog(wx.Dialog):
         self.box_parametres_staticbox = wx.StaticBox(self, wx.ID_ANY, _("Paramètres"))
         self.ctrl_parametres = CTRL_Lanceur(self)
         
-        self.bouton_reinitialisation = CTRL_Propertygrid.Bouton_reinitialisation(self, self.ctrl_parametres)
-        self.bouton_sauvegarde = CTRL_Propertygrid.Bouton_sauvegarde(self, self.ctrl_parametres)
+        self.bouton_reinit = CTRL_Propertygrid.Bouton_reinit(self, self.ctrl_parametres)
+        self.bouton_sauve = CTRL_Propertygrid.Bouton_sauve(self, self.ctrl_parametres)
 
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage=Chemins.GetStaticPath("Images/32x32/Aide.png"))
@@ -2077,8 +2077,8 @@ class Dialog(wx.Dialog):
         grid_sizer_parametres.Add(self.ctrl_parametres, 1, wx.ALL | wx.EXPAND, 0) 
 
         grid_sizer_parametres_boutons = wx.FlexGridSizer(5, 1, 5, 5)
-        grid_sizer_parametres_boutons.Add(self.bouton_reinitialisation, 1, wx.ALL | wx.EXPAND, 0) 
-        grid_sizer_parametres_boutons.Add(self.bouton_sauvegarde, 1, wx.ALL | wx.EXPAND, 0) 
+        grid_sizer_parametres_boutons.Add(self.bouton_reinit, 1, wx.ALL | wx.EXPAND, 0) 
+        grid_sizer_parametres_boutons.Add(self.bouton_sauve, 1, wx.ALL | wx.EXPAND, 0) 
         grid_sizer_parametres.Add(grid_sizer_parametres_boutons, 1, wx.ALL | wx.EXPAND, 0) 
         
         grid_sizer_parametres.AddGrowableRow(0)

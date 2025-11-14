@@ -14,13 +14,10 @@ import wx
 from Ctrl import CTRL_Bouton_image
 import os
 
-import GestionDB
-
 from Ctrl import CTRL_Bandeau
 from Ctrl import CTRL_Liste_factures
 from Ctrl import CTRL_Factures_options
 from Utils import UTILS_Facturation
-from Utils import UTILS_Envoi_email
 
 
 class Dialog(wx.Dialog):
@@ -58,8 +55,7 @@ class Dialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAnnuler, self.bouton_annuler)
         
         # Init Contrôles
-        self.ctrl_liste_factures.MAJ() 
-                
+        self.ctrl_liste_factures.MAJ()
 
     def __set_properties(self):
         self.bouton_aide.SetToolTip(wx.ToolTip(_("Cliquez ici pour obtenir de l'aide")))
@@ -220,11 +216,8 @@ class Dialog(wx.Dialog):
         SupprimerFichiersTemp()
 
 
-
-
 if __name__ == "__main__":
     app = wx.App(0)
-    #wx.InitAllImageHandlers()
     dlg = Dialog(None)
     app.SetTopWindow(dlg)
     dlg.ShowModal()

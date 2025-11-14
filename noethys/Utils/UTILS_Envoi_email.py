@@ -45,6 +45,8 @@ def EnvoiEmailFamille(parent=None, IDfamille=None, nomDoc="", categorie="", list
         raise Exception(mess)
 
     resultat = CreationPDF(nomDoc=nomDoc, afficherDoc=False,repertoireTemp=True)
+    if not resultat:
+        return False
 
     (dictChamps, dictPieces) = resultat
 
@@ -52,8 +54,8 @@ def EnvoiEmailFamille(parent=None, IDfamille=None, nomDoc="", categorie="", list
         return False
     liste_pieces = []
 
-    for key,lstDocs in dictPieces.items():
-        liste_pieces.append(lstDocs)
+    for key,nomDoc in dictPieces.items():
+        liste_pieces.append(nomDoc)
 
     # Recherche adresse famille
     if len(listeAdresses) == 0 :
@@ -71,8 +73,9 @@ def EnvoiEmailFamille(parent=None, IDfamille=None, nomDoc="", categorie="", list
             })
     dlg = DLG_Mailer.Dialog(parent, categorie=categorie, afficher_confirmation_envoi=visible)
 
-    # envoi des adresses
+    # envoi des adresses pouvant contenir des pieces dans 'champs'
     dlg.SetDonnees(ldDonnees, modificationAutorisee=True)
+
     # envoi des pièces jointes communes à toutes les adresses
     dlg.SetPiecesJointes(liste_pieces)
     if IDmodele == None :

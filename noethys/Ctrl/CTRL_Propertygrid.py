@@ -12,17 +12,13 @@
 # Dans Noethys-Matthania j'ai supprimé la compatibilité python2 donc pas de LABEL_AS_NAME
 
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
-from Ctrl import CTRL_Bouton_image
 from Ctrl import CTRL_Saisie_heure
 from Ctrl import CTRL_Saisie_date
 import sys
 import datetime
 import wx.propgrid as wxpg
-import six
-import GestionDB
 from Utils import UTILS_Dates
 from Utils import UTILS_Parametres
 import copy
@@ -33,6 +29,7 @@ from wx.propgrid import PGEditor as Editor
 from wx.propgrid import PGProperty as Property
 from wx.propgrid import ArrayStringProperty as ArrayStringProperty
 
+# ---- Différents éditeurs personnalisés pour des types particuliers -------------------
 
 class EditeurChoix(ChoiceEditor):
     def __init__(self):
@@ -50,6 +47,239 @@ class EditeurChoix(ChoiceEditor):
     def UpdateControl(self, property, ctrl):
         self.SetControlStringValue(property, ctrl, property.GetDisplayedString())
 
+class EditeurComboBoxAvecBoutons(ChoiceEditor):
+    def __init__(self):
+        ChoiceEditor.__init__(self)
+
+    def CreateControls(self, propGrid, property, pos, sz):
+        # Create and populate buttons-subwindow
+        buttons = wxpg.PGMultiButton(propGrid, sz)
+
+        # Add two regular buttons
+        buttons.AddBitmapButton(
+            wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Mecanisme.png"),
+                      wx.BITMAP_TYPE_PNG))
+        buttons.GetButton(0).SetToolTip(
+            wx.ToolTip(_("Cliquez ici pour accéder à la gestion des paramètres")))
+
+        # Create the 'primary' editor control (textctrl in this case)
+        wnd = super(EditeurComboBoxAvecBoutons, self).CreateControls(propGrid, property,
+                                                                     pos,
+                                                                     buttons.GetPrimarySize())
+        try:
+            wnd = wnd.GetPrimary()
+        except:
+            wnd = wnd.m_primary
+        buttons.Finalize(propGrid, pos)
+        self.buttons = buttons
+        return wxpg.PGWindowList(wnd, buttons)
+
+    def OnEvent(self, propGrid, prop, ctrl, event):
+        if event.GetEventType() == wx.wxEVT_COMMAND_BUTTON_CLICKED:
+            buttons = self.buttons
+            evtId = event.GetId()
+            if evtId == buttons.GetButtonId(0):
+                gridPanel = propGrid.GetPanel()
+                propGrid.GetPanel().OnBoutonParametres(prop)
+        return super(EditeurComboBoxAvecBoutons, self).OnEvent(propGrid, prop, ctrl,
+                                                               event)
+
+class EditeurHeure(Editor):
+    def __init__(self):
+        Editor.__init__(self)
+
+    def CreateControls(self, propgrid, property, pos, size):
+        try:
+            ctrl = CTRL_Saisie_heure.Heure(propgrid.GetPanel(), id=wx.ID_ANY,
+                                           pos=pos, size=size, style=wx.TE_PROCESS_ENTER)
+            ctrl.SetHeure(property.GetDisplayedString())
+            return wxpg.PGWindowList(ctrl)
+        except:
+            import traceback
+            print((traceback.print_exc()))
+
+    def UpdateControl(self, property, ctrl):
+        ctrl.SetHeure(property.GetDisplayedString())
+
+    def DrawValue(self, dc, rect, property, text):
+        if not property.IsValueUnspecified():
+            dc.DrawText(property.GetDisplayedString(), rect.x + 5, rect.y)
+
+    def OnEvent(self, propgrid, property, ctrl, event):
+        if not ctrl:
+            return False
+
+        evtType = event.GetEventType()
+
+        if evtType == wx.wxEVT_COMMAND_TEXT_ENTER:
+            if propgrid.IsEditorsValueModified():
+                return True
+        elif evtType == wx.wxEVT_COMMAND_TEXT_UPDATED:
+            event.Skip()
+            event.SetId(propgrid.GetId())
+            propgrid.EditorsValueWasModified()
+            return False
+
+        return False
+
+    def GetValueFromControl(self, property, ctrl):
+        valeur = ctrl.GetHeure()
+        if ctrl.Validation() == False:
+            valeur = ""
+
+        if property.UsesAutoUnspecified() and not valeur:
+            return (True, None)
+
+        res, value = property.StringToValue(valeur, wxpg.PG_EDITABLE_VALUE)
+
+        if not res and value is None:
+            res = True
+
+        return (res, value)
+
+    def SetValueToUnspecified(self, property, ctrl):
+        ctrl.Remove(0, len(ctrl.GetHeure()))
+
+    def SetControlStringValue(self, property, ctrl, text):
+        ctrl.SetHeure(text)
+
+    def OnFocus(self, property, ctrl):
+        ctrl.SetFocus()
+
+class EditeurDate(Editor):
+    def __init__(self):
+        Editor.__init__(self)
+
+    def CreateControls(self, propgrid, property, pos, size):
+        try:
+            ctrl = CTRL_Saisie_date.Date2(propgrid.GetPanel(), pos=pos, size=(-1, 25))
+            ctrl.SetDate(property.GetDisplayedString())
+            return wxpg.PGWindowList(ctrl)
+        except:
+            import traceback
+            print((traceback.print_exc()))
+
+    def UpdateControl(self, property, ctrl):
+        ctrl.SetDate(property.GetDisplayedString())
+
+    def DrawValue(self, dc, rect, property, text):
+        if not property.IsValueUnspecified():
+            dc.DrawText(property.GetDisplayedString(), rect.x + 5, rect.y)
+
+    def OnEvent(self, propgrid, property, ctrl, event):
+        if not ctrl:
+            return False
+
+        evtType = event.GetEventType()
+
+        if evtType == wx.wxEVT_COMMAND_TEXT_ENTER:
+            if propgrid.IsEditorsValueModified():
+                return True
+        elif evtType == wx.wxEVT_COMMAND_TEXT_UPDATED:
+            event.Skip()
+            event.SetId(propgrid.GetId())
+            propgrid.EditorsValueWasModified()
+            return False
+
+        return False
+
+    def GetValueFromControl(self, property, ctrl):
+        valeur = ctrl.GetDate()
+        valeur = UTILS_Dates.DateDDEnFr(valeur)
+
+        if ctrl.Validation() == False:
+            valeur = ""
+
+        if property.UsesAutoUnspecified() and not valeur:
+            return (True, None)
+
+        # res, value = property.StringToValue(valeur, wxpg.PG_EDITABLE_VALUE)
+        res, value = True, valeur
+        if not res and value is None:
+            res = True
+
+        return (res, value)
+
+    def SetValueToUnspecified(self, property, ctrl):
+        ctrl.Remove(0, len(ctrl.GetDate()))
+
+    def SetControlStringValue(self, property, ctrl, text):
+        ctrl.SetDate(text)
+
+    def OnFocus(self, property, ctrl):
+        ctrl.SetFocus()
+
+# --- Quelques redéfinitions de propriétés préfixe zz quand problème phoenix --------
+
+class Propriete_liste(ArrayStringProperty):
+    """ Propriété Multichoix """
+
+    def __init__(self, label, name=NAME, type_donnees=int, liste_selections=[]):
+        self.type_donnees = type_donnees
+        self.liste_selections = liste_selections
+
+        # Initialisation
+        ArrayStringProperty.__init__(self, label, name)
+
+        # Set default delimiter
+        self.SetAttribute("Delimiter", ',')
+
+        # Importation des sélections
+        self.SetValue(self.liste_selections)
+
+    def GetEditor(self):
+        return "TextCtrl"
+
+    def zzValueToString(self, value, flags):
+        return self.m_display
+
+    def OnSetValue(self):
+        self.GenerateValueAsString()
+
+    def DoSetAttribute(self, name, value):
+        if 'phoenix' in wx.PlatformInfo:
+            return False
+
+        # Proper way to call same method from super class
+        retval = self.CallSuperMethod("DoSetAttribute", name, value)
+
+        # Must re-generate cached string when delimiter changes
+        if name == "Delimiter":
+            self.GenerateValueAsString(delim=value)
+
+        return retval
+
+    def GenerateValueAsString(self, delim=None):
+        """ This function creates a cached version of displayed text (self.m_display). """
+        if not delim:
+            delim = self.GetAttribute("Delimiter")
+            if not delim:
+                delim = ','
+        ls = [str(x) for x in self.GetValue()]
+        if delim == '"' or delim == "'":
+            text = ' '.join(['%s%s%s' % (delim, a, delim) for a in ls])
+        else:
+            text = ', '.join(ls)
+        self.m_display = text
+
+    def zzStringToValue(self, text, argFlags):
+        """ If failed, return False or (False, None). If success, return tuple (True, newValue) """
+        delim = self.GetAttribute("Delimiter")
+        if delim == '"' or delim == "'":
+            # Proper way to call same method from super class
+            return self.CallSuperMethod("StringToValue", text, 0)
+        valeurs_saisies = [a.strip() for a in text.split(delim)]
+        liste_id = []
+        if valeurs_saisies != ["", ]:
+            for valeur in valeurs_saisies:
+                try:
+                    liste_id.append(self.type_donnees(valeur))
+                except:
+                    liste_id = self.m_value
+                    break
+        return (True, liste_id)
+
+
 class Propriete_choix(Property):
     """ Simple liste de choix """
     def __init__(self, label, name=NAME, liste_choix=[], valeur=None):
@@ -66,21 +296,19 @@ class Propriete_choix(Property):
     def GetEditor(self):
         return "Choice"
 
-    def ValueToString(self, value, flags):
+    def zzValueToString(self, value, flags):
         for id, label in self.liste_choix:
             if id == value:
                 return label
         return ""
 
-    def IntToValue(self, index, flags):
+    def zzIntToValue(self, index, flags):
         try:
             valeur = self.liste_choix[index][0]
             return (True, valeur)
         except:
             return False
 
-
-# ---------------------------------------------------------------------------------------------------------------
 
 class Propriete_multichoix(ArrayStringProperty):
     """ Propriété Multichoix """
@@ -99,9 +327,6 @@ class Propriete_multichoix(ArrayStringProperty):
 
     def GetEditor(self):
         return "TextCtrlAndButton"
-
-    def ValueToString(self, value, flags):
-        return self.m_display
 
     def OnSetValue(self):
         self.GenerateValueAsString()
@@ -130,14 +355,12 @@ class Propriete_multichoix(ArrayStringProperty):
             text = ', '.join(ls)
         self.m_display = text
 
-    def StringToValue(self, text, argFlags):
+    def zzStringToValue(self, text, argFlags):
         """ If failed, return False or (False, None). If success, return tuple (True, newValue) """
         delim = self.GetAttribute("Delimiter")
         if delim == '"' or delim == "'":
-            if 'phoenix' in wx.PlatformInfo:
-                return super(Propriete_multichoix, self).StringToValue(text, 0)
-            else:
-                return self.CallSuperMethod("StringToValue", text, 0)
+            return super(Propriete_multichoix, self).StringToValue(text, 0)
+
         valeurs_saisies = [a.strip() for a in text.split(delim)]
         liste_id = []
         for valeur in valeurs_saisies :
@@ -173,262 +396,7 @@ class Propriete_multichoix(ArrayStringProperty):
             return retval
         return False
 
-
-
-# -------------------------------------------------------------------------------------------------
-
-class Propriete_liste(ArrayStringProperty):
-    """ Propriété Multichoix """
-    def __init__(self, label, name = NAME, type_donnees=int, liste_selections=[]):
-        self.type_donnees = type_donnees
-        self.liste_selections = liste_selections
-
-        # Initialisation
-        ArrayStringProperty.__init__(self, label, name)
-
-        # Set default delimiter
-        self.SetAttribute("Delimiter", ',')
-
-        # Importation des sélections
-        self.SetValue(self.liste_selections)
-
-    def GetEditor(self):
-        return "TextCtrl"
-
-    def ValueToString(self, value, flags):
-        return self.m_display
-
-    def OnSetValue(self):
-        self.GenerateValueAsString()
-
-    def DoSetAttribute(self, name, value):
-        if 'phoenix' in wx.PlatformInfo:
-            return False
-
-        # Proper way to call same method from super class
-        retval = self.CallSuperMethod("DoSetAttribute", name, value)
-
-        # Must re-generate cached string when delimiter changes
-        if name == "Delimiter":
-            self.GenerateValueAsString(delim=value)
-
-        return retval
-
-    def GenerateValueAsString(self, delim=None):
-        """ This function creates a cached version of displayed text (self.m_display). """
-        if not delim:
-            delim = self.GetAttribute("Delimiter")
-            if not delim:
-                delim = ','
-
-        ls = [six.text_type(x) for x in self.GetValue()]
-        if delim == '"' or delim == "'":
-            text = ' '.join(['%s%s%s'%(delim,a,delim) for a in ls])
-        else:
-            text = ', '.join(ls)
-        self.m_display = text
-
-    def StringToValue(self, text, argFlags):
-        """ If failed, return False or (False, None). If success, return tuple (True, newValue) """
-        delim = self.GetAttribute("Delimiter")
-        if delim == '"' or delim == "'":
-            # Proper way to call same method from super class
-            return self.CallSuperMethod("StringToValue", text, 0)
-        valeurs_saisies = [a.strip() for a in text.split(delim)]
-        liste_id = []
-        if valeurs_saisies != ["",] :
-            for valeur in valeurs_saisies :
-                try :
-                    liste_id.append(self.type_donnees(valeur))
-                except :
-                    liste_id = self.m_value
-                    break
-        return (True, liste_id)
-
-
-
-
-# -------------------------------------------------------------------------------------------------
-
-class EditeurComboBoxAvecBoutons(ChoiceEditor):
-    def __init__(self):
-        ChoiceEditor.__init__(self)
-
-    def CreateControls(self, propGrid, property, pos, sz):
-        # Create and populate buttons-subwindow
-        buttons = wxpg.PGMultiButton(propGrid, sz)
-
-        # Add two regular buttons
-        buttons.AddBitmapButton(wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_PNG))
-        buttons.GetButton(0).SetToolTip(wx.ToolTip(_("Cliquez ici pour accéder à la gestion des paramètres")))
-        
-        # Create the 'primary' editor control (textctrl in this case)
-        if 'phoenix' in wx.PlatformInfo:
-            wnd = super(EditeurComboBoxAvecBoutons, self).CreateControls(propGrid, property, pos, buttons.GetPrimarySize())
-            try:
-                wnd = wnd.GetPrimary()
-            except:
-                wnd = wnd.m_primary
-            buttons.Finalize(propGrid, pos)
-            self.buttons = buttons
-            return wxpg.PGWindowList(wnd, buttons)
-        else :
-            wnd = self.CallSuperMethod("CreateControls", propGrid, property, pos, buttons.GetPrimarySize())
-            buttons.Finalize(propGrid, pos);
-            self.buttons = buttons
-            return (wnd, buttons)
-
-    def OnEvent(self, propGrid, prop, ctrl, event):
-        if event.GetEventType() == wx.wxEVT_COMMAND_BUTTON_CLICKED:
-            buttons = self.buttons
-            evtId = event.GetId()
-            if evtId == buttons.GetButtonId(0):
-                propGrid.GetPanel().OnBoutonParametres(prop)
-
-        if 'phoenix' in wx.PlatformInfo:
-            return super(EditeurComboBoxAvecBoutons, self).OnEvent(propGrid, prop, ctrl, event)
-        else :
-            return self.CallSuperMethod("OnEvent", propGrid, prop, ctrl, event)
-
-# ------------------------------------------------------------------------------------------------------
-
-class EditeurHeure(Editor):
-    def __init__(self):
-        Editor.__init__(self)
-
-    def CreateControls(self, propgrid, property, pos, size):
-        try:
-            ctrl = CTRL_Saisie_heure.Heure(propgrid.GetPanel(), id=wxpg.PG_SUBID1, pos=pos, size=size, style=wx.TE_PROCESS_ENTER)
-            ctrl.SetHeure(property.GetDisplayedString())
-            if 'phoenix' in wx.PlatformInfo:
-                return wxpg.PGWindowList(ctrl)
-            else :
-                return ctrl
-        except:
-            import traceback
-            print((traceback.print_exc()))
-
-    def UpdateControl(self, property, ctrl):
-        ctrl.SetHeure(property.GetDisplayedString())
-
-    def DrawValue(self, dc, rect, property, text):
-        if not property.IsValueUnspecified():
-            dc.DrawText(property.GetDisplayedString(), rect.x+5, rect.y)
-
-    def OnEvent(self, propgrid, property, ctrl, event):
-        if not ctrl:
-            return False
-
-        evtType = event.GetEventType()
-
-        if evtType == wx.wxEVT_COMMAND_TEXT_ENTER:
-            if propgrid.IsEditorsValueModified():
-                return True
-        elif evtType == wx.wxEVT_COMMAND_TEXT_UPDATED:
-            event.Skip()
-            event.SetId(propgrid.GetId())
-            propgrid.EditorsValueWasModified()
-            return False
-
-        return False
-
-    def GetValueFromControl(self, property, ctrl):
-        valeur = ctrl.GetHeure()
-        if ctrl.Validation() == False :
-            valeur = ""
-
-        if property.UsesAutoUnspecified() and not valeur:
-            return (True, None)
-
-        res, value = property.StringToValue(valeur, wxpg.PG_EDITABLE_VALUE)
-
-        if not res and value is None:
-            res = True
-
-        return (res, value)
-
-    def SetValueToUnspecified(self, property, ctrl):
-        ctrl.Remove(0, len(ctrl.GetHeure()))
-
-    def SetControlStringValue(self, property, ctrl, text):
-        ctrl.SetHeure(text)
-
-    def OnFocus(self, property, ctrl):
-        ctrl.SetSelection(-1, -1)
-        ctrl.SetFocus()
-
-
-
-
-# ------------------------------------------------------------------------------------------------------
-
-class EditeurDate(Editor):
-    def __init__(self):
-        Editor.__init__(self)
-
-    def CreateControls(self, propgrid, property, pos, size):
-        try:
-            ctrl = ctrl = CTRL_Saisie_date.Date2(propgrid.GetPanel(), pos=pos, size=(-1, 25))
-            ctrl.SetDate(property.GetDisplayedString())
-            if 'phoenix' in wx.PlatformInfo:
-                return wxpg.PGWindowList(ctrl)
-            else :
-                return ctrl
-        except:
-            import traceback
-            print((traceback.print_exc()))
-
-    def UpdateControl(self, property, ctrl):
-        ctrl.SetDate(property.GetDisplayedString())
-
-    def DrawValue(self, dc, rect, property, text):
-        if not property.IsValueUnspecified():
-            dc.DrawText(property.GetDisplayedString(), rect.x+5, rect.y)
-
-    def OnEvent(self, propgrid, property, ctrl, event):
-        if not ctrl:
-            return False
-
-        evtType = event.GetEventType()
-
-        if evtType == wx.wxEVT_COMMAND_TEXT_ENTER:
-            if propgrid.IsEditorsValueModified():
-                return True
-        elif evtType == wx.wxEVT_COMMAND_TEXT_UPDATED:
-            event.Skip()
-            event.SetId(propgrid.GetId())
-            propgrid.EditorsValueWasModified()
-            return False
-
-        return False
-
-    def GetValueFromControl(self, property, ctrl):
-        valeur = ctrl.GetDate()
-        if ctrl.Validation() == False :
-            valeur = ""
-
-        if property.UsesAutoUnspecified() and not valeur:
-            return (True, None)
-
-        #res, value = property.StringToValue(valeur, wxpg.PG_EDITABLE_VALUE)
-        res, value = True, valeur
-        if not res and value is None:
-            res = True
-
-        return (res, value)
-
-    def SetValueToUnspecified(self, property, ctrl):
-        ctrl.Remove(0, len(ctrl.GetDate()))
-
-    def SetControlStringValue(self, property, ctrl, text):
-        ctrl.SetDate(text)
-
-    def OnFocus(self, property, ctrl):
-        ctrl.SetSelection(-1, -1)
-        ctrl.SetFocus()
-
-
-# ----------------------------------------------------------------------------------------------------------------------------------------------------------
+# ---- Implémentation de la grille PropertyGrid ------------------------------------
 
 class CTRL(wxpg.PropertyGrid) :
     def __init__(self, parent, style=wxpg.PG_SPLITTER_AUTO_CENTER):
@@ -460,7 +428,6 @@ class CTRL(wxpg.PropertyGrid) :
         
         # Importation des valeurs
         self.Importation() 
-        
 
     def OnPropGridChange(self, event):
         event.Skip() 
@@ -483,12 +450,9 @@ class CTRL(wxpg.PropertyGrid) :
     def GetParametres(self):
         return copy.deepcopy(self.GetPropertyValues())
 
+# --- Boutons habituellement ajoutés à droite de la grille par le grand parent ----------
 
-
-
-# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-class Bouton_reinitialisation(wx.BitmapButton):
+class Bouton_reinit(wx.BitmapButton):
     def __init__(self, parent, ctrl_parametres=None):
         wx.BitmapButton.__init__(self, parent, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Actualiser.png"), wx.BITMAP_TYPE_ANY))
         self.ctrl_parametres = ctrl_parametres
@@ -498,7 +462,7 @@ class Bouton_reinitialisation(wx.BitmapButton):
     def OnBouton(self, event):
         self.ctrl_parametres.Reinitialisation() 
 
-class Bouton_sauvegarde(wx.BitmapButton):
+class Bouton_sauve(wx.BitmapButton):
     def __init__(self, parent, ctrl_parametres=None):
         wx.BitmapButton.__init__(self, parent, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Sauvegarder.png"), wx.BITMAP_TYPE_ANY))
         self.ctrl_parametres = ctrl_parametres
@@ -511,6 +475,7 @@ class Bouton_sauvegarde(wx.BitmapButton):
 
 # --------------------------------------- TESTS ----------------------------------------------------------------------------------------
 
+# Pour tests il fallait un parent avec bouton d'actions ----------------------------------
 
 class CTRL_TEST(CTRL) :
     def __init__(self, parent):
@@ -521,6 +486,13 @@ class CTRL_TEST(CTRL) :
         # Catégorie
         self.Append( wxpg.PropertyCategory(_("Tests")) )
 
+        propriete = wxpg.EnumProperty(label=_("Modèle de document"), name="IDmodele", value=0)
+        propriete.SetHelpString(_("Sélectionnez le modèle de document à utiliser"))
+        propriete.SetEditor("EditeurComboBoxAvecBoutons")
+        propriete.SetAttribute("obligatoire", True)
+        self.Append(propriete)
+        #self.MAJ_modeles()
+
         # CTRL Heure
         propriete = wxpg.StringProperty(label=_("Heure"), name="heure")
         propriete.SetHelpString(_("Sélectionnez une heure"))
@@ -528,7 +500,9 @@ class CTRL_TEST(CTRL) :
         self.Append(propriete)
 
         # CTRL Date
-        propriete = wxpg.StringProperty(label=_("Date"), name="date", value=UTILS_Dates.DateDDEnFr(datetime.date.today()))
+        dte = UTILS_Dates.DateDDEnFr(datetime.date.today())
+        propriete = wxpg.StringProperty(label="Date", name="date",
+                                        value=dte)
         propriete.SetHelpString(_("Sélectionnez une date"))
         propriete.SetEditor("EditeurDate")
         self.Append(propriete)
@@ -537,7 +511,11 @@ class CTRL_TEST(CTRL) :
         self.Append( wxpg.PropertyCategory(_("Mémorisation")) )
         
         # Mémorisation des paramètres
-        propriete = wxpg.EnumProperty(label=_("Mémoriser les paramètres"), name="memoriser_parametres", labels=[_("Non"), _("Uniquement sur cet ordinateur"), _("Pour tous les ordinateurs")], values=[0, 1, 3] , value=3)
+        propriete = wxpg.EnumProperty(label=_("Mémoriser les paramètres"),
+                                      name="memoriser_parametres",
+                                      labels=[_("Non"), _("Uniquement sur cet ordinateur"),
+                                              _("Pour tous les ordinateurs")],
+                                      values=[0, 1, 3] , value=3)
         propriete.SetHelpString(_("Mémoriser les paramètres"))
         self.Append(propriete)
 
@@ -704,15 +682,15 @@ class CTRL_TEST(CTRL) :
         """ Importation des valeurs dans le contrôle """
         # Récupération des noms et valeurs par défaut du contrôle
         dictValeurs = copy.deepcopy(self.GetPropertyValues())
-##        for nom, valeur in dictValeurs.iteritems() :
-##            print (nom, valeur, str(type(valeur)))
+
         # Recherche les paramètres mémorisés
-        dictParametres = UTILS_Parametres.ParametresCategorie(mode="get", categorie="impression_facture", dictParametres=dictValeurs)
+        dictParametres = UTILS_Parametres.ParametresCategorie(mode="get",
+                                                              categorie="impression_facture",
+                                                              dictParametres=dictValeurs)
         # Envoie les paramètres dans le contrôle
         for nom, valeur in dictParametres.items() :
             propriete = self.GetPropertyByName(nom)
             # propriete
-            ancienneValeur = propriete.GetValue() 
             propriete.SetValue(valeur)
     
     def Sauvegarde(self):
@@ -721,16 +699,12 @@ class CTRL_TEST(CTRL) :
         dictValeurs = copy.deepcopy(self.GetPropertyValues())
         # Sauvegarde des valeurs
         UTILS_Parametres.ParametresCategorie(mode="set", categorie="impression_facture", dictParametres=dictValeurs)
-        
-        
-        
-        
-        
+
     def GetDictValeurs(self) :
         return self.GetPropertyValues()
-        
 
-# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    def OnBoutonParametres(self,propriete):
+        print("CTRL_Propertygrid - Action Event from property named: ", propriete.GetName())
 
 class MyFrame(wx.Frame):
     def __init__(self, *args, **kwds):
@@ -741,7 +715,7 @@ class MyFrame(wx.Frame):
         self.SetSizer(sizer_1)
         self.ctrl = CTRL_TEST(panel)
         self.boutonTest = wx.Button(panel, -1, _("Bouton de test"))
-        self.bouton_reinit = Bouton_reinitialisation(panel, self.ctrl)
+        self.bouton_reinit = Bouton_reinit(panel, self.ctrl)
         sizer_2 = wx.BoxSizer(wx.VERTICAL)
         sizer_2.Add(self.ctrl, 1, wx.ALL|wx.EXPAND, 4)
         sizer_2.Add(self.boutonTest, 0, wx.ALL|wx.EXPAND, 4)

@@ -609,14 +609,14 @@ if __name__ == "__main__":
     champs= {"UTILISATEUR_NOM":"user Test"}
     ldDonnees = [
         {"adresse" : "test@gmail.com",
-         "pieces" : ["c:\\temp\\FAC-5931 BRUNEL Jacques et Nicole.pdf",
-                     "c:\\temp\\FAC-7155 BRUNEL Jacques et Nicole.pdf"],
+         "pieces" : ["c:\\temp\\pour_test1_1.pdf",
+                     "c:\\temp\\pour_test1_2.pdf"],
          "champs" : champs },
         {"adresse": "test2@gmail.com",
-         "pieces": ["c:\\temp\\FAC-8412 BRUNEL Jacques et Nicole.pdf",],
+         "pieces": ["c:\\temp\\pour_test2.pdf",],
          "champs": champs},
         ]
-    lstPieces = ["c:\\temp\\FAC-8412 BRUNEL Jacques et Nicole.pdf",]
+    lstPieces = ["c:\\temp\\PourTous.pdf",]
     dlg.SetDonnees(ldDonnees, modificationAutorisee=True)
     dlg.SetPiecesJointes(lstPieces)
     dlg.ctrl_editeur.EcritTexte("-Ceci est un texte test de {UTILISATEUR_NOM}-")

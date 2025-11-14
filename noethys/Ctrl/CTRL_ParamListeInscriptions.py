@@ -852,8 +852,8 @@ class Parametres(wx.Panel):
         self.ctrl_colonnes = CTRL_Colonnes(self)
         self.bouton_haut = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Fleche_haut.png"), wx.BITMAP_TYPE_ANY))
         self.bouton_bas = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Fleche_bas.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_reinitialisation = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Actualiser.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_sauvegarde = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Sauvegarder.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_reinit = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Actualiser.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_sauve = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Sauvegarder.png"), wx.BITMAP_TYPE_ANY))
 
         # Options
         self.box_options_staticbox = wx.StaticBox(self, -1, _("Options plus de colonnes"))
@@ -874,8 +874,8 @@ class Parametres(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.OnBoutonActualiser, self.bouton_ok)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonHaut, self.bouton_haut)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonBas, self.bouton_bas)
-        self.bouton_reinitialisation.Bind(wx.EVT_BUTTON, self.OnBoutonReinit)
-        self.bouton_sauvegarde.Bind(wx.EVT_BUTTON, self.OnBoutonSauve)
+        self.bouton_reinit.Bind(wx.EVT_BUTTON, self.OnBoutonReinit)
+        self.bouton_sauve.Bind(wx.EVT_BUTTON, self.OnBoutonSauve)
 
     def __set_properties(self):
         self.ctrl_groupes_activites.SetToolTip(_("Cochez des groupes pour présélectionner les activités"))
@@ -887,8 +887,8 @@ class Parametres(wx.Panel):
         self.bouton_ok.SetToolTip(_("Cliquez ici pour actualiser la liste"))
         self.bouton_haut.SetToolTip(_("Cliquez ici pour monter la colonne"))
         self.bouton_bas.SetToolTip(_("Cliquez ici pour descendre la colonne"))
-        self.bouton_reinitialisation.SetToolTip(_("Cliquez ici pour restaurer des paramètres"))
-        self.bouton_sauvegarde.SetToolTip(_("Cliquez ici pour mémoriser les paramètres"))
+        self.bouton_reinit.SetToolTip(_("Cliquez ici pour restaurer des paramètres"))
+        self.bouton_sauve.SetToolTip(_("Cliquez ici pour mémoriser les paramètres"))
         self.ctrl_date_debut.SetToolTip(_("Saisissez ici une date de début"))
         self.bouton_date_debut.SetToolTip(_("Cliquez ici pour saisir une date de début"))
         self.ctrl_date_fin.SetToolTip(_("Saisissez ici une date de fin"))
@@ -964,8 +964,8 @@ class Parametres(wx.Panel):
         grid_sizer_boutons_colonnes.Add(self.bouton_haut, 0, 0, 0)
         grid_sizer_boutons_colonnes.Add(self.bouton_bas, 0, 0, 0)
         grid_sizer_boutons_colonnes.Add((10,10), 0, 0, 0)
-        grid_sizer_boutons_colonnes.Add(self.bouton_reinitialisation, 0, 0, 0)
-        grid_sizer_boutons_colonnes.Add(self.bouton_sauvegarde, 0, 0, 0)
+        grid_sizer_boutons_colonnes.Add(self.bouton_reinit, 0, 0, 0)
+        grid_sizer_boutons_colonnes.Add(self.bouton_sauve, 0, 0, 0)
         grid_sizer_colonnes.Add(grid_sizer_boutons_colonnes, 0, wx.LEFT|wx.EXPAND, 0)
         
         grid_sizer_colonnes.AddGrowableRow(0)

@@ -13,9 +13,9 @@ import Chemins
 from Utils.UTILS_Traduction import _
 import wx
 import GestionDB
-import datetime
 
-from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
+from Dlg import DLG_Apercu_facture
+from Utils.UTILS_Decimal import FloatToDecimal
 
 from Utils import UTILS_Dates
 from Utils import UTILS_Utilisateurs
@@ -575,14 +575,14 @@ class ListView(FastObjectListView):
             menuPop.AppendSeparator()
 
         # Item Apercu avant impression
-        item = wx.MenuItem(menuPop, 40, _("Aperçu avant impression"))
+        item = wx.MenuItem(menuPop, 40, _("Liste: Aperçu impression"))
         bmp = wx.Bitmap("Static/Images/16x16/Apercu.png", wx.BITMAP_TYPE_PNG)
         item.SetBitmap(bmp)
         menuPop.Append(item)
         self.Bind(wx.EVT_MENU, self.Apercu, id=40)
 
         # Item Imprimer
-        item = wx.MenuItem(menuPop, 50, _("Imprimer"))
+        item = wx.MenuItem(menuPop, 50, _("Liste: Imprimer"))
         bmp = wx.Bitmap("Static/Images/16x16/Imprimante.png", wx.BITMAP_TYPE_PNG)
         item.SetBitmap(bmp)
         menuPop.Append(item)
@@ -607,111 +607,23 @@ class ListView(FastObjectListView):
         self.PopupMenu(menuPop)
         menuPop.Destroy()
 
-    def GetlstIDfactures(self):
-        tracks = self.Selection()
-        if len(tracks) == 0 :
-            dlg = wx.MessageDialog(self, _("Vous n'avez sélectionné aucune facture à imprimer !"),
-                                   _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
-            dlg.ShowModal()
+    # ------- Actions sur les factures cochées ----------------
+
+    def GetOptions(self,mail=True):
+        dlg = DLG_Apercu_facture.Dialog(None,
+                                        titre="Sélection des paramètres pour factures",
+                                        intro="Sélectionnez ici les paramètres d'affichage des factures.")
+        if dlg.ShowModal() == wx.ID_OK:
+            dictOptions = dlg.GetParametres()
             dlg.Destroy()
-            return None
-        lstIDfactures = []
-        for track in tracks:
-            lstIDfactures.append(track.IDfacture)
-        return lstIDfactures
-
-    def Reedition(self, event):
-        lstIDfactures = self.GetlstIDfactures()
-        if lstIDfactures:
-            from Utils import UTILS_Facturation
-            facturation = UTILS_Facturation.Facturation()
-            facturation.Impression(listeFactures=lstIDfactures)
-    
-    def EnvoyerEmail(self, event):
-        """ Envoyer la facture par Email """
-        lstIDfactures = self.GetlstIDfactures()
-        if lstIDfactures:
-            # Envoi du mail
-            from Utils import UTILS_Envoi_email
-            total = self.Selection()[0].total
-            if total < 0: nature = "AVOIR"
-            else: nature = "FACTURE"
-            noFacture = self.Selection()[0].numero
-            IDfamille = self.Selection()[0].IDfamille
-            nomDoc = f"{nature } {noFacture}"
-            UTILS_Envoi_email.EnvoiEmailFamille(parent=self,
-                                                IDfamille=IDfamille,
-                                                nomDoc= nomDoc ,
-                                                CreationPDF=self.CreationPDF_mail,
-                                                categorie="facture")
-
-    def CreationPDF_mail(self, nomDoc="",afficherDoc=True,repertoireTemp=True):
-        """ Création du PDF pour Email  Indissociable de EnvoyerEmail car appelé par UTILS_Envoi_email"""
-        lstIDfactures = self.GetlstIDfactures()
-        if lstIDfactures:
-            from Utils import UTILS_Facturation
-            facturation = UTILS_Facturation.Facturation()
-            resultat = facturation.Impression(listeFactures=lstIDfactures,
-                                              nomDoc=nomDoc,
-                                              afficherDoc=afficherDoc,
-                                              repertoireTemp=repertoireTemp)
-            if resultat == False :
-                return False
-            del facturation
-            return resultat
-    
-    def GetTextesImpression(self):
-        total = _("%d factures. ") % len(self.donnees)
-        if self.filtres != None :
-            from Dlg.DLG_Filtres_factures import GetTexteFiltres 
-            intro = total + _("Filtres de sélection : %s") % GetTexteFiltres(self.filtres)
-        else :
-            intro = None
-        return intro, total
-
-    def Apercu(self, event=None):
-        from Utils import UTILS_Printer
-        txtIntro, txtTotal = self.GetTextesImpression()
-        prt = UTILS_Printer.ObjectListViewPrinter(self, titre=_("Liste des factures"), intro=txtIntro, total=txtTotal, format="A", orientation=wx.PORTRAIT)
-        prt.Preview()
-
-    def Imprimer(self, event=None):
-        from Utils import UTILS_Printer
-        txtIntro, txtTotal = self.GetTextesImpression()
-        prt = UTILS_Printer.ObjectListViewPrinter(self, titre=_("Liste des factures"), intro=txtIntro, total=txtTotal, format="A", orientation=wx.PORTRAIT)
-        prt.Print()
-
-    def ExportTexte(self, event=None):
-        from Utils import UTILS_Export
-        UTILS_Export.ExportTexte(self, titre=_("Liste des factures"))
-
-    def ExportExcel(self, event=None):
-        from Utils import UTILS_Export
-        UTILS_Export.ExportExcel(self, titre=_("Liste des factures"))
-
-    def CocheTout(self, event=None):
-        if self.GetFilter() != None :
-            listeObjets = self.GetFilteredObjects()
-        else :
-            listeObjets = self.GetObjects()
-        for track in listeObjets :
-            self.Check(track)
-            self.RefreshObject(track)
-
-    def CocheRien(self, event=None):
-        for track in self.donnees :
-            self.Uncheck(track)
-            self.RefreshObject(track)
-
-    def GetTracksCoches(self):
-        return self.GetCheckedObjects()
-    
-    def GetTracksTous(self):
-        return self.donnees
+            return dictOptions
+        else:
+            return False
 
     def Ajouter(self,event):
-        # Avertissement
-        dlg = wx.MessageDialog(self, _("Passez par FACTURATION ou par INSCRIPTION pour gérer des factures"), _("Refus"), wx.CANCEL|wx.ICON_INFORMATION)
+        # Avertissement Noethys original peut facturer plus directement, plus possible!
+        mess = "Passez par FACTURATION ou par INSCRIPTION pour gérer des factures dans la fiche famille"
+        dlg = wx.MessageDialog(self, mess, "Refus", wx.CANCEL|wx.ICON_INFORMATION)
         dlg.ShowModal()
         dlg.Destroy()
         return False
@@ -741,6 +653,121 @@ class ListView(FastObjectListView):
         if dlg.ShowModal() == wx.ID_OK:
             self.MAJ(IDfacture)
         dlg.Destroy()
+
+    def GetlstIDfactures(self):
+        tracks = self.Selection()
+        if len(tracks) == 0 :
+            dlg = wx.MessageDialog(self, _("Vous n'avez sélectionné aucune facture à imprimer !"),
+                                   _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return None
+        lstIDfactures = []
+        for track in tracks:
+            lstIDfactures.append(track.IDfacture)
+        return lstIDfactures
+
+    def Reedition(self, event):
+        lstIDfactures = self.GetlstIDfactures()
+        if lstIDfactures:
+            dictOptions = self.GetOptions(False)
+            if not dictOptions:
+                return
+            from Utils import UTILS_Facturation
+            facturation = UTILS_Facturation.Facturation()
+            facturation.Impression(listeFactures=lstIDfactures,
+                                   dictOptions=dictOptions)
+    
+    def EnvoyerEmail(self, event):
+        """ Envoyer la facture par Email """
+        lstIDfactures = self.GetlstIDfactures()
+        if lstIDfactures:
+            # Envoi du mail
+            from Utils import UTILS_Envoi_email
+            total = self.Selection()[0].total
+            if total < 0: nature = "AVOIR"
+            else: nature = "FACTURE"
+            noFacture = self.Selection()[0].numero
+            IDfamille = self.Selection()[0].IDfamille
+            nomDoc = f"{nature } {noFacture}"
+            UTILS_Envoi_email.EnvoiEmailFamille(parent=self,
+                                                IDfamille=IDfamille,
+                                                nomDoc= nomDoc ,
+                                                CreationPDF=self.CreationPDF_mail,
+                                                categorie="facture")
+
+    def CreationPDF_mail(self, nomDoc="",afficherDoc=True,repertoireTemp=True):
+        """ Création du PDF pour Email  Indissociable de EnvoyerEmail car appelé par UTILS_Envoi_email"""
+        lstIDfactures = self.GetlstIDfactures()
+        if lstIDfactures:
+            dictOptions = self.GetOptions(True)
+            if not dictOptions:
+                return
+            from Utils import UTILS_Facturation
+            facturation = UTILS_Facturation.Facturation()
+            resultat = facturation.Impression(listeFactures=lstIDfactures,
+                                              nomDoc=nomDoc,
+                                              afficherDoc=afficherDoc,
+                                              repertoireTemp=repertoireTemp,
+                                              dictOptions = dictOptions)
+            if resultat == False :
+                return False
+            del facturation
+            return resultat
+    
+    def GetTextesImpression(self):
+        total = _("%d factures. ") % len(self.donnees)
+        if self.filtres != None :
+            from Dlg.DLG_Filtres_factures import GetTexteFiltres 
+            intro = total + _("Filtres de sélection : %s") % GetTexteFiltres(self.filtres)
+        else :
+            intro = None
+        return intro, total
+
+    def GetPrinter(self):
+        from Utils import UTILS_Printer
+        txtIntro, txtTotal = self.GetTextesImpression()
+        return UTILS_Printer.ObjectListViewPrinter(self, titre=_("Liste des factures"),
+                                                   intro=txtIntro, total=txtTotal,
+                                                   format="A", orientation=wx.PORTRAIT)
+
+    # -------- Actions sur la liste OLV affichée ---------------
+
+    def Apercu(self, event=None):
+        prt = self.GetPrinter()
+        prt.Preview()
+
+    def Imprimer(self, event=None):
+        prt = self.GetPrinter()
+        prt.Print()
+
+    def ExportTexte(self, event=None):
+        from Utils import UTILS_Export
+        UTILS_Export.ExportTexte(self, titre=_("Liste des factures"))
+
+    def ExportExcel(self, event=None):
+        from Utils import UTILS_Export
+        UTILS_Export.ExportExcel(self, titre=_("Liste des factures"))
+
+    def CocheTout(self, event=None):
+        if self.GetFilter() != None :
+            listeObjets = self.GetFilteredObjects()
+        else :
+            listeObjets = self.GetObjects()
+        for track in listeObjets :
+            self.Check(track)
+            self.RefreshObject(track)
+
+    def CocheRien(self, event=None):
+        for track in self.donnees :
+            self.Uncheck(track)
+            self.RefreshObject(track)
+
+    def GetTracksCoches(self):
+        return self.GetCheckedObjects()
+    
+    def GetTracksTous(self):
+        return self.donnees
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 

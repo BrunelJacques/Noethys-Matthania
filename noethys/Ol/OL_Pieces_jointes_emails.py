@@ -34,8 +34,12 @@ class Track(object):
         self.extension = fichier.split('.')[-1].lower()
         if self.extension not in LISTE_EXTENSIONS :
             self.extension = "tous"
-        self.taille = os.path.getsize(fichier)
-        if self.taille != None :
+
+        if os.path.isfile(fichier):
+            self.taille = os.path.getsize(fichier)
+        else: self.taille = None
+
+        if self.taille:
             if self.taille >= 1000000 :
                 texteTaille = "%s Mo" % (self.taille/1000000)
             else :

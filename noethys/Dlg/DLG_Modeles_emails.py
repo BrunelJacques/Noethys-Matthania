@@ -168,7 +168,12 @@ class Dialog(wx.Dialog):
         self.Layout()
         self.CenterOnScreen()
 
-    def OnChoixCategorie(self, event): 
+    def GetIDmodele(self):
+        track = self.ctrl_modeles.Selection()
+        if track and track[0]:
+            return track[0].IDmodele
+
+    def OnChoixCategorie(self, event):
         categorie = self.ctrl_categorie.GetCategorie()
         self.ctrl_modeles.MAJ(categorie=categorie)
     

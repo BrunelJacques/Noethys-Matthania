@@ -315,7 +315,6 @@ class CTRL_Donnees(gridlib.Grid):
         self.SetValeur("ville", cp_resid + " " + ville_resid)
         
 
-
 # --------------------------------------------------------------------------------------------------------------------------------------------
 
 class Dialog(wx.Dialog):
@@ -368,7 +367,7 @@ class Dialog(wx.Dialog):
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Aperçu"), cheminImage="Images/32x32/Apercu.png")
         self.bouton_annuler = CTRL_Bouton_image.CTRL(self, texte=_("Fermer"), cheminImage="Images/32x32/Fermer.png")
 
-        self.__set_properties()
+        self.__set_properties(parent)
         self.__do_layout()
 
         self.Bind(wx.EVT_BUTTON, self.OnBoutonModeles, self.bouton_gestion_modeles)
@@ -410,8 +409,11 @@ class Dialog(wx.Dialog):
         UTILS_Parametres.ParametresCategorie(mode="set", categorie="impression_recu",
                                              dictParametres=dictValeurs)
         
-    def __set_properties(self):
-        self.SetTitle(_("Edition d'un reçu de règlement"))
+    def __set_properties(self,parent):
+        if parent and parent.Name:
+            nomParent = parent.Name
+        else: nomParent = "Test"
+        self.SetTitle(f"{nomParent}-DLG_Impression_recu")
         self.ctrl_donnees.SetToolTip(wx.ToolTip(_("Vous pouvez modifier ici les données de base")))
         self.ctrl_email.SetToolTip(wx.ToolTip(_("Selectionnez un modèle de texte mail")))
         self.ctrl_modele.SetToolTip(wx.ToolTip(_("Selectionnez un modèle de documents")))
@@ -503,15 +505,21 @@ class Dialog(wx.Dialog):
         from Dlg import DLG_Modeles_emails
         dlg = DLG_Modeles_emails.Dialog(self, categorie="recu_reglement")
         dlg.ShowModal()
+        ID = dlg.GetIDmodele()
         dlg.Destroy()
+        if ID:
+            self.ctrl_email.SetID(ID)
         self.ctrl_email.MAJ()
 
     def OnBoutonModeles(self, event): 
         from Dlg import DLG_Modeles_docs
         dlg = DLG_Modeles_docs.Dialog(self, categorie="reglement")
-        dlg.ShowModal() 
+        dlg.ShowModal()
+        ID = dlg.GetIDmodele()
         dlg.Destroy()
-        self.ctrl_modele.MAJ() 
+        if ID:
+            self.ctrl_modele.SetID(ID)
+        self.ctrl_modele.MAJ()
     
     def Importation(self):
         # Récupération des informations sur le règlement
@@ -613,10 +621,12 @@ class Dialog(wx.Dialog):
                 "IDcategorie" : 28, 
                 "action" : _("Edition d'un reçu pour le règlement ID%d") % self.dictSave["IDreglement"],
                 },])
-                
+
+    # Génération du pdf et son affichage
     def OnBoutonOk(self, event): 
         self.CreationPDF()
 
+    # Lance envoi mail avec l'embarquement de CreationPDF ci-dessous
     def OnBoutonEmail(self, event):
         IDmodelEmail = self.ctrl_email.GetID()
         if IDmodelEmail == None :
@@ -635,7 +645,143 @@ class Dialog(wx.Dialog):
                                             CreationPDF=self.CreationPDF,
                                             categorie="recu_reglement",
                                             listeAdresses=self.listeAdresses)
-    
+
+    # appelé par UTILS_Envoi_email.EnvoiEmailFamille ou par self.OnBoutonOk
+    def CreationPDF(self, nomDoc=None, afficherDoc=True, **kw):
+        if not nomDoc:
+            nomDoc = FonctionsPerso.GenerationNomDoc("RECU_REGLEMENT", "pdf")
+        dictChampsFusion = {}
+
+        # Récupération des valeurs de base
+        dictDonnees = DICT_DONNEES
+
+        # Récupération des infos sur l'organisme
+        dictOrganisme = self.GetDictOrganisme()
+
+        date_edition = dictDonnees["date"]
+        try:
+            date_editionDD = DateEngEnDateDD(DateFrEng(date_edition))
+        except:
+            date_editionDD = ""
+
+        # Insertion des données de base dans le dictValeurs
+        IDfamille = self.IDfamille
+        dictValeurs = {
+            "IDfamille": self.IDfamille,
+            "{IDFAMILLE}": str(self.IDfamille),
+            "num_recu": dictDonnees["numero"],
+            "{LIEU_EDITION}": dictDonnees["lieu"],
+            "{DESTINATAIRE_NOM}": dictDonnees["nom"],
+            "{DESTINATAIRE_RUE}": dictDonnees["rue"],
+            "{DESTINATAIRE_VILLE}": dictDonnees["ville"],
+
+            "{NUM_RECU}": dictDonnees["numero"],
+            "{DATE_EDITION}": date_edition,
+            "{DATE_EDITION_LONG}": DateComplete(date_editionDD),
+            "{DATE_EDITION_COURT}": date_edition,
+
+            "{ORGANISATEUR_NOM}": dictOrganisme["nom"],
+            "{ORGANISATEUR_RUE}": dictOrganisme["rue"],
+            "{ORGANISATEUR_CP}": dictOrganisme["cp"],
+            "{ORGANISATEUR_VILLE}": dictOrganisme["ville"],
+            "{ORGANISATEUR_TEL}": dictOrganisme["tel"],
+            "{ORGANISATEUR_FAX}": dictOrganisme["fax"],
+            "{ORGANISATEUR_MAIL}": dictOrganisme["mail"],
+            "{ORGANISATEUR_SITE}": dictOrganisme["site"],
+            "{ORGANISATEUR_AGREMENT}": dictOrganisme["num_agrement"],
+            "{ORGANISATEUR_SIRET}": dictOrganisme["num_siret"],
+            "{ORGANISATEUR_APE}": dictOrganisme["code_ape"],
+        }
+
+        # Récupération des infos de base individus et familles
+        self.infosIndividus = UTILS_Infos_individus.Informations(
+            lstIDfamilles=[self.IDfamille, ])
+        dictValeurs.update(self.infosIndividus.GetDictValeurs(mode="famille",
+                                                              ID=IDfamille,
+                                                              formatChamp=True))
+
+        # Récupération des questionnaires
+        Questionnaires = UTILS_Questionnaires.ChampsEtReponses(type="famille")
+        for dictReponse in Questionnaires.GetDonnees(IDfamille):
+            dictValeurs[dictReponse["champ"]] = dictReponse["reponse"]
+            if dictReponse["controle"] == "codebarres":
+                dictValeurs["{CODEBARRES_QUESTION_%d}" % dictReponse["IDquestion"]] = \
+                dictReponse["reponse"]
+
+        # Récupération du texte d'intro
+        if self.ctrl_intro.GetValue() == True:
+            dictValeurs["intro"] = self.GetTexteIntro()
+        else:
+            dictValeurs["intro"] = None
+
+        # Envoi des informations sur le règlement
+        for key, valeur in self.dictReglement.items():
+            dictValeurs[key] = valeur
+
+        dictValeurs["{IDREGLEMENT}"] = str(dictValeurs["IDreglement"])
+        dictValeurs["{DATE_REGLEMENT}"] = DateEngFr(dictValeurs["dateReglement"])
+        dictValeurs["{MODE_REGLEMENT}"] = dictValeurs["nomMode"]
+        if dictValeurs["nomEmetteur"] != None:
+            dictValeurs["{NOM_EMETTEUR}"] = dictValeurs["nomEmetteur"]
+        else:
+            dictValeurs["{NOM_EMETTEUR}"] = ""
+        dictValeurs["{NUM_PIECE}"] = dictValeurs["numPiece"]
+        dictValeurs["{MONTANT_REGLEMENT}"] = "%.2f %s" % (dictValeurs["montant"], SYMBOLE)
+        dictValeurs["{NOM_PAYEUR}"] = dictValeurs["nomPayeur"]
+        dictValeurs["{NUM_QUITTANCIER}"] = six.text_type(dictValeurs["numQuittancier"])
+        dictValeurs["{DATE_SAISIE}"] = DateEngFr(dictValeurs["date_saisie"])
+        dictValeurs["{OBSERVATIONS}"] = "%s" % dictValeurs["observations"]
+
+        if dictValeurs["date_differe"] != None:
+            dictValeurs["{DATE_DIFFERE}"] = DateEngFr(dictValeurs["date_differe"])
+        else:
+            dictValeurs["{DATE_DIFFERE}"] = ""
+
+        # Récupération liste des prestations
+        if self.ctrl_prestations.GetValue() == True:
+            dictValeurs["prestations"] = self.GetPrestations()
+        else:
+            dictValeurs["prestations"] = []
+
+        # Préparation des données pour une sauvegarde de l'attestation
+        self.dictSave = {}
+        self.dictSave["numero"] = dictDonnees["numero"]
+        self.dictSave["IDfamille"] = self.IDfamille
+        self.dictSave["date_edition"] = DateFrEng(dictDonnees["date"])
+        self.dictSave["IDutilisateur"] = dictValeurs['IDutilisateur']
+        self.dictSave["IDreglement"] = self.IDreglement
+
+        # Récupération du modèle
+        IDmodele = self.ctrl_modele.GetID()
+        if IDmodele == None:
+            dlg = wx.MessageDialog(self,
+                                   _("Vous devez obligatoirement sélectionner un modèle !"),
+                                   _("Erreur"), wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
+
+        dictChampsFusion.update(self.GetDictUtilisateur())
+
+        dictChampsFusion["{DATE_EDITION_RECU}"] = DateFrEng(dictDonnees["date"])
+        dictChampsFusion["{NUMERO_RECU}"] = dictDonnees["numero"]
+        dictChampsFusion["{ID_REGLEMENT}"] = str(dictValeurs["{IDREGLEMENT}"])
+        dictChampsFusion["{DATE_REGLEMENT}"] = dictValeurs["{DATE_REGLEMENT}"]
+        dictChampsFusion["{MODE_REGLEMENT}"] = dictValeurs["{MODE_REGLEMENT}"]
+        dictChampsFusion["{NOM_EMETTEUR}"] = dictValeurs["{NOM_EMETTEUR}"]
+        dictChampsFusion["{NUM_PIECE}"] = dictValeurs["{NUM_PIECE}"]
+        dictChampsFusion["{MONTANT_REGLEMENT}"] = dictValeurs["{MONTANT_REGLEMENT}"]
+        dictChampsFusion["{NOM_PAYEUR}"] = dictValeurs["{NOM_PAYEUR}"]
+        dictChampsFusion["{NUM_QUITTANCIER}"] = dictValeurs["{NUM_QUITTANCIER}"]
+        dictChampsFusion["{DATE_SAISIE}"] = dictValeurs["{DATE_SAISIE}"]
+        dictChampsFusion["{DATE_DIFFERE}"] = dictValeurs["{DATE_DIFFERE}"]
+
+        # Fabrication du PDF
+        from Utils import UTILS_Impression_recu
+        UTILS_Impression_recu.Impression(dictValeurs, IDmodele=IDmodele, nomDoc=nomDoc,
+                                         afficherDoc=afficherDoc)
+        return ({self.IDfamille: dictChampsFusion}, {0: nomDoc})
+
     def GetPrestations(self):
         DB = GestionDB.DB()
 
@@ -749,139 +895,6 @@ class Dialog(wx.Dialog):
         if not dUser:
             dUser = UTILS_Identification.GetDictUtilSqueleton()
         return CTRL_Editeur_email.GetChampsStandards(dUser)
-
-    def CreationPDF(self, nomDoc=None, afficherDoc=True,repertoireTemp=False):
-        if not nomDoc:
-            nomDoc = FonctionsPerso.GenerationNomDoc("RECU_REGLEMENT", "pdf")
-        dictChampsFusion = {}
-        
-        # Récupération des valeurs de base
-        dictDonnees = DICT_DONNEES
-
-        # Récupération des infos sur l'organisme
-        dictOrganisme = self.GetDictOrganisme()
-
-        date_edition = dictDonnees["date"]
-        try :
-            date_editionDD = DateEngEnDateDD(DateFrEng(date_edition))
-        except :
-            date_editionDD = ""
-                
-        # Insertion des données de base dans le dictValeurs
-        IDfamille = self.IDfamille
-        dictValeurs = {
-            "IDfamille" : self.IDfamille,
-            "{IDFAMILLE}" : str(self.IDfamille),
-            "num_recu" : dictDonnees["numero"],
-            "{LIEU_EDITION}" : dictDonnees["lieu"],
-            "{DESTINATAIRE_NOM}" : dictDonnees["nom"],
-            "{DESTINATAIRE_RUE}" : dictDonnees["rue"],
-            "{DESTINATAIRE_VILLE}" : dictDonnees["ville"],
-            
-            "{NUM_RECU}" : dictDonnees["numero"],
-            "{DATE_EDITION}" : date_edition,
-            "{DATE_EDITION_LONG}" : DateComplete(date_editionDD),
-            "{DATE_EDITION_COURT}" : date_edition,
-
-            "{ORGANISATEUR_NOM}" : dictOrganisme["nom"],
-            "{ORGANISATEUR_RUE}" : dictOrganisme["rue"],
-            "{ORGANISATEUR_CP}" : dictOrganisme["cp"],
-            "{ORGANISATEUR_VILLE}" : dictOrganisme["ville"],
-            "{ORGANISATEUR_TEL}" : dictOrganisme["tel"],
-            "{ORGANISATEUR_FAX}" : dictOrganisme["fax"],
-            "{ORGANISATEUR_MAIL}" : dictOrganisme["mail"],
-            "{ORGANISATEUR_SITE}" : dictOrganisme["site"],
-            "{ORGANISATEUR_AGREMENT}" : dictOrganisme["num_agrement"],
-            "{ORGANISATEUR_SIRET}" : dictOrganisme["num_siret"],
-            "{ORGANISATEUR_APE}" : dictOrganisme["code_ape"],
-            }
-
-        # Récupération des infos de base individus et familles
-        self.infosIndividus = UTILS_Infos_individus.Informations(lstIDfamilles=[self.IDfamille,])
-        dictValeurs.update(self.infosIndividus.GetDictValeurs(mode="famille",
-                                                              ID=IDfamille,
-                                                              formatChamp=True))
-
-        # Récupération des questionnaires
-        Questionnaires = UTILS_Questionnaires.ChampsEtReponses(type="famille")
-        for dictReponse in Questionnaires.GetDonnees(IDfamille) :
-            dictValeurs[dictReponse["champ"]] = dictReponse["reponse"]
-            if dictReponse["controle"] == "codebarres" :
-                dictValeurs["{CODEBARRES_QUESTION_%d}" % dictReponse["IDquestion"]] = dictReponse["reponse"]
-
-        # Récupération du texte d'intro
-        if self.ctrl_intro.GetValue() == True:
-            dictValeurs["intro"] = self.GetTexteIntro()
-        else:
-            dictValeurs["intro"] = None
-    
-        # Envoi des informations sur le règlement
-        for key, valeur in self.dictReglement.items() :
-            dictValeurs[key] = valeur
-        
-        dictValeurs["{IDREGLEMENT}"] = str(dictValeurs["IDreglement"])
-        dictValeurs["{DATE_REGLEMENT}"] = DateEngFr(dictValeurs["dateReglement"])
-        dictValeurs["{MODE_REGLEMENT}"] = dictValeurs["nomMode"]
-        if dictValeurs["nomEmetteur"] != None :
-            dictValeurs["{NOM_EMETTEUR}"] = dictValeurs["nomEmetteur"]
-        else:
-            dictValeurs["{NOM_EMETTEUR}"] = ""
-        dictValeurs["{NUM_PIECE}"] = dictValeurs["numPiece"]
-        dictValeurs["{MONTANT_REGLEMENT}"] = "%.2f %s" % (dictValeurs["montant"], SYMBOLE)
-        dictValeurs["{NOM_PAYEUR}"] = dictValeurs["nomPayeur"]
-        dictValeurs["{NUM_QUITTANCIER}"] = six.text_type(dictValeurs["numQuittancier"])
-        dictValeurs["{DATE_SAISIE}"] = DateEngFr(dictValeurs["date_saisie"])
-        dictValeurs["{OBSERVATIONS}"] = "%s" % dictValeurs["observations"]
-
-        if dictValeurs["date_differe"] != None :
-            dictValeurs["{DATE_DIFFERE}"] = DateEngFr(dictValeurs["date_differe"])
-        else:
-            dictValeurs["{DATE_DIFFERE}"] = ""
-
-        # Récupération liste des prestations
-        if self.ctrl_prestations.GetValue() == True :
-            dictValeurs["prestations"] = self.GetPrestations() 
-        else :
-            dictValeurs["prestations"] = []
-
-        # Préparation des données pour une sauvegarde de l'attestation
-        self.dictSave = {}
-        self.dictSave["numero"] = dictDonnees["numero"]
-        self.dictSave["IDfamille"] = self.IDfamille
-        self.dictSave["date_edition"] = DateFrEng(dictDonnees["date"])
-        self.dictSave["IDutilisateur"] = dictValeurs['IDutilisateur']
-        self.dictSave["IDreglement"] = self.IDreglement
-        
-        # Récupération du modèle
-        IDmodele = self.ctrl_modele.GetID() 
-        if IDmodele == None :
-            dlg = wx.MessageDialog(self, _("Vous devez obligatoirement sélectionner un modèle !"), _("Erreur"), wx.OK | wx.ICON_EXCLAMATION)
-            dlg.ShowModal()
-            dlg.Destroy()
-            return
-
-
-        dictChampsFusion.update(self.GetDictUtilisateur())
-
-        dictChampsFusion["{DATE_EDITION_RECU}"] = DateFrEng(dictDonnees["date"])
-        dictChampsFusion["{NUMERO_RECU}"] = dictDonnees["numero"]
-        dictChampsFusion["{ID_REGLEMENT}"] = str(dictValeurs["{IDREGLEMENT}"])
-        dictChampsFusion["{DATE_REGLEMENT}"] = dictValeurs["{DATE_REGLEMENT}"]
-        dictChampsFusion["{MODE_REGLEMENT}"] = dictValeurs["{MODE_REGLEMENT}"]
-        dictChampsFusion["{NOM_EMETTEUR}"] = dictValeurs["{NOM_EMETTEUR}"]
-        dictChampsFusion["{NUM_PIECE}"] = dictValeurs["{NUM_PIECE}"]
-        dictChampsFusion["{MONTANT_REGLEMENT}"] = dictValeurs["{MONTANT_REGLEMENT}"]
-        dictChampsFusion["{NOM_PAYEUR}"] = dictValeurs["{NOM_PAYEUR}"]
-        dictChampsFusion["{NUM_QUITTANCIER}"] = dictValeurs["{NUM_QUITTANCIER}"]
-        dictChampsFusion["{DATE_SAISIE}"] = dictValeurs["{DATE_SAISIE}"]
-        dictChampsFusion["{DATE_DIFFERE}"] = dictValeurs["{DATE_DIFFERE}"]
-
-
-        # Fabrication du PDF
-        from Utils import UTILS_Impression_recu
-        UTILS_Impression_recu.Impression(dictValeurs, IDmodele=IDmodele, nomDoc=nomDoc,
-                                         afficherDoc=afficherDoc)
-        return ({self.IDfamille:dictChampsFusion}, {0:[nomDoc,]})
 
 if __name__ == "__main__":
     app = wx.App(0)

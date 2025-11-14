@@ -1668,7 +1668,7 @@ class Facturation():
             dlg = DLG_Apercu_facture.Dialog(None,
                         titre=_("Sélection des paramètres de la facture"),
                         intro=_("Sélectionnez ici les paramètres d'affichage de la facture à envoyer par Email."))
-            dlg.bouton_ok.SetImageEtTexte("Images/32x32/Valider.png", _("Ok"))
+            dlg.bouton_ok.SetImageEtTexte("Images/32x32/Valider.png", "Ok")
             if dlg.ShowModal() == wx.ID_OK:
                 dictOptions = dlg.GetParametres()
                 dlg.Destroy()

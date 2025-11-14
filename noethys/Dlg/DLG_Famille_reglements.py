@@ -12,7 +12,6 @@
 from Utils.UTILS_Traduction import _
 import Chemins
 import wx
-from Ctrl import CTRL_Bouton_image
 from Ol import OL_Reglements
 from Dlg import DLG_LettrageVentil
 import GestionDB
@@ -141,7 +140,9 @@ class CTRL_Depot(wx.Panel):
         self.image_nonvalide = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Interdit2.png"), wx.BITMAP_TYPE_ANY)
 
         self.ctrl_image = wx.StaticBitmap(self, -1, self.image_nonvalide)
-        self.hyper_prelevement = Hyperlien(self, label=_("Avis de dépôt par Email"), infobulle=_("Cliquez ici pour activer l'envoi automatique par email des avis de dépôt des règlements"), URL="depot")
+        self.hyper_prelevement = Hyperlien(self, label=_("Avis de dépôt par Email"),
+                                           infobulle=_("Cliquez ici pour activer l'envoi automatique par email des avis de dépôt des règlements"),
+                                           URL="depot")
 
         grid_sizer_base = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_base.Add(self.ctrl_image, 1, wx.ALIGN_CENTER_VERTICAL, 0)
@@ -197,6 +198,7 @@ class Panel(wx.Panel):
         self.bouton_dupliquer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Dupliquer.png"), wx.BITMAP_TYPE_ANY))
         self.bouton_imprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
         self.bouton_ventilationAuto = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Magique.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_email = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Emails_exp.png"), wx.BITMAP_TYPE_ANY))
 
         # Abonnements
         self.ctrl_prelevement = CTRL_Prelevement(self, IDfamille)
@@ -210,6 +212,7 @@ class Panel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.OnBoutonDupliquer, self.bouton_dupliquer)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonImprimer, self.bouton_imprimer)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonVentilationAuto, self.bouton_ventilationAuto)
+        self.Bind(wx.EVT_BUTTON, self.ImpressionRecu, self.bouton_email)
 
         # Propriétés
         self.bouton_ajouter.SetToolTip(_("Cliquez ici pour saisir un règlement"))
@@ -218,6 +221,8 @@ class Panel(wx.Panel):
         self.bouton_dupliquer.SetToolTip(_("Dupliquer le règlement sélectionné"))
         self.bouton_imprimer.SetToolTip(_("Voir ou Imprimer la liste"))
         self.bouton_ventilationAuto.SetToolTip(_("Ventilations !"))
+        self.bouton_email.SetToolTip(wx.ToolTip("Imrimer ou envoyer par Mail un reçu PDF du règlement sélectionné"))
+
 
         # Layout
         grid_sizer_base = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
@@ -226,12 +231,13 @@ class Panel(wx.Panel):
         
         grid_sizer_reglements.Add(self.listviewAvecFooter, 1, wx.EXPAND, 0)
         
-        grid_sizer_boutons = wx.FlexGridSizer(rows=7, cols=1, vgap=5, hgap=5)
+        grid_sizer_boutons = wx.FlexGridSizer(rows=8, cols=1, vgap=5, hgap=5)
         grid_sizer_boutons.Add(self.bouton_ajouter, 0, wx.ALL, 0)
         grid_sizer_boutons.Add(self.bouton_modifier, 0, wx.ALL, 0)
         grid_sizer_boutons.Add(self.bouton_supprimer, 0, wx.ALL, 0)
         grid_sizer_boutons.Add( (2, 2), 0, wx.ALL, 0)
         grid_sizer_boutons.Add(self.bouton_dupliquer, 0, wx.ALL, 0)
+        grid_sizer_boutons.Add(self.bouton_email, 0, wx.ALL, 0)
         grid_sizer_boutons.Add(self.bouton_imprimer, 0, wx.ALL, 0)
         grid_sizer_boutons.Add(self.bouton_ventilationAuto, 0, wx.ALL, 0)
         grid_sizer_reglements.Add(grid_sizer_boutons, 1, wx.ALL, 0)
@@ -317,7 +323,7 @@ class Panel(wx.Panel):
 
     def Apercu(self, event):
         self.ctrl_reglements.Apercu(None)
-        
+
     def OnBoutonRepartition(self, event):
         from Dlg import DLG_Repartition
         dlg = DLG_Repartition.Dialog(self, IDfamille=self.IDfamille)

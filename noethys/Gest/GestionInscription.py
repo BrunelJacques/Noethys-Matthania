@@ -72,6 +72,7 @@ def GetNoFactureSuivant():
     req = "SELECT MAX(pieNoFacture),MAX(pieNoAvoir) FROM matPieces;"
     retour = DB.ExecuterReq(req,MsgBox="GestionInscription.GetNoFactureSuivant")
     if retour != "ok" :
+        DB.Close
         return
     retour = DB.ResultatReq()
     if (retour[0][0]== None) or (len(retour) == 0) : noFacture = 1
@@ -114,6 +115,7 @@ def GetNoFactureMin():
     req = "SELECT MIN(prmInteger) FROM matParams WHERE prmUser = 'NoLibre';"
     retour = DB.ExecuterReq(req,MsgBox="GestionInscription.GetNoFactureMin")
     if retour != "ok" :
+        DB.Close
         return
     recordset = DB.ResultatReq()
     if len(recordset)>0 :
@@ -137,6 +139,7 @@ def GetNoFactureMin():
                     req = "SELECT prmInteger,prmDate FROM matParams WHERE prmUser = 'NoLibre' AND prmInteger = %d ;" % value
                     retour = DB.ExecuterReq(req,MsgBox="GestionInscription.GetNoFactureMin")
                     if retour != "ok" :
+                        DB.Close
                         return
                     recordset = DB.ResultatReq()
                     noFacture = recordset[0][0]
@@ -144,6 +147,7 @@ def GetNoFactureMin():
                     req = "DELETE FROM matParams WHERE prmUser = 'NoLibre' AND prmInteger = %d ;" % value
                     retour = DB.ExecuterReq(req,commit = True,MsgBox="GestionInscription.GetNoFactureMin")
                     if retour != "ok" :
+                        DB.Close
                         return
                 # condition année civile en cours
                 if dateRet != None:
@@ -798,6 +802,7 @@ class Forfaits():
         else:
             retour = self.ChoixPiece(retour)
             if retour == None:
+                if not DBfourni: DB.Close()
                 return False
             self.dictPiece = DictTrack(listeChamps,retour)
         # Appel des lignes de la pièce pour ajouter dans le dictPiece

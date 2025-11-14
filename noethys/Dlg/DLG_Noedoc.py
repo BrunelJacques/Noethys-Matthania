@@ -5748,7 +5748,9 @@ class ModeleDoc():
     """ Importation d'un modèle pour un PDF """
     def __init__(self, IDmodele=None):
         self.IDmodele = IDmodele
-        
+        if not IDmodele:
+            mess = "\nDLG_Noedoc doit être initialisé avec un IDmodele en paramètre, ici IDmodele = %s"%str(IDmodele)
+            raise Exception(mess)
         # Importation infos sur organisateur pour le fond
         self.dictOrganisateur = self.ImportationOrganisateur() 
         

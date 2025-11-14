@@ -8,7 +8,6 @@
 #------------------------------------------------------------------------
 
 
-import Chemins
 from Utils.UTILS_Traduction import _
 import datetime
 import time
@@ -104,12 +103,26 @@ def ConvertDateDTenWX(date=None):
     return datewx
 
 def DateEngEnDateDDT(dateEng):
-    if dateEng in (None, "", "None") : return None
+    if not dateEng: return None
     if type(dateEng) == datetime.datetime : return dateEng
-    if len(dateEng) == 19 :
-        return datetime.datetime.strptime(dateEng, "%Y-%m-%d %H:%M:%S")
-    else :
-        return datetime.datetime.strptime(dateEng, "%Y-%m-%d %H:%M:%S.%f")
+    if not isinstance(dateEng,str): return dateEng
+
+    # Parse the string into a datetime object
+    if "-" in dateEng:
+        if ":" in dateEng:
+            frmt = '%Y-%m-%d %H:%M:%S'
+        else:
+            frmt = '%Y-%m-%d'
+    elif ":" in dateEng:
+        frmt = '%a %b %d %H:%M:%S %Y'
+    else:
+        frmt = '%a %b %d %Y'
+    try:
+        dt = datetime.datetime.strptime(dateEng, frmt)
+    except Exception as err:
+        dt= None
+        print(err)
+    return dt
 
 def DatetimeTimeEnStr(heure, separateur="h"):
     if heure == None :
@@ -343,5 +356,6 @@ if __name__ == "__main__":
     # Tests
     #print CalculerArrondi(arrondi_type="tranche_horaire", arrondi_delta=15, heure_debut=datetime.time(9, 25), heure_fin=datetime.time(9, 35))
     #print ArrondirDT(datetime.datetime.now(), datetime.timedelta(minutes=5))
-    print(FormatDelta(datetime.timedelta(hours=48, minutes=30)))
-
+    #print(FormatDelta(datetime.timedelta(hours=48, minutes=30)))
+    dte = DateEngEnDateDDT('Tue Mar 18 2025')
+    print(dte)
