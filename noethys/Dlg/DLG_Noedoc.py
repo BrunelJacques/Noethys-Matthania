@@ -140,7 +140,13 @@ class Facture():
             (_("Règlements affectés sur pièce(s) jointe"), "600.00 ¤", "{VENTILATION}"),
             (_("LIbellé pour qualifier le solde"), "Facture acquittée", "{LIB_SOLDE}"),
             (_("Solde dû sur piece(s) jointe"), "400.00 ¤", "{SOLDE}"),
-            ]
+            ("Libellé pour le report antérieur", "Reports antérieur :","{LIB_REPORTS}"),
+            ("Montant report ", "150.00 ¤", "{TOTAL_REPORTS}"),
+            ("Libellé pour qualifier le solde dû", "Total solde dû", "{LIB_SOLDE_DU}"),
+            ("Solde dû global", "400.00 ¤", "{SOLDE_DU}"),
+            ("Solde en lettres", "Douze Euros", "{SOLDE_LETTRES}"),
+
+        ]
 
         self.champs.extend(UTILS_Infos_individus.GetNomsChampsPossibles(mode="famille"))
         
@@ -327,6 +333,10 @@ class Rappel():
             (_(u"Date de fin"), u"21/12/2011", "{DATE_FIN}"),
             
             (_(u"Solde"), u"12.00 ¤", "{SOLDE}"),
+            ("Libellé pour le report antérieur", "Reports antérieur :", "{LIB_REPORTS}"),
+            ("Montant report ", "150.00 ¤", "{TOTAL_REPORTS}"),
+            ("LIbellé pour qualifier le solde dû", "Total solde dû", "{LIB_SOLDE_DU}"),
+            ("Solde dû global", "400.00 ¤", "{SOLDE_DU}"),
             (_(u"Solde en lettres"), _(u"Douze Euros"), "{SOLDE_LETTRES}"),
             ]
         

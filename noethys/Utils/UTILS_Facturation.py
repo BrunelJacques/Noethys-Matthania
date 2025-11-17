@@ -13,7 +13,7 @@ from Utils.UTILS_Traduction import _
 import Chemins
 import wx
 import datetime
-import sys
+import sys,os
 import traceback
 import FonctionsPerso as fp
 import wx.lib.agw.pybusyinfo as PBI
@@ -93,15 +93,15 @@ def ComposeLibelles(dictCompte,dictOptions):
 
     return {"{LIB_MONTANT}": libMontant,
             "{LIB_SOLDE}": libSolde,
-            "{LIB_REPORTS}": libReports, # ne sera pas exporté, seulement dans l'impression
+            "{LIB_REPORTS}": libReports,
             "{LIB_SOLDE_DU}": libSoldeDu,
             }
 
 def Nz(valeur):
     try:
-        u = float(valeur)
+        valeur = float(valeur)
     except:
-        valeur = 0
+        valeur = 0.0
     return valeur
 
 def DateEngEnDateDD(dateEng):
@@ -662,7 +662,8 @@ class Facturation():
         dictToPage.update(ComposeLibelles(dictToPage,dictOptions))
 
         # Gère la casse et le contenu des textes en concaténant si plusieurs factures nature diff
-        lstKeys = ["{TEXTE_NUMERO}","{NUM_FACTURE}","{NATURE}","{LIB_MONTANT}", "{LIB_SOLDE}", "{LIB_SOLDE_DU}"]
+        lstKeys = ["{TEXTE_NUMERO}","{NUM_FACTURE}","{NATURE}","{LIB_MONTANT}",
+                   "{LIB_SOLDE}", "{LIB_SOLDE_DU}", "{LIB_REPORTS}"]
         for key in lstKeys:
             if (key in list(dictChampsFusion.keys())) and (key[:4] != "{LIB"):
                 # ne concatène que si élément différent
@@ -675,23 +676,24 @@ class Facturation():
             if key[:4] != "{LIB":
                 dictChampsFusion[key] = dictChampsFusion[key].lower()
 
+        dictChampsFusion["{SOLDE_LETTRES}"] = UTILS_Conversion.trad(dictToPage["solde_du"],
+                                                              MONNAIE_SINGULIER,
+                                                              MONNAIE_DIVISION).strip().capitalize()
 
-        # vers cumuls tts pièces "{MONTANT}","{VENTILATION}","{SOLDE}"
-        lstKeys = ["montant","ventilation","solde"]
+        # vers cumuls tts pièces "{MONTANT}","{VENTILATION}","{SOLDE},{TOTAL_REPORTS},{SOLDE_DU}"
+        lstKeys = ["montant","ventilation","solde","total_reports","solde_du"]
         for key in lstKeys:
             keyup = f"{key.upper()}"
-            # présence d'un pièce précédente on cumule dans la clé lower
-            if key in list(dictChampsFusion.keys()):
+            # présence d'un pièce précédente on cumule dans la clé lower sauf le global
+            if not key in list(dictChampsFusion.keys()) or key in ("total_reports","solde_du"):
+                dictChampsFusion[key] = dictToPage[key]
+                dictChampsFusion["{%s}"%keyup] = "%.2f %s" % (dictToPage[key], SYMBOLE)
+            else:
+                # cumul des valeurs
                 valeur = dictChampsFusion[key] + dictToPage[key]
                 dictChampsFusion[key] += dictToPage[key]
                 dictChampsFusion["{%s}"%keyup] = "%.2f %s" % (valeur, SYMBOLE)
-            else:
-                dictChampsFusion[key] = dictToPage[key]
-                dictChampsFusion["{%s}"%keyup] = "%.2f %s" % (dictToPage[key], SYMBOLE)
 
-        dictToPage["{SOLDE_LETTRES}"] = UTILS_Conversion.trad(dictToPage["solde"],
-                                                              MONNAIE_SINGULIER,
-                                                              MONNAIE_DIVISION).strip().capitalize()
 
         # Fusion pour textes personnalisés
         if len(dictOptions["texte_introduction"]) > 0:
@@ -1315,8 +1317,8 @@ class Facturation():
                                 ar = "retour: "
 
                     dictAjoutTransport["label"] = texte
-                    dictAjoutTransport["montant"] = ft(dictAjoutTransport["prixTranspAller"] + dictAjoutTransport["prixTranspRetour"])
-                elif Nz(dictAjoutTransport["prixTranspAller"]) + Nz(dictAjoutTransport["prixTranspRetour"]) != FloatToDecimal(0.0) :
+                    dictAjoutTransport["montant"] = ft(dictAjoutTransport["prixTranspAller"]) + ft(dictAjoutTransport["prixTranspRetour"])
+                elif Nz(dictAjoutTransport["prixTranspAller"]) + Nz(dictAjoutTransport["prixTranspRetour"]) != (0.0) :
                     #cas d'un IDtransport à zéro mais des montants
                     dictAjoutTransport["label"] = 'Coût du transport'
                     dictAjoutTransport["montant"] = ft(Nz(dictAjoutTransport["prixTranspAller"]) + Nz(dictAjoutTransport["prixTranspRetour"]))
@@ -1630,20 +1632,23 @@ class Facturation():
         if len(lstNoAvo) > 0:
             if not conditionWhere: conditionWhere += "OR "
             conditionWhere += "(((matPieces.pieNoAvoir) In ( %s )))"%(str(lstNoAvo)[1:-1])
-
+        if len(conditionWhere) > 0:
+            conditionWhere = f"WHERE {conditionWhere}"
         req = """
-            SELECT matPieces.pieIDnumPiece, matPieces.pieIDfamille, prestations.IDprestation, matPieces.pieIDindividu,
-                    matPieces.pieIDactivite, matPieces.pieIDgroupe, matPieces.pieIDcategorie_tarif, matPieces.pieNature, 
-                    matPieces.pieNoFacture, matPieces.pieNoAvoir,
-                    factures.numero, pieDateFacturation, pieDateEcheance, factures.IDfacture
+            SELECT matPieces.pieIDnumPiece, matPieces.pieIDfamille, prestations.IDprestation, 
+                matPieces.pieIDindividu, matPieces.pieIDactivite, matPieces.pieIDgroupe, 
+                matPieces.pieIDcategorie_tarif, matPieces.pieNature, matPieces.pieNoFacture, 
+                matPieces.pieNoAvoir, factures.numero, pieDateFacturation, pieDateEcheance, 
+                factures.IDfacture
             FROM (factures 
             LEFT JOIN prestations ON factures.IDfacture = prestations.IDfacture) 
             LEFT JOIN matPieces ON prestations.IDcontrat = matPieces.pieIDnumPiece
-            WHERE %s         
+            %s         
             GROUP BY matPieces.pieIDnumPiece, matPieces.pieIDfamille, prestations.IDprestation, 
-                    matPieces.pieIDindividu, matPieces.pieIDgroupe, matPieces.pieIDcategorie_tarif, 
-                    matPieces.pieNature, matPieces.pieNoFacture, matPieces.pieNoAvoir,
-                    factures.numero, factures.date_edition
+                matPieces.pieIDindividu, matPieces.pieIDactivite, matPieces.pieIDgroupe, 
+                matPieces.pieIDcategorie_tarif, matPieces.pieNature, matPieces.pieNoFacture, 
+                matPieces.pieNoAvoir, factures.numero, pieDateFacturation, pieDateEcheance, 
+                factures.IDfacture
         ;""" % conditionWhere
         self.DB.ExecuterReq(req, MsgBox="UTILS_facturation.ConstruitListe3")
         retourReq = self.DB.ResultatReq()
@@ -1661,6 +1666,12 @@ class Facturation():
             le retour contient les champsFusion pour mail par famille (compte),
             les adresses fichiers dans dictCheminsPdf (liste reçue en clés ID pas numeros!
         """
+
+        if len(listeFactures + listePieces) == 0:
+            mess = "Aucune pièce ou facture reçue"
+            wx.MessageBox(mess,"UTILS_Facturation.Facturation.Impression")
+            return
+
         self.DB = GestionDB.DB()
 
         # Récupération des paramètres d'affichage
@@ -1757,8 +1768,23 @@ class Facturation():
             if nom.endswith(".pdf"):
                 nom = nom[:-4]
             nom = fp.NoPunctuation(nom)
-            nom = "%s %s.pdf" % (nom, today)
-            return f"{repertoire}{SEP}{nom}"
+            nom = f"{nom} {today}"
+            path = f"{repertoire}{SEP}{nom}.pdf"
+            if os.path.isfile(path) and repertoire != UTILS_Fichiers.GetRepTemp():
+                mess = "Un fichier précédent existe. Voulez-vous le conserver ?"
+                ret = wx.MessageBox(mess, "Nom Fichier",
+                                    style=wx.ICON_EXCLAMATION | wx.YES_NO)
+                if ret == wx.YES:
+                    i=1
+                    go = True
+                    while go and i < 20:
+                        testPath = f"{repertoire}{SEP}{nom}({i}).pdf"
+                        if os.path.isfile(testPath):
+                            i += 1
+                            continue
+                        path = testPath
+                        go = False
+            return path
 
         # Création des PDF à l'unité
         def CreationPDFeclates(repertoireCible=""):
@@ -1810,7 +1836,7 @@ class Facturation():
             self.EcritStatusbar(_("Création du PDF des factures en cours... veuillez patienter..."))
             try :
                 # ------------------------------------Lancement de l'impression ----------------------------------------
-                UTILS_Impression_facture.Impression(dictToPdf, dictOptions, IDmodele=dictOptions["IDmodele"],
+                ret = UTILS_Impression_facture.Impression(dictToPdf, dictOptions, IDmodele=dictOptions["IDmodele"],
                                                      ouverture=afficherDoc, nomFichier=nomFichier, mode=None)
                 self.EcritStatusbar("")
                 # Le zero signifie l'ensemble des IDpage
@@ -1845,18 +1871,19 @@ class Facturation():
 
         # final effacement
         if repertoireTemp:
+            # cas d'envoi email qui supprimera éventuellement les fichiers après
             removeFile = False
-        elif afficherDoc:
-            removeFile = True
+        elif dictOptions['repertoire_copie']:
+            # répertoire spécifique a été demandé
+            removeFile = False
         else:
-            # cas d'impression factures en lot, non affiché
+            # pas mail et pas de repertoire_copie demandé
             removeFile = True
-            mess = f"Supprimer le fichier créé ! \n\n{nomFichier}\n\nVoulez-vous le supprimer?"
-            ret = wx.MessageBox(mess,"Fin d'impression",style=wx.ICON_EXCLAMATION|wx.YES_NO)
-            if ret != wx.YES:
-                removeFile = False
 
         def DelFile(nomFichier):
+            if afficherDoc:
+                import time
+                time.sleep(2)  # Temporisation le temps d'ouvrir le fichier
             try:
                 os.remove(nomFichier)
                 print(nomFichier, "Supprimé")
@@ -1870,11 +1897,8 @@ class Facturation():
                 return ok
 
         if removeFile:
-            import os
             if os.path.isfile(nomFichier):
-                go = True
-                while go:
-                    go = DelFile(nomFichier)
+                DelFile(nomFichier)
             else:
                 print(nomFichier, "fichier non trouvé")
 

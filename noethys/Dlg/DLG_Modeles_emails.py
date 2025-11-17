@@ -61,7 +61,10 @@ class Dialog(wx.Dialog):
         # Bandeau
         titre = _("Modèles d'Emails")
         intro = _("Vous pouvez paramétrer ici des modèles d'Emails.")
-        self.SetTitle(titre)
+
+        if parent and parent.Name: parentName = parent.Name
+        else: parentName = "Test"
+        self.SetTitle(parentName + "-DLG_Modeles_emails")
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Emails_modele.png")
         
         # Catégorie
@@ -87,7 +90,7 @@ class Dialog(wx.Dialog):
         
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
-        self.bouton_fermer = CTRL_Bouton_image.CTRL(self, texte=_("Fermer"), cheminImage="Images/32x32/Fermer.png")
+        self.bouton_fermer = CTRL_Bouton_image.CTRL(self, texte=_("Valider"), cheminImage="Images/32x32/Valider.png")
 
         self.__set_properties()
         self.__do_layout()
@@ -201,7 +204,7 @@ class Dialog(wx.Dialog):
         UTILS_Aide.Aide("ModlesdEmails")
 
     def OnBoutonFermer(self, event): 
-        self.EndModal(wx.ID_CANCEL)        
+        self.EndModal(wx.ID_OK)
 
 
 

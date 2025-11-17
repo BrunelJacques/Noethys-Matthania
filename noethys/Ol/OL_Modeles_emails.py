@@ -13,8 +13,6 @@ import Chemins
 from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
-from Ctrl import CTRL_Bouton_image
-import os
 import GestionDB
 from Utils import UTILS_Utilisateurs
 

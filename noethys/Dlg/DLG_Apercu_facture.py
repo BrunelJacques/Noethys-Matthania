@@ -45,7 +45,7 @@ class Dialog(wx.Dialog):
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
         if mail:
             label = "Envoi mail"
-        else: label = "Aperçu"
+        else: label = "Aperçu Impression"
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=label, cheminImage="Images/32x32/Apercu.png")
         self.bouton_annuler = CTRL_Bouton_image.CTRL(self, texte=_("Annuler"), cheminImage="Images/32x32/Annuler.png")
 

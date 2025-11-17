@@ -9,17 +9,20 @@
 # Derive de OL_Prestations.py
 #------------------------------------------------------------------------
 
-from Utils.UTILS_Traduction import _
-import FonctionsPerso as fp
 import wx
 import Chemins
+import copy
+import datetime
 import GestionDB
+
+from Utils.UTILS_Traduction import _
+import FonctionsPerso as fp
+
+from Dlg import DLG_Apercu_facture
 from Gest import GestionInscription
 from Data import DATA_Tables
-from Utils import UTILS_Facturation
-import datetime
 import wx.lib.agw.pybusyinfo as PBI
-import copy
+from Utils import UTILS_Facturation
 from Utils import UTILS_Config
 from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
 from Ctrl.CTRL_ObjectListView import ObjectListView, ColumnDefn, Filter, CTRL_Outils, PanelAvecFooter # CTRL_Outils appelé by parent
@@ -81,6 +84,7 @@ class ListView(ObjectListView):
         self.listeActivites = kwds.pop("activites", None)
         self.factures = kwds.pop("factures", None)
         self.parent = kwds.pop("parent", None)
+        self.dictOptions = {}
         ObjectListView.__init__(self, parent, *args, **kwds)
 
         if hasattr(parent,'DB'):
@@ -505,49 +509,48 @@ class ListView(ObjectListView):
         menuPop.Destroy()
 
     def EnvoyerEmail(self, event):
+        """ Envoyer la facture par Email """
         listePieces = self.GetSelectedObjects()
+        if listePieces:
+            self.dictOptions = self.GetOptions(mail=True)  # sera repris par creation pdf
+            if not self.dictOptions:
+                return
+            IDmodel = self.dictOptions["IDmodelMail"]
+            # Envoi du mail
+            from Utils import UTILS_Envoi_email
+            firstPiece = listePieces[0]
+            nature = firstPiece.nature
+            if nature == "FAC":
+                ID = firstPiece.noFacture
+            elif nature == "AVO":
+                ID = firstPiece.noAvoir
+            else: ID = firstPiece.IDnumPiece
+            IDfamille = firstPiece.IDfamille
+            nomDoc = f"{nature} {ID}"
+            UTILS_Envoi_email.EnvoiEmailFamille(parent=self,
+                                                IDfamille=IDfamille,
+                                                nomDoc= nomDoc ,
+                                                CreationPDF=self.CreationPDF,
+                                                categorie="facture",
+                                                IDmodel=IDmodel)
 
-        if listePieces != None:
-            if len(listePieces) > 0 :
-                # Envoi du mail
-                from Utils import UTILS_Envoi_email
-                firstPiece = listePieces[0]
-                nature = firstPiece.nature
-                if nature == "FAC":
-                    ID = firstPiece.noFacture
-                elif nature == "AVO":
-                    ID = firstPiece.noAvoir
-                else: ID = firstPiece.IDnumPiece
-                horodatage = datetime.datetime.now().strftime("%Y%m%d")
-                IDdoc = "%s-%d" % (horodatage,ID)
-                IDfamille = firstPiece.IDfamille
-                #from Utils import UTILS_Fichiers
-                #repertoire = UTILS_Fichiers.GetRepTemp()
-                nomDoc = "%s%s.pdf" %(nature,IDdoc)
-                UTILS_Envoi_email.EnvoiEmailFamille(parent=self, IDfamille=IDfamille,
-                                                    nomDoc= nomDoc ,
-                                                    categorie="facture")
-                print(nomDoc)
-                print()
-
-    def CreationPDF(self, nomDoc="", afficherDoc=True,repertoireTemp=False):
+    def CreationPDF(self, nomDoc="", afficherDoc=True,repertoireTemp=True):
         """ Création du PDF pour Email """
-        dictChampsFusion = {}
-        dictChampsFusion["zz"] = None
         listePieces = self.GetListeIDpieces()
-        if listePieces != None:
-            if len(listePieces) > 0 :
-                #from Utils import UTILS_Facturation
-                facturation = UTILS_Facturation.Facturation()
-                resultat = facturation.Impression(listePieces=listePieces,
-                                                  nomDoc=nomDoc,
-                                                  afficherDoc=afficherDoc,
-                                                  repertoireTemp=repertoireTemp)
-                if resultat == False :
-                    return False
-                dictChampsFusion, dictPieces = resultat
-                del facturation
-        return dictChampsFusion[list(dictChampsFusion.keys())[0]]
+        if listePieces:
+            dictOptions = self.dictOptions
+            if not dictOptions:
+                return
+            facturation = UTILS_Facturation.Facturation()
+            resultat = facturation.Impression(listePieces=listePieces,
+                                              nomDoc=nomDoc,
+                                              afficherDoc=afficherDoc,
+                                              repertoireTemp=repertoireTemp,
+                                              dictOptions=dictOptions)
+            if resultat == False :
+                return False
+            del facturation
+            return resultat
 
     def GetTracksCoches(self):
         return self.GetSelectedObjects()
@@ -560,9 +563,29 @@ class ListView(ObjectListView):
         return listePieces
         #fin GetListeIDpieces
 
+    def GetOptions(self,mail=True):
+        dlg = DLG_Apercu_facture.Dialog(self,
+                                        titre="Sélection des paramètres pour factures",
+                                        intro="Sélectionnez ici les paramètres d'affichage des factures.",
+                                        mail=mail)
+        if dlg.ShowModal() == wx.ID_OK:
+            dictOptions = dlg.GetParametres()
+            dlg.Destroy()
+            return dictOptions
+        else:
+            return False
+
     def LanceImpression(self,lancement,liste):
+        dictOptions = self.GetOptions(mail=False)
+        if not dictOptions:
+            return
         fFact = UTILS_Facturation.Facturation()
-        fFact.Impression(listePieces=liste, afficherDoc=True)
+        nomDoc = f"{lancement} {self.IDpayeur}"
+        fFact.Impression(listePieces=liste,
+                         nomDoc=nomDoc,
+                         afficherDoc=True,
+                         dictOptions=dictOptions,
+                         repertoireTemp=False)
         del fFact
         #fin LanceImpression
 

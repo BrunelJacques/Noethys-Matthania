@@ -8,15 +8,15 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
-import Chemins
-from Utils.UTILS_Traduction import _
 import wx
 import GestionDB
+import Chemins
 
 from Dlg import DLG_Apercu_facture
-from Utils.UTILS_Decimal import FloatToDecimal
 
+from Utils.UTILS_Traduction import _
+from Utils import UTILS_Facturation
+from Utils.UTILS_Decimal import FloatToDecimal
 from Utils import UTILS_Dates
 from Utils import UTILS_Utilisateurs
 from Utils import UTILS_Config
@@ -97,6 +97,7 @@ class ListView(FastObjectListView):
         self.filtres = None
         self.selectionID = None
         self.selectionTrack = None
+        self.dictOptions = {}
         FastObjectListView.__init__(self, *args, **kwds)
         # Binds perso
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnActivated)
@@ -671,10 +672,9 @@ class ListView(FastObjectListView):
     def Reedition(self, event):
         lstIDfactures = self.GetlstIDfactures()
         if lstIDfactures:
-            dictOptions = self.GetOptions(False)
+            dictOptions = self.GetOptions(mail=False)
             if not dictOptions:
                 return
-            from Utils import UTILS_Facturation
             facturation = UTILS_Facturation.Facturation()
             facturation.Impression(listeFactures=lstIDfactures,
                                    dictOptions=dictOptions)
@@ -683,6 +683,10 @@ class ListView(FastObjectListView):
         """ Envoyer la facture par Email """
         lstIDfactures = self.GetlstIDfactures()
         if lstIDfactures:
+            self.dictOptions = self.GetOptions(mail=True) # sera repris par creation pdf
+            if not self.dictOptions:
+                return
+            IDmodel = self.dictOptions["IDmodelMail"]
             # Envoi du mail
             from Utils import UTILS_Envoi_email
             total = self.Selection()[0].total
@@ -695,22 +699,22 @@ class ListView(FastObjectListView):
                                                 IDfamille=IDfamille,
                                                 nomDoc= nomDoc ,
                                                 CreationPDF=self.CreationPDF_mail,
-                                                categorie="facture")
+                                                categorie="facture",
+                                                IDmodel=IDmodel)
 
     def CreationPDF_mail(self, nomDoc="",afficherDoc=True,repertoireTemp=True):
         """ Création du PDF pour Email  Indissociable de EnvoyerEmail car appelé par UTILS_Envoi_email"""
         lstIDfactures = self.GetlstIDfactures()
         if lstIDfactures:
-            dictOptions = self.GetOptions(True)
+            dictOptions = self.dictOptions
             if not dictOptions:
                 return
-            from Utils import UTILS_Facturation
             facturation = UTILS_Facturation.Facturation()
             resultat = facturation.Impression(listeFactures=lstIDfactures,
                                               nomDoc=nomDoc,
                                               afficherDoc=afficherDoc,
-                                              repertoireTemp=repertoireTemp,
-                                              dictOptions = dictOptions)
+                                              dictOptions=dictOptions,
+                                              repertoireTemp=repertoireTemp,)
             if resultat == False :
                 return False
             del facturation

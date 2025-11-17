@@ -726,7 +726,9 @@ class ListView(FastObjectListView):
         track = self.Selection()[0]
         # Envoi du mail
         from Utils import UTILS_Envoi_email
-        UTILS_Envoi_email.EnvoiEmailFamille(parent=self, IDfamille=track.IDfamille, nomDoc=FonctionsPerso.GenerationNomDoc("COTISATION", "pdf") , categorie="cotisation")
+        UTILS_Envoi_email.EnvoiEmailFamille(parent=self, IDfamille=track.IDfamille,
+                                            nomDoc=FonctionsPerso.GenerationNomDoc("COTISATION", "pdf") ,
+                                            categorie="cotisation")
 
     def CreationPDF(self, nomDoc="", afficherDoc=True):        
         """ Création du PDF pour Email """

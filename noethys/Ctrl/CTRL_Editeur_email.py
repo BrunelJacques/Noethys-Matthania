@@ -117,10 +117,15 @@ MOTSCLES = {
                 ( "{DATE_ECHEANCE}", _("Date d'échance") ),
                 ( "{LIB_MONTANT}", _("Libellé pour qualifier le montant") ),
                 ( "{MONTANT}", _("Montant de la facture") ),
-                ( "{VENTILATION}", _("Règlements affectés à la facture") ),
-                ( "{LIB_SOLDE}", _("Libellé pour qualifier le solde") ),
+                ( "{VENTILATION}", _("Règlements affectés") ),
+                ( "{LIB_SOLDE}", _("Facture acquittée") ),
                 ( "{SOLDE}", _("Reste dû sur la facture") ),
-                ],
+                ( "{LIB_REPORTS}","Reports de l'antérieur"),
+                ( "{TOTAL_REPORTS}","Montant report "),
+                ( "{LIB_SOLDE_DU}","Total solde dû"),
+                ( "{SOLDE_DU}", "Solde dû global"),
+                ( "{SOLDE_LETTRES}","Solde en lettres"),
+    ],
 
     "rappel" : [
                 ( "{DATE_EDITION_RAPPEL}", _("Date d'édition de la lettre de rappel") ),

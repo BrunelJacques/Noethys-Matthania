@@ -73,9 +73,9 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL):
         self.Append(propriete)
 
         # Répertoire de sauvegarde
-        propriete = wxpg.DirProperty(label=_("Répertoire pour copie du fichier"),
+        propriete = wxpg.DirProperty(label=_("Garder une copie du fichier dans:"),
                                      name="repertoire_copie", value="")
-        propriete.SetHelpString(_("Enregistrer une copie de chaque document dans le répertoire sélectionné. Sinon laissez vide ce champ."))
+        propriete.SetHelpString(_("Pour enregistrer une copie de chaque document dans le répertoire sélectionné. Sinon laissez vide ce champ."))
         self.Append(propriete)
 
         # Catégorie
@@ -573,8 +573,10 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL):
         if name == "IDmodele":
             from Dlg import DLG_Modeles_docs
             dlg = DLG_Modeles_docs.Dialog(self, categorie="facture")
-            dlg.ShowModal()
-            ID = dlg.GetIDmodele()
+            ret = dlg.ShowModal()
+            ID = None
+            if ret == wx.ID_OK:
+                ID = dlg.GetIDmodele()
             dlg.Destroy()
             if ID:
                 propriete.SetValue(ID)
@@ -582,8 +584,10 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL):
         elif name == "IDmodelMail":
             from Dlg import DLG_Modeles_emails
             dlg = DLG_Modeles_emails.Dialog(self, categorie="facture")
-            dlg.ShowModal()
-            ID = dlg.GetIDmodele()
+            ret = dlg.ShowModal()
+            if ret == wx.ID_OK:
+                ID = dlg.GetIDmodele()
+            else: ID = None
             dlg.Destroy()
             if ID:
                 propriete.SetValue(ID)

@@ -76,10 +76,10 @@ class Dialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnBoutonOk, self.bouton_ok)
         
         if self.IDmodele != None :
-            self.SetTitle(_("Modification d'un modèle d'Email"))
+            self.SetTitle("Modification d'un modèle d'Email")
             self.Importation()
         else:
-            self.SetTitle(_("Saisie d'un modèle d'Email"))
+            self.SetTitle("Saisie d'un modèle d'Email")
         
 
     def __set_properties(self):

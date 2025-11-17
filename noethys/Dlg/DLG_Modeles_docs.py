@@ -10,7 +10,6 @@
 
 
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
@@ -103,7 +102,11 @@ class Dialog(wx.Dialog):
         # Bandeau
         titre = _("Modèles de documents")
         intro = _("Vous pouvez ici paramétrer les modèles de documents PDF. Noethys dispose d'un outil de mise en page qui vous permet de créer rapidement et facilement des documents assortis à la charte graphique de votre établissement.")
-        self.SetTitle(titre)
+
+        if parent and parent.Name: parentName = parent.Name
+        else: parentName = "Test"
+        self.SetTitle(parentName + "-DLG_Modeles_docs")
+
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Document.png")
         
         # Catégorie
@@ -132,7 +135,7 @@ class Dialog(wx.Dialog):
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
         self.bouton_fonds = CTRL_Bouton_image.CTRL(self, texte=_("Fonds de page"), cheminImage="Images/32x32/Document_fond.png")
-        self.bouton_fermer = CTRL_Bouton_image.CTRL(self, texte=_("Fermer"), cheminImage="Images/32x32/Fermer.png")
+        self.bouton_fermer = CTRL_Bouton_image.CTRL(self, texte=_("Valider"), cheminImage="Images/32x32/Valider.png")
 
         self.__set_properties()
         self.__do_layout()
@@ -269,8 +272,7 @@ class Dialog(wx.Dialog):
         self.ctrl_modeles.MAJ() 
 
     def OnBoutonFermer(self, event):
-        self.EndModal(wx.ID_CANCEL)
-
+        self.EndModal(wx.ID_OK)
 
 
 if __name__ == "__main__":

@@ -36,7 +36,7 @@ import mimetypes
 from Outils import mail
 
 def EnvoiEmailFamille(parent=None, IDfamille=None, nomDoc="", categorie="", listeAdresses=[],
-                      visible=True, log=None, CreationPDF=None, IDmodele=None):
+                      visible=True, log=None, CreationPDF=None, IDmodel=None):
     # Création du PDF
     if CreationPDF == None and hasattr(parent,"CreationPDF"):
         CreationPDF = parent.CreationPDF
@@ -78,10 +78,10 @@ def EnvoiEmailFamille(parent=None, IDfamille=None, nomDoc="", categorie="", list
 
     # envoi des pièces jointes communes à toutes les adresses
     dlg.SetPiecesJointes(liste_pieces)
-    if IDmodele == None :
+    if IDmodel == None :
         dlg.ChargerModeleDefaut()
     else :
-        dlg.ChargerModele(IDmodele)
+        dlg.ChargerModele(IDmodel)
 
     if visible == True :
         # Fenêtre visible

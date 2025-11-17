@@ -887,8 +887,7 @@ class MainFrame(wx.Frame):
                 return False
 
             # Vérifie que le fichier n'est pas déjà utilisé
-            if dictResultats["fichier"][
-                0] == True and modeFichier != "internet":
+            if dictResultats["fichier"][0] == True and modeFichier != "internet":
                 dlgprogress.Destroy()
                 dlg = wx.MessageDialog(self, _("Le fichier existe déjà."),
                                        _("Erreur de création de fichier"),
