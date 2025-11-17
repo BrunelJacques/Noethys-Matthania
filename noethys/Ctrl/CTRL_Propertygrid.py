@@ -396,7 +396,7 @@ class Propriete_multichoix(ArrayStringProperty):
             return retval
         return False
 
-# ---- Implémentation de la grille PropertyGrid ------------------------------------
+# ---- Implémentation de la grille PropertyGrid ------------------------------------------
 
 class CTRL(wxpg.PropertyGrid) :
     def __init__(self, parent, style=wxpg.PG_SPLITTER_AUTO_CENTER):
@@ -435,7 +435,8 @@ class CTRL(wxpg.PropertyGrid) :
     def Reinitialisation(self, afficher_dlg=True):
         # Demande confirmation
         if afficher_dlg == True :
-            dlg = wx.MessageDialog(None, _("Souhaitez-vous vraiment réinitialiser tous les paramètres ?"), _("Paramètres par défaut"), wx.YES_NO|wx.NO_DEFAULT|wx.CANCEL|wx.ICON_QUESTION)
+            mess = "Souhaitez-vous vraiment réinitialiser tous les paramètres ?"
+            dlg = wx.MessageDialog(None,mess, "Paramètres par défaut", wx.YES_NO|wx.NO_DEFAULT|wx.CANCEL|wx.ICON_QUESTION)
             reponse = dlg.ShowModal()
             dlg.Destroy()
             if reponse != wx.ID_YES :
@@ -450,7 +451,7 @@ class CTRL(wxpg.PropertyGrid) :
     def GetParametres(self):
         return copy.deepcopy(self.GetPropertyValues())
 
-# --- Boutons habituellement ajoutés à droite de la grille par le grand parent ----------
+# ---- Boutons habituellement ajoutés à droite de la grille par le grand parent ----------
 
 class Bouton_reinit(wx.BitmapButton):
     def __init__(self, parent, ctrl_parametres=None):
@@ -475,7 +476,7 @@ class Bouton_sauve(wx.BitmapButton):
 
 # --------------------------------------- TESTS ----------------------------------------------------------------------------------------
 
-# Pour tests il fallait un parent avec bouton d'actions ----------------------------------
+# ---- Pour tester il fallait CTRL_TEST comme parent avec bouton d'action ----------------
 
 class CTRL_TEST(CTRL) :
     def __init__(self, parent):
@@ -728,7 +729,6 @@ class MyFrame(wx.Frame):
     def OnBoutonTest(self, event):
         """ Bouton Test """
         self.ctrl.Sauvegarde() 
-
 
 if __name__ == '__main__':
     app = wx.App(0)

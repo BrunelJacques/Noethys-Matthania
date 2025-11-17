@@ -597,7 +597,7 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
         self.IDfamille = IDfamille
         
         # Utilisateur en cours
-        self.IDutilisateur = UTILS_Identification.GetIDutilisateur()
+        self.IDutilisateur = UTILS_Identification.GetIDutilisateur(facultatif = True)
 
         # Périodes de gestion
         self.gestion = UTILS_Gestion.Gestion(self)

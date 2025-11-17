@@ -610,9 +610,10 @@ class ListView(FastObjectListView):
     # ------- Actions sur les factures cochées ----------------
 
     def GetOptions(self,mail=True):
-        dlg = DLG_Apercu_facture.Dialog(None,
+        dlg = DLG_Apercu_facture.Dialog(self,
                                         titre="Sélection des paramètres pour factures",
-                                        intro="Sélectionnez ici les paramètres d'affichage des factures.")
+                                        intro="Sélectionnez ici les paramètres d'affichage des factures.",
+                                        mail=mail)
         if dlg.ShowModal() == wx.ID_OK:
             dictOptions = dlg.GetParametres()
             dlg.Destroy()

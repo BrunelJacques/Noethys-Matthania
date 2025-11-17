@@ -237,8 +237,8 @@ class Panel(wx.Panel):
         grid_sizer_boutons.Add(self.bouton_supprimer, 0, wx.ALL, 0)
         grid_sizer_boutons.Add( (2, 2), 0, wx.ALL, 0)
         grid_sizer_boutons.Add(self.bouton_dupliquer, 0, wx.ALL, 0)
-        grid_sizer_boutons.Add(self.bouton_email, 0, wx.ALL, 0)
         grid_sizer_boutons.Add(self.bouton_imprimer, 0, wx.ALL, 0)
+        grid_sizer_boutons.Add(self.bouton_email, 0, wx.ALL, 0)
         grid_sizer_boutons.Add(self.bouton_ventilationAuto, 0, wx.ALL, 0)
         grid_sizer_reglements.Add(grid_sizer_boutons, 1, wx.ALL, 0)
         

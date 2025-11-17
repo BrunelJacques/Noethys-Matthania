@@ -12,16 +12,18 @@ import wx
 
 DICT_UTILISATEUR = {} # utilIsé comme variable globale
 
-def GetIDutilisateur():
+def GetIDutilisateur(facultatif=False):
     """ Récupère le IDutilisateur actif dans la fenêtre principale """
     IDutilisateur = None
+    dictUtilisateur = None
     topWindow = wx.GetApp().GetTopWindow()
     if topWindow:
         nomWindow = topWindow.GetName()
     else: nomWindow = None
     if nomWindow == "general" : 
         dictUtilisateur = topWindow.dictUtilisateur
-    else: dictUtilisateur = GetDictUtilisateur()
+    elif not facultatif:
+        dictUtilisateur = GetDictUtilisateur()
 
     if dictUtilisateur:
         IDutilisateur = dictUtilisateur["IDutilisateur"]

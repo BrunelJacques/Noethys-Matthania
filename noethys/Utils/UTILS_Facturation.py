@@ -1754,10 +1754,10 @@ class Facturation():
                     nom = f"{lstNomFamilles[0]}"
                 else:
                     nom = "Factures"
-            if not nom.endswith(".pdf"):
-                nom = "%s.pdf" % (nom)
+            if nom.endswith(".pdf"):
+                nom = nom[:-4]
             nom = fp.NoPunctuation(nom)
-            nom = "%s %s" % (nom, today)
+            nom = "%s %s.pdf" % (nom, today)
             return f"{repertoire}{SEP}{nom}"
 
         # Création des PDF à l'unité

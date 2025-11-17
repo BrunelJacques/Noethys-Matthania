@@ -538,31 +538,37 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL):
         WHERE categorie = 'facture'
         ORDER BY nom;""" % (table)
         DB.ExecuterReq(req, MsgBox="CTRL_Factures_options.MAJ_modele")
-        listeDonnees = DB.ResultatReq()
+        listeDocuments = DB.ResultatReq()
         DB.Close()
-        self.dictDonnees = {}
-        choix = wxpg.PGChoices()
+        dictDonnees = {}
+        pgChoices = wxpg.PGChoices()
         selectionDefaut = None
-        for record in listeDonnees:
-            dicTemp = {}
+        for record in listeDocuments:
             ix = 0
             ID = record[0]
+            dicTemp = {} # dictTemp contient les valeurs des documents stockés
             for champ in lstChamps:
                 dicTemp[champ] = record[ix]
                 ix += 1
-            choix.Add(dicTemp["nom"], ID)
-            self.dictDonnees[ID] = dicTemp
+            pgChoices.Add(dicTemp["nom"], ID)
+            dictDonnees[ID] = dicTemp
             if dicTemp["defaut"]:
                 selectionDefaut = ID
         propriete = self.GetPropertyByName(name)
         if propriete:
-            propriete.SetChoices(choix)
+            oldValue = propriete.GetValue()
+            if oldValue in dictDonnees.keys():
+                selection = oldValue
+            elif selectionDefaut:
+                selection = selectionDefaut
+            else: selection = None
+            propriete.SetChoices(pgChoices)
             self.RefreshProperty(propriete)
-            if selectionDefaut != None:
-                propriete.SetValue(selectionDefaut)
+            if selection:
+                propriete.SetValue(selection)
 
     def OnBoutonParametres(self, propriete=None):
-        # ancienneValeur = propriete.GetValue()
+
         name = propriete.GetName()
         if name == "IDmodele":
             from Dlg import DLG_Modeles_docs
@@ -572,16 +578,16 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL):
             dlg.Destroy()
             if ID:
                 propriete.SetValue(ID)
-            self.MAJ_modeles()
+            self.MAJpropriete("IDmodele", "documents_modeles")
         elif name == "IDmodelMail":
             from Dlg import DLG_Modeles_emails
-            dlg = DLG_Modeles_emails.Dialog(self, categorie="recu_reglement")
+            dlg = DLG_Modeles_emails.Dialog(self, categorie="facture")
             dlg.ShowModal()
             ID = dlg.GetIDmodele()
             dlg.Destroy()
             if ID:
                 propriete.SetValue(ID)
-            self.MAJ_modeles()
+            self.MAJpropriete("IDmodelMail", "modeles_emails")
 
 # Gestion des messages en bas de page ----------------------------------------------
 
