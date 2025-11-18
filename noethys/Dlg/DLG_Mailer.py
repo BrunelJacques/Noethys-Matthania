@@ -462,7 +462,7 @@ class Dialog(wx.Dialog):
                 if type(valeur) == int: valeur = str(valeur)
                 if type(valeur) == bool: valeur = str(valeur)
                 if type(valeur) == datetime.date: valeur = UTILS_Dates.DateDDEnFr(valeur)
-                texte = texte.replace(motcle, valeur)
+                texte = texte.replace(motcle, str(valeur))
 
             # Mémorisation du message
             message = UTILS_Envoi_email.Message(

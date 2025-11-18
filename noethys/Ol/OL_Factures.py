@@ -670,14 +670,18 @@ class ListView(FastObjectListView):
         return lstIDfactures
 
     def Reedition(self, event):
+        self.ImprimerItems(afficherDoc=True)
+
+    def ImprimerItems(self,afficherDoc=True):
         lstIDfactures = self.GetlstIDfactures()
         if lstIDfactures:
             dictOptions = self.GetOptions(mail=False)
             if not dictOptions:
                 return
             facturation = UTILS_Facturation.Facturation()
-            facturation.Impression(listeFactures=lstIDfactures,
-                                   dictOptions=dictOptions)
+            facturation.Impression(listeFactures = lstIDfactures,
+                                   afficherDoc = afficherDoc,
+                                   dictOptions = dictOptions)
     
     def EnvoyerEmail(self, event):
         """ Envoyer la facture par Email """
@@ -729,14 +733,14 @@ class ListView(FastObjectListView):
             intro = None
         return intro, total
 
+    # -------- Actions sur la liste OLV affichée ---------------
+
     def GetPrinter(self):
         from Utils import UTILS_Printer
         txtIntro, txtTotal = self.GetTextesImpression()
         return UTILS_Printer.ObjectListViewPrinter(self, titre=_("Liste des factures"),
                                                    intro=txtIntro, total=txtTotal,
                                                    format="A", orientation=wx.PORTRAIT)
-
-    # -------- Actions sur la liste OLV affichée ---------------
 
     def Apercu(self, event=None):
         prt = self.GetPrinter()

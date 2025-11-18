@@ -90,7 +90,7 @@ def GetTexteFiltres(filtres):
     if len(listeTextes) > 0 :
         texte = " | ".join(listeTextes) + "."
     else :
-        texte = _("Aucun.")
+        texte = "Poser des filtres pour afficher une liste."
     return texte
 
 # -------------------------------------------------------------------------------------------------------------------------------
@@ -154,7 +154,7 @@ class CTRL_Filtres(wx.Panel):
         
     def MAJ(self):
         # MAJ du HTML
-        texte = _("<FONT SIZE=-1><B>Filtres de sélection :</B> %s</FONT>") % GetTexteFiltres(self.filtres)
+        texte = _("<FONT SIZE=-1><B>Choix de sélection :</B> %s</FONT>") % GetTexteFiltres(self.filtres)
         self.ctrl_html.SetTexte(texte)
         # MAJ du CTRL_Factures
         if self.ctrl_factures != None :

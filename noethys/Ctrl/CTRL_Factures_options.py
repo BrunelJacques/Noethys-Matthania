@@ -511,8 +511,8 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL):
         for nom, valeur in dictParametres.items():
             propriete = self.GetPropertyByName(nom)
             # remet toujours la mémorisation par défaut, ne reproduit pas l'antérieur
-            if nom == "memoriser_les_parametres" and not valeur:
-                valeur = True
+            if nom == "memoriser_les_parametres":
+                valeur = False
             propriete.SetValue(valeur)
 
     def Sauvegarde(self, forcer=False):

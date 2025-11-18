@@ -522,11 +522,13 @@ class Facturation():
             if dictToPage["nature"] == "AVO": signe = -1
             if dictToPage["nature"] in ("DEV", "RES"):
                 signe = 0 # les devis et réservation n'ont pas de prestation encore due
+            """
             if montant != (mttPieces * signe):
                 mess = "Total Prestations: %.2f, total Pieces: %.2f, pour famille %d!"%(montant,mttPieces,IDfamille)
                 mess += "\nsur pièce : %s"%dictToPage["numero"]
                 wx.MessageBox(mess, "Incohérence dans les données")
                 return None
+            """
 
             # Insert les montants pour le compte
             dictToPage["ventilation"] = ventilation
@@ -575,23 +577,28 @@ class Facturation():
                         period = "AutresDus"
                         dictToPage["reports"][period] = {"Deb":mtt}
                     dictToPage["total_reports"] -= mtt
-            duReel = self.dictSoldes[IDfamille]['prestations']
-            duReel -= self.dictSoldes[IDfamille]['reglements']
-            duPage = - dictToPage["ventilation"]
-            if dictToPage['nature'] in ['FAC', 'AVO', 'COM']:
-                duPage += dictToPage["montant"]
-            duPage += dictToPage["total_reports"]
-            mtt = duPage - FloatToDecimal(duReel)
-            if abs(mtt) >= 0.1:
-                period = "Reprise"
-                if mtt > 0:
-                    dictToPage["reports"][period] = {"Crédit": mtt}
-                else:
-                    dictToPage["reports"][period] = {"Débit": mtt}
-                dictToPage["total_reports"] -= mtt
+            if IDfamille in self.dictSoldes:
+                duReel = self.dictSoldes[IDfamille]['prestations']
+                duReel -= self.dictSoldes[IDfamille]['reglements']
+                duPage = - dictToPage["ventilation"]
+                if dictToPage['nature'] in ['FAC', 'AVO', 'COM']:
+                    duPage += dictToPage["montant"]
+                duPage += dictToPage["total_reports"]
+                mtt = duPage - FloatToDecimal(duReel)
+                if abs(mtt) >= 0.1:
+                    period = "Reprise"
+                    if mtt > 0:
+                        dictToPage["reports"][period] = {"Crédit": mtt}
+                    else:
+                        dictToPage["reports"][period] = {"Débit": mtt}
+                    dictToPage["total_reports"] -= mtt
+            else:
+                dictToPage["reports"]["reprise"] = {"Crédit": 0.0}
+                dictToPage["reports"]["reprise"] = {"Débit": 0.0}
+                dictToPage["total_reports"] = 0.0
 
-            if abs(dictToPage["total_reports"]) < FloatToDecimal(0.1) : dictToPage["total_reports"] = FloatToDecimal(0)
-
+            if abs(dictToPage["total_reports"]) < FloatToDecimal(0.1):
+                dictToPage["total_reports"] = FloatToDecimal(0)
             return
             #fin defReportImpayes
 
@@ -1475,7 +1482,7 @@ class Facturation():
             return False
 
         # -------- fonction qui alimente les clés dictVentilations, dictDonnees -----------
-        def ajoutSquelette(retourReq):
+        def ajoutSquelette(retourReq, dictIDfournis):
             ix = 0 # indice du record dans recordset
             for (IDpiece,IDfamille,IDprestation,IDindividu,IDactivite,IDgroupe,IDtarif,
                  nature,noFacture,noAvoir,noFactures,date_edition, date_echeance,
@@ -1507,7 +1514,7 @@ class Facturation():
                 tplDevis = ("DEV", "RES", "COM")
                 if nature in tplDevis:
                     IDpage = tplDevis.index(nature)
-                    noFactures = 0
+                    noFactures = IDpage
                 elif noFactures == noFacture and (nature in ("FAC", "AVO")):
                     IDpage = noFactures
                     nature = "FAC"
@@ -1516,6 +1523,10 @@ class Facturation():
                 else:
                     raise Exception("Pb Piece %d!!! nature %s, noFacture %d, noAvoir %d, facture %d"%(IDpiece, nature,noFacture,
                                                                                             noAvoir, noFactures))
+
+                if not IDfacture or not IDfacture in dictIDfournis:
+                    # pour le cas de listes de devis fournis en liste piece
+                    dictIDfournis[IDpiece] = IDpage
 
                 # Alimente DictDonnees niveau famille
                 if IDfamille not in self.dictDonnees:
@@ -1565,12 +1576,8 @@ class Facturation():
                             lstNoFact.append(noAvoir)
                     if not noFactures in lstNoFact:
                         lstNoFact.append(noFactures)
-            return
 
-        # Premier appel selon la listePieces  fournie
-        conditionWhere = ""
-
-        #recherche des éléments de base de la piece
+        # premier appel recherche des éléments de base de la piece
         if len(listePieces) > 0:
             conditionWhere ="(matPieces.pieIDnumPiece In (%s)) "% str(listePieces)[1:-1]
             req = """
@@ -1584,7 +1591,6 @@ class Facturation():
             self.DB.ExecuterReq(req, MsgBox="UTILS_facturation.ConstruitListe")
             retourReq = self.DB.ResultatReq()
             # Sépare les devis des factures
-            ixNat,ixFact, ixAvo = 7, 8, 8  # position des champs dans le record
             lstDevis = []
             for record in retourReq:
                 (IDpiece,IDfamille,prestation,individu,act,grp,tar,nature,noFacture,noAvoir,
@@ -1608,7 +1614,7 @@ class Facturation():
                 dictIDfournis[IDpiece] = IDpage
 
             # ajoute les non-factures dans le squelette
-            ajoutSquelette(lstDevis)
+            ajoutSquelette(lstDevis,dictIDfournis)
 
         # listefacture fournie contient des IDfacture : les transpose en no utilisés dans les pièces
         if len(listeFactures) > 0:
@@ -1634,26 +1640,28 @@ class Facturation():
             conditionWhere += "(((matPieces.pieNoAvoir) In ( %s )))"%(str(lstNoAvo)[1:-1])
         if len(conditionWhere) > 0:
             conditionWhere = f"WHERE {conditionWhere}"
-        req = """
-            SELECT matPieces.pieIDnumPiece, matPieces.pieIDfamille, prestations.IDprestation, 
-                matPieces.pieIDindividu, matPieces.pieIDactivite, matPieces.pieIDgroupe, 
-                matPieces.pieIDcategorie_tarif, matPieces.pieNature, matPieces.pieNoFacture, 
-                matPieces.pieNoAvoir, factures.numero, pieDateFacturation, pieDateEcheance, 
-                factures.IDfacture
-            FROM (factures 
-            LEFT JOIN prestations ON factures.IDfacture = prestations.IDfacture) 
-            LEFT JOIN matPieces ON prestations.IDcontrat = matPieces.pieIDnumPiece
-            %s         
-            GROUP BY matPieces.pieIDnumPiece, matPieces.pieIDfamille, prestations.IDprestation, 
-                matPieces.pieIDindividu, matPieces.pieIDactivite, matPieces.pieIDgroupe, 
-                matPieces.pieIDcategorie_tarif, matPieces.pieNature, matPieces.pieNoFacture, 
-                matPieces.pieNoAvoir, factures.numero, pieDateFacturation, pieDateEcheance, 
-                factures.IDfacture
-        ;""" % conditionWhere
-        self.DB.ExecuterReq(req, MsgBox="UTILS_facturation.ConstruitListe3")
-        retourReq = self.DB.ResultatReq()
-        if retourReq:
-            ajoutSquelette(retourReq)
+
+        if len(conditionWhere) > 0:
+            req = """
+                SELECT matPieces.pieIDnumPiece, matPieces.pieIDfamille, prestations.IDprestation, 
+                    matPieces.pieIDindividu, matPieces.pieIDactivite, matPieces.pieIDgroupe, 
+                    matPieces.pieIDcategorie_tarif, matPieces.pieNature, matPieces.pieNoFacture, 
+                    matPieces.pieNoAvoir, factures.numero, pieDateFacturation, pieDateEcheance, 
+                    factures.IDfacture
+                FROM (factures 
+                LEFT JOIN prestations ON factures.IDfacture = prestations.IDfacture) 
+                LEFT JOIN matPieces ON prestations.IDcontrat = matPieces.pieIDnumPiece
+                %s         
+                GROUP BY matPieces.pieIDnumPiece, matPieces.pieIDfamille, prestations.IDprestation, 
+                    matPieces.pieIDindividu, matPieces.pieIDactivite, matPieces.pieIDgroupe, 
+                    matPieces.pieIDcategorie_tarif, matPieces.pieNature, matPieces.pieNoFacture, 
+                    matPieces.pieNoAvoir, factures.numero, pieDateFacturation, pieDateEcheance, 
+                    factures.IDfacture
+            ;""" % conditionWhere
+            self.DB.ExecuterReq(req, MsgBox="UTILS_facturation.ConstruitListe3")
+            retourReq = self.DB.ResultatReq()
+            if retourReq:
+                ajoutSquelette(retourReq,dictIDfournis)
         return dictIDfournis
         #fin ConstruitSquelette
 
@@ -1735,10 +1743,12 @@ class Facturation():
         self.GetPieces()
         dlgAttente = PBI.PyBusyInfo(_("Recherche des infos..."),**kw)
         self.GetInfos()
-        dlgAttente = PBI.PyBusyInfo(_("Recherche des ventilations..."),**kw)
-        self.GetVentilations()
-        dlgAttente = PBI.PyBusyInfo(_("Recherche des soldes..."),**kw)
-        self.GetSoldes()
+        if dictOptions["afficher_reglements"]:
+            dlgAttente = PBI.PyBusyInfo(_("Recherche des ventilations..."),**kw)
+            self.GetVentilations()
+        if dictOptions["affichage_solde"]:
+            dlgAttente = PBI.PyBusyInfo(_("Recherche des soldes..."),**kw)
+            self.GetSoldes()
         dlgAttente = PBI.PyBusyInfo(_("Agrégation des données..."),**kw)
 
         # Récupération des données
@@ -1873,9 +1883,12 @@ class Facturation():
         if repertoireTemp:
             # cas d'envoi email qui supprimera éventuellement les fichiers après
             removeFile = False
-        elif dictOptions['repertoire_copie']:
-            # répertoire spécifique a été demandé
-            removeFile = False
+        elif dictOptions['repertoire_copie'] or not afficherDoc:
+            # répertoire spécifique a été demandé ou sans affichage
+            mess = f"Supprimer le fichier créé ? \n\n{nomFichier}\n\nVoulez-vous le supprimer?"
+            ret = wx.MessageBox(mess,"Fin d'impression",style=wx.ICON_EXCLAMATION|wx.YES_NO)
+            if ret != wx.YES:
+                removeFile = False
         else:
             # pas mail et pas de repertoire_copie demandé
             removeFile = True
@@ -1930,8 +1943,8 @@ def SuppressionFacture(listeIDFactures=[]):
 
 if __name__ == '__main__':
     app = wx.App(0)
-    listePieces = []
-    listeIDfactures = [8006,8002,8001]
+    listePieces = [31157,]
+    listeIDfactures = []
     dictOptions =  {'inversion_solde': True, 'largeur_colonne_date': 50, 'texte_conclusion': '',
                     'image_signature': '', 'taille_texte_prestation': 7,
                     'afficher_avis_prelevements': True, 'taille_texte_messages': 7, 'afficher_qf_dates': True,

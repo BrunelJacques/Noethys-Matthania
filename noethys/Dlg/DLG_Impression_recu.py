@@ -640,11 +640,11 @@ class Dialog(wx.Dialog):
         nomDoc = FonctionsPerso.GenerationNomDoc(f"RECU-{self.IDfamille}-", "pdf",unique=False)
         UTILS_Envoi_email.EnvoiEmailFamille(parent=self,
                                             IDfamille=self.IDfamille,
-                                            IDmodele=IDmodelEmail,
                                             nomDoc= nomDoc,
-                                            CreationPDF=self.CreationPDF,
                                             categorie="recu_reglement",
-                                            listeAdresses=self.listeAdresses)
+                                            listeAdresses=self.listeAdresses,
+                                            CreationPDF=self.CreationPDF,
+                                            IDmodel=IDmodelEmail)
 
     # appelé par UTILS_Envoi_email.EnvoiEmailFamille ou par self.OnBoutonOk
     def CreationPDF(self, nomDoc=None, afficherDoc=True, **kw):

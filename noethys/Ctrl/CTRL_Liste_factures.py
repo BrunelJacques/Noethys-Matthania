@@ -96,7 +96,6 @@ class CTRL(wx.Panel):
         self.bouton_liste_export_excel.SetToolTip(wx.ToolTip(_("Cliquez ici pour exporter cette liste au format Excel")))
         self.ctrl_afficher_annulations.SetToolTip(wx.ToolTip(_("Cochez cette case pour afficher les factures annulées dans la liste")))
 
-
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=2, cols=1, vgap=5, hgap=5)
         grid_sizer_base.Add(self.ctrl_filtres, 0, wx.EXPAND | wx.BOTTOM, 5)
