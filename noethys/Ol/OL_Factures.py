@@ -687,10 +687,12 @@ class ListView(FastObjectListView):
         """ Envoyer la facture par Email """
         lstIDfactures = self.GetlstIDfactures()
         if lstIDfactures:
+            IDmodel = None
             self.dictOptions = self.GetOptions(mail=True) # sera repris par creation pdf
             if not self.dictOptions:
                 return
-            IDmodel = self.dictOptions["IDmodelMail"]
+            else:
+                IDmodel = self.dictOptions["IDmodelMail"]
             # Envoi du mail
             from Utils import UTILS_Envoi_email
             total = self.Selection()[0].total

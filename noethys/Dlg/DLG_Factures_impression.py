@@ -15,8 +15,6 @@ from Ctrl import CTRL_Bouton_image
 
 from Ctrl import CTRL_Bandeau
 from Ctrl import CTRL_Liste_factures
-from Ctrl import CTRL_Factures_options
-from Utils import UTILS_Facturation
 
 
 

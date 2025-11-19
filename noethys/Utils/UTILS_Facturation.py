@@ -83,6 +83,7 @@ def ComposeLibelles(dictCompte,dictOptions):
         libSolde = "%s acquittée "% motNature
     elif round(dictCompte["solde_du"],1) * signe  < 0:
         libSoldeDu = "Reporté à votre crédit:"
+        dictCompte["solde_du"] = abs(dictCompte["solde_du"])
 
     if round(dictCompte["total_reports"],1) * signe  < 0:
         libReports = "Autres crédits"
@@ -526,7 +527,7 @@ class Facturation():
             if dictToPage["nature"] in ("DEV", "RES"):
                 signe = 0 # les devis et réservation n'ont pas de prestation encore due
 
-            if montant != (mttPieces * signe):
+            if montant != (mttPieces * signe) and dictOptions["afficher_reglements"]:
                 mess = "Total Prestations: %.2f, total Pieces: %.2f, pour famille %d!"%(montant,mttPieces,IDfamille)
                 mess += "\nsur pièce : %s"%dictToPage["numero"]
                 wx.MessageBox(mess, "Incohérence dans les données")
@@ -535,8 +536,8 @@ class Facturation():
             # Insert les montants pour le compte
             dictToPage["ventilation"] = ventilation
             dictToPage["reglements"] = dictReglFinal
-
             return "ok"
+
         ret = cumuleDansPage()
         if not ret == "ok": return
 
@@ -1884,16 +1885,24 @@ class Facturation():
         if repertoireTemp:
             # cas d'envoi email qui supprimera éventuellement les fichiers après
             removeFile = False
-        elif dictOptions['repertoire_copie'] or not afficherDoc:
-            # répertoire spécifique a été demandé ou sans affichage
+        elif dictOptions['repertoire_copie'] and afficherDoc:
+            # répertoire spécifique a été demandé avec ou sans affichage
             mess = f"Supprimer le fichier créé ? \n\n{nomFichier}\n\nVoulez-vous le supprimer?"
-            ret = wx.MessageBox(mess,"Fin d'impression",style=wx.ICON_EXCLAMATION|wx.YES_NO)
+            ret = wx.MessageBox(mess,"Fin de génération",style=wx.ICON_EXCLAMATION|wx.YES_NO)
             if ret != wx.YES:
                 removeFile = False
             else:
                 removeFile = True
+        elif  not afficherDoc:
+            # répertoire spécifique a été demandé ou sans affichage
+            mess = f"Ci-dessous le lien du fichier créé:\n\n{nomFichier}\n\nVoulez-vous conserver ce fichier non encore ouvert?"
+            ret = wx.MessageBox(mess,"Fin de génération",style=wx.ICON_EXCLAMATION|wx.YES_NO)
+            if ret == wx.YES:
+                removeFile = False
+            else:
+                removeFile = True
         else:
-            # pas mail et pas de repertoire_copie demandé
+            # pas mail et pas de repertoire_copie demandé et affiché
             removeFile = True
 
         def DelFile(nomFichier):

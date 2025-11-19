@@ -272,7 +272,7 @@ class Impression():
 
         # ----------- Insertion du contenu des frames --------------
         listeNomsSansCivilite = []
-        for IDcompte in sorted(dictValeurs.keys(),reverse=True):
+        for IDcompte in sorted(dictValeurs.keys(),reverse=False):
             dictValeur = dictValeurs[IDcompte]
             listeNomsSansCivilite.append((IDcompte, dictValeur["nomSansCivilite"]))
 
