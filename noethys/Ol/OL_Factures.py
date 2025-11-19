@@ -188,15 +188,15 @@ class ListView(FastObjectListView):
         req = """
         SELECT prestations.IDfacture,prestations.IDcompte_payeur,familles.adresse_intitule,
                 familles.adresse_individu,
-                SUM(prestations.montant), MAX(prestations.compta),SUM(ventilation.montant),
+                factures.total, MAX(prestations.compta),SUM(ventilation.montant),
                 SUM(prestations.categorie = 'consoavoir')
-        FROM (prestations
+        FROM (((prestations
         LEFT JOIN familles ON prestations.IDfamille = familles.IDfamille)
-        LEFT JOIN factures ON factures.IDfacture = prestations.IDfacture
-        LEFT JOIN ventilation ON ventilation.IDprestation = prestations.IDprestation
+        LEFT JOIN factures ON factures.IDfacture = prestations.IDfacture)
+        LEFT JOIN ventilation ON ventilation.IDprestation = prestations.IDprestation)
         %s
         GROUP BY prestations.IDfacture,prestations.IDcompte_payeur,
-            familles.adresse_intitule, familles.adresse_individu
+            familles.adresse_intitule, familles.adresse_individu,factures.total
         ;""" %(conditions)
         DB.ExecuterReq(req,MsgBox="OL_Factures.prestations")
         listeDonnees = DB.ResultatReq()     
@@ -668,6 +668,21 @@ class ListView(FastObjectListView):
         for track in tracks:
             lstIDfactures.append(track.IDfacture)
         return lstIDfactures
+
+    def GetdictFamilleIDfactures(self):
+        tracks = self.Selection()
+        if len(tracks) == 0 :
+            dlg = wx.MessageDialog(self, _("Vous n'avez sélectionné aucune facture à imprimer !"),
+                                   _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return None
+        dlFamilleFactures = {}
+        for track in tracks:
+            if not track.IDfamille in dlFamilleFactures:
+                dlFamilleFactures[track.IDfamille] = []
+            dlFamilleFactures[track.IDfamille].append(track.IDfacture)
+        return dlFamilleFactures
 
     def Reedition(self, event):
         self.ImprimerItems(afficherDoc=True)

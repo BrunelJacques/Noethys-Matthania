@@ -1915,7 +1915,7 @@ class Facturation():
                 return False
             except Exception as err:
                 mess = f"Suppression échouée\n\n{err}\nVoulez vous réessayer après fermeture."
-                ret = wx.MsgBox(mess, "Erreur DelFile", style=(wx.YES_NO|wx.ICON_ERROR))
+                ret = wx.MessageBox(mess, "Erreur DelFile", style=(wx.YES_NO|wx.ICON_ERROR))
                 ok = False
                 if ret == wx.YES:
                     ok = True
