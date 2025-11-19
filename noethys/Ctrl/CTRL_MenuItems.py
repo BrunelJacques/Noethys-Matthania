@@ -957,7 +957,7 @@ def GetListItemsMenu(self,menuTransports):
              "action": self.On_facturation_factures_liste},
 
             {"code": "factures_imprimer",
-             "label": _(u"ReImprimer des fatures"),
+             "label": _(u"Réimprimer des factures"),
              "infobulle": _(u"Imprimer des factures existantes en lot"),
              "image": "Images/16x16/Imprimante.png",
              "action": self.On_facturation_factures_imprimer},

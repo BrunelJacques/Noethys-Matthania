@@ -89,7 +89,7 @@ class CTRL(wx.Panel):
         
     def __set_properties(self):
         self.bouton_apercu.SetToolTip(wx.ToolTip(_("Cliquez ici pour afficher un aperçu de la facture sélectionnée")))
-        self.bouton_email.SetToolTip(wx.ToolTip(_("Cliquez ici envoyer la facture sélectionnée par Email")))
+        self.bouton_email.SetToolTip(wx.ToolTip(_("Cliquez pour envoyer la sélection de factures par Email")))
         self.bouton_liste_apercu.SetToolTip(wx.ToolTip(_("Cliquez ici pour afficher un aperçu avant impression de cette liste")))
         self.bouton_imprimer.SetToolTip(wx.ToolTip(_("Cliquez ici pour imprimer l'ensemble des factures listées")))
         self.bouton_liste_export_texte.SetToolTip(wx.ToolTip(_("Cliquez ici pour exporter cette liste au format Texte")))

@@ -128,7 +128,7 @@ class Panel(wx.Panel):
         self.bouton_ajouter.SetToolTip(wx.ToolTip("Cliquez ici pour créer une facture pour cette famille"))
         self.bouton_supprimer.SetToolTip(wx.ToolTip("Cliquez ici pour supprimer la facture sélectionnée"))
         self.bouton_imprimer.SetToolTip(wx.ToolTip("Cliquez ici pour rééditer la facture sélectionnée (PDF)"))
-        self.bouton_email.SetToolTip(wx.ToolTip("Cliquez ici pour envoyer la facture sélectionnée par Email"))
+        self.bouton_email.SetToolTip(wx.ToolTip("Cliquez ici pour envoyer la sélection par Email"))
 
         # Layout
         grid_sizer_base = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
