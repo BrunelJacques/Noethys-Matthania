@@ -1,6 +1,8 @@
-version 1.3.3.25 (29/10/2025)
-- NON DIFFUSEE NON INCREMENTEE
+version 1.3.3.26 (19/11/2025)
 - Impression de factures en lot par le menu Noethys
+- Refonte des modules d'envoi mails
+- Correction de la gestion des documents
+- Améliorations dans la structure des impressions de facture
 
 version 1.3.3.25 (14/10/2025)
 - Correction bug en cas de aucun titulaire dans une famille

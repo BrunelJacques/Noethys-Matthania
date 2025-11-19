@@ -274,7 +274,7 @@ class Facturation():
             #texteActivite += label
 
         if IDactivite > 0:
-            agrement = self.RechercheAgrement(IDactivite, None)
+            agrement = self.RechercheAgrement(IDactivite, "")
         else: agrement = None
         if agrement != None :
             texteActivite += _(" - n° agrément : %s") % agrement
@@ -399,19 +399,22 @@ class Facturation():
         cp_resid = dictInfosTitulaires["adresse"]["cp"]
         ville_resid = dictInfosTitulaires["adresse"]["ville"]
         facturesNo = dictDonPage["facturesNo"]
-        txtNumeroA = ""
         # Compose un texte numéro de page et de facture
         def composeNo():
+            numeroInt = dictDonPage["facturesNo"]
+            txtNumeroA = ""
             if nature == "AVO" : txtNumeroA = "Avoir  N°:"
             if nature == "FAC" : txtNumeroA = "Facture  N°:"
-            if nature in ("DEV","RES","COM") : txtNumeroA = "Ref N°:"
+            if nature in ("DEV","RES","COM") :
+                txtNumeroA = "Ref N°:"
+                numeroInt = 0
 
-            if not facturesNo: # cas des devis ou commande
+            if not numeroInt or numeroInt == 0: # cas des devis ou commande
                 txtNumeroB = "%s %s-%03d"%(nature[0:1],str(IDfamille), datetime.date.today().timetuple().tm_yday)
                 numFacture = ""
             else:
-                numFacture = "%06d" % facturesNo
-                txtNumeroB = "%06d" % facturesNo
+                numFacture = "%06d" % numeroInt
+                txtNumeroB = "%06d" % numeroInt
             numero = "%s %s"%(txtNumeroA, txtNumeroB)
             return numero, numFacture
         numero, numFacture = composeNo()
@@ -522,13 +525,12 @@ class Facturation():
             if dictToPage["nature"] == "AVO": signe = -1
             if dictToPage["nature"] in ("DEV", "RES"):
                 signe = 0 # les devis et réservation n'ont pas de prestation encore due
-            """
+
             if montant != (mttPieces * signe):
                 mess = "Total Prestations: %.2f, total Pieces: %.2f, pour famille %d!"%(montant,mttPieces,IDfamille)
                 mess += "\nsur pièce : %s"%dictToPage["numero"]
                 wx.MessageBox(mess, "Incohérence dans les données")
                 return None
-            """
 
             # Insert les montants pour le compte
             dictToPage["ventilation"] = ventilation
@@ -1393,7 +1395,7 @@ class Facturation():
                 self.dictSoldes[IDfamille][table] = montant
         return self.dictSoldes
 
-    # doc ----------------------------- Structure de dictDonnees -------------------------------------------------------
+    # documentation ------------------------ Structure de dictDonnees --------------------
     """
     [IDfamille]
         [IDpage] as dictDonPage
@@ -1415,7 +1417,7 @@ class Facturation():
             ["facturesNo"]
     """
 
-    # doc ----------------------------- Structure de dictVentilations --------------------------------------------------
+    # documentation ------------------------ Structure de dictVentilations ---------------
     """
     [IDfamille]
         ["prestations"]
@@ -1440,7 +1442,7 @@ class Facturation():
                 ...etc
     """
 
-    # --------------------------------- Structure de dictToPdf ---------------------------------------------------------
+    # documentation -------------------------- Structure de dictToPdf --------------------
     """
     [IDpage] as dictToPage
         ["individus"][IDindividu] as dictToIndividu
@@ -1814,11 +1816,10 @@ class Facturation():
                         cheminFichier = f"{repertoireCible}{SEP}{nomDoc}.pdf"
                         if f"{SEP}{SEP}" in cheminFichier:
                             cheminFichier = cheminFichier.replace(f"{SEP}{SEP}", f"{SEP}")
-                        dlgAttente = PBI.PyBusyInfo(f"Génération {cheminFichier}", **kw)
                         dictToPdfTemp = {noFact : dictToPage}
                         self.EcritStatusbar(_("Edition de la facture %d/%d : %s") % (index, len(dictToPdf), nomDoc))
                         UTILS_Impression_facture.Impression(dictToPdfTemp, dictOptions, IDmodele=dictOptions["IDmodele"],
-                                                            ouverture=False, nomFichier=cheminFichier, mode = None)
+                                                            ouverture=afficherDoc, nomFichier=cheminFichier, mode = None)
                         dictCheminsPdf[noFact] = cheminFichier
                         index += 1
                 self.EcritStatusbar("")
@@ -1889,6 +1890,8 @@ class Facturation():
             ret = wx.MessageBox(mess,"Fin d'impression",style=wx.ICON_EXCLAMATION|wx.YES_NO)
             if ret != wx.YES:
                 removeFile = False
+            else:
+                removeFile = True
         else:
             # pas mail et pas de repertoire_copie demandé
             removeFile = True
@@ -1899,10 +1902,10 @@ class Facturation():
                 time.sleep(2)  # Temporisation le temps d'ouvrir le fichier
             try:
                 os.remove(nomFichier)
-                print(nomFichier, "Supprimé")
+                #print(nomFichier, "Supprimé")
                 return False
             except Exception as err:
-                mess = "Suppression échouée\n\n{err}\nVoulez vous réessayer après fermeture."
+                mess = f"Suppression échouée\n\n{err}\nVoulez vous réessayer après fermeture."
                 ret = wx.MsgBox(mess, "Erreur DelFile", style=(wx.YES_NO|wx.ICON_ERROR))
                 ok = False
                 if ret == wx.YES:
@@ -1918,8 +1921,11 @@ class Facturation():
         # Réorganisation du fichier retour pour se caler sur les ID fournis pour PJ mails
         if repertoireTemp == True and len(listePieces + listeFactures) > 0:
             retDictCheminsPdf = {}
+            lstTemp = []
             for IDfourni, IDpage in dictIDfournis.items():
-                retDictCheminsPdf[IDfourni] = dictCheminsPdf[IDpage]
+                if not IDpage in lstTemp:
+                    retDictCheminsPdf[IDfourni] = dictCheminsPdf[IDpage]
+                    lstTemp.append(IDpage)
             resultat = self.dictChampsFusion, retDictCheminsPdf
         else:
             resultat = None
@@ -1943,7 +1949,7 @@ def SuppressionFacture(listeIDFactures=[]):
 
 if __name__ == '__main__':
     app = wx.App(0)
-    listePieces = [31157,]
+    listePieces = [26059,]
     listeIDfactures = []
     dictOptions =  {'inversion_solde': True, 'largeur_colonne_date': 50, 'texte_conclusion': '',
                     'image_signature': '', 'taille_texte_prestation': 7,
@@ -1971,7 +1977,7 @@ if __name__ == '__main__':
                                     listeFactures= listeIDfactures,
                                     dictOptions=dictOptions,
                                     afficherDoc=True,
-                                    repertoireTemp=True,
+                                    repertoireTemp=False,
                                     )
     app.MainLoop()
     # mettre un point d'arrêt pour voir le pdf

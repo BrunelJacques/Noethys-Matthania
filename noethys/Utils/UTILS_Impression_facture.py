@@ -259,7 +259,7 @@ class Impression():
             raise Exception("Votre modèle de document doit obligatoirement comporter un cadre principal. Retournez dans l'éditeur de document et utilisez pour votre modèle la commande 'Insérer un objet spécial > Insérer le cadre principal'.")
         
         # Importe le template de la première page
-        doc.addPageTemplates(MyPageTemplate(pageSize=TAILLE_PAGE, doc=doc))
+        doc.addPageTemplates(MyPageTemplate(pageSize=TAILLE_PAGE,doc=doc))
         
         story = []
         styleSheet = getSampleStyleSheet()
@@ -489,6 +489,7 @@ class Impression():
                                 listeDictLignes.append((dictLigne["label"], dictLigne))
                             #listeDictLignes.sort()
 
+                            texteDate = " "
                             for labelTemp, dictLigne in listeDictLignes :
 
                                 label = dictLigne["label"]
@@ -497,8 +498,7 @@ class Impression():
                                 tva = dictLigne["tva"]
 
                                 # Date
-                                #texteDate = GetParagraph("<para align='center'>%s</para>" % date, paraStyle)
-                                texteDate = " "
+                                texteDate = GetParagraph("<para align='center'>%s</para>" % date, paraStyle)
 
                                 # recherche d'un commentaire
                                 if "dictCommentaires" in dictOptions :
@@ -638,14 +638,15 @@ class Impression():
                                 texteTitre = _("<b>Impayés : </b>Merci de régler également le solde des autres prestations : ")
                             else :
                                 texteTitre = _("<b>Crédits : </b>Valant règlement pour autres prestations : ")
+
                         for periode in listePeriodes :
-                            txt = ""
+                            nomPeriode = str(periode)
                             if isinstance(periode,tuple):
                                 annee, mois = periode
                                 if annee and mois:
                                     nomPeriode = PeriodeComplete(mois, annee)
                             else: nomPeriode = str(periode)
-                            txt += "%s:(" % (nomPeriode)
+                            txt = "%s:(" % (nomPeriode)
                             for type in dictReports[periode]:
                                 montant_impaye = dictReports[periode][type]
                                 txt += "%s %.02f %s," % (type, montant_impaye, SYMBOLE)

@@ -96,7 +96,7 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL):
         # Affichage condensé ou détaillé
         propriete = wxpg.EnumProperty(label=_("Afficher le solde"),
                                       name="affichage_solde",
-                                      labels=[_("Actuel"), _("Initial")], values=[0, 1],
+                                      labels=["Pièce seule", "Global"], values=[0, 1],
                                       value=0)
         propriete.SetHelpString(
             _("Sélectionnez un type d'affichage pour le solde (Actuel=Solde à ce jour / Initial=Solde au moment de la génération de la facture)"))
