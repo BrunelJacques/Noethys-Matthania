@@ -1912,18 +1912,20 @@ class Facturation():
             try:
                 os.remove(nomFichier)
                 #print(nomFichier, "Supprimé")
-                return False
+                return True
             except Exception as err:
-                mess = f"Suppression échouée\n\n{err}\nVoulez vous réessayer après fermeture."
+                mess = f"Suppression PDF échouée !\n\n{err}\n\nVoulez vous réessayer après lecture."
                 ret = wx.MessageBox(mess, "Erreur DelFile", style=(wx.YES_NO|wx.ICON_ERROR))
-                ok = False
+                ok = True # par défaut on ignore l'erreur
                 if ret == wx.YES:
-                    ok = True
+                    ok = False
                 return ok
 
         if removeFile:
             if os.path.isfile(nomFichier):
-                DelFile(nomFichier)
+                ok = False
+                while ok:
+                    ok = DelFile(nomFichier)
             else:
                 print(nomFichier, "fichier non trouvé")
 
