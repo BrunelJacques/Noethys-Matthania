@@ -638,15 +638,15 @@ class Dialog(wx.Dialog):
         """ Envoi par mail """
         from Utils import UTILS_Envoi_email
         nomDoc = FonctionsPerso.GenerationNomDoc(f"RECU-{self.IDfamille}-", "pdf",unique=False)
-        UTILS_Envoi_email.EnvoiEmailFamille(parent=self,
-                                            IDfamille=self.IDfamille,
-                                            nomDoc= nomDoc,
-                                            categorie="recu_reglement",
-                                            listeAdresses=self.listeAdresses,
-                                            CreationPDF=self.CreationPDF,
-                                            IDmodel=IDmodelEmail)
+        UTILS_Envoi_email.EnvoiEmailFamilles(parent=self,
+                                             IDfamille=self.IDfamille,
+                                             nomDoc= nomDoc,
+                                             categorie="recu_reglement",
+                                             listeAdresses=self.listeAdresses,
+                                             CreationPDF=self.CreationPDF,
+                                             IDmodel=IDmodelEmail)
 
-    # appelé par UTILS_Envoi_email.EnvoiEmailFamille ou par self.OnBoutonOk
+    # appelé par UTILS_Envoi_email.EnvoiEmailFamilles ou par self.OnBoutonOk
     def CreationPDF(self, nomDoc=None, afficherDoc=True, **kw):
         if not nomDoc:
             nomDoc = FonctionsPerso.GenerationNomDoc("RECU_REGLEMENT", "pdf")

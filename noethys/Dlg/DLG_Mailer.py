@@ -295,7 +295,8 @@ class Dialog(wx.Dialog):
 
     # MAJ contrôle destinataires [{'adresse':"mail@net",'pieces:[],'champs'}:{},]
     def SetDonnees(self, donnees=[], modificationAutorisee=True):
-        self.ctrl_destinataires.SetDonneesManuelles(listeDonnees=donnees, modificationAutorisee=modificationAutorisee)
+        self.ctrl_destinataires.SetDonneesManuelles(listeDonnees=donnees,
+                                                    modificationAutorisee=modificationAutorisee)
         self.bouton_modifier_dest.Enable(modificationAutorisee)
         
     def EffacerTexte(self, event):

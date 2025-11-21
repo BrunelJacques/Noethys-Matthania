@@ -86,7 +86,7 @@ version 1.3.3.3 (23/11/2024)
 version 1.3.3.2 (20/11/2024)
 - Correction du bug sur la cotisation famille, si déjà existante
 
-version  1.3.3.1 (18/10/2024)
+version  1.3.3.1 (18/10/2024) ============================================================
 - Plus de souplesse dans les numéros de version et les contrôles
 
 version  1.3.2.99 (12/10/2024)
@@ -451,7 +451,7 @@ version 1.3.2.2 (20/10/2022):
 version 1.3.2.1 (15/10/2022):
 - Saisie transports propose la date de l'activité
 
-version 1.3.1.41 (07/10/2022 12:45):
+version 1.3.1.41 (07/10/2022 12:45): =====================================================
 - Détachement de fiche, la création d'une nouvelle famille est proposée
 
 version 1.3.1.40 (07/10/2022):
@@ -644,7 +644,7 @@ version 1.3.1.1 (04/05/2022):
 
 version 1.3.1.0 (28/05/2022):
 
-- Branche Matthania - Noethys Python3 seul, transposition adaptation
+- Branche Matthania - Noethys Python3 seul, transposition adaptation =====================
 
 Version 1.2.9.05 (17/05/2022)
 
@@ -2462,11 +2462,11 @@ Version 1.2.1.2 (12/02/2017) :
 
 Version 1.2.1.1 (11/02/2017) :
 
-- Premier ensemble de modifs Matthania
+- Premier ensemble de modifs Matthania ===================================================
 
 Version 1.1.5.7 (09/11/2015) :
 
-- Dernière version Lucas utilisée
+- Dernière version Lucas utilisée ========================================================
 
 Version 0.0.0.1 (15/02/2010) :
 

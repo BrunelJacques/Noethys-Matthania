@@ -527,12 +527,12 @@ class ListView(ObjectListView):
             else: ID = firstPiece.IDnumPiece
             IDfamille = firstPiece.IDfamille
             nomDoc = f"{nature} {ID}"
-            UTILS_Envoi_email.EnvoiEmailFamille(parent=self,
-                                                IDfamille=IDfamille,
-                                                nomDoc= nomDoc ,
-                                                CreationPDF=self.CreationPDF,
-                                                categorie="facture",
-                                                IDmodel=IDmodel)
+            UTILS_Envoi_email.EnvoiEmailFamilles(parent=self,
+                                                 IDfamille=IDfamille,
+                                                 nomDoc= nomDoc,
+                                                 CreationPDF=self.CreationPDF,
+                                                 categorie="facture",
+                                                 IDmodel=IDmodel)
 
     def CreationPDF(self, nomDoc="", afficherDoc=True,repertoireTemp=True):
         """ Création du PDF pour Email """

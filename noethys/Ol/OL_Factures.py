@@ -715,12 +715,12 @@ class ListView(FastObjectListView):
             noFacture = self.Selection()[0].numero
             IDfamille = self.Selection()[0].IDfamille
             nomDoc = f"{nature } {noFacture}"
-            UTILS_Envoi_email.EnvoiEmailFamille(parent=self,
-                                                IDfamille=IDfamille,
-                                                nomDoc= nomDoc ,
-                                                CreationPDF=self.CreationPDF_mail,
-                                                categorie="facture",
-                                                IDmodel=IDmodel)
+            UTILS_Envoi_email.EnvoiEmailFamilles(parent=self,
+                                                 IDfamille=IDfamille,
+                                                 nomDoc= nomDoc,
+                                                 CreationPDF=self.CreationPDF_mail,
+                                                 categorie="facture",
+                                                 IDmodel=IDmodel)
 
     def CreationPDF_mail(self, nomDoc="",afficherDoc=True,repertoireTemp=True):
         """ Création du PDF pour Email  Indissociable de EnvoyerEmail car appelé par UTILS_Envoi_email"""

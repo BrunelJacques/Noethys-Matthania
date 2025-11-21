@@ -501,7 +501,7 @@ class Dialog(wx.Dialog):
             dlg.Destroy()
             return False
         from Utils import UTILS_Envoi_email
-        UTILS_Envoi_email.EnvoiEmailFamille(parent=self, nomDoc=FonctionsPerso.GenerationNomDoc("COMMANDE_REPAS", "pdf"), categorie="commande_repas", listeAdresses=[restaurateur_mail,])
+        UTILS_Envoi_email.EnvoiEmailFamilles(parent=self, nomDoc=FonctionsPerso.GenerationNomDoc("COMMANDE_REPAS", "pdf"), categorie="commande_repas", listeAdresses=[restaurateur_mail, ])
 
     def Imprimer(self, event=None):
         self.CreationPDF()

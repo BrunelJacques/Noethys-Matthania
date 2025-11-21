@@ -828,7 +828,7 @@ class Dialog(wx.Dialog):
     def OnBoutonEmail(self, event): 
         """ Envoi par mail """
         from Utils import UTILS_Envoi_email
-        UTILS_Envoi_email.EnvoiEmailFamille(parent=self, IDfamille=self.IDfamille, nomDoc=FonctionsPerso.GenerationNomDoc("ATTESTATION", "pdf") , categorie="attestation_presence")
+        UTILS_Envoi_email.EnvoiEmailFamilles(parent=self, IDfamille=self.IDfamille, nomDoc=FonctionsPerso.GenerationNomDoc("ATTESTATION", "pdf"), categorie="attestation_presence")
 
     def OnBoutonOk(self, event): 
         self.CreationPDF() 

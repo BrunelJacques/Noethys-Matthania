@@ -3872,9 +3872,9 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
     
     def EnvoyerEmail(self, event=None):
         from Utils import UTILS_Envoi_email
-        UTILS_Envoi_email.EnvoiEmailFamille(parent=self, IDfamille=self.IDfamille,
-                                            nomDoc=FonctionsPerso.GenerationNomDoc("CONSOMMATIONS", "pdf"),
-                                            categorie="reservations")
+        UTILS_Envoi_email.EnvoiEmailFamilles(parent=self, IDfamille=self.IDfamille,
+                                             nomDoc=FonctionsPerso.GenerationNomDoc("CONSOMMATIONS", "pdf"),
+                                             categorie="reservations")
 
     def ConvertirEtat(self, etatInitial="refus", etatFinal="reservation",**kwd):
         """ Convertit toutes les conso selon les souhaits """

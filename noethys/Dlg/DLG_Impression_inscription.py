@@ -423,7 +423,7 @@ class Dialog(wx.Dialog):
     def OnBoutonEmail(self, event): 
         """ Envoi par mail """
         from Utils import UTILS_Envoi_email
-        UTILS_Envoi_email.EnvoiEmailFamille(parent=self, IDfamille=self.IDfamille, nomDoc=FonctionsPerso.GenerationNomDoc("INSCRIPTION", "pdf"), categorie="inscription", listeAdresses=self.listeAdresses)
+        UTILS_Envoi_email.EnvoiEmailFamilles(parent=self, IDfamille=self.IDfamille, nomDoc=FonctionsPerso.GenerationNomDoc("INSCRIPTION", "pdf"), categorie="inscription", listeAdresses=self.listeAdresses)
     
     def CreationPDF(self, nomDoc=FonctionsPerso.GenerationNomDoc("INSCRIPTION", "pdf"), afficherDoc=True):
         dictChampsFusion = {}

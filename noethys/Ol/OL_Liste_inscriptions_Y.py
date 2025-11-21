@@ -573,7 +573,7 @@ class ListView(GroupListView):
         track = self.Selection()[0]
         # Envoi du mail
         from Utils import UTILS_Envoi_email
-        UTILS_Envoi_email.EnvoiEmailFamille(parent=self, IDfamille=track.IDfamille, nomDoc=FonctionsPerso.GenerationNomDoc("INSCRIPTION", "pdf") , categorie="inscription")
+        UTILS_Envoi_email.EnvoiEmailFamilles(parent=self, IDfamille=track.IDfamille, nomDoc=FonctionsPerso.GenerationNomDoc("INSCRIPTION", "pdf"), categorie="inscription")
 
     def Imprimer(self, event):
         nbreIndividus = len(self.donnees)

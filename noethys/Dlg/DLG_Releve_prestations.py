@@ -261,7 +261,7 @@ class Dialog(wx.Dialog):
         """ Envoi par mail """
         from Utils import UTILS_Fichiers
         nomDoc = UTILS_Fichiers.GetRepTemp("RELEVE%s.pdf" % FonctionsPerso.GenerationIDdoc())
-        UTILS_Envoi_email.EnvoiEmailFamille(parent=self, IDfamille=self.IDfamille, nomDoc=nomDoc, categorie="releve_prestations")
+        UTILS_Envoi_email.EnvoiEmailFamilles(parent=self, IDfamille=self.IDfamille, nomDoc=nomDoc, categorie="releve_prestations")
 
 class Composition():
     def __init__(self, IDfamille=None, listePeriodes=[],) :

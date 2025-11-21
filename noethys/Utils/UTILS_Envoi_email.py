@@ -35,8 +35,8 @@ import mimetypes
 
 from Outils import mail
 
-def EnvoiEmailFamille(parent=None, IDfamille=None, nomDoc="", categorie="", listeAdresses=[],
-                      visible=True, log=None, CreationPDF=None, IDmodel=None):
+def EnvoiEmailFamilles(parent=None, IDfamille=None, nomDoc="", categorie="", listeAdresses=[],
+                       visible=True, log=None, CreationPDF=None, IDmodel=None):
     # Création du PDF
     if CreationPDF == None and hasattr(parent,"CreationPDF"):
         CreationPDF = parent.CreationPDF
@@ -50,16 +50,47 @@ def EnvoiEmailFamille(parent=None, IDfamille=None, nomDoc="", categorie="", list
 
     (dictChamps, dictPieces) = resultat
 
+    # documentation ------------------- Structure des fichiers ---------------------------
+    """
+    Sources (cf UTILS_Facturation.Impression)
+    dictChamps[IDfamille][champFusion]
+    les champs sont les clés '{UNCHAMP}': majuscule->valeur en str ou 'unchamp' valeurs num.
+    la clé 'pieces': liste des liens fichier PDF pour des fichiers éclatés par famille, 
+        dans ce cas les liens ne sont pas présents dans dictPieces 
+    Noter que 'pieces' est vide si une seule famille était dans le lot, liens dans dictPieces
+    les pieces seront alors envoyées par SetPieces associés à tous les mails pour la famille
+    
+    dictPieces[IDpiece]: valeur est le chemin du fichier PDF de la pièce
+    il s'agit des IDfournis dans le cas d'une seule famille, vide si plusieurs
+    
+    Destination
+    structure de ldDonnees envoyées dans DLG_Mailer.SetDonnees
+    [{'adresse':"mail@net",'pieces:[],'champs'}:{},]
+    """
+
     if dictChamps == False :
         return False
-    liste_pieces = []
 
+    liste_pieces = []
     for key,nomDoc in dictPieces.items():
         liste_pieces.append(nomDoc)
 
-    # Recherche adresse famille
+    liste_familles = []
+    if IDfamille:
+        liste_familles.append(IDfamille)
+    else:
+        for IDfamille in dictChamps.keys():
+            liste_familles.append(IDfamille)
+    multiFamille = True
+    if len(liste_familles) == 1: multiFamille = False
+
+    # Recherche adresses familles
     if len(listeAdresses) == 0 :
-        listeAdresses = GetAdresseFamille(IDfamille)
+        # si une seule famille toutes les pièces sont adressées à tous les mails
+        if not multiFamille:
+            listeAdresses = GetAdresseFamille(IDfamille)
+
+
         if listeAdresses == False or len(listeAdresses) == 0 :
             return False
     
@@ -68,7 +99,7 @@ def EnvoiEmailFamille(parent=None, IDfamille=None, nomDoc="", categorie="", list
     for adresse in listeAdresses :
         ldDonnees.append({
             "adresse" : adresse, 
-            "pieces" : [], # une seule famille, toutes les adresses auront toutes les pièces
+            "pieces" : [], # une seule famille, toutes les adresses auront les pièces communes
             "champs" : dictChamps[IDfamille],
             })
     dlg = DLG_Mailer.Dialog(parent, categorie=categorie, afficher_confirmation_envoi=visible)
@@ -114,12 +145,14 @@ def ValidationEmail(email):
     else :
         return False
 
+# -------------------------------------------------------------------------------------------------------
+
 def GetAdresseExpDefaut():
     """ Retourne les paramètres de l'adresse d'expéditeur par défaut """
     return GetAdresseExp(IDadresse=None)
 
 def GetAdresseExp(IDadresse=None):
-    """ Si IDadresse = None, retourne l'adresse par défaut"""
+    """ Si IDadresse = None, retourne l'adresse défaut de l'établissement"""
     if IDadresse == None :
         condition = "defaut=1"
     else :
@@ -137,9 +170,44 @@ def GetAdresseExp(IDadresse=None):
                    "smtp":smtp, "port":port, "auth" : auth, "startTLS":startTLS, "utilisateur" : utilisateur, "parametres": parametres}
     return dictAdresse
 
+def SelectAdress(listeAdresses,choixMultiple,nomGroupe):
+    # Affiche une liste d'adresses mail pour un groupe, choisir une ou multiples
+    listeLabels = []
+    listeMails = []
+    for label, adresse in listeAdresses:
+        listeLabels.append(label)
+    mess = "%d adresses internet sont disponibles pour %s.\nSélectionnez celles que vous souhaitez utiliser puis cliquez sur le bouton 'Ok' :" %(
+            len(listeAdresses), nomGroupe)
+    if choixMultiple == True:
+        dlg = wx.MultiChoiceDialog(None,
+                                   mess,
+                                   "Choix d'adresses Emails", listeLabels)
+    else:
+        dlg = wx.SingleChoiceDialog(None,
+                                    mess,
+                                    "Choix d'une adresse Email", listeLabels)
+    dlg.SetSize((450, -1))
+    dlg.CenterOnScreen()
+    if dlg.ShowModal() == wx.ID_OK:
+        if choixMultiple == True:
+            selections = dlg.GetSelections()
+        else:
+            selections = [dlg.GetSelection(), ]
+        dlg.Destroy()
+        if len(selections) == 0:
+            dlg = wx.MessageDialog(None, "Vous n'avez sélectionné aucune adresse mail !",
+                                   "Erreur", wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return []
+        for index in selections:
+            listeMails.append(listeAdresses[index][1])
+    else:
+        dlg.Destroy()
+        return []
+
 def GetAdresseFamille(IDfamille=None, choixMultiple=True, muet=False, nomTitulaires=None):
-    """ Récupère l'adresse email de la famille """
-    # Récupération du nom de la famille
+    # Récupère emails de la famille, le nomTitulaires ne sert que les messages !!
     if nomTitulaires == None :
         dictTitulaires = UTILS_Titulaires.GetTitulaires([IDfamille,])
         if IDfamille in dictTitulaires:
@@ -176,87 +244,74 @@ def GetAdresseFamille(IDfamille=None, choixMultiple=True, muet=False, nomTitulai
     elif len(listeAdresses) == 1 :
         listeMails = [listeAdresses[0][1],]
     else:
-        listeLabels = []
-        listeMails = []
-        for label, adresse in listeAdresses :
-            listeLabels.append(label)
-        mess = "%d adresses internet sont disponibles pour la famille de %s.\nSélectionnez celles que vous souhaitez utiliser puis cliquez sur le bouton 'Ok' :" % (len(listeAdresses),
-                                                                                                                                                                    nomTitulaires)
-        if choixMultiple == True :
-            dlg = wx.MultiChoiceDialog(None,
-                                       mess,
-                                       "Choix d'adresses Emails", listeLabels)
-        else :
-            dlg = wx.SingleChoiceDialog(None,
-                                        mess,
-                                        "Choix d'une adresse Email", listeLabels)
-        dlg.SetSize((450, -1))
-        dlg.CenterOnScreen()
-        if dlg.ShowModal() == wx.ID_OK :
-            if choixMultiple == True :
-                selections = dlg.GetSelections()
-            else :
-                selections = [dlg.GetSelection(),]
-            dlg.Destroy()
-            if len(selections) == 0 :
-                dlg = wx.MessageDialog(None, "Vous n'avez sélectionné aucune adresse mail !", "Erreur", wx.OK | wx.ICON_EXCLAMATION)
-                dlg.ShowModal()
-                dlg.Destroy()
-                return []
-            for index in selections :
-                listeMails.append(listeAdresses[index][1])
-        else:
-            dlg.Destroy()
-            return False
-
+        listeMails = SelectAdress(listeAdresses,choixMultiple,nomTitulaires)
     if choixMultiple == True :
         return listeMails
     else :
         return listeMails[0]
 
-# -------------------------------------------------------------------------------------------------------
-
-def GetAdressesFamilles(liste_IDfamille=[]):
-    dictTitulaires = UTILS_Titulaires.GetTitulaires()
-
-    # Sélection des adresses mail
-    liste_actions = [
-        ("all", "Toutes les adresses de la famille"),
-        ("one_perso_first", "Une seule adresse par famille (perso en priorité)"),
-        ("one_pro_first", "Une seule adresse par famille (pro en priorité)"),
-        ("all_perso", "Toutes les adresses personnelles de la famille"),
-        ("all_pro", "Toutes les adresses professionnelles de la famille"),
-        ("all_perso_first", "Toutes les adresses personnelles de la famille en priorité"),
-        ("all_pro_first", "Toutes les adresses professionnelles de la famille en priorité"),
-        ("selection", "Je veux sélectionner les adresses pour chaque famille"),
-        ]
-    dlg = wx.SingleChoiceDialog(None, u"Quelles adresses internet souhaitez-vous utiliser ?", u"Sélection des adresses", [label for code, label in liste_actions], wx.CHOICEDLG_STYLE)
-    dlg.SetSize((350, 240))
-    dlg.CenterOnScreen()
-    if dlg.ShowModal() == wx.ID_OK:
-        code_action = liste_actions[dlg.GetSelection()][0]
-        dlg.Destroy()
-    else:
-        dlg.Destroy()
-        return False
+def GetAdressesFamilles(liste_IDfamille=[], choixMultiple = False, choixOption=False):
+    # retourne un dict {IDfamille:[strAdress1,...],...} pour les familles de la liste
+    code_action = "one_first"
+    if choixOption:
+        # Sélection des adresses mail pour un choix des adresses
+        liste_actions = [
+            ("all", "Toutes les adresses de la famille"),
+            ("one_first", "Une seule adresse par famille (correspondant en priorité)"),
+            ("all_titulaires", "Toutes les adresses des titulaires de la famille"),
+            ("selection", "Je veux sélectionner les adresses pour chaque famille"),
+            ]
+        dlg = wx.SingleChoiceDialog(None, u"Quelles adresses internet souhaitez-vous utiliser ?", u"Sélection des adresses", [label for code, label in liste_actions], wx.CHOICEDLG_STYLE)
+        dlg.SetSize((350, 240))
+        dlg.CenterOnScreen()
+        if dlg.ShowModal() == wx.ID_OK:
+            code_action = liste_actions[dlg.GetSelection()][0]
+            dlg.Destroy()
+        else:
+            dlg.Destroy()
+            return False
 
     # Importation des toutes les adresses existantes
     DB = GestionDB.DB()
     req = """
-    SELECT IDfamille, rattachements.IDindividu,
-    individus.nom, individus.prenom, individus.mail, individus.travail_mail
-    FROM rattachements 
-    LEFT JOIN individus ON individus.IDindividu = rattachements.IDindividu
-    WHERE IDcategorie=1 AND titulaire=1
-    ;"""
+    SELECT rattachements.IDfamille,
+        rattachements.IDindividu,
+        individus.nom,
+        individus.prenom,
+        individus.mail,
+        individus.travail_mail,
+        familles.adresse_individu,
+        familles.adresse_intitule,
+        rattachements.titulaire
+    FROM ( rattachements
+        LEFT JOIN individus ON rattachements.IDindividu = individus.IDindividu)
+        LEFT JOIN familles ON rattachements.IDfamille = familles.IDfamille
+    WHERE (rattachements.IDcategorie = 1)
+        AND (rattachements.IDfamille IN ( %s ))
+    ORDER BY rattachements.IDfamille,rattachements.IDindividu ASC 
+    ;"""%str(liste_IDfamille)[1:-1]
     DB.ExecuterReq(req)
     liste_adresses = DB.ResultatReq()
     DB.Close()
-    dict_individus = {}
-    for IDfamille, IDindividu, nom, prenom, mail_perso, mail_pro in liste_adresses:
-        if IDfamille not in dict_individus:
-            dict_individus[IDfamille] = []
-        dict_individus[IDfamille].append({"IDindividu": IDindividu, "nom": nom, "prenom": prenom, "mail_perso": mail_perso, "mail_pro": mail_pro})
+
+    # Création d'un dic par famille listant les individus categorie 1:représentant
+    dldIndividus = {}
+    dNomFamilles = {}
+    for (IDfamille, IDindividu, nom, prenom, mail_perso, mail_pro,
+                                IDcorrespondant, nomFamille, titulaire) in liste_adresses:
+        if IDfamille not in dldIndividus:
+            dldIndividus[IDfamille] = []
+            dNomFamilles[IDfamille] = nomFamille
+        dldIndividus[IDfamille].append({ "IDindividu": IDindividu,
+                                    "nom": nom, "prenom": prenom,
+                                    "mail_perso": mail_perso,
+                                    "mail_pro": mail_pro,
+                                    "isTitulaire": titulaire,
+                                    "isCorr": IDcorrespondant == IDindividu})
+    # Tri de la liste d'individus, correspondant first puis tilulaires
+    for IDfamille, listIndividus in dldIndividus.items():
+        listIndividus.sort(key=lambda dic : (int(dic["isCorr"]) * 10) + int(dic["isTitulaire"]),
+                           reverse=True)
 
     # Création du dict de résultats
     dict_adresses = {}
@@ -264,6 +319,7 @@ def GetAdressesFamilles(liste_IDfamille=[]):
     liste_anomalies = []
 
     def Ajouter_adresse(IDfamille, adresse):
+        # ajoute cette adresse à la liste d'adresses pour la famille
         if adresse not in (None, ""):
             if IDfamille not in dict_adresses:
                 dict_adresses[IDfamille] = []
@@ -274,44 +330,20 @@ def GetAdressesFamilles(liste_IDfamille=[]):
 
     # Toutes les adresses
     if code_action == "all":
-        for IDfamille, liste_individus in dict_individus.items():
+        for IDfamille, liste_individus in dldIndividus.items():
             for dict_individu in liste_individus:
                 Ajouter_adresse(IDfamille, dict_individu["mail_perso"])
                 Ajouter_adresse(IDfamille, dict_individu["mail_pro"])
 
     # Toutes les adresses perso
-    if code_action == "all_perso":
-        for IDfamille, liste_individus in dict_individus.items():
+    if code_action == "all_titulaires":
+        for IDfamille, liste_individus in dldIndividus.items():
             for dict_individu in liste_individus:
                 Ajouter_adresse(IDfamille, dict_individu["mail_perso"])
 
-    # Toutes les adresses pro
-    if code_action == "all_pro":
-        for IDfamille, liste_individus in dict_individus.items():
-            for dict_individu in liste_individus:
-                Ajouter_adresse(IDfamille, dict_individu["mail_pro"])
-
-    # L'adresse personnelle en priorité
-    if code_action == "all_perso_first":
-        for IDfamille, liste_individus in dict_individus.items():
-            for dict_individu in liste_individus:
-                if dict_individu["mail_perso"] not in ("", None):
-                    Ajouter_adresse(IDfamille, dict_individu["mail_perso"])
-                else:
-                    Ajouter_adresse(IDfamille, dict_individu["mail_pro"])
-
-    # L'adresse professionnelle en priorité
-    if code_action == "all_pro_first":
-        for IDfamille, liste_individus in dict_individus.items():
-            for dict_individu in liste_individus:
-                if dict_individu["mail_pro"] not in ("", None):
-                    Ajouter_adresse(IDfamille, dict_individu["mail_pro"])
-                else:
-                    Ajouter_adresse(IDfamille, dict_individu["mail_perso"])
-
-    # Une adresse par famille (perso en priorité)
-    if code_action == "one_perso_first":
-        for IDfamille, liste_individus in dict_individus.items():
+    # Une adresse par famille (ordre correspondant,titulaires,autres)
+    if code_action == "one_first":
+        for IDfamille, liste_individus in dldIndividus.items():
             liste_temp = []
             for dict_individu in liste_individus:
                 if dict_individu["mail_perso"] not in ("", None): liste_temp.append((1, dict_individu["mail_perso"]))
@@ -320,35 +352,30 @@ def GetAdressesFamilles(liste_IDfamille=[]):
             if len(liste_temp) > 0:
                 Ajouter_adresse(IDfamille, liste_temp[0][1])
 
-    # Une adresse par famille (pro en priorité)
-    if code_action == "one_pro_first":
-        for IDfamille, liste_individus in dict_individus.items():
-            liste_temp = []
-            for dict_individu in liste_individus:
-                if dict_individu["mail_perso"] not in ("", None): liste_temp.append((2, dict_individu["mail_perso"]))
-                if dict_individu["mail_pro"] not in ("", None): liste_temp.append((1, dict_individu["mail_pro"]))
-            liste_temp.sort()
-            if len(liste_temp) > 0:
-                Ajouter_adresse(IDfamille, liste_temp[0][1])
-
     # Je veux sélectionner les adresses
     if code_action == "selection":
-        for IDfamille in liste_IDfamille :
-            nom_titulaires = dictTitulaires[IDfamille]["titulairesSansCivilite"]
-            adresses = GetAdresseFamille(IDfamille, choixMultiple=True, muet=True, nomTitulaires=nom_titulaires)
-            if adresses == False:
-                return False
+        for IDfamille, liste_individus in dldIndividus.items():
+            # label, adresse in listeAdresses
+            listeAdresses = []
+            for dInd in liste_individus:
+                for key in ("mail_perso","mail_pro"):
+                    if dInd[key] and not dInd in listeAdresses:
+                        listeAdresses.append((f"{dInd['prenom']} {dInd['nom']}",dInd[key]))
+                        
+            nom_prenom = dNomFamilles[IDfamille]
+
+            adresses = SelectAdress(listeAdresses,choixMultiple,nom_prenom)
             for adresse in adresses:
                 Ajouter_adresse(IDfamille, adresse)
 
     # Annonce les anomalies trouvées
     for IDfamille in liste_IDfamille:
         if IDfamille not in listeFamillesAvecAdresses:
-            if IDfamille in dictTitulaires:
-                nom_titulaires = dictTitulaires[IDfamille]["titulairesSansCivilite"]
+            if IDfamille in dNomFamilles:
+                nom_prenom = dNomFamilles[IDfamille]
             else:
-                nom_titulaires = "Titulaires inconnus"
-            liste_anomalies.append(nom_titulaires)
+                nom_prenom = "Titulaires inconnus"
+            liste_anomalies.append(nom_prenom)
 
     if len(liste_anomalies) > 0 and len(liste_anomalies) != len(liste_IDfamille):
         intro = "%d des familles sélectionnées n'ont pas d'adresse Email :" % len(liste_anomalies)
@@ -367,11 +394,10 @@ def GetAdressesFamilles(liste_IDfamille=[]):
         dlg.Destroy()
         return False
 
-    # Renvoie le dict des adresses
+    # Renvoie un dict contenant une liste d'adresses par famille
     return dict_adresses
 
 # -------------------------------------------------------------------------------------------------------
-
 
 class Message():
     def __init__(self, destinataires=[], sujet="", texte_html="", fichiers=[], images=[], champs={}):

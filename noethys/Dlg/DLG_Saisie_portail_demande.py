@@ -1006,7 +1006,7 @@ class Dialog(wx.Dialog):
         else :
             nomDoc = False
 
-        resultat = UTILS_Envoi_email.EnvoiEmailFamille(parent=self, IDfamille=self.track.IDfamille, nomDoc=nomDoc, categorie=self.categorie_email, listeAdresses=[], visible=visible, log=self.track, CreationPDF=self.CreationPDF, IDmodele=IDmodele)
+        resultat = UTILS_Envoi_email.EnvoiEmailFamilles(parent=self, IDfamille=self.track.IDfamille, nomDoc=nomDoc, categorie=self.categorie_email, listeAdresses=[], visible=visible, log=self.track, CreationPDF=self.CreationPDF, IDmodele=IDmodele)
 
         # Mémorise la date de l'envoi de l'email
         if resultat == True :
@@ -1182,7 +1182,7 @@ class Traitement():
 
             # Envoi par Email
             if self.dict_parametres["methode_envoi"] == "email" :
-                resultat = UTILS_Envoi_email.EnvoiEmailFamille(parent=dlg_impression, IDfamille=self.track.IDfamille, nomDoc=nomDoc, categorie=categorie, visible=False, log=self.track)
+                resultat = UTILS_Envoi_email.EnvoiEmailFamilles(parent=dlg_impression, IDfamille=self.track.IDfamille, nomDoc=nomDoc, categorie=categorie, visible=False, log=self.track)
                 reponse = _("Reçu de règlement envoyé par Email.")
 
             # Mémorisation de l'édition du reçu
@@ -1856,7 +1856,7 @@ class Edition_facture():
 
     def EnvoyerEmail(self, visible=True):
         self.afficherOptions = visible
-        resultat = UTILS_Envoi_email.EnvoiEmailFamille(parent=self.parent, IDfamille=self.IDfamille, nomDoc=FonctionsPerso.GenerationNomDoc("FACTURE", "pdf"), categorie="facture", visible=visible, CreationPDF=self.CreationPDF)
+        resultat = UTILS_Envoi_email.EnvoiEmailFamilles(parent=self.parent, IDfamille=self.IDfamille, nomDoc=FonctionsPerso.GenerationNomDoc("FACTURE", "pdf"), categorie="facture", visible=visible, CreationPDF=self.CreationPDF)
         return resultat
 
     def CreationPDF(self, nomDoc="", afficherDoc=True):

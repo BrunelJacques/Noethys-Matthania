@@ -395,7 +395,7 @@ class ListView(FastObjectListView):
         from Utils import UTILS_Envoi_email
         from Utils import UTILS_Fichiers
         nomDoc = UTILS_Fichiers.GetRepTemp("RAPPEL%s.pdf" % FonctionsPerso.GenerationIDdoc())
-        UTILS_Envoi_email.EnvoiEmailFamille(parent=self, IDfamille=track.IDfamille, nomDoc=nomDoc, categorie="rappel")
+        UTILS_Envoi_email.EnvoiEmailFamilles(parent=self, IDfamille=track.IDfamille, nomDoc=nomDoc, categorie="rappel")
     
     def CreationPDF(self, nomDoc="", afficherDoc=True):        
         """ Création du PDF pour Email """
