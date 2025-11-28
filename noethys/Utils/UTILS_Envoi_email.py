@@ -90,8 +90,7 @@ def EnvoiEmailFamilles(parent=None, IDfamille=None, nomDoc="", categorie="", lis
         if not multiFamille:
             listeAdresses = GetAdresseFamille(IDfamille)
 
-
-        if listeAdresses == False or len(listeAdresses) == 0 :
+        if not listeAdresses or len(listeAdresses) == 0 :
             return False
     
     # DLG Mailer
@@ -202,6 +201,7 @@ def SelectAdress(listeAdresses,choixMultiple,nomGroupe):
             return []
         for index in selections:
             listeMails.append(listeAdresses[index][1])
+        return listeMails
     else:
         dlg.Destroy()
         return []

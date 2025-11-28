@@ -593,7 +593,7 @@ class ListView(ObjectListView):
         listePieces = self.GetListeIDpieces()
         if listePieces != None:
             if len(listePieces) > 0 :
-                self.LanceImpression("facturation",listePieces)
+                self.LanceImpression("FAC",listePieces)
         #fin ImprimerPieces
 
     def Imprimer(self, event):

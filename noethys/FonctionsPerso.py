@@ -46,7 +46,7 @@ def NoPunctuation(txt = ''):
     if not txt: return ''
     if txt.strip()== '': return ''
     import re
-    punctuation = "!\"#$%&()*+,./:;<=>?@[\\]^_`{|}~"
+    punctuation = "!\"#$%&()*+,./:;<=>?@[\\]^-`{|}~"
     regex = re.compile('[%s]' % re.escape(punctuation))
     regex = regex.sub(' ', txt)
     return regex.replace('  ',' ')

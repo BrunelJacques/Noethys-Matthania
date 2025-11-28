@@ -207,6 +207,7 @@ class Facturation():
         self.dictGroupes = {}
         self.reportInclus = False
         self.dictChampsFusion = {}
+        self.fourni = ''
         # " Récupération des questionnaires"
         self.Questionnaires = None
         # "fin __init__"
@@ -259,7 +260,10 @@ class Facturation():
         # Recherche nbre de jours d'ouverture de l'inscription
 
         nbJours, dateDebut, dateFin = self.RecherchePresence(IDactivite,IDindividu,IDgroupe)
-
+        if not dateDebut:
+            dateDebut = " "
+        else:
+            dateDebut = DateEngFr(str(dateDebut))
         # Ajout de l'activité
         nomActivite = None
         if IDactivite > 0:
@@ -271,7 +275,7 @@ class Facturation():
         else: nomGroupe = " "
         texteActivite = nomActivite + " " + nomGroupe
         if dateFin != None:
-            texteActivite += _("\nDu %s au %s soit %d jours") % (DateEngFr(str(dateDebut)), DateEngFr(str(dateFin)), nbJours)
+            texteActivite += _("\nDu %s au %s soit %d jours") % (dateDebut, DateEngFr(str(dateFin)), nbJours)
             #texteActivite += label
 
         if IDactivite > 0:
@@ -1498,8 +1502,11 @@ class Facturation():
                     val = retourReq[ix][ixx]
                     if val and (not val in listes[ixx]):
                         listes[ixx].append(val)
-                ix += 1   
-                dIDfourniFamille[IDpiece]=IDfamille             
+                ix += 1
+                if self.fourni == "factures":
+                    dIDfourniFamille[IDfacture] = IDfamille
+                else:
+                    dIDfourniFamille[IDpiece]=IDfamille
                 # Alimente dictVentilations eu égard à sa structure plus complexe
                 if IDfamille not in self.dictVentilations:
                     self.dictVentilations[IDfamille] = {"prestations":{},"impayes":{}, "reglementsLibres":{}}
@@ -1618,10 +1625,10 @@ class Facturation():
                 dIDfourniPage[IDpiece] = IDpage
 
             # ajoute les non-factures dans le squelette
-            ajoutSquelette(lstDevis,dIDfourniPage)
+            ajoutSquelette(lstDevis,dIDfourniPage,dIDfourniFamille)
 
         # listefacture fournie contient des IDfacture : les transpose en no utilisés dans les pièces
-        if len(listeFactures) > 0:
+        if self.fourni == 'factures':
             #recherche des éléments de base dans factures
             req = """
                 SELECT factures.IDfacture,factures.numero 
@@ -1684,6 +1691,15 @@ class Facturation():
             wx.MessageBox(mess,"UTILS_Facturation.Facturation.Impression")
             return
 
+        if len(listeFactures) > 0:
+            self.fourni = 'factures'
+        elif len(listePieces) > 0:
+            self.fourni = 'pieces'
+        if not self.fourni:
+            mess = "Ni IDfactures ni IDpieces fournis"
+            wx.MessageBox(mess, "Pb LANCEMENT",wx.ICON_ERROR)
+            return
+
         self.DB = GestionDB.DB()
 
         # Récupération des paramètres d'affichage, si non fournis
@@ -1702,11 +1718,11 @@ class Facturation():
         # recherche des familles dans le lot
         def getFamilles():
             mess = 'UTILS_Facturation.Impression'
-            if len(listePieces) > 0:
+            if self.fourni == 'pieces':
                 champ = 'pieIDcompte_payeur'
                 table = 'matPieces'
                 condition = 'pieIDnumPiece in( %s )'%str(listePieces)[1:-1]
-            elif len(listeFactures) > 0:
+            elif self.fourni == 'factures':
                 champ = 'IDcompte_payeur'
                 table = 'factures'
                 condition = 'IDfacture in( %s )'%str(listeFactures)[1:-1]
@@ -1715,14 +1731,16 @@ class Facturation():
             # appel des noms de familles
             on = f'ON {table}.{champ} = familles.IDfamille'
             req = f"""
-            SELECT {table}.{champ}, familles.adresse_intitule
-            FROM {table}
-            LEFT JOIN familles {on}
+            SELECT {table}.{champ}, individus.nom, individus.prenom
+            FROM ({table}
+            LEFT JOIN familles {on})
+            LEFT JOIN individus ON familles.adresse_individu = individus.IDindividu
             WHERE {condition}
+            GROUP BY {table}.{champ}, individus.nom, individus.prenom
             """
             self.DB.ExecuterReq(req, MsgBox="UTILS_facturation.Impression nomFamilles")
             ret = self.DB.ResultatReq()
-            return ([x[0] for x in ret],[x[1] for x in ret])
+            return ([x[0] for x in ret],[f"{x[1]} {x[2]}" for x in ret])
         (lstIDfamilles,lstNomFamilles) = getFamilles()
 
         if len(lstIDfamilles) == 0:
@@ -1771,16 +1789,26 @@ class Facturation():
             dictOptions["repertoire_copie"] = None # sera lu en final pour suppressions
 
         # composition d'un nom de fichier complet avec path
-        def getNomFichier(nom = nomDoc):
+        def getNomFichier(nom=nomDoc):
             today = str(datetime.datetime.today())[:10]
-            if not nom:
-                if len(lstNomFamilles) == 1:
-                    # un seule famille son nom sera dans le nom du fichier
-                    nom = f"{lstNomFamilles[0]}"
-                else:
-                    nom = "Factures"
+            if not nom: nom = ""
             if nom.endswith(".pdf"):
                 nom = nom[:-4]
+
+            def compactNom(nom):
+                # raccourcissement du nom-prenom
+                nomCourt = ""
+                lstMots = nom.split(" ")
+                for mot in lstMots:
+                    nomCourt += mot[:6] +"_"
+                nomCourt = nomCourt[:-1]
+                return nomCourt[:20]
+            if len(lstNomFamilles) == 1:
+                # un seule famille: son nom sera dans le nom du fichier
+                nom += f" {compactNom(lstNomFamilles[0])}"
+            else:
+                nom = "Factures"
+
             nom = fp.NoPunctuation(nom)
             nom = f"{nom} {today}"
             path = f"{repertoire}{SEP}{nom}.pdf"
@@ -1842,7 +1870,6 @@ class Facturation():
 
         # Fabrication du PDF global
         nomFichier = getNomFichier()
-
 
         if repertoireTemp == False :
             dlgAttente = PBI.PyBusyInfo("Création du PDF des factures...", **kw)
