@@ -1918,9 +1918,11 @@ class Facturation():
             removeFile = False
         elif  not afficherDoc:
             # pas de répertoire spécifique demandé, sans affichage demandé
-            mess = f"Ci-dessous le lien du fichier créé:\n\n{nomFichier}\n\nVoulez-vous conserver ce fichier non encore ouvert?"
+            mess = f"Ci-dessous le lien du fichier créé:\n\n{nomFichier}\n\n"
+            mess += "Voulez-vous conserver ce fichier et ouvrir son emplacement?"
             ret = wx.MessageBox(mess,"Fin de génération",style=wx.ICON_EXCLAMATION|wx.YES_NO)
             if ret == wx.YES:
+                os.startfile(repertoire)
                 removeFile = False
             else:
                 removeFile = True
@@ -1935,20 +1937,22 @@ class Facturation():
             try:
                 os.remove(nomFichier)
                 #print(nomFichier, "Supprimé")
-                return True
+                return False
             except Exception as err:
-                mess = f"Suppression PDF échouée !\n\n{err}\n\nVoulez vous réessayer après lecture."
-                ret = wx.MessageBox(mess, "Erreur DelFile", style=(wx.YES_NO|wx.ICON_ERROR))
-                ok = True # par défaut on ignore l'erreur
-                if ret == wx.YES:
-                    ok = False
+                ok = False
+                if err.errno != 2:
+                    mess = f"Suppression PDF échouée !\n\n{err}\n\nVoulez vous réessayer après lecture."
+                    ret = wx.MessageBox(mess, "Erreur DelFile", style=(wx.YES_NO|wx.ICON_ERROR))
+                    if ret == wx.YES:
+                        ok = True
                 return ok
 
         if removeFile:
             if os.path.isfile(nomFichier):
-                ok = False
+                ok = True
                 while ok:
                     ok = DelFile(nomFichier)
+
             else:
                 print(nomFichier, "fichier non trouvé")
 
@@ -1965,7 +1969,7 @@ class Facturation():
                     lstPageVue.append(IDpage)
                 else:   # pièces traitées par mail par famille
                     IDfamille = dIDfourniFamille[IDfourni]
-                    if not hasattr(self.dictChampsFusion[IDfamille],'pieces'):
+                    if not 'pieces' in self.dictChampsFusion[IDfamille]:
                         self.dictChampsFusion[IDfamille]['pieces'] = []
                     self.dictChampsFusion[IDfamille]['pieces'].append(dictCheminsPdf[IDpage])
                     lstPageVue.append(IDpage)

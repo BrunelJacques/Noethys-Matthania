@@ -75,32 +75,40 @@ def EnvoiEmailFamilles(parent=None, IDfamille=None, nomDoc="", categorie="", lis
     for key,nomDoc in dictPieces.items():
         liste_pieces.append(nomDoc)
 
-    liste_familles = []
-    if IDfamille:
-        liste_familles.append(IDfamille)
-    else:
-        for IDfamille in dictChamps.keys():
-            liste_familles.append(IDfamille)
-    multiFamille = True
-    if len(liste_familles) == 1: multiFamille = False
+    liste_familles = [x for x in dictChamps.keys()]
+    if not liste_familles and IDfamille:
+        liste_familles = [IDfamille,]
+    multiFamille = len(liste_familles) != 1
 
     # Recherche adresses familles
     if len(listeAdresses) == 0 :
         # si une seule famille toutes les pièces sont adressées à tous les mails
         if not multiFamille:
-            listeAdresses = GetAdresseFamille(IDfamille)
+            listeAdresses = GetAdresseFamille(liste_familles[0])
+            dictAdresses = {liste_familles[0]:listeAdresses}
+        else:
+            dictAdresses = GetAdressesFamilles(liste_familles)
+            listeAdresses = list(dictAdresses.values())
 
         if not listeAdresses or len(listeAdresses) == 0 :
             return False
+    else:
+        dictAdresses = {liste_familles[0]: listeAdresses}
     
     # DLG Mailer
+
     ldDonnees = []
-    for adresse in listeAdresses :
-        ldDonnees.append({
-            "adresse" : adresse, 
-            "pieces" : [], # une seule famille, toutes les adresses auront les pièces communes
-            "champs" : dictChamps[IDfamille],
-            })
+    for IDfamille, adresses in dictAdresses.items() :
+        for adresse in adresses:
+            pieces = []
+            if "pieces" in dictChamps[IDfamille]:
+                pieces = dictChamps[IDfamille]["pieces"]
+            ldDonnees.append({
+                "adresse" : adresse,
+                "pieces" : pieces,
+                "champs" : dictChamps[IDfamille],
+                })
+
     dlg = DLG_Mailer.Dialog(parent, categorie=categorie, afficher_confirmation_envoi=visible)
 
     # envoi des adresses pouvant contenir des pieces dans 'champs'

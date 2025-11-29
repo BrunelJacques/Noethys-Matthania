@@ -659,15 +659,34 @@ class ListView(FastObjectListView):
     def GetlstIDfactures(self):
         tracks = self.Selection()
         if len(tracks) == 0 :
+            mess = "Faut-il tout sélectionner?\n\n"
+            mess += "Vous n'avez sélectionné aucune facture à imprimer !"
+            dlg = wx.MessageDialog(self, mess,"Etendre sélection", wx.YES_NO | wx.ICON_EXCLAMATION)
+            ret = dlg.ShowModal()
+            dlg.Destroy()
+            if ret == wx.ID_YES:
+                self.CocheTout(None)
+                tracks = self.Selection()
+            else:
+                return None
+        lstIDfactures = []
+        for track in tracks:
+            lstIDfactures.append(track.IDfacture)
+        return lstIDfactures
+
+    def GetlstIDfamilles(self):
+        tracks = self.Selection()
+        if len(tracks) == 0 :
             dlg = wx.MessageDialog(self, _("Vous n'avez sélectionné aucune facture à imprimer !"),
                                    _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
             dlg.ShowModal()
             dlg.Destroy()
             return None
-        lstIDfactures = []
+        lstIDfamilles = []
         for track in tracks:
-            lstIDfactures.append(track.IDfacture)
-        return lstIDfactures
+            if not track.IDfamille in lstIDfamilles:
+                lstIDfamilles.append(track.IDfamille)
+        return lstIDfamilles
 
     def GetdictFamilleIDfactures(self):
         tracks = self.Selection()
@@ -701,6 +720,7 @@ class ListView(FastObjectListView):
     def EnvoyerEmail(self, event):
         """ Envoyer la facture par Email """
         lstIDfactures = self.GetlstIDfactures()
+        lstIDfamilles = self.GetlstIDfamilles()
         if lstIDfactures:
             self.dictOptions = self.GetOptions(mail=True) # sera repris par creation pdf
             if not self.dictOptions:
@@ -709,12 +729,13 @@ class ListView(FastObjectListView):
                 IDmodel = self.dictOptions["IDmodelMail"]
             # Envoi du mail
             from Utils import UTILS_Envoi_email
-            total = self.Selection()[0].total
-            if total < 0: nature = "AVOIR"
-            else: nature = "FACTURE"
-            noFacture = self.Selection()[0].numero
-            IDfamille = self.Selection()[0].IDfamille
-            nomDoc = f"{nature } {noFacture}"
+            if len(lstIDfamilles) == 1:
+                noFacture = self.Selection()[0].numero
+                IDfamille = self.Selection()[0].IDfamille
+                nomDoc = f"FACT {noFacture}"
+            else:
+                IDfamille = None
+                nomDoc = None
             UTILS_Envoi_email.EnvoiEmailFamilles(parent=self,
                                                  IDfamille=IDfamille,
                                                  nomDoc= nomDoc,

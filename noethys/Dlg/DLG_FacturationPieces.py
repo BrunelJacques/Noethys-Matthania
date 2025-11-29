@@ -155,7 +155,9 @@ class  Dialog(wx.Dialog):
 
         self.staticbox_pieces = wx.StaticBox(self, -1, _("Pieces non facturées"))
         # OL Pieces
-        self.listviewAvecFooter = OL_FacturationPieces.ListviewAvecFooter(self, kwargs={"IDpayeur" : IDpayeur, "factures" : False, "parent" : self})
+        self.listviewAvecFooter = OL_FacturationPieces.ListviewAvecFooter(self, kwargs={"IDpayeur" : IDpayeur,
+                                                                                        "factures" : False,
+                                                                                        "parent" : self})
         self.olv_piecesFiltrees = self.listviewAvecFooter.GetListview()
         self.ctrl_recherche = OL_FacturationPieces.CTRL_Outils(self, listview=self.olv_piecesFiltrees, afficherCocher=True)
         self.ctrl_recherche.SetBackgroundColour((255, 255, 255))
@@ -309,14 +311,18 @@ class  Dialog(wx.Dialog):
         #fin OnBoutonImprimerFact
 
     def OnBoutonImprimerTout(self, event):
+        prefix = ""
         fOl = self.olv_piecesFiltrees
         listePieces = fOl.GetListeIDpieces()
+        if len(listePieces) > 0:
+            prefix = "DEV"
         fOl2 = self.ctrl_factures.olv_piecesFiltrees
         if len(fOl2.GetCheckedObjects()) > 0:
+            prefix = "_".join([prefix,"FAC"])
             listeFactures = fOl2.GetListeIDpieces()
             listePieces += listeFactures
         if listePieces and len(listePieces) > 0 :
-                fOl.LanceImpression("devis",listePieces)
+                fOl.LanceImpression(prefix,listePieces)
 
     def OnBoutonModif(self,event):
 
