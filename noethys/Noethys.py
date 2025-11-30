@@ -25,7 +25,6 @@ from Outils.dockart import ModernDockArt
 import wx.lib.agw.advancedsplash as AS
 import wx.lib.agw.toasterbox as Toaster
 from Crypto.Hash import SHA256
-
 from Utils.UTILS_Traduction import _
 import Utils.UTILS_Traduction as UTILS_Traduction
 import Utils.UTILS_Linux as UTILS_Linux
@@ -59,7 +58,7 @@ if "linux" in sys.platform:
     UTILS_Linux.AdaptationsDemarrage()
 
 # Constantes générales
-CUSTOMIZE = None
+#CUSTOMIZE = None # défini GLOBAL en main()
 HEUREDEBUT = time.time()
 VERSION_LOGICIEL_DATE = FonctionsPerso.GetVersionLogiciel(datee=True)
 VERSION_LOGICIEL = VERSION_LOGICIEL_DATE.split("(")[0].strip()
@@ -916,15 +915,14 @@ class MainFrame(wx.Frame):
         # DB.CreationTables(Tables.DB_DATA, fenetreParente=self)
 
         for table in Tables.DB_DATA:
-            dlgprogress.Update(numEtape,
-                               _("Création de la table '%s'...") % table);
+            dlgprogress.Update(numEtape, "Création de la table '%s'..." % table)
             numEtape += 1
             DB.CreationUneTable(Tables.DB_DATA, table, )
 
         # Importation des données par défaut
         message = _("Importation des données par défaut...")
         self.SetStatusText(message)
-        dlgprogress.Update(numEtape, message);
+        dlgprogress.Update(numEtape, message)
         numEtape += 1
         DB.Importation_valeurs_defaut(listeTables)
         DB.Close()
@@ -945,7 +943,7 @@ class MainFrame(wx.Frame):
                 return False
             message = _("Création de la table de données des photos...")
             self.SetStatusText(message)
-            dlgprogress.Update(numEtape, message);
+            dlgprogress.Update(numEtape, message)
             numEtape += 1
             DB.CreationTables(Tables.DB_PHOTOS)
             DB.Close()
@@ -966,7 +964,7 @@ class MainFrame(wx.Frame):
                 return False
             message = _("Création de la table de données des documents...")
             self.SetStatusText(message)
-            dlgprogress.Update(numEtape, message);
+            dlgprogress.Update(numEtape, message)
             numEtape += 1
             DB.CreationTables(Tables.DB_DOCUMENTS)
             DB.Close()
@@ -974,7 +972,7 @@ class MainFrame(wx.Frame):
         # Création des index
         message = _("Création des index des tables...")
         self.SetStatusText(message)
-        dlgprogress.Update(numEtape, message);
+        dlgprogress.Update(numEtape, message)
         numEtape += 1
         DB = UpgradeDB.DB(suffixe="DATA")
         DB.CreationTousIndex(self,None)
@@ -986,7 +984,7 @@ class MainFrame(wx.Frame):
         # Créé un identifiant unique pour ce fichier
         message = _("Création des informations sur le fichier...")
         self.SetStatusText(message)
-        dlgprogress.Update(numEtape, message);
+        dlgprogress.Update(numEtape, message)
         numEtape += 1
         d = datetime.datetime.now()
         IDfichier = d.strftime("%Y%m%d%H%M%S")
@@ -1009,7 +1007,7 @@ class MainFrame(wx.Frame):
         # Sauvegarde et chargement de l'identité Administrateur
         message = _("Création de l'identité administrateur...")
         self.SetStatusText(message)
-        dlgprogress.Update(numEtape, message);
+        dlgprogress.Update(numEtape, message)
         numEtape += 1
 
         DB = GestionDB.DB()
@@ -1032,7 +1030,7 @@ class MainFrame(wx.Frame):
 
         message = _("Création terminée...")
         self.SetStatusText(message)
-        dlgprogress.Update(numEtape, message);
+        dlgprogress.Update(numEtape, message)
         numEtape += 1
 
         # Chargement liste utilisateurs
@@ -1555,9 +1553,9 @@ class MainFrame(wx.Frame):
 
         def UpdateDB(versionData):
             # Lancement des updates de la base par les procédures
+            titre = "Erreur UpDate"
+            style = wx.OK | wx.ICON_ERROR
             try:
-                titre = "Erreur UpDate"
-                style = wx.OK | wx.ICON_ERROR
                 message = "Pb Update"
                 import UpgradeDB
                 DBup = UpgradeDB.DB(nomFichier=nomFichier)
@@ -1683,7 +1681,8 @@ class MainFrame(wx.Frame):
             self.menu.EnableTop(numMenu, etat)
         self._mgr.GetPane("panel_recherche").Show(etat)
 
-    def Identification(self, listeUtilisateurs=[], nomFichier=None):
+    def Identification(self, listeUtilisateurs=None, nomFichier=None):
+        if not listeUtilisateurs: listeUtilisateurs = []
         passmdp = CUSTOMIZE.GetValeur("utilisateur", "pass", "")
         if passmdp != "":
             passmdpcrypt = SHA256.new(passmdp.encode('utf-8')).hexdigest()
