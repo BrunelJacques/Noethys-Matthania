@@ -35,8 +35,6 @@ def DateDDEnDateFR(dateDD):
     return listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
 
 
-
-
 def CreationIdentifiant(IDfamille=None, IDutilisateur=None, nbreCaract=8):
     """ Création d'un identifiant aléatoire """
     identifiant = ""
@@ -85,13 +83,10 @@ def CrypteMDP(mdp="", IDfichier=None):
         mdp = cryptage.encrypt(mdp)
     return mdp
 
-
-
 def CrypteMDP_archive(motdepasse=""):
     """ Crypte un mot de passe donné """
     mdpCrypte = UTILS_CryptageMD5.unix_md5_crypt(motdepasse, 'ab')
     return mdpCrypte
-
 
 def InitCodesUtilisateurs():
     """ Remplit tous les champs identifiant et mdp de toutes les fiches utilisateurs """
@@ -109,7 +104,6 @@ def InitCodesUtilisateurs():
         DB.ReqMAJ("utilisateurs", listeDonnees, "IDutilisateur", IDutilisateur)
     DB.Commit()
     DB.Close()
-
 
 def UploadCalendrier():
     """ Créé et upload le calendrier des périodes internet """
@@ -174,9 +168,6 @@ def UploadCalendrier():
     
     etat = _("> %d périodes mises en ligne") % nbrePeriodes
     return etat
-    
-    
-    
 
 def ImporteFichierReservations():
     """ Récupère le contenu du fichier présences sur Internet """
@@ -450,8 +441,6 @@ def GetPiecesAFournir(dictPieces, dictCotisations, dictTypesPieces, dictEnfants,
                             listeDonnees.append( "%d%d" % (IDtypePiece, IDenfant) ) 
     
         return listeDonnees
-
-
 
 
 if __name__ == "__main__":

@@ -106,10 +106,10 @@ class Dialog(wx.Dialog):
         self.ctrl_titulaire = wx.CheckBox(self, -1, _("Titulaire du dossier famille"))
         self.selection_categorie = None
         
-        if self.nbreTitulaires == 0 :
+        if not self.nbreTitulaires:
             self.bouton_categorie_2.Enable(False)
             self.bouton_categorie_3.Enable(False)
-        
+
         # Sélection individu
         self.staticbox_selection_staticbox = wx.StaticBox(self, -1, _("2. Saisie du nom de l'individu"))
         self.ctrl_propositions = OL_Individus.ListView(self, id=-1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
@@ -145,10 +145,11 @@ class Dialog(wx.Dialog):
         self.Bind(wx.EVT_TOGGLEBUTTON, self.OnToggle, self.bouton_categorie_1)
         self.Bind(wx.EVT_TOGGLEBUTTON, self.OnToggle, self.bouton_categorie_2)
         self.Bind(wx.EVT_TOGGLEBUTTON, self.OnToggle, self.bouton_categorie_3)
-        
+
         self.ActiveControles(False)
         self.ctrl_titulaire.Enable(False)
-        
+        if not self.nbreTitulaires:
+            self.OnToggle(1)
 
     def __set_properties(self):
         self.SetTitle(_("Rattachement d'un individu"))
@@ -210,7 +211,10 @@ class Dialog(wx.Dialog):
         self.CenterOnScreen()
         
     def OnToggle(self, event):
-        ID = event.GetId()
+        if isinstance(event,int):
+            ID = event
+        else:
+            ID = event.GetId()
         if ID != 1 : self.bouton_categorie_1.SetValue(False)
         if ID != 2 : self.bouton_categorie_2.SetValue(False)
         if ID != 3 : self.bouton_categorie_3.SetValue(False)
@@ -219,7 +223,8 @@ class Dialog(wx.Dialog):
             self.ctrl_propositions.MAJ()
         if ID == 1 :
             # Si on choisit Représentant, on vérifie qu'un titulaire est déjà saisi dans la famille
-            if self.nbreTitulaires == 0 :
+            if not self.nbreTitulaires:
+                self.ctrl_titulaire.SetValue(True)
                 self.ctrl_titulaire.Enable(False)
             else:
                 self.ctrl_titulaire.Enable(True)

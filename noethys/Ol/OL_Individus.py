@@ -495,8 +495,12 @@ class ListView(FastObjectListView):
         dlgRattach.Destroy()
         from Dlg import DLG_Famille
         dlg = DLG_Famille.Dialog(self, IDfamille=IDfamille, dataRattach=dataRattach)
-        if dlg.ShowModal() == wx.ID_OK:
+        ret = dlg.ShowModal()
+        if ret == wx.ID_OK:
             pass
+        else:
+            pass
+
         try :
             if self.GetGrandParent().GetName() == "general" :
                 self.GetGrandParent().MAJ() 

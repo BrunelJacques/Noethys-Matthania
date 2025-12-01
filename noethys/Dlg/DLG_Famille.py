@@ -41,16 +41,26 @@ def CreateIDfamille(DB):
     from Utils import UTILS_Internet
     date_creation = str(datetime.date.today())
     mess = "DLG_Familles.CreateIDfamille Insert"
-    IDfamille = DB.ReqInsert("familles", [("date_creation", date_creation),],retourID=True,MsgBox=mess)
-    # Création du compte payeur
-    IDcompte_payeur = DB.ReqInsert("comptes_payeurs", [("IDfamille", IDfamille),("IDcompte_payeur", IDfamille)],
-                                   retourID=True,MsgBox=mess)
+    req = """
+        SELECT Max(familles.IDfamille)
+        FROM familles;"""
+    DB.ExecuterReq(req, MsgBox=mess)
+    ret = DB.ResultatReq()
+    IDfamille = ret[0][0]+1
+    DB.ReqInsert("familles", [("IDfamille",IDfamille),
+                              ("date_creation", date_creation),], MsgBox=mess)
+    try:
+        # Création du compte payeur
+        DB.ReqInsert("comptes_payeurs", [("IDfamille", IDfamille),
+                                        ("IDcompte_payeur", IDfamille)],
+                                       MsgBox=mess)
+    except: pass
     # Création des codes internet
     internet_identifiant= UTILS_Internet.CreationIdentifiant(IDfamille=IDfamille)
     internet_mdp = UTILS_Internet.CreationMDP()
     # Sauvegarde des données
     listeDonnees = [
-        ("IDcompte_payeur", IDcompte_payeur),
+        ("IDcompte_payeur", IDfamille),
         ("internet_actif", 1),
         ("internet_identifiant", internet_identifiant),
         ("internet_mdp", internet_mdp),
@@ -358,9 +368,9 @@ class Dialog(wx.Dialog):
         if IDindividu != None :
             try :
                 self.notebook.GetPageAvecCode("divers").ctrl_parametres.SetPropertyValue("titulaire_helios", IDindividu)
-            except :
-                pass
-                
+            except Exception as err:
+                print(err)
+
     def MAJpageActive(self):
         self.notebook.MAJpageActive() 
     
@@ -545,7 +555,7 @@ class Dialog(wx.Dialog):
         FROM familles
         WHERE IDfamille = %d ;
         """ % self.IDfamille
-        self.DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        self.DB.ExecuterReq(req,MsgBox="DLG_Famille.GetIDcomptaPayeur")
         listeDonnees = self.DB.ResultatReq()
         IDcompte_payeur = 0
         try:
@@ -733,8 +743,32 @@ class Dialog(wx.Dialog):
         UTILS_Config.SetParametre("taille_fenetre_famille", taille_fenetre)
 
     def Sauvegarde(self):
+        # Vérification titulaire, correspondant
+        mess = "DLG_Familles.Sauvegardes"
+        req = """
+        SELECT rattachements.titulaire, individus.IDindividu, familles.adresse_intitule,
+            rattachements.IDcategorie
+        FROM ( familles
+            LEFT JOIN rattachements ON familles.IDfamille = rattachements.IDfamille)
+            LEFT JOIN individus ON familles.adresse_individu = individus.IDindividu
+        WHERE (familles.IDfamille = %d)
+        GROUP BY rattachements.titulaire, individus.IDindividu, familles.adresse_intitule, 
+            rattachements.IDcategorie;"""% self.IDfamille
+        self.DB.ExecuterReq(req,MsgBox=mess)
+        okTit, okCorres, okAdress = False, False, False
+        mess = ""
+        for titulaire, correspondant, adresse,categorie in self.DB.ResultatReq():
+            if titulaire and categorie == 1: okTit = True
+            if correspondant : okCorres = True
+            if adresse: okAdress = True
+        if not okTit: mess += "pas de titulaire, "
+        if not okCorres: mess += "pas de correspondant, "
+        if not okAdress: mess +=  "pas d'adresse de correspondance"
+        if not (okTit and okCorres and okAdress):
+            mess = "Famille mal paramétrée\n\nvoici le problème:\n" + mess
+            wx.MessageBox(mess,"Validation impossible!",wx.ICON_ERROR)
+            return False
         # Validation des données avant sauvegarde
-        #listePages = ("questionnaire", "caisse", "divers")
         listePages = ("questionnaire", "caisse",)
         for codePage in listePages :
             page = self.notebook.GetPageAvecCode(codePage)
@@ -755,25 +789,25 @@ class Dialog(wx.Dialog):
             return
         # Mémorise taille fenêtre
         self.MemoriseTailleFenetre()
-        self.Final()
+        self.Final(wx.ID_OK)
 
     def Annuler(self):
         """ Annulation des modifications """
         if self.nouvelleFiche == True :
+            ok = self.SupprimerFicheFamille(self.IDfamille)
             self.Final()
             return
         # Sauvegarde
-        self.Sauvegarde()
         self.Final()
 
-    def Final(self):
+    def Final(self,ok = wx.ID_NONE):
         # Fermeture de la fenêtre
         self.DB.Close()
         try :
             if not self.parent:
                 self.DB.Close(all=True)
                 GestionDB.AfficheConnexionsOuvertes()
-            self.EndModal(wx.ID_OK)
+            self.EndModal(ok)
         except Exception as err:
             print(("Erreur sortie fiche famille: ",err))
             self.EndModal(wx.ID_NONE)
@@ -788,23 +822,25 @@ class Dialog(wx.Dialog):
                 "action" : _("Création de la famille ID%d") % self.IDfamille,
                 },])
     
-    def SupprimerFamille(self,IDfamille=None):
+    def SupprimerFicheFamille(self,IDfamille=None):
         # si l'ID famille est envoyé, c'est pour confirmation de la juste navigation
         if IDfamille and IDfamille != self.IDfamille:
-            wx.MessageBox("Problème de programmation\n\n incohérence IDfamille en DLG_Famille.SupprimerFamille","Impossible")
+            wx.MessageBox(
+                "Problème de programmation\n\n incohérence IDfamille en DLG_Famille.SupprimerFamille",
+                "Impossible")
+            return False
         # Récupération du IDcompte_payeur
         req = """SELECT IDcompte_payeur FROM comptes_payeurs WHERE IDfamille=%d""" % self.IDfamille
-        self.DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        self.DB.ExecuterReq(req, MsgBox="ExecuterReq")
         listeDonnees = self.DB.ResultatReq()
-        mess = None
         try:
             IDcompte_payeur = listeDonnees[0][0]
             nblignes = 0
-            for table in ('prestations','reglements','inscriptions'):
+            for table in ('prestations', 'reglements', 'inscriptions'):
                 req = """SELECT IDcompte_payeur
-                        FROM %s
-                        WHERE IDcompte_payeur=%d""" %(table, IDcompte_payeur)
-                self.DB.ExecuterReq(req,MsgBox="ExecuterReq")
+                            FROM %s
+                            WHERE IDcompte_payeur=%d""" % (table, IDcompte_payeur)
+                self.DB.ExecuterReq(req, MsgBox="ExecuterReq")
                 recordset = self.DB.ResultatReq()
                 nblignes += len(recordset)
             if nblignes == 0:
@@ -819,18 +855,18 @@ class Dialog(wx.Dialog):
                 self.DB.ReqDEL("messages", "IDfamille", self.IDfamille)
                 self.DB.ReqDEL("comptes_payeurs", "IDfamille", self.IDfamille)
                 self.DB.ReqDEL("familles", "IDfamille", self.IDfamille)
-                mess = _("La fiche famille a été supprimée.")
-            else: mess = _("La fiche famille a été conservée vide.")
-        except: pass
+                mess = "La fiche famille a été supprimée."
+            else:
+                mess = "La fiche famille a été conservée car a fait l'objet de règlements, inscriptions ou prestations."
+        except:
+            mess = "Echec lors de la purge de la famille"
 
         if mess:
-            dlg = wx.MessageDialog(self, mess, _("Suppression"), wx.OK | wx.ICON_INFORMATION)
+            dlg = wx.MessageDialog(self, mess, _("Suppression"),
+                                   wx.OK | wx.ICON_INFORMATION)
             dlg.ShowModal()
             dlg.Destroy()
-        #self.Destroy()
-
-    def SupprimerFicheFamille(self,IDfamille=None):
-            self.SupprimerFamille(IDfamille) # et affiche la suppression
+        return True
 
     def MenuEditionEtiquettes(self, event):
         from Dlg import DLG_Impression_etiquettes
@@ -912,7 +948,7 @@ if __name__ == "__main__":
     heure_debut = time.time()
     # ramel 567; perez marc 1724; bartoOliv 1861; branco 4499;  bourrel 6191
     #7735 parrainage; 8107 multifactures; 709 Brunel jacques
-    dialog_1 = Dialog(None, IDfamille=8472)
+    dialog_1 = Dialog(None, IDfamille=10101)
     print("Temps de chargement fiche famille =", time.time() - heure_debut)
     app.SetTopWindow(dialog_1)
 

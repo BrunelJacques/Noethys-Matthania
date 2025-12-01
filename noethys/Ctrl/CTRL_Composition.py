@@ -1219,6 +1219,12 @@ class CTRL_Graphique(wx.ScrolledWindow):
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_fiche", "modifier") == False : return
         IDcategorie = event.GetId() - 600
         IDrattachement = self.dictCadres[self.IDindividu_menu]["IDrattachement"]
+        if self.dictCadres[self.IDindividu_menu]["categorie"] == 1:
+            # risque d'incohérences avec titulaires et correspondants
+            if self.dictCadres[self.IDindividu_menu]["titulaire"] ==  1 or self.dictCadres[self.IDindividu_menu]["correspondant"]:
+                mess = "Avant de changer la catégorie d'un titulaire ou d'un correspondant il faut désactiver ces fonctions"
+                wx.MessageBox(mess, "Blocage")
+                return
         if IDcategorie != self.dictCadres[self.IDindividu_menu]["categorie"] :
             dlg = wx.MessageDialog(None, _("Souhaitez-vous vraiment modifier la catégorie de rattachement de cet individu ?"), _("Changement de catégorie"), wx.YES_NO|wx.NO_DEFAULT|wx.CANCEL|wx.ICON_QUESTION)
             if dlg.ShowModal() == wx.ID_YES :
@@ -1430,7 +1436,6 @@ class CTRL_Graphique(wx.ScrolledWindow):
             p.SupprimerFicheFamille()
             p.parent.Destroy()
 
-    
     def MAJnotebook(self):
         """ MAJ la page active du notebook de la fenêtre famille """
         self.parent.MAJpageActive()
@@ -2121,9 +2126,6 @@ class MyFrame(wx.Frame):
         panel.SetSizer(sizer_2)
         self.Layout()
         self.CentreOnScreen()
-        
-
-
 
 if __name__ == '__main__':
     app = wx.App(0)
