@@ -519,6 +519,10 @@ class CadreIndividu():
         if self.titulaire == 1 :
             bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Titulaire.png"), wx.BITMAP_TYPE_ANY)
             self.dc.DrawBitmap(bmp, int(xSymbole), int(ySymbole))
+            xSymbole += 42
+        if self.correspondant:
+            bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Titulaire.png"), wx.BITMAP_TYPE_ANY)
+            self.dc.DrawBitmap(bmp, int(xSymbole), int(ySymbole))
             xSymbole += 16
 
 
@@ -747,7 +751,7 @@ class CTRL_Graphique(wx.ScrolledWindow):
                 photo = self.dictCadres[IDindividu]["photo"]
                 cadre = CadreIndividu(self, dc, IDindividu, listeTextes, genre,
                                       photo, xCentre, yCentre, largeurCase,
-                                      hauteurCase, numCol, titulaire, calendrierActif)
+                                      hauteurCase, numCol, titulaire, correspondant, calendrierActif)
                 self.dictCadres[IDindividu]["ctrl"] = cadre
                 yCentre += hauteurCase + espaceVertical
             
@@ -961,7 +965,6 @@ class CTRL_Graphique(wx.ScrolledWindow):
         self.ActiveTooltip(False) 
 
     def AfficheTooltip(self):
-        styleTooltip = "Office 2007 Blue"
         taillePhoto = 30
         font = self.GetFont()
         
@@ -1059,7 +1062,8 @@ class CTRL_Graphique(wx.ScrolledWindow):
         
         # Affichage du Frame tooltip
         self.tipFrame = STT.ToolTipWindow(self, self.tip)
-        self.tipFrame.CalculateBestSize()
+        #self.tipFrame.CalculateBestSize() # calcule incorrectement
+        self.tipFrame.SetSize((350,300))
         x, y = wx.GetMousePosition()
         self.tipFrame.SetPosition((x+15, y+17))
         self.tipFrame.DropShadow(True)
