@@ -94,7 +94,7 @@ LISTEtypeLigne = [
 
 # Fonctions paramétrables
 
-def AnneeAcad(DB,IDactivite=None, date= None, alertes=True):
+def AnneeAcad(DB,IDactivite=None, date= None, **kwargs):
     # Retourne les dates début et fin annee académique sur date debut d'activité
     if IDactivite:
         dictDonnees = {"IDactivite" : IDactivite,}

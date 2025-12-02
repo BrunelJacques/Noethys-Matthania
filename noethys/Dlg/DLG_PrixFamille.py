@@ -283,6 +283,7 @@ def InserArticles(listeOLV = [],articles=[],dictDonnees={}):
 
 class Track(object):
     def __init__(self, track):
+        montant = 0
         for champ in list(track.keys()):
             setattr(self,champ,track[champ])
         if "libelleArticle" in list(track.keys()):
@@ -759,6 +760,7 @@ class DlgTarification(wx.Dialog):
                     lstOptions.append(dictDonnees['nature'])
                 listeBoutons = []
                 for code in lstOptions:
+                    txt = ""
                     if code == "DEV": txt = "Devis sans réservation"
                     elif code == "RES": txt = "Réservation sans prestation"
                     elif code == "COM": txt = "Commande due par le client"
