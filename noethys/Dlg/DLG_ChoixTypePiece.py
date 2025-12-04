@@ -25,8 +25,11 @@ def ValideSaisie(tracks,testSejour=True):
         if track.montantCalcul * track.montant < 0.0:
             dlg = wx.MessageDialog(None, _("Un montant forcé n'a pas le signe habituel! \n\nConfirmez-vous le sens du montant de l'article %s" % track.codeArticle), "Avertissement", wx.YES_NO |wx.NO_DEFAULT|wx.CANCEL| wx.ICON_INFORMATION)
             rep = dlg.ShowModal()
-            if rep != wx.ID_YES : ret = False
+            if rep != wx.ID_YES :
+                ret = False
             dlg.Destroy()
+            if not ret:
+                break
     if not ret : return ret
     if testSejour :
         # Vérif de la présence d'un article séjour.

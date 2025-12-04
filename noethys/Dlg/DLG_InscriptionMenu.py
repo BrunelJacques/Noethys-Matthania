@@ -254,7 +254,8 @@ class DlgMenu(wx.Dialog):
                 if IDprestation > 0 :
                     fGest.ModifiePieceCree(self,self.dictDonnees)
                     fGest.ModifieConsoCree(self,self.dictDonnees)
-            fFam = DLG_PrixFamille.DlgTarification(self,self.dictDonnees,fromIndividu=True)
+            self.dictDonnees['origine'] = 'lanceur'
+            fFam = DLG_PrixFamille.DlgTarification(self,self.dictDonnees)
             fFam.ShowModal()
             fFam.Destroy()
             self.parent.MAJ(self.IDinscription)
@@ -351,7 +352,8 @@ class DlgMenu(wx.Dialog):
             self.dictDonnees = fMod.dictDonnees
             self.Historise("ModificationInscription")
             # Vérifier pour confirmer les réductions liées aux inscriptions...
-            fFam = DLG_PrixFamille.DlgTarification(self,self.dictDonnees,fromIndividu=True)
+            self.dictDonnees['lanceur'] = 'individu'
+            fFam = DLG_PrixFamille.DlgTarification(self,self.dictDonnees)
             ret = fFam.ShowModal()
             fFam.Destroy()
             if ret == wx.ID_OK:
@@ -376,7 +378,8 @@ class DlgMenu(wx.Dialog):
             self.dictDonnees = fMod.dictDonnees
             self.Historise("AvoirGénéré")
             # Vérifier pour confirmer les réductions liées aux inscriptions...
-            fFam = DLG_PrixFamille.DlgTarification(self,self.dictDonnees,fromIndividu=True,fromAvoir=True)
+            self.dictDonnees['lanceur'] = 'individu_avoir'
+            fFam = DLG_PrixFamille.DlgTarification(self,self.dictDonnees)
             ret = fFam.ShowModal()
         fMod.Destroy()
         #fin Modifier
@@ -415,7 +418,8 @@ class DlgMenu(wx.Dialog):
                     fGest.SuppressionPiece(self, self.dictDonnees)
                     self.Historise("SuppressionInscription")
                 # Vérifier pour confirmer les réductions liées aux inscriptions...
-                fFam = DLG_PrixFamille.DlgTarification(self,self.dictDonnees,fromIndividu=True)
+                self.dictDonnees['lanceur'] = 'individu'
+                fFam = DLG_PrixFamille.DlgTarification(self,self.dictDonnees)
                 fFam.ShowModal()
                 fFam.Destroy()
         # Actualise l'affichage

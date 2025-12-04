@@ -13,8 +13,11 @@ from Utils.UTILS_Traduction import _
 import Chemins
 import wx
 import copy
-from Ol import OL_FacturationPieces
 import GestionDB
+import datetime
+
+from Ol import OL_FacturationPieces
+from Dlg import DLG_PrixFamille
 from Gest import GestionArticle
 from Gest import GestionInscription
 from Gest import GestionPieces
@@ -22,10 +25,8 @@ from Gest import GestionCoherence
 import wx.lib.agw.hyperlink as Hyperlink
 from Ctrl import CTRL_Bandeau
 from Ctrl import CTRL_Bouton_image
-import datetime
 from Utils import UTILS_Utilisateurs
 from Utils import UTILS_Config
-from Data import DATA_Tables
 
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 
@@ -177,7 +178,7 @@ class  Dialog(wx.Dialog):
         #self.staticbox_pied= wx.StaticBox(self, -1, )
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Facturer\n les devis"), cheminImage="Images/32x32/Generation.png")
         self.bouton_devis = CTRL_Bouton_image.CTRL(self, texte=_("Imprimer\nEnsemble"), cheminImage="Images/32x32/Imprimante.png")
-        self.bouton_modif = CTRL_Bouton_image.CTRL(self, texte=_("Modifier\nDevis"), cheminImage="Images/32x32/zoom_tout.png")
+        self.bouton_modif = CTRL_Bouton_image.CTRL(self, texte=_("Modifier\nTypeDevis"), cheminImage="Images/32x32/zoom_tout.png")
         self.bouton_annuler = CTRL_Bouton_image.CTRL(self, id=wx.ID_CANCEL, texte=_("Fermer"), cheminImage="Images/32x32/Annuler.png")
 
         #self.__set_data()
@@ -214,7 +215,7 @@ class  Dialog(wx.Dialog):
         self.bouton_mailerDev.SetToolTip(_("Cliquez ici pour envoyer par mail les devis"))
         self.bouton_ok.SetToolTip(_("Facturer en une seule facture, les pièces devis cochées"))
         self.bouton_devis.SetToolTip(_("Imprimer toutes les pièces cochées y compris factures"))
-        self.bouton_modif.SetToolTip(_("Modifier les pièces Devis cochées"))
+        self.bouton_modif.SetToolTip(_("Modifier la nature des pièces devis cochées"))
         self.olv_piecesFiltrees.SetToolTip(_("DéCochez les pièces que vous ne voulez pas ensemble"))
 
     def __do_layout(self):
@@ -325,9 +326,10 @@ class  Dialog(wx.Dialog):
                 fOl.LanceImpression(prefix,listePieces)
 
     def OnBoutonModif(self,event):
-
         objects = self.olv_piecesFiltrees.GetChoicesObjects()
         if len(objects) == 0:
+            return
+        if not self.VerifierFamille(objects):
             return
         from Dlg import DLG_ChoixTypePiece
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_factures", "creer")  :
@@ -335,12 +337,10 @@ class  Dialog(wx.Dialog):
             interroChoix = dlg.ShowModal()
             self.codeNature = dlg.codeNature
             dlg.Destroy()
-        if interroChoix != wx.ID_OK :
-            return
+            if interroChoix != wx.ID_OK :
+                return
         # Saisie du nouveau  code nature
         for selection in objects:
-            IDindividu = selection.IDindividu
-            interroChoix = wx.ID_CANCEL
             listeChamps = GestionInscription.StandardiseNomsChamps(self.olv_piecesFiltrees.listeChamps)
             self.dictDonnees = OL_FacturationPieces.OlvToDict(self,listeChamps,selection)
             self.codeNatureOld = copy.deepcopy(self.dictDonnees["nature"])
@@ -429,9 +429,57 @@ class  Dialog(wx.Dialog):
         if len(objects) == 0:
             GestionDB.MessageBox(self,"Vous n'avez coché aucune ligne ! ",titre="Continuation impossible")
             return
+        if not self.VerifierFamille(objects):
+            return
         self.Facturer(self.IDpayeur,objects)
         self.MAJ()
         #fin OnBoutonOK
+
+    def VerifierFamille(self,objects):
+        # Recherche de l'année des pièces devant migrer
+        lstActivites = []
+        lstAnnees = []
+        dictDonnees = {}
+        IDfamille = None
+        okfin = True
+        for track in objects:
+            if track.IDactivite in lstActivites:
+                continue
+            IDfamille = track.IDcompte_payeur
+            # Les pieces niveau familles n'ont pas IDactivite, mais IDinscription est l'année
+            if not track.IDactivite:
+                dte = datetime.date(track.IDinscription,1,1)
+            else: dte = None
+            (exerciceDeb, exerciceFin) = GestionArticle.AnneeAcad(self.DB,track.IDactivite,
+                                                                  dte)
+            if not exerciceFin.year in lstAnnees:
+                lstAnnees.append(exerciceFin.year)
+                lstActivites.append(track.IDactivite)
+        for annee in lstAnnees:
+            ok = True
+            dictDonnees["IDactivite"] = 0
+            dictDonnees["pieIDinscription"] = annee
+            dictDonnees["IDcompte_payeur"] = IDfamille
+            dictDonnees["annee"] =annee
+            dictDonnees['lanceur'] = 'facturation'
+            dlg = DLG_PrixFamille.DlgTarification(self,dictDonnees)
+            for ligne in dlg.resultsOlv.modelObjects:
+                if ligne.couleur == wx.RED:
+                    ok = False
+            if not ok:
+                mess = "Anomalies dans la fiche famille\n\n"
+                mess += "Présence de lignes rouges dans la pièce famille, Voulez vous la consulter et la valider?"
+                ret = wx.MessageBox(mess,"RECALCUL FAMILLE",style= wx.YES_NO)
+                if ret == wx.YES:
+                    ret = dlg.ShowModal()
+                if ret in (wx.ID_OK,):
+                   ok = True
+            dlg.Destroy()
+            if not ok:
+                okfin = False
+        # Mise à jour de l'affichage
+        self.MAJ()
+        return okfin
 
     def MAJ(self):
         """ MAJ integrale du controle avec MAJ des donnees """
@@ -448,7 +496,7 @@ class  Dialog(wx.Dialog):
 
 if __name__ == '__main__':
     app = wx.App(0)
-    dlg = Dialog(None, 3252)
+    dlg = Dialog(None, 4616)
     app.SetTopWindow(dlg)
     dlg.Show()
     app.MainLoop()

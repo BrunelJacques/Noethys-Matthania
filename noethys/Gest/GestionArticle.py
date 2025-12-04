@@ -18,7 +18,7 @@ import datetime
 from Data import DATA_Tables
 
 def Nz(valeur):
-    if valeur == None:
+    if not valeur:
         valeur = 0
     return valeur
 
@@ -1137,7 +1137,7 @@ def ArticlePreExist(article, ligne, dictDonnees):
     artPres = False
     supprimer = False
     article.origine = "lignart"
-    article.force = "NON"
+    article.force = "OUI"
 
     # CAS PARRAINAGE: les articles ont pu être renumérotés
     if article.codeArticle[:6] == '$$PARR' and ligne.codeArticle[:6] == '$$PARR':
@@ -1162,11 +1162,12 @@ def ArticlePreExist(article, ligne, dictDonnees):
 
     # CAS réduction cumul
     elif (ligne.codeArticle == "$RED-CUMUL") and (ligne.codeArticle == article.codeArticle):
+        artPres = True
         if ligne.montant == article.montantCalcul:
-            artPres = True
             ligne.montantCalcul = article.montantCalcul
             ligne.oldValue = article.montantCalcul
-            ligne.force = "OUI"
+        elif 'lig' in ligne.origine:
+            ligne.montantCalcul = article.montantCalcul
         else:
             artPres = False
             supprimer = True
@@ -1180,8 +1181,8 @@ def ArticlePreExist(article, ligne, dictDonnees):
             article.prixUnit = 1
             if article.qte != 0:
                 article.prixUnit = article.oldValue / article.qte
-            article.force = "OUI"
-            article.saisie = True
+        article.force = "OUI"
+        article.saisie = True
 
     # Autres cas
     elif ligne.codeArticle == article.codeArticle:
@@ -1224,7 +1225,6 @@ class ActionsModeCalcul() :
                         qte,mtt = eval(fonction + '(track,tracks,self.dictDonnees)')
             return qte,mtt
             #fin ModeCalcul
-
 
 #--------------------------------------------
 class TestTrack(object):

@@ -12,7 +12,7 @@ import wx
 import datetime
 from operator import attrgetter
 import wx.lib.agw.hyperlink as Hyperlink
-from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn,Filter, CTRL_Outils
+from Ctrl.CTRL_ObjectListView import ObjectListView, ColumnDefn, Filter, CTRL_Outils
 import copy
 from Ctrl import CTRL_Bouton_image
 from Ctrl import CTRL_Bandeau
@@ -40,16 +40,16 @@ def Nz(valeur):
 def Fmt2d(montant):
     # Convert the given montant into a string with zero null
     if montant != 0:
-        return "%.2f" % (montant)
+        return "%.2f" % montant
     else:
         return " "
 
 def FmtXd(montant):
     # Convert the given montant into décimales variables
     fmt = "%.4f" % montant
-    if (1000*montant) % 1 < 0.01: fmt = "%.3f" % montant
-    if (100*montant) % 1 < 0.001: fmt = "%.2f" % montant
-    if (10*montant) % 1 < 0.0001: fmt = "%.1f" % montant
+    if (1000 * montant) % 1 < 0.01: fmt = "%.3f" % montant
+    if (100 * montant) % 1 < 0.001: fmt = "%.2f" % montant
+    if (10 * montant) % 1 < 0.0001: fmt = "%.1f" % montant
     if (montant) % 1 < 0.00001: fmt = "%.0f" % montant
     if montant == 0: fmt = " "
     return fmt
@@ -61,32 +61,34 @@ def GetTypesLignes():
         dicTypesLignes[code] = ordre
     return dicTypesLignes
 
-def Calcul(dictDonnees,obj,objects):
+def Calcul(dictDonnees, obj, objects):
     aCalc = GestionArticle.ActionsModeCalcul(dictDonnees)
     qte, mtt = aCalc.ModeCalcul(obj, objects)
     if mtt != None:
         mtt = round(mtt, 2)
         obj.montantCalcul = mtt
         obj.qte = qte
+        obj.force = 'OUI'
 
-def Multilignes(listeOLV,dictDonnees):
+def Multilignes(listeOLV, dictDonnees):
     # démultiplication des articles multi lignes
     dictConditionsMulti = {}
     for ligne in listeOLV:
         if ligne.condition != None:
-            if len(ligne.condition)>5:
+            if len(ligne.condition) > 5:
                 if ligne.condition[0:5] in ["Multi", "Parra"]:
-                     if ligne.condition not in dictConditionsMulti:
-                         dictConditionsMulti[ligne.condition]=ligne.codeArticle
-    if len(list(dictConditionsMulti.keys()))>0:
+                    if ligne.condition not in dictConditionsMulti:
+                        dictConditionsMulti[ligne.condition] = ligne.codeArticle
+    if len(list(dictConditionsMulti.keys())) > 0:
         aCond = GestionArticle.ActionsConditions(dictDonnees)
-        for condition in list(dictConditionsMulti.keys()) :
-            aCond.ConditionMulti(condition,dictConditionsMulti[condition],listeOLV)
+        for condition in list(dictConditionsMulti.keys()):
+            aCond.ConditionMulti(condition, dictConditionsMulti[condition], listeOLV)
     return listeOLV
 
 def NormaliseLignes(lignes):
-    #permet de les comparer
-    champs = ['quantite', 'montant','codeArticle','libelle','IDnumPiece','prixUnit','IDnumLigne']
+    # permet de les comparer
+    champs = ['quantite', 'montant', 'codeArticle', 'libelle', 'IDnumPiece', 'prixUnit',
+              'IDnumLigne']
     lignesPieces = []
     for lig in lignes:
         dic = {}
@@ -100,22 +102,23 @@ def NormaliseLignes(lignes):
         lignesPieces.append(dic)
     return lignesPieces
 
-def GetLignes999(parent,DB):
+def GetLignes999(parent, DB):
     # appel des lignes famille de la piece en cours non facturée ou des factures de l'exercice
     if not parent.facture:
-        pGest = GestionPieces.Forfaits(parent,DB=DB)
-        pGest.CoherenceParrainages(parent.IDpayeur,DB=DB)
+        pGest = GestionPieces.Forfaits(parent, DB=DB)
+        pGest.CoherenceParrainages(parent.IDpayeur, DB=DB)
         del pGest
-    fGest = GestionInscription.Forfaits(parent.parent,DB=DB)
-    listePieces = fGest.GetPieceModif999(parent,parent.IDpayeur,parent.annee,facture=parent.facture)
+    fGest = GestionInscription.Forfaits(parent.parent, DB=DB)
+    listePieces = fGest.GetPieceModif999(parent, parent.IDpayeur, parent.annee,
+                                         facture=parent.facture)
     presence999 = len(listePieces)
     # rassemble les lignes des pièces existantes pour l'exercice
-    lignes999 = None # cas d'absence de pièce
+    lignes999 = None  # cas d'absence de pièce
     if presence999 > 0:
-        lignes999 = [] # présence de pièce, pas forcément avec des lignes
+        lignes999 = []  # présence de pièce, pas forcément avec des lignes
         # on déroule la liste des pièces se rapportant aux conditions
         for key in list(listePieces[0].keys()):
-            #constitution préalable de dictDonnées à partir de la première pièce
+            # constitution préalable de dictDonnées à partir de la première pièce
             parent.dictDonnees[key] = listePieces[0][key]
         # on déroule la liste des pièces se rapportant aux conditions
         for piece in listePieces:
@@ -127,30 +130,33 @@ def GetLignes999(parent,DB):
                     lignes999.append(ligne)
             else:
                 # cas d'une reprise d'une pièce en cours non facturée
-                if piece['nature'] in ("AVO","FAC"):
+                if piece['nature'] in ("AVO", "FAC"):
                     continue
                 # controle l'unicité de la pièce famille non facturée
-                if 'pieceEnCours' in list(parent.dictDonnees.keys()) and parent.dictDonnees['pieceEnCours'] != piece['IDnumPiece']:
+                if 'pieceEnCours' in list(parent.dictDonnees.keys()) and \
+                        parent.dictDonnees['pieceEnCours'] != piece['IDnumPiece']:
                     texte = "Anomalie!\n\nPlusieurs pièces non facturées pour le niveau famille sont en cours."
                     texte += "\nIl faut en supprimer pour pouvoir gérer correctement la modification d'une seule"
-                    wx.MessageBox(texte,"DLG_PrixFamille - lancement")
+                    wx.MessageBox(texte, "DLG_PrixFamille - lancement")
 
                 parent.dictDonnees['pieceEnCours'] = piece['IDnumPiece']
                 parent.dictDonnees['pieceOrigine'] = piece
 
                 for ligne in piece["lignes_piece"]:
                     lignes999.append(ligne)
-                if hasattr(parent,'listeIDpiecesOrigine'):
+                if hasattr(parent, 'listeIDpiecesOrigine'):
                     parent.listeIDpiecesOrigine.append(piece["IDnumPiece"])
 
-                if piece["IDprestation"] != None and hasattr(parent,'lstIDprestationsOrigine'):
+                if piece["IDprestation"] != None and hasattr(parent,
+                                                             'lstIDprestationsOrigine'):
                     parent.lstIDprestationsOrigine.append(piece["IDprestation"])
     return lignes999
 
-def GetArticles(annee,dictDonnees):
+def GetArticles(annee, dictDonnees):
     DB = dictDonnees['db']
     # appel des articles automatiques à insérer
-    champsMatArticles = ["codeArticle", "libelle", "prix1", "prix2", "typeLigne", "condition", "modeCalcul"]
+    champsMatArticles = ["codeArticle", "libelle", "prix1", "prix2", "typeLigne",
+                         "condition", "modeCalcul"]
     lignesModel = []  # modèle permet de déterminer les articles qui résulteraient d'une initialisation
 
     # Récupération des articles niveau famille à ajouter à listeOLV
@@ -158,7 +164,7 @@ def GetArticles(annee,dictDonnees):
             FROM matArticles
             WHERE artNiveauFamille = 1 AND (matArticles.artCodeArticle LIKE '$%%');
             """
-    DB.ExecuterReq(req,MsgBox = "AppelArticles")
+    DB.ExecuterReq(req, MsgBox="AppelArticles")
     recordset = DB.ResultatReq()
 
     if len(recordset) > 0:
@@ -166,23 +172,23 @@ def GetArticles(annee,dictDonnees):
         for item in recordset:
             i = 0
             ligne = {}
-            for champ in champsMatArticles :
+            for champ in champsMatArticles:
                 ligne[champ] = item[i]
-                i= i +1
+                i = i + 1
             ligne["libelleArticle"] = ligne["libelle"]
             # pour article cotisation, inclusion de l'année dans le libellé
             i = ligne["libelle"].upper().find("COTIS")
-            if i != -1 :
-                ligne["libelle"] += " "+str(annee)
-            ligne["ordre"] = 100+i
+            if i != -1:
+                ligne["libelle"] += " " + str(annee)
+            ligne["ordre"] = 100 + i
             ligne["origine"] = "articles"
             lignesModel.append(Track(ligne))
-    lignesModel = Multilignes(lignesModel,dictDonnees)
+    lignesModel = Multilignes(lignesModel, dictDonnees)
     # Parrainages: renseigner les inscriptions parrainées dans la piece en cours de modif
     lstArtParr = []
     lstInscrParr = []
     if 'dicParrainages' in list(dictDonnees.keys()):
-        for (inscr,dicParr) in list(dictDonnees['dicParrainages'].items()):
+        for (inscr, dicParr) in list(dictDonnees['dicParrainages'].items()):
             if not dicParr['IDligneParrain']: continue
             # seules les IDlignes de la pièce en cours sont renseignées ds dicParr
             lstInscrParr.append(inscr)
@@ -193,51 +199,30 @@ def GetArticles(annee,dictDonnees):
             ligne.IDinscription = lstInscrParr[lstArtParr.index(ligne.codeArticle)]
         Calcul(dictDonnees, ligne, lignesModel)
 
+
     return lignesModel
-    #fin GetArticles
+    # fin GetArticles
 
-def FormateLignes(listeOLV,dictDonnees):
-    # précoche ou non via force
-    for obj in listeOLV:
-        if "article" in obj.origine and obj.montantCalcul != 0.0:
-            obj.force = "OUI"
-        elif obj.condition == "Sans" :
-            obj.force = "OUI"
-
+def FormateLignes(listeOLV, dictDonnees):
     # colorisation des lignes
     for obj in listeOLV:
-        if not 'nature' in dictDonnees:
-            obj.couleur = wx.BLUE
-        elif dictDonnees['nature'] in ('FAC','AVO'):
+        if 'nature' in dictDonnees and dictDonnees['nature'] in ('FAC', 'AVO'):
             obj.couleur = wx.BLUE
         else:
             # cas des lignes modifiables
-            if (dictDonnees["origine"] == "ajout"):
-                obj.couleur = wx.BLUE
-            else:
-                if obj.origine == "lignes":
-                    if obj.condition == 'Sans':
-                        obj.couleur = wx.BLACK
-                    elif obj.montant != obj.montantCalcul:
-                        obj.couleur = wx.RED
-                    else:
-                        obj.couleur = wx.BLUE
-                elif obj.origine == "articles":
-                    obj.couleur = wx.BLUE
-                elif obj.origine == "lignart":
-                    if hasattr(obj,'oldValue') and float(obj.montantCalcul) != float(obj.oldValue):
-                        obj.couleur = wx.RED
-                    elif hasattr(obj, 'oldValue') and float(obj.montantCalcul) != float(
-                            obj.montant):
-                        obj.couleur = wx.RED
-                    else: obj.couleur = wx.BLUE
-                else:
-                    obj.couleur = wx.GREEN
+            obj.couleur = wx.BLUE
+            if obj.condition == 'Sans' or obj.montant != 0:
+                obj.couleur = wx.BLACK
+            if obj.montant - obj.montantCalcul != 0 and obj.condition != 'sans' and obj.montant != 0:
+                # le calcul a été forcé à un autre montant, conditions non respectée!
+                obj.couleur = wx.RED
+            if obj.montantCalcul != 0 and not obj.isChecked:
+                obj.couleur = wx.RED
 
-def InserArticles(listeOLV = [],articles=[],dictDonnees={}):
+def InserArticles(listeOLV=[], articles=[], dictDonnees={}):
     # ajout des articles manquant dans olv et retraitement de l'antérieur.
     lstSupprimer = []
-    aCond= GestionArticle.ActionsConditions(dictDonnees)
+    aCond = GestionArticle.ActionsConditions(dictDonnees)
     # pour ajouter l'ordre les lignes dans les tracks et trier pour les calculs
     dicTypesLignes = GetTypesLignes()
 
@@ -250,7 +235,7 @@ def InserArticles(listeOLV = [],articles=[],dictDonnees={}):
             article.montantCalcul = 0
             # test dans les lignes d'une pièce préexistante et non encore facturée
             if not article.codeArticle in lstArticlesLignes:
-               continue
+                continue
         present = False
         # test de présence antérieure pour alimenter la liste à supprimer
         for ligne in listeOLV:
@@ -259,10 +244,10 @@ def InserArticles(listeOLV = [],articles=[],dictDonnees={}):
                     and ligne.codeArticle != article.codeArticle:
                 continue
 
-            if float(ligne.montant) == 0.0:
+            if float(ligne.montant) == 0.0 and not 'lig' in ligne.origine:
                 ligne.montant = ligne.montantCalcul
             # match article déja présent?
-            pres, suppr, brk = GestionArticle.ArticlePreExist(article,ligne,dictDonnees)
+            pres, suppr, brk = GestionArticle.ArticlePreExist(article, ligne, dictDonnees)
             if suppr:
                 lstSupprimer.append(ligne)
             if pres:
@@ -270,7 +255,8 @@ def InserArticles(listeOLV = [],articles=[],dictDonnees={}):
 
         if article.typeLigne in list(dicTypesLignes.keys()):
             article.ordre = dicTypesLignes[article.typeLigne]
-        else: article.ordre = 99
+        else:
+            article.ordre = 99
         if not present:
             listeOLV.append(article)
 
@@ -279,44 +265,52 @@ def InserArticles(listeOLV = [],articles=[],dictDonnees={}):
         if ligne in listeOLV:
             listeOLV.remove(ligne)
     return
-    #fin InserArticles
+    # fin InserArticles
+
+# -----------------------------------------------------------------------------------
 
 class Track(object):
     def __init__(self, track):
         montant = 0
         for champ in list(track.keys()):
-            setattr(self,champ,track[champ])
+            setattr(self, champ, track[champ])
         if "libelleArticle" in list(track.keys()):
-            self.libelleArticle =  track["libelleArticle"]
-        else: self.libelleArticle =  track["libelle"]
+            self.libelleArticle = track["libelleArticle"]
+        else:
+            self.libelleArticle = track["libelle"]
         if track["origine"] == "articles":
-            self.prixUnit = round(track["prix1"],4)
+            self.prixUnit = round(track["prix1"], 4)
             self.qte = 1
             montant = 0
             self.prixUnit = track["prix1"]
             self.saisie = False
-        if track["origine"]== "lignes":
-            self.prixUnit = round(track["prixUnit"],4)
-            self.qte =  track["quantite"]
+        if track["origine"] == "lignes":
+            self.prixUnit = round(track["prixUnit"], 4)
+            self.qte = track["quantite"]
             self.saisie = True
-            montant =  track["montant"]
+            montant = track["montant"]
         if self.prixUnit == None: self.prixUnit = 0
         if self.qte == None: self.qte = 0
-        self.montantCalcul = round(self.prixUnit * self.qte,2)
+        self.montantCalcul = round(self.prixUnit * self.qte, 2)
         self.montant = float(montant)
         self.qte = float(self.qte)
-        if self.montant == round(self.qte * self.prixUnit,2):
+        if self.montant == round(self.qte * self.prixUnit, 2):
             self.saisie = False
-        self.montant = round(self.montant,2)
-        self.montantCalcul = round(self.montantCalcul,2)
+        self.montant = round(self.montant, 2)
+        self.montantCalcul = round(self.montantCalcul, 2)
         if "force" in track:
             self.force = track["force"]
-        else: self.force = None
-    #fin Track
+        else:
+            self.force = None
+        self.isChecked = None
+        self.oldValue = montant
+
+    # fin Track
 
 class CTRL_Solde(wx.Panel):
     def __init__(self, parent):
-        wx.Panel.__init__(self, parent, id=-1, name="panel_solde", style=wx.SUNKEN_BORDER | wx.TAB_TRAVERSAL,
+        wx.Panel.__init__(self, parent, id=-1, name="panel_solde",
+                          style=wx.SUNKEN_BORDER | wx.TAB_TRAVERSAL,
                           size=(100, 40))
         self.parent = parent
 
@@ -327,7 +321,8 @@ class CTRL_Solde(wx.Panel):
 
         # Layout
         self.grid_sizer = wx.FlexGridSizer(rows=1, cols=1, vgap=5, hgap=5)
-        self.grid_sizer.Add(self.ctrl_solde, 1, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.ALL, 10)
+        self.grid_sizer.Add(self.ctrl_solde, 1,
+                            wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.ALL, 10)
         self.SetSizer(self.grid_sizer)
         self.grid_sizer.Fit(self)
         self.grid_sizer.AddGrowableCol(0)
@@ -350,11 +345,13 @@ class CTRL_Solde(wx.Panel):
         self.Layout()
         self.Refresh()
 
-# ---Gestion écran tarification --------------------------------------------------------------
-class OLVtarification(FastObjectListView):
-    def __init__(self,parent,DB,IDpayeur, periode, facture=False, *args, **kwds):
+# ------------------------------------------------------------------------------------
+
+class OLVtarification(ObjectListView):
+    # Gestion écran tarification à la fois pour factres et devis en deux écrans
+    def __init__(self, parent, DB, IDpayeur, periode, facture=False, *args, **kwds):
         self.DB = DB
-        self.name = kwds.pop('name','noName')
+        self.name = kwds.pop('name', 'noName')
         self.parent = parent
         self.facture = facture
         self.IDpayeur = IDpayeur
@@ -362,35 +359,44 @@ class OLVtarification(FastObjectListView):
         self.annee = periode[1].year
         self.lstIDprestationsOrigine = []
         self.lstOLVmodele = []
-        FastObjectListView.__init__(self, parent, *args, **kwds)
-        if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_factures", "creer") == False :
-            GestionDB.MessageBox(self,"Vous n'avez pas les droits pour créer des factures")
-            self.cellEditMode = FastObjectListView.CELLEDIT_NONE
-        else :
-            self.cellEditMode = FastObjectListView.CELLEDIT_SINGLECLICK
+        ObjectListView.__init__(self, parent, *args, **kwds)
+        if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_factures",
+                                                                  "creer") == False:
+            GestionDB.MessageBox(self,
+                                 "Vous n'avez pas les droits pour créer des factures")
+            self.cellEditMode = ObjectListView.CELLEDIT_NONE
+        else:
+            self.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
         if facture:
-            self.cellEditMode = FastObjectListView.CELLEDIT_NONE
+            self.cellEditMode = ObjectListView.CELLEDIT_NONE
 
-        #lecture de pièce présente antérieurement
+        # lecture de pièce présente antérieurement
         self.lastObj = None
-        self.listeIDpiecesOrigine=[]
+        self.listeIDpiecesOrigine = []
 
-        self.dictDonnees = {"IDindividu":0,
-                            "IDfamille":IDpayeur,
+        self.dictDonnees = {"IDindividu": 0,
+                            "IDfamille": IDpayeur,
                             "IDactivite": 0,
                             "IDgroupe": None,
-                            "IDinscription":datetime.date.today().year, #ajout 10/09/2021
-                            "db":DB,
+                            "IDinscription": self.annee,
+                            "db": DB,
                             "annee": self.annee,
-                            "periode":(self.periode)
+                            "periode": (self.periode)
                             }
 
         self.InitModel()
-        #fin init
+
+        # Mise en place des checkboxes wx > 3.1 sur listbox
+        if not self.facture:
+            self.EnableCheckBoxes(enable=True)
+            # Bind the checkbox toggle event
+            self.Bind(wx.EVT_LIST_ITEM_CHECKED, self.OnItemChecked)
+            self.Bind(wx.EVT_LIST_ITEM_UNCHECKED, self.OnItemUnchecked)
+        # fin init
 
     def InitModel(self):
-        # Charge la pièce existante et non facturée
-        lignes999 = GetLignes999(self,self.DB)
+        # Charge la pièce famille existante et non encore facturée
+        lignes999 = GetLignes999(self, self.DB)
         lignesPieces = []
 
         if lignes999 != None:
@@ -403,34 +409,40 @@ class OLVtarification(FastObjectListView):
         self.dictDonnees['lstIDprestationsOrigine'] = self.lstIDprestationsOrigine
 
         if not self.facture:
-            if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_factures", "creer") == True :
-                self.cellEditMode = FastObjectListView.CELLEDIT_SINGLECLICK
+            if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_factures",
+                                                                      "creer") == True:
+                self.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
         return
 
-    def InitObjectListView(self,rappel=False):
+    def InitObjectListView(self, rappel=False):
         if rappel:
             self.InitModel()
-        #composition du listView avec complémentation par les articles communs
-        listeOLV=[]
+        # composition du listView avec complémentation par les articles communs
+        listeOLV = []
         # on insère d'abord la piece999 complétées des attributs de l'article original
         if (self.dictDonnees["origine"] == "modif"):
             listeOLV = self.EnrichirDonnees(self.dictDonnees["lignes_piece"])
 
+        # une reprise doit conserver l'existant
         if rappel:
             for obj in listeOLV:
                 obj.force = "OUI"
-                obj.couleur = wx.GREEN
+                obj.couleur = wx.GREEN # pour repère débuggage
 
         # puis on ajoute les articles manquants
         if not self.facture and not rappel:
-            listeArticles = GetArticles(self.annee,self.dictDonnees)
-            InserArticles(listeOLV,listeArticles,self.dictDonnees)
+            listeArticles = GetArticles(self.annee, self.dictDonnees)
+            InserArticles(listeOLV, listeArticles, self.dictDonnees)
+
 
         def rowFormatter(listItem, track):
-            if hasattr(track,'couleur'):
+            if hasattr(track, 'couleur'):
                 listItem.SetTextColour(track.couleur)
 
-        self.listeOLV = sorted(listeOLV,key=attrgetter('ordre'))
+        self.listeOLV = sorted(listeOLV, key=attrgetter('ordre'))
+        if self.facture:
+            # Pour les devis c"est chaque calcul qui formate les lignes
+            FormateLignes(self.listeOLV,self.dictDonnees)
 
         # Couleur en alternance des lignes
         self.oddRowsBackColor = "#F0FBED"
@@ -438,28 +450,32 @@ class OLVtarification(FastObjectListView):
         self.useExpansionColumn = True
 
         liste_Colonnes = [
-            ColumnDefn("Code", "center", 100, "codeArticle",typeDonnee="texte",isEditable=False),
-            ColumnDefn("Libelle (libelles modifiables)", "left", 300,"libelle",typeDonnee="texte",isSpaceFilling = True ),
-            ColumnDefn("Qté", "right", 50, "qte",typeDonnee="montant",stringConverter=FmtXd),
-            ColumnDefn("Calculé", "right", 100, "montantCalcul",typeDonnee="montant",stringConverter="%.2f",isEditable=False),
-            ColumnDefn("Forcé", "right", 100, "montant",typeDonnee="montant",stringConverter=Fmt2d),
-            ]
+            ColumnDefn("Code", "center", 120, "codeArticle", typeDonnee="texte",
+                       isEditable=False),
+            ColumnDefn("Libelle (libelles modifiables)", "left", 300, "libelle",
+                       typeDonnee="texte", isSpaceFilling=True),
+            ColumnDefn("Qté", "right", 50, "qte", typeDonnee="montant",
+                       stringConverter=FmtXd),
+            ColumnDefn("PxUn", "right", 70, "prixUnit", typeDonnee="montant",
+                       stringConverter=Fmt2d, isEditable=False),
+            ColumnDefn("Calculé", "right", 90, "montantCalcul", typeDonnee="montant",
+                       stringConverter="%.2f", isEditable=False),
+            ColumnDefn("Forcé", "right", 90, "montant", typeDonnee="montant",
+                       stringConverter=Fmt2d),
+        ]
 
-        FormateLignes(self.listeOLV,self.dictDonnees)
         self.rowFormatter = rowFormatter
         self.SetColumns(liste_Colonnes)
         self.SetEmptyListMsg(_("Aucune ligne trouvée"))
         self.SetEmptyListMsgFont(wx.FFont(11, wx.DEFAULT, faceName="Tekton"))
-        if not self.facture:
-            self.CreateCheckStateColumn()
         self.SetObjects(self.listeOLV)
-        #fin InitObjectListView
+        # fin InitObjectListView
 
-    def EnrichirDonnees(self,listeLignes, forcer = True):
+    def EnrichirDonnees(self, listeLignes, forcer=True):
         # Complete les articles simples en lignes-piece pour les champs liste2 liés à l'article, puis met en track
         DB = self.dictDonnees['db']
         donnees = []
-        liste2=["prix1","prix2", "typeLigne", "condition", "modeCalcul"]
+        liste2 = ["prix1", "prix2", "typeLigne", "condition", "modeCalcul"]
         # Transposition des données SQL avec les noms de champs utilisés en track
         if listeLignes != None:
             for dictLigne in listeLignes:
@@ -467,7 +483,8 @@ class OLVtarification(FastObjectListView):
                 dicDonnees = {}
                 for champLigne in list(dictLigne.keys()):
                     dicDonnees[champLigne] = dictLigne[champLigne]
-                champs = ["codeArticle", "libelle", "prix1", "prix2", "typeLigne", "condition", "modeCalcul"]
+                champs = ["codeArticle", "libelle", "prix1", "prix2", "typeLigne",
+                          "condition", "modeCalcul"]
 
                 req = """
                     SELECT matArticles.artCodeArticle, matArticles.artLibelle, matArticles.artPrix1, 
@@ -476,93 +493,137 @@ class OLVtarification(FastObjectListView):
                     FROM matArticles
                     WHERE (matArticles.artCodeArticle = '%s');
                     """ % dicDonnees["codeArticle"]
-                retour = DB.ExecuterReq(req,MsgBox="ExecuterReq")
-                if retour != "ok" :
-                    DB.AfficheErr(self,retour)
+                retour = DB.ExecuterReq(req, MsgBox="ExecuterReq")
+                if retour != "ok":
+                    DB.AfficheErr(self, retour)
                     continue
                 recordset = DB.ResultatReq()
                 if len(recordset) == 0:
-                    #article non trouvé car multi et ajouté sur les deux derniers caractère
+                    # article non trouvé car multi et ajouté sur les deux derniers caractère
                     req = """SELECT matArticles.artCodeArticle, matArticles.artLibelle, matArticles.artPrix1, 
                                     matArticles.artPrix2, matArticles.artCodeBlocFacture,matArticles.artConditions, 
                                     matArticles.artModeCalcul
                         FROM matArticles
                         WHERE (matArticles.artCodeArticle LIKE '%s');
-                        """ % (dicDonnees["codeArticle"][0:-2]+"%%")
-                    retour = DB.ExecuterReq(req,MsgBox="ExecuterReq")
-                    if retour != "ok" : DB.AfficheErr(self,retour)
+                        """ % (dicDonnees["codeArticle"][0:-2] + "%%")
+                    retour = DB.ExecuterReq(req, MsgBox="ExecuterReq")
+                    if retour != "ok": DB.AfficheErr(self, retour)
                     recordset = DB.ResultatReq()
                 for champLigne in liste2:
-                    if len(recordset)>0:
+                    if len(recordset) > 0:
                         ix = champs.index(champLigne)
                         dicDonnees[champLigne] = recordset[0][ix]
-                    else: dicDonnees[champLigne] = None
+                    else:
+                        dicDonnees[champLigne] = None
                 dicTypesLignes = GetTypesLignes()
                 if dicDonnees['typeLigne'] in list(dicTypesLignes.keys()):
                     dicDonnees['ordre'] = dicTypesLignes[dicDonnees['typeLigne']]
-                else: dicDonnees['ordre'] = 99
+                else:
+                    dicDonnees['ordre'] = 99
                 donnees.append(dicDonnees)
-        #Transpose les données de type listes avec clés en objets tracks avec attributs pour OLV
+        # Transpose les données de type listes avec clés en objets tracks avec attributs pour OLV
         listeOLV = []
-        aCond= GestionArticle.ActionsConditions(self.dictDonnees)
+        aCond = GestionArticle.ActionsConditions(self.dictDonnees)
         for item in donnees:
-            item["origine"]="lignes"
+            item["origine"] = "lignes"
             cond = False
-            if forcer :
+            if forcer:
                 cond = True
                 item["force"] = "OUI"
-            else :
-                if aCond.Condition(item["condition"],item["codeArticle"]):
+            else:
+                if aCond.Condition(item["condition"], item["codeArticle"]):
                     cond = True
-            if cond :
+            if cond:
                 track = Track(item)
                 track.donnees = item
                 listeOLV.append(track)
         return listeOLV
-        #fin EnrichirDonnees
+        # fin EnrichirDonnees
+
+    # Event handlers for mouse clicks
+    def OnToggle(self,event,check):
+        # check and uncheck consequences
+        ix = event.GetIndex()
+        obj = self.innerList[ix]
+        obj.isChecked = check
+        if check:
+            obj.montant = obj.oldValue
+        else:
+            obj.montant = obj.montantCalcul
+        self.parent.CalculSolde()
+        self.RefreshObject(obj)
+
+    def OnItemChecked(self, event):
+        self.OnToggle(event,True)
+
+    def OnItemUnchecked(self, event):
+        self.OnToggle(event,False)
+
+    def SetCheckState(self,obj, state):
+        ix = self.innerList.index(obj)
+        self.CheckItem(ix,state)
+
+
 
 class DlgTarification(wx.Dialog):
-    def __init__(self,parent,dictDonneesParent,fromIndividu = False,fromAvoir = False):
+    def __init__(self, parent, dictDonneesParent):
         self.parent = parent
-        self.fromIndividu = fromIndividu
-        self.fromAvoir = fromAvoir
         self.total = 0.0
         self.rappel = False
-        wx.Dialog.__init__(self, None, -1, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX,
+        wx.Dialog.__init__(self, None, -1,
+                           style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX,
                            size=(800, 600))
         self.dictDonneesParent = dictDonneesParent
 
         self.DB = GestionDB.DB()
-        if not 'IDactivite' in list(self.dictDonneesParent.keys()):
+        if 'annee' in dictDonneesParent:
+            dateAnnee = datetime.date(dictDonneesParent['annee'], 1, 1)
+        else:
+            dateAnnee = None
+
+        if not 'IDactivite' in self.dictDonneesParent:
             self.dictDonneesParent['IDactivite'] = None
-        self.exerciceDeb,self.exerciceFin = GestionArticle.AnneeAcad(self.DB,IDactivite = dictDonneesParent["IDactivite"])
-        self.periode = (self.exerciceDeb,self.exerciceFin)
+
+        self.periode = GestionArticle.AnneeAcad(self.DB,
+                                                IDactivite=dictDonneesParent[
+                                                    "IDactivite"],
+                                                date=dateAnnee)
+        (self.exerciceDeb, self.exerciceFin) = self.periode
         self.annee = self.exerciceFin.year
         self.IDcompte_payeur = dictDonneesParent["IDcompte_payeur"]
 
         # Verrouillage utilisateurs
         self.rw = True
-        if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_inscriptions", "creer") == False :
+        if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel(
+                "individus_inscriptions",
+                "creer") == False:
             self.rw = False
 
         # Pose les titres
         self.SetTitle(_("DLG_PrixFamille"))
 
-        self.payeur = self.DB.GetNomIndividu(self.IDcompte_payeur)
+        self.payeur = f"{self.IDcompte_payeur} {self.DB.GetNomIndividu(self.IDcompte_payeur)}"
         titre = "NIVEAU FAMILLE "
-        self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=self.payeur, hauteurHtml=10,
+        self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre,
+                                                 texte=self.payeur,
+                                                 hauteurHtml=10,
                                                  nomImage="Images/22x22/Smiley_nul.png")
 
         self.SetBandeau()
 
         # conteneur des données
         self.staticbox_facture = wx.StaticBox(self, -1, _("Déjà facturé..."))
-        self.staticbox_nonFacture = wx.StaticBox(self, -1, _("Non facturé modifiable ..."))
-        self.resultsOlv = OLVtarification(self,self.DB,self.IDcompte_payeur, self.periode, facture=False,id=1,
+        self.staticbox_nonFacture = wx.StaticBox(self, -1,
+                                                 _("Non facturé modifiable ..."))
+        self.resultsOlv = OLVtarification(self, self.DB, self.IDcompte_payeur,
+                                          self.periode,
+                                          facture=False, id=1,
                                           name="OLV_Saisie",
                                           style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.LC_HRULES | wx.LC_VRULES)
         self.ctrl_recherche = CTRL_Outils(self, listview=self.resultsOlv)
-        self.resultsOlvFact = OLVtarification(self,self.DB,self.IDcompte_payeur, self.periode, facture=True, id=2,
+        self.resultsOlvFact = OLVtarification(self, self.DB, self.IDcompte_payeur,
+                                              self.periode,
+                                              facture=True, id=2,
                                               name="OLV_Facture",
                                               style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.LC_HRULES | wx.LC_VRULES)
         self.ctrl_solde = CTRL_Solde(self)
@@ -570,26 +631,37 @@ class DlgTarification(wx.Dialog):
 
         # pour conteneur des actions en pied d'écran
         self.pied_staticbox = wx.StaticBox(self, -1, _("Actions"))
-        self.hyper_tout = Hyperlien(self, label=_("Tout cocher"), infobulle=_("Cliquez ici pour tout cocher"),
+        self.hyper_tout = Hyperlien(self, label=_("Tout cocher"),
+                                    infobulle=_("Cliquez ici pour tout cocher"),
                                     URL="tout")
-        self.hyper_rien = Hyperlien(self, label=_("Tout décocher"), infobulle=_("Cliquez ici pour tout décocher"),
+        self.hyper_rien = Hyperlien(self, label=_("Tout décocher"),
+                                    infobulle=_("Cliquez ici pour tout décocher"),
                                     URL="rien")
-        self.hyper_annee = Hyperlien(self, label=_("Change Année"), infobulle=_("Cliquez ici pour choisir un autre exercice"),
-                                    URL="annee")
-        self.hyper_ajoutArticle = Hyperlien(self, label=_("| Ajouter Ligne"), infobulle=_("Ajouter un article"), URL="article")
+        self.hyper_anneeprec = Hyperlien(self, label=_("Année Précédente"), infobulle=_(
+            "Cliquez ici pour choisir un autre exercice"),
+                                         URL="anneeprec")
+        self.hyper_anneesuiv = Hyperlien(self, label=_("| Année Suivante"), infobulle=_(
+            "Cliquez ici pour choisir un autre exercice"),
+                                         URL="anneesuiv")
+        self.hyper_ajoutArticle = Hyperlien(self, label=_("| Ajouter Ligne"),
+                                            infobulle=_("Ajouter un article"),
+                                            URL="article")
         self.hyper_ajoutReinitialiser = Hyperlien(self, label=_("| Réinitialiser"),
-                                                  infobulle=_("Pour oublier une saisie antérieure"), URL="reinitialiser")
-        self.bouton_oj = CTRL_Bouton_image.CTRL(self, texte=_("Autre\nInscription"), cheminImage="Images/32x32/Fleche_gauche.png")
-        self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("OK vers\nFacturation"), cheminImage="Images/32x32/Fleche_droite.png")
-        self.bouton_annuler = CTRL_Bouton_image.CTRL(self, texte=_("Ignorer\nFamille"), cheminImage="Images/32x32/Annuler.png")
-        if not self.fromIndividu :
+                                                  infobulle=_(
+                                                      "Pour oublier une saisie antérieure"),
+                                                  URL="reinitialiser")
+        self.bouton_oj = CTRL_Bouton_image.CTRL(self, texte=_("Autre\nInscription"),
+                                                cheminImage="Images/32x32/Fleche_gauche.png")
+        self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("OK pour\nFacturation"),
+                                                cheminImage="Images/32x32/Fleche_droite.png")
+        self.bouton_annuler = CTRL_Bouton_image.CTRL(self, texte=_("Abandon\nFamille"),
+                                                     cheminImage="Images/32x32/Annuler.png")
+        if not 'individu' in self.dictDonneesParent['lanceur']:
             self.bouton_oj.Enable(False)
         self.__set_properties()
         self.Sizer()
 
-        self.resultsOlv.Bind(wx.EVT_COMMAND_LEFT_CLICK, self.Activated)
-        self.resultsOlv.Bind(wx.EVT_LIST_ITEM_SELECTED, self.Selected)
-        self.resultsOlv.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.Activated)
+        self.resultsOlv.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnSelected)
         self.resultsOlv.Bind(wx.EVT_TEXT, self.OnTexte)
         self.resultsOlv.Bind(wx.EVT_LIST_KEY_DOWN, self.OnKeyDown)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonOj, self.bouton_oj)
@@ -598,47 +670,43 @@ class DlgTarification(wx.Dialog):
         self.SetExercice(self.annee)
         # fin de init
 
-    def ListeDict(self,olv):
+    def ListeDict(self, olv):
         # Permet de récupérer le format liste de dictionnaires pour les lignes de la pièce
         objects = olv.GetObjects()
         listeLignesPiece = []
         for obj in objects:
-            if olv.IsChecked(obj) == True:
+            if olv.IsItemChecked(self.IxItem(obj)) == True:
                 dictTemp = {}
-                if hasattr(obj,"donnees"):
+                if hasattr(obj, "donnees"):
                     dictTemp = obj.donnees
-                dictTemp["codeArticle"]= obj.codeArticle
-                dictTemp["libelle"]= obj.libelle
+                dictTemp["codeArticle"] = obj.codeArticle
+                dictTemp["libelle"] = obj.libelle
                 if obj.qte == None: obj.qte = 1
-                dictTemp["quantite"]= obj.qte
-                if obj.qte != 0.0 :
-                    dictTemp["prixUnit"]= round(obj.montantCalcul / obj.qte,4)
-                else : dictTemp["prixUnit"] = 0.0
-                dictTemp["montant"]= obj.montant
+                dictTemp["quantite"] = obj.qte
+                if obj.qte != 0.0:
+                    dictTemp["prixUnit"] = round(obj.montantCalcul / obj.qte, 4)
+                else:
+                    dictTemp["prixUnit"] = 0.0
+                dictTemp["montant"] = obj.montant
                 listeLignesPiece.append(dictTemp)
         return listeLignesPiece
 
-    def SetExercice(self,annee):
+    def SetExercice(self, annee):
         # Application de l'année
         # cas d'un deuxième passage après init, l'année a changé
         if not annee == self.exerciceFin.year:
-            dte = datetime.date(annee,self.exerciceFin.month,self.exerciceFin.day)
-            self.exerciceDeb, self.exerciceFin = GestionArticle.AnneeAcad(self.DB, IDactivite=None, date=dte)
-
+            dte = datetime.date(annee, self.exerciceFin.month, self.exerciceFin.day)
+            periode = GestionArticle.AnneeAcad(self.DB, IDactivite=None, date=dte)
+            self.exerciceDeb, self.exerciceFin = periode
             # mise à jour de l'olv modifiable
             self.resultsOlv.exerciceFin = self.exerciceFin
             self.resultsOlv.dictDonnees['annee'] = annee
             del self.resultsOlv.dictDonnees['dicCumul']
             self.resultsOlv.InitModel()
 
-            # mise à jour du bandeau
+            # mise à jour du bandeau et des factures
             self.SetBandeau()
-
-            # mise à jour de l'OLV factures
-            self.resultsOlvFact.exerciceFin = self.exerciceFin
-            self.resultsOlvFact.InitModel()
-            self.SetSizer(self.grid_sizer)
-            self.Layout()
+            self.MajOlvFact(periode)
 
         # vérif de la présence d'une inscription
         if "IDactivite" not in self.resultsOlv.dictDonnees:
@@ -646,12 +714,14 @@ class DlgTarification(wx.Dialog):
             req = """SELECT Count(pieIDnumPiece)
                     FROM matPieces
                     WHERE pieIDcompte_payeur = %d ;""" % self.IDcompte_payeur
-            self.DB.ExecuterReq(req,MsgBox="ExecuterReq")
+            self.DB.ExecuterReq(req, MsgBox="ExecuterReq")
             nbrePieces = self.DB.ResultatReq()
             if nbrePieces == 0:
-                GestionDB.MessageBox(self,"Aucune inscription n'existe : Impossible de facturer même un complement",titre = "DLG_Famille.Init" )
-                fGest = GestionInscription.Forfaits(self,self.DB)
-                fGest.NeutraliseReport(self.IDcompte_payeur,None,None)
+                GestionDB.MessageBox(self,
+                                     "Aucune inscription n'existe : Impossible de facturer même un complement",
+                                     titre="DLG_Famille.Init")
+                fGest = GestionInscription.Forfaits(self, self.DB)
+                fGest.NeutraliseReport(self.IDcompte_payeur, None, None)
                 self.DB.Close()
                 self.Destroy()
                 return
@@ -659,22 +729,31 @@ class DlgTarification(wx.Dialog):
         self.lastObj = None
         self.resultsOlv.InitObjectListView()
         self.resultsOlvFact.InitObjectListView()
-        self.dataorigine = [ copy.deepcopy(x) for x in self.resultsOlv.listeOLV]
+        self.dataorigine = [copy.deepcopy(x) for x in self.resultsOlv.listeOLV]
         self.PreCoche()
         self.CalculSolde()
         self.SupprimeDejaFacture()
         return
 
+    def MajOlvFact(self, periode):
+        exerciceDeb, exerciceFin = periode
+        # mise à jour de l'OLV factures
+        self.resultsOlvFact.exerciceFin = exerciceFin
+        self.resultsOlvFact.annee = exerciceFin.year
+        self.resultsOlvFact.periode = periode
+        self.resultsOlvFact.InitObjectListView(rappel=True)
+
     def SetBandeau(self):
         self.annee = self.exerciceFin.year
         texte = "Payeur : " + self.payeur + " - Période du " \
-                + self.exerciceDeb.strftime("%d/%m/%Y") + " au " + self.exerciceFin.strftime("%d/%m/%Y")
+                + self.exerciceDeb.strftime(
+            "%d/%m/%Y") + " au " + self.exerciceFin.strftime("%d/%m/%Y")
         titre = "NIVEAU FAMILLE - année %s" % str(self.annee)
         self.ctrl_bandeau.ctrl_titre.SetLabel(titre)
         self.ctrl_bandeau.ctrl_intro.SetPage(texte)
 
     def __set_properties(self):
-        if not self.rw :
+        if not self.rw:
             self.bouton_ok.Enable(False)
             self.resultsOlv.Enable(False)
             self.hyper_ajoutArticle.Enable(False)
@@ -683,10 +762,14 @@ class DlgTarification(wx.Dialog):
             self.hyper_annee.Enable(False)
             self.hyper_tout.Enable(False)
         self.bouton_ok.SetToolTip(_("Chaîner sur la synthèse famille et la facturation"))
-        self.bouton_oj.SetToolTip(_("Retour sur les inscriptions, sans passer par la facturation"))
-        self.bouton_annuler.SetToolTip(_("Cliquez ici pour ignorer les modifs du niveau famille"))
-        self.ctrl_solde.SetToolTip(_("Ne Saisissez pas le montant ici, mais sur les lignes cochées"))
-        self.ctrl_solde.ctrl_solde.SetToolTip(_("Ne Saisissez pas le montant ici, mais sur les lignes cochées"))
+        self.bouton_oj.SetToolTip(
+            _("Retour sur les inscriptions, sans passer par la facturation"))
+        self.bouton_annuler.SetToolTip(
+            _("Cliquez ici pour ignorer les modifs du niveau famille"))
+        self.ctrl_solde.SetToolTip(
+            _("Ne Saisissez pas le montant ici, mais sur les lignes cochées"))
+        self.ctrl_solde.ctrl_solde.SetToolTip(
+            _("Ne Saisissez pas le montant ici, mais sur les lignes cochées"))
 
     def Sizer(self):
         self.grid_sizer = wx.FlexGridSizer(rows=5, cols=1, vgap=5, hgap=5)
@@ -697,7 +780,7 @@ class DlgTarification(wx.Dialog):
         grid_sizer_facture.Add(self.resultsOlvFact, 1, wx.EXPAND, 0)
         grid_sizer_facture.AddGrowableCol(0)
         grid_sizer_facture.AddGrowableRow(0)
-        staticsizer_facture.Add(grid_sizer_facture, 1, wx.RIGHT|wx.EXPAND,5)
+        staticsizer_facture.Add(grid_sizer_facture, 1, wx.RIGHT | wx.EXPAND, 5)
         self.grid_sizer.Add(staticsizer_facture, 1, wx.EXPAND, 0)
 
         staticsizer_nonFacture = wx.StaticBoxSizer(self.staticbox_nonFacture, wx.VERTICAL)
@@ -707,7 +790,7 @@ class DlgTarification(wx.Dialog):
         grid_sizer_nonFacture.Add(self.ctrl_recherche, 0, wx.EXPAND, 0)
         grid_sizer_nonFacture.AddGrowableCol(0)
         grid_sizer_nonFacture.AddGrowableRow(0)
-        staticsizer_nonFacture.Add(grid_sizer_nonFacture, 1, wx.RIGHT|wx.EXPAND,5)
+        staticsizer_nonFacture.Add(grid_sizer_nonFacture, 1, wx.RIGHT | wx.EXPAND, 5)
         self.grid_sizer.Add(staticsizer_nonFacture, 1, wx.EXPAND, 0)
 
         pied_staticboxSizer = wx.StaticBoxSizer(self.pied_staticbox, wx.VERTICAL)
@@ -716,12 +799,13 @@ class DlgTarification(wx.Dialog):
         grid_sizer_cocher = wx.FlexGridSizer(rows=3, cols=1, vgap=1, hgap=10)
         grid_sizer_cocher.Add(self.hyper_tout, 0, wx.ALL, 0)
         grid_sizer_cocher.Add(self.hyper_rien, 0, wx.ALL, 0)
-        grid_sizer_cocher.Add(self.hyper_annee, 0, wx.ALL, 0)
+        grid_sizer_cocher.Add(self.hyper_anneeprec, 0, wx.ALL, 0)
         grid_sizer_pied.Add(grid_sizer_cocher, 1, wx.EXPAND, 0)
 
-        grid_sizer_outils = wx.FlexGridSizer(rows=2, cols=1, vgap=1, hgap=10)
+        grid_sizer_outils = wx.FlexGridSizer(rows=3, cols=1, vgap=1, hgap=10)
         grid_sizer_outils.Add(self.hyper_ajoutArticle, 0, wx.ALL, 0)
         grid_sizer_outils.Add(self.hyper_ajoutReinitialiser, 0, wx.ALL, 0)
+        grid_sizer_outils.Add(self.hyper_anneesuiv, 0, wx.ALL, 0)
         grid_sizer_pied.Add(grid_sizer_outils, 1, wx.EXPAND, 0)
 
         grid_sizer_pied.Add(self.bouton_oj, 0, 0, 0)
@@ -730,10 +814,10 @@ class DlgTarification(wx.Dialog):
         grid_sizer_pied.Add(self.ctrl_solde, 0, 0, 0)
         grid_sizer_pied.AddGrowableCol(1)
 
-        pied_staticboxSizer.Add(grid_sizer_pied, 1, wx.EXPAND, 5)        
+        pied_staticboxSizer.Add(grid_sizer_pied, 1, wx.EXPAND, 5)
         self.grid_sizer.Add(pied_staticboxSizer, 1, wx.EXPAND, 5)
 
-        #self.grid_sizer.Fit(self)
+        # self.grid_sizer.Fit(self)
         self.grid_sizer.AddGrowableRow(1)
         self.grid_sizer.AddGrowableRow(2)
         self.grid_sizer.AddGrowableCol(0)
@@ -744,30 +828,31 @@ class DlgTarification(wx.Dialog):
 
     def ChoixNatureOrigine(self, dictDonnees):
         if dictDonnees["origine"] == "modif":
-            pGest = GestionPieces.Forfaits(self,self.DB)
+            pGest = GestionPieces.Forfaits(self, self.DB)
             ddPieces = pGest.GetListePiecesEnCours(self.DB, dictDonnees["IDfamille"])
             del pGest
             nature = dictDonnees['nature']
             lstOptions = []
             for IDpiece, dictPiece in ddPieces.items():
-                if dictDonnees['nature'] != dictPiece['pieNature']:
+                if nature != dictPiece['pieNature']:
                     nature = False
                     if not dictPiece['pieNature'] in lstOptions:
                         lstOptions.append(dictPiece['pieNature'])
             if not nature:
-                # des choix sont possibles
-                if not dictDonnees['nature'] in lstOptions:
+                # des choix sont possibles, car plusieurs natures dans les pièces
+                if dictDonnees['nature'] and not dictDonnees['nature'] in lstOptions:
                     lstOptions.append(dictDonnees['nature'])
                 listeBoutons = []
                 for code in lstOptions:
                     txt = ""
-                    if code == "DEV": txt = "Devis sans réservation"
-                    elif code == "RES": txt = "Réservation sans prestation"
-                    elif code == "COM": txt = "Commande due par le client"
-                    listeBoutons.append((code,txt))
-                if len(listeBoutons) == 0:
-                    nature == dictDonnees['nature']
-                else:
+                    if code == "DEV":
+                        txt = "Devis sans réservation"
+                    elif code == "RES":
+                        txt = "Réservation sans prestation"
+                    elif code == "COM":
+                        txt = "Commande due par le client"
+                    listeBoutons.append((code, txt))
+                if len(listeBoutons) > 0:
                     titre = "Quelle nature pour cette pièce famille, choisissez!"
                     intro = "Cliquez sur la nature souhaitée"
                     dlg = DLG_Choix.Dialog(self, titre=titre, listeBoutons=listeBoutons,
@@ -781,18 +866,21 @@ class DlgTarification(wx.Dialog):
             # une création n'a pas de nature d'origine
             return False
 
-    def Final(self):       
+    def Final(self):
         self.IDuser = self.DB.IDutilisateurActuel()
         dictDonnees = self.resultsOlv.dictDonnees
         lstLignesPiece = self.ListeDict(self.resultsOlv)
-        fGest = GestionInscription.Forfaits(self,DB=self.DB)
-        lstNonNull = [ x for x in lstLignesPiece if (x["prixUnit"] * x["quantite"]) + x["montant"] != 0]
-        
+        fGest = GestionInscription.Forfaits(self, DB=self.DB)
+        lstNonNull = [x for x in lstLignesPiece if
+                      (x["prixUnit"] * x["quantite"]) + x["montant"] != 0]
+
         # détermination de la prochaine nature
-        if self.fromIndividu and (not self.fromAvoir) and "nature" in self.dictDonneesParent:
+        if 'individu' in self.dictDonneesParent['lanceur'] and (
+        not 'avoir' in self.dictDonneesParent[
+            'lanceur']) and "nature" in self.dictDonneesParent:
             # nature héritée de l'activité si non avoir
             dictDonnees['nature'] = self.dictDonneesParent["nature"]
-        if (not 'nature' in dictDonnees) or not dictDonnees['nature'] :
+        if (not 'nature' in dictDonnees) or not dictDonnees['nature']:
             dictDonnees['nature'] = "COM"
         nature = dictDonnees['nature']
         ret = self.ChoixNatureOrigine(dictDonnees)
@@ -803,25 +891,27 @@ class DlgTarification(wx.Dialog):
 
         if dictDonnees["origine"] == "ajout" and len(lstNonNull) > 0:
             # Enregistre dans Pieces
-            dDonnees = fGest.AjoutPiece999(self,dictDonnees["IDfamille"],self.IDcompte_payeur,
-                                              self.exerciceFin, nature)
+            dDonnees = fGest.AjoutPiece999(self, dictDonnees["IDfamille"],
+                                           self.IDcompte_payeur,
+                                           self.exerciceFin, nature)
 
             dictDonnees.update(dDonnees)
             dictDonnees["lstIDprestationsOrigine"].append(dictDonnees["IDprestation"])
         dictDonnees["lignes_piece"] = NormaliseLignes(lstNonNull)
 
-        if len(lstLignesPiece) > 0 :
+        if len(lstLignesPiece) > 0:
             if 'dicParrainages' in list(self.resultsOlv.dictDonnees.keys()):
-                dictDonnees['dicParrainages'] = self.resultsOlv.dictDonnees['dicParrainages']
+                dictDonnees['dicParrainages'] = self.resultsOlv.dictDonnees[
+                    'dicParrainages']
 
         # enregistrement de la pièce et de ses prolongements prestation
-        ret = fGest.ModifiePiece999(self,dictDonnees,nature)
-        self.dictDonnees =  dictDonnees
+        ret = fGest.ModifiePiece999(self, dictDonnees, nature)
+        self.dictDonnees = dictDonnees
         del fGest
         return ret
-        #fin Final
+        # fin Final
 
-    def Sortie(self,wxID = wx.ID_OK):
+    def Sortie(self, wxID=wx.ID_OK):
         self.DB.Close()
         self.EndModal(wxID)
 
@@ -836,37 +926,50 @@ class DlgTarification(wx.Dialog):
             if self.resultsOlv.dictDonnees["origine"] == "modif":
                 IDnumPiece = self.resultsOlv.dictDonnees["IDnumPiece"]
             valide1 = DLG_ChoixTypePiece.ValideSaisie(tracks, testSejour=False)
-            valide2 = DLG_ChoixTypePiece.DoubleLigne(tracks,self.annee, self.DB,
+            valide2 = DLG_ChoixTypePiece.DoubleLigne(tracks, self.annee, self.DB,
                                                      IDnumPiece=IDnumPiece,
                                                      IDfamille=self.IDcompte_payeur)
-            valide = valide1 and valide2
-        if valide :
-            #lancer la synthèse
-            if not self.fromAvoir :
-                    ret =self.Final()
-                    dlg = DLG_FacturationPieces.Dialog(self,self.IDcompte_payeur)
-                    dlg.ShowModal()
-                    del dlg
-            else:
-                #cas du complément famille lié à un avoir
-                ret =self.Final()
+            self.resultsOlv.InitObjectListView()
+            lstAno = [x for x in self.resultsOlv.listeOLV if x.couleur == wx.RED]
+            if lstAno:
+                mess = "Lignes en Rouge\n\nRemplacez les lignes en rouge en enlevant le montant forcé, puis recréer les montants souhaités avec un autre article non calculé"
+                wx.MessageBox(mess, "Correction Nécessaire")
+            valide = valide1 and valide2 and not lstAno
+        if valide:
+            # lancer la synthèse
+            ret = self.Final()
+            idend = wx.ID_ABORT
+            if 'facturation' in self.dictDonneesParent['lanceur']:
+                # On continue le traitement iniié par DLG_Facturation_piece
+                idend = wx.ID_OK
+            elif 'avoir' in self.dictDonneesParent['lanceur']:
+                # Cas du complément famille lié à un avoir
                 if ret == "ok":
-                    #après avoir validé la pièce en commande on la facture avec le numéro d'avoir de l'activité mis par Final()
+                    # après avoir validé la pièce en commande on la facture avec le numéro d'avoir de l'activité mis par Final()
                     lstLignesPiece = self.ListeDict(self.resultsOlv)
                     mtt = 0.0
                     for ligne in lstLignesPiece:
-                        ligne["montant"] = round(ligne["montant"],2)
+                        ligne["montant"] = round(ligne["montant"], 2)
                         # calcul du total avec lignes cochées et priorité aux montants saisis
                         if ligne["montant"] != 0.0:
                             mtt += abs(ligne["montant"])
-                        else: mtt += abs(Nz(ligne["quantite"]) * Nz(ligne["prixUnit"]))
-                    pGest = GestionPieces.Forfaits(self,self.DB)
-                    pGest.AugmenteFacture(self.dictDonneesParent["noAvoir"],-mtt,self.dictDonnees["IDprestation"])
-                    dlg = DLG_FacturationPieces.Dialog(self,self.IDcompte_payeur)
+                        else:
+                            mtt += abs(Nz(ligne["quantite"]) * Nz(ligne["prixUnit"]))
+                    pGest = GestionPieces.Forfaits(self, self.DB)
+                    pGest.AugmenteFacture(self.dictDonneesParent["noAvoir"], -mtt,
+                                          self.dictDonnees["IDprestation"])
+                    dlg = DLG_FacturationPieces.Dialog(self, self.IDcompte_payeur)
                     dlg.ShowModal()
                     del dlg
                     del pGest
-            self.Sortie()
+                    idend = wx.ID_OK
+            else:
+                # Simple appel de la facturation cas général pour famille ou individu
+                dlg = DLG_FacturationPieces.Dialog(self, self.IDcompte_payeur)
+                dlg.ShowModal()
+                del dlg
+                idend = wx.ID_OK
+            self.Sortie(idend)
 
     def OnBoutonAnnuler(self, event):
         self.Sortie(wx.ID_ABORT)
@@ -880,8 +983,9 @@ class DlgTarification(wx.Dialog):
         self.CalculSolde()
         self.resultsOlv.RefreshObjects(objects)
 
-    def ChangeAnnee(self):
-        self.SetExercice(self.annee-1)
+    def ChangeAnnee(self, pas):
+        self.annee += pas
+        self.SetExercice(self.annee)
 
     def AjouteLigne(self, typeLigne):
         if typeLigne == "article":
@@ -892,15 +996,15 @@ class DlgTarification(wx.Dialog):
                 self.ActionAjout(self.listeLignes)
             del dlg
 
-    def ActionAjout(self, listeLignes,forcer = False):
+    def ActionAjout(self, listeLignes, forcer=False):
         # Ajout d'une ligne article
-        fOLV = OLVtarification(self,self.DB,self.IDcompte_payeur,self.periode)
-        listeLignesPlus = fOLV.EnrichirDonnees(listeLignes, forcer = True)
-        if len(listeLignesPlus)>0:
+        fOLV = OLVtarification(self, self.DB, self.IDcompte_payeur, self.periode)
+        listeLignesPlus = fOLV.EnrichirDonnees(listeLignes, forcer=True)
+        if len(listeLignesPlus) > 0:
             lstCodeArt = []
             for ligne in listeLignesPlus:
                 # l'origine ajoutLigne déclenchera la condition MultiFam dans le calcul article calRedFam et donc génèrera les lignes
-                ligne.origine="ajoutLigne"
+                ligne.origine = "ajoutLigne"
                 ligne.force = "NON"
                 ligne.saisie = False
                 self.resultsOlv.listeOLV.append(ligne)
@@ -912,14 +1016,16 @@ class DlgTarification(wx.Dialog):
                     if codeArt == ligne.codeArticle[:len(codeArt)]:
                         # Composition des lignes multi
                         if ligne.condition != None:
-                            if len(ligne.condition)>5:
+                            if len(ligne.condition) > 5:
                                 if ligne.condition[0:5] in ["Multi", "Parra"]:
-                                     if ligne.condition not in dictConditionsMulti:
-                                         dictConditionsMulti[ligne.condition]=ligne.codeArticle
-            if len(list(dictConditionsMulti.keys()))>0:
+                                    if ligne.condition not in dictConditionsMulti:
+                                        dictConditionsMulti[
+                                            ligne.condition] = ligne.codeArticle
+            if len(list(dictConditionsMulti.keys())) > 0:
                 aCond = GestionArticle.ActionsConditions(self.resultsOlv.dictDonnees)
-                for condition in list(dictConditionsMulti.keys()) :
-                        aCond.ConditionMulti(condition,dictConditionsMulti[condition],self.resultsOlv.listeOLV)
+                for condition in list(dictConditionsMulti.keys()):
+                    aCond.ConditionMulti(condition, dictConditionsMulti[condition],
+                                         self.resultsOlv.listeOLV)
             self.resultsOlv.SetObjects(self.resultsOlv.listeOLV)
             for ligne in self.resultsOlv.listeOLV:
                 for codeArt in lstCodeArt:
@@ -929,7 +1035,7 @@ class DlgTarification(wx.Dialog):
             self.CalculSolde()
             self.resultsOlv.Refresh()
         fOLV.Destroy()
-        #fin ActionAjout
+        # fin ActionAjout
 
     def Reinitialiser(self):
         self.rappel = not self.rappel
@@ -937,7 +1043,11 @@ class DlgTarification(wx.Dialog):
         self.PreCoche()
         self.CalculSolde()
         self.resultsOlv.Refresh()
-        #self.SupprimeDejaFacture()
+        # self.SupprimeDejaFacture()
+
+    def IxItem(self,obj):
+        ix = self.resultsOlv.innerList.index(obj)
+        return ix
 
     def OnKeyDown(self, event):
         pass
@@ -948,110 +1058,60 @@ class DlgTarification(wx.Dialog):
         self.obj.saisie = True
 
     def OnSelected(self, event):
-        # Controle montant forcé à zéro
-        if self.lastObj != None :
-            if self.obj.codeArticle != None and self.obj.saisie == True :
-                listeOLV = self.resultsOlv.GetObjects()
-                # une saisie texte a eu lieu le zéro doit être pris en compte
-                try :
-                    saisie = False
-                    ix = listeOLV.index(self.obj)
-                    for item in ["montant","qte","libelle"]:
-                        if self.lastObj.__dict__[item] != listeOLV[ix].__dict__[item]:
-                            saisie = True
-                    if saisie :
-                        self.resultsOlv.SetCheckState(self.obj, True)
-                    if listeOLV[ix].montant == 0.0 and self.lastObj.montant != 0.0:
-                        listeOLV[ix].qte = 0
-                    if listeOLV[ix].qte == 0.0 and self.lastObj.qte != 0.0:
-                        listeOLV[ix].montant = 0
-                    listeOLV[ix].force = "OUI"
-                    self.resultsOlv.SetObjects(listeOLV)
-                except : pass
-        if len(self.resultsOlv.GetSelectedObjects()) > 0 :
-            self.obj = self.resultsOlv.GetSelectedObjects()[0]
-        else : self.obj = self.resultsOlv.GetObjects()[0]
-        self.lastObj = None
-        self.CalculSolde()
-        self.resultsOlv.Refresh()
-        #fin OnSelected
-
-    def Selected(self, event):
-        if self.obj == None :
+        if self.obj == None:
             self.obj = self.resultsOlv.GetSelectedObject()
             self.lastBind = "select"
             self.lastLigne = 0
         # une saisie texte a eu lieu des contrôles et actions sont nécessaires
-        if self.lastBind == "texte" :
+        if self.lastBind == "texte":
             objects = self.resultsOlv.GetObjects()
             i = 0
-            for obj in objects :
+            for obj in objects:
                 if self.lastLigne == i:
                     # la quantité a été modifiée
-                    if (self.lastObj.qte != obj.qte) and (self.lastObj.codeArticle == obj.codeArticle) :
+                    if (self.lastObj.qte != obj.qte) and (
+                            self.lastObj.codeArticle == obj.codeArticle):
                         if obj.codeArticle:
                             self.modifJours = True
                             self.qte = obj.qte
-                            self.nbreJours=self.qte
+                            self.nbreJours = self.qte
                     # le zéro saisi en montant doit désactiver la ligne
                     if obj.montant == 0 and self.lastObj.montant != 0:
                         self.resultsOlv.SetCheckState(obj, False)
                     obj.saisie = True
-                i +=1
+                i += 1
         self.lastBind = "select"
         self.CalculSolde()
         self.obj = self.resultsOlv.GetSelectedObject()
 
-    def Activated(self, event):
-        obj = self.resultsOlv.GetSelectedObject()
-        #if len(selection)>0:
-        #    obj = selection[0]
-        # reprend un montant antérieur si retour d'une coche après décoche
-        if self.resultsOlv.IsChecked(obj) == True:
-            for objOrigine in self.dataorigine:
-                if objOrigine.codeArticle == obj.codeArticle:
-                    obj.prixUnit = objOrigine.prixUnit
-        self.CalculSolde()
-
-    def OnActivated(self, event):
-        self.lastObj = copy.deepcopy(self.obj)
-        selection = self.resultsOlv.GetSelectedObjects()
-        if len(selection)>0:
-            obj = selection[0]
-            # reprend un montant antérieur si retour d'une coche après décoche
-            if self.resultsOlv.IsChecked(obj) == True and not obj.saisie:
-                for objOrigine in self.dataorigine:
-                    if (objOrigine.codeArticle, objOrigine.libelle) == (obj.codeArticle, obj.libelle):
-                        obj.prixUnit = objOrigine.prixUnit
-                        obj.montantCalcul = objOrigine.montantCalcul
-                        obj.qte = objOrigine.qte
-            self.CalculSolde()
-            self.resultsOlv.Refresh()
-
     def CalculSolde(self):
         objects = self.resultsOlv.GetObjects()
+
         # ajout de l'attribut coché
         for obj in objects:
-            obj.isChecked = self.resultsOlv.IsChecked(obj)
+            obj.isChecked = self.resultsOlv.IsItemChecked(self.IxItem(obj))
+
         total, mtt = 0, 0
-        for obj in sorted(objects,key=attrgetter('ordre')):
-            if obj.isChecked == False:
+        for obj in sorted(objects, key=attrgetter('ordre')):
+            if not obj.isChecked:
                 if obj.qte == 0: obj.qte = 1
-                obj.prixUnit = round(obj.montantCalcul / obj.qte,4)
+                obj.prixUnit = round(obj.montantCalcul / obj.qte, 4)
                 obj.montant = 0.0
-                obj.montantCalcul = 0.0
                 obj.saisie = False
                 obj.force = "NON"
+
             # les cochés sont recalculés
-            if self.resultsOlv.IsChecked(obj) == True:
-                obj.montantCalcul = round(obj.prixUnit * obj.qte,2)
-                if obj.saisie == False :
-                    Calcul(self.resultsOlv.dictDonnees,obj,objects)
+            if self.resultsOlv.IsItemChecked(self.IxItem(obj)) == True:
+                obj.montantCalcul = round(obj.prixUnit * obj.qte, 2)
+                if not obj.saisie and 'lig' in obj.origine:
+                    obj.montant = obj.oldValue
+                if obj.saisie == False:
+                    Calcul(self.resultsOlv.dictDonnees, obj, objects)
                 if obj.montantCalcul != 0.0:
-                    #correctif pour ne pas refacturer deux fois le même article
+                    # correctif pour ne pas refacturer deux fois le même article
                     for objfac in self.resultsOlvFact.GetObjects():
                         if objfac.codeArticle == obj.codeArticle:
-                            if obj.force == "NON" :
+                            if obj.force == "NON":
                                 if objfac.montant == 0:
                                     obj.montantCalcul -= objfac.montantCalcul
                                 else:
@@ -1062,63 +1122,67 @@ class DlgTarification(wx.Dialog):
                 # calcul du total avec lignes cochées et priorité au montants saisis
                 if obj.montant != 0.0:
                     total += obj.montant
-                else: total += (obj.montantCalcul)
-            obj.montant = round(float(Nz(obj.montant)),2)
+                else:
+                    total += (obj.montantCalcul)
+            obj.montant = round(float(Nz(obj.montant)), 2)
             obj.qte = float(Nz(obj.qte))
-            obj.prixUnit = round(float(Nz(obj.prixUnit)),4)
-            obj.montantCalcul = round(float(Nz(obj.montantCalcul)),2)
-        self.ctrl_solde.SetSolde(round(total,2))
-        self.total = round(total,2)
-        #fin CalculSolde
+            obj.prixUnit = round(float(Nz(obj.prixUnit)), 4)
+            obj.montantCalcul = round(float(Nz(obj.montantCalcul)), 2)
+        self.ctrl_solde.SetSolde(round(total, 2))
+        self.total = round(total, 2)
+        FormateLignes(self.resultsOlv.listeOLV, self.resultsOlv.dictDonnees)
+        self.resultsOlv.RefreshObjects(self.resultsOlv.listeOLV)
+        # fin CalculSolde
 
     def SupprimeDejaFacture(self):
         dictSuppression = {}
         dictDecompte = {}
-        for obj in self.resultsOlv.listeOLV :
+        for obj in self.resultsOlv.listeOLV:
             testFact = False
             for objfac in self.resultsOlvFact.listeOLV:
-                if (objfac.codeArticle,objfac.libelle) == (obj.codeArticle,obj.libelle): testFact = True
+                if (objfac.codeArticle, objfac.libelle) == (obj.codeArticle, obj.libelle):
+                    testFact = True
             if testFact:
-                #normalisation du montant
-                if obj.montant == 0: mtt = obj.montantCalcul
-                else : mtt = obj.montant
-                #cumul des  montants par code article
+                # normalisation du montant
+                if obj.montant == 0:
+                    mtt = obj.montantCalcul
+                else:
+                    mtt = obj.montant
+                # cumul des  montants par code article
                 if obj.codeArticle in dictSuppression:
                     dictSuppression[str(obj.codeArticle)] += mtt
                     dictDecompte[str(obj.codeArticle)] += 1
-                else :
+                else:
                     dictSuppression[str(obj.codeArticle)] = mtt
                     dictDecompte[str(obj.codeArticle)] = 1
         # suppression des articles dont le total du montant est à zéro
         for code in list(dictSuppression.keys()):
             if dictSuppression[str(code)] == 0:
-                while dictDecompte[str(code)] > 0 :
-                    for obj in self.resultsOlv.listeOLV :
-                        if obj.codeArticle == code :
+                while dictDecompte[str(code)] > 0:
+                    for obj in self.resultsOlv.listeOLV:
+                        if obj.codeArticle == code:
                             self.resultsOlv.listeOLV.remove(obj)
-                    dictDecompte[str(code)]-=1
-        self.resultsOlv.SetObjects(self.resultsOlv.listeOLV)
+                    dictDecompte[str(code)] -= 1
         return
-        #fin SupprimeDejaFacture
+        # fin SupprimeDejaFacture
 
     def RazUnchecked(self):
         objects = self.resultsOlv.GetObjects()
         for obj in objects:
-            if self.resultsOlv.IsChecked(obj) == False:
+            if self.resultsOlv.IsItemChecked(self.IxItem(obj)) == False:
                 obj.montant = 0
                 obj.prixUnit = 0
 
     def PreCoche(self):
         objects = self.resultsOlv.GetObjects()
         for obj in objects:
-            if not obj.force == "OUI" :
+            if not obj.force == "OUI":
                 self.resultsOlv.SetCheckState(obj, False)
-                obj.montant = 0.00
             else:
                 self.resultsOlv.SetCheckState(obj, True)
-            self.resultsOlv.RefreshObjects(objects)
+        self.resultsOlv.RefreshObjects(objects)
 
-# -------------------------------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------
 class BarreRecherche(wx.SearchCtrl):
     def __init__(self, parent):
         wx.SearchCtrl.__init__(self, parent, size=(-1, -1), style=wx.TE_PROCESS_ENTER)
@@ -1130,10 +1194,13 @@ class BarreRecherche(wx.SearchCtrl):
 
         self.listView = self.parent.resultsOlv
         nbreColonnes = self.listView.GetColumnCount()
-        self.listView.SetFilter(Filter.TextSearch(self.listView, self.listView.columns[0:nbreColonnes]))
+        self.listView.SetFilter(
+            Filter.TextSearch(self.listView, self.listView.columns[0:nbreColonnes]))
 
-        self.SetCancelBitmap(wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Interdit.png"), wx.BITMAP_TYPE_PNG))
-        self.SetSearchBitmap(wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Loupe.png"), wx.BITMAP_TYPE_PNG))
+        self.SetCancelBitmap(wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Interdit.png"),
+                                       wx.BITMAP_TYPE_PNG))
+        self.SetSearchBitmap(wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Loupe.png"),
+                                       wx.BITMAP_TYPE_PNG))
 
         self.Bind(wx.EVT_SEARCHCTRL_SEARCH_BTN, self.OnSearch)
         self.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.OnCancel)
@@ -1151,7 +1218,7 @@ class BarreRecherche(wx.SearchCtrl):
         self.Recherche()
 
     def Recherche(self):
-        txtSearch = self.GetValue().replace("'","\\'")
+        txtSearch = self.GetValue().replace("'", "\\'")
         self.ShowCancelButton(len(txtSearch))
         self.listView.GetFilter().SetText(txtSearch)
         self.listView.RepopulateList()
@@ -1179,16 +1246,19 @@ class Hyperlien(Hyperlink.HyperLinkCtrl):
     def OnLeftLink(self, event):
         if self.URL == "tout": self.parent.CocheTout(True)
         if self.URL == "rien": self.parent.CocheTout(False)
-        if self.URL == "annee": self.parent.ChangeAnnee()
+        if self.URL == "anneesuiv": self.parent.ChangeAnnee(1)
+        if self.URL == "anneeprec": self.parent.ChangeAnnee(-1)
         if self.URL == "article": self.parent.AjouteLigne("article")
         if self.URL == "reinitialiser": self.parent.Reinitialiser()
         self.UpdateLink()
 
-# --------------------Lancement de test ----------------------
+
+# --------------------Lancement de test ----------------------------------------------
 if __name__ == "__main__":
     app = wx.App(0)
     listeDonnees = [
         ("origine", "modif"),
+        ('lanceur', "individu"),
         ("IDindividu", 4616),
         ("IDfamille", 4616),
         ("IDactivite", 421),
@@ -1205,14 +1275,17 @@ if __name__ == "__main__":
         ("nom_groupe", "Groupe Pasto Plus"),
         ("nom_categorie_tarif", "Tarif Normal"),
         ("nom_individu", "nom de  l'individu"),
-        ("lignes_piece", [{'utilisateur': 'NoName', 'quantite': 1, 'montant': 480.5, 'codeArticle': 'SEJ_CORSE_S1', 'libelle': 'Séjour Jeunes Corse S1', 'IDnumPiece': 5, 'prixUnit': 480.0, 'date': '2016-07-24', 'IDnumLigne': 128}]),
-        ]
+        ("lignes_piece", [{'utilisateur': 'NoName', 'quantite': 1, 'montant': 480.5,
+                           'codeArticle': 'SEJ_CORSE_S1',
+                           'libelle': 'Séjour Jeunes Corse S1', 'IDnumPiece': 5,
+                           'prixUnit': 480.0, 'date': '2016-07-24', 'IDnumLigne': 128}]),
+    ]
     dictDonnees = {}
     for donnee in listeDonnees:
         champ = donnee[0]
         valeur = donnee[1]
         dictDonnees[champ] = valeur
-    f = DlgTarification(None,dictDonnees,)
+    f = DlgTarification(None, dictDonnees, )
     app.SetTopWindow(f)
     if f.ShowModal() == wx.ID_OK:
         print("OKfin_main")
