@@ -196,7 +196,7 @@ class Dialog(wx.Dialog):
         self.bouton_avoir.SetToolTip(_("L'avoir compense une facture sans la supprimer"))
         self.bouton_ok.SetToolTip(_("Cliquez ici pour valider passer par transports avant famille"))
         self.bouton_ok_direct.SetToolTip(_("Cliquez ici pour valider et aller vers le niveau famille"))
-        self.bouton_compl.SetToolTip(_("Cliquez ici pour créer une nouvelle pièce"))
+        self.bouton_compl.SetToolTip(_("Cliquez ici pour ajouter une nouvelle pièce à l'activité"))
         self.bouton_annuler.SetToolTip(_("Cliquez ici pour annuler et fermer"))
         self.ctrl_nom_famille.SetToolTip(_("Cliquez sur le bouton pour modifier les éléments tiers"))
         self.ctrl_nom_payeur.SetToolTip(_("Le payeur est celui de la famille"))

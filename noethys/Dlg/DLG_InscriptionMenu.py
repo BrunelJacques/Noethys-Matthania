@@ -254,7 +254,7 @@ class DlgMenu(wx.Dialog):
                 if IDprestation > 0 :
                     fGest.ModifiePieceCree(self,self.dictDonnees)
                     fGest.ModifieConsoCree(self,self.dictDonnees)
-            self.dictDonnees['origine'] = 'lanceur'
+            self.dictDonnees['lanceur'] = 'individu'
             fFam = DLG_PrixFamille.DlgTarification(self,self.dictDonnees)
             fFam.ShowModal()
             fFam.Destroy()
@@ -277,8 +277,8 @@ class DlgMenu(wx.Dialog):
         #fin Ajouter
 
     def AjouterPiece(self, razConsos = False):
-        # se distingue de Ajouter car on crée une nouvelle pièce alors qu'il en existe d'autres qui ont déjà été facturées et non modifiables,
-        # on a ajouté des lignes à l'inscription mais c'est dans une nouvelle pièce.
+        # se distingue de Ajouter car on crée une nouvelle pièce alors qu'il en existe
+        # d'autres qui ont déjà été facturées et non modifiables,
         individu = self.dictDonnees["IDindividu"]
         activite = self.dictDonnees["IDactivite"]
         for cle in ["IDnumPiece","IDprestation","nature","noFacture","dateFacturation"]:
@@ -296,6 +296,7 @@ class DlgMenu(wx.Dialog):
             self.DB.ExecuterReq(req,commit=True,MsgBox = "AjouterPiece.razConsos")
         self.Historise("AjoutInscription")
         self.dictDonnees['coches'] = False
+        self.dictDonnees['origine'] = 'ajout'
         self.PrixActivite()
         #fin AjouterPiece
 

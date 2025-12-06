@@ -564,7 +564,6 @@ class OLVtarification(ObjectListView):
         self.CheckItem(ix,state)
 
 
-
 class DlgTarification(wx.Dialog):
     def __init__(self, parent, dictDonneesParent):
         self.parent = parent
