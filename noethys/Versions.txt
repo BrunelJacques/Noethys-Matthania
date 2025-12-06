@@ -1,3 +1,6 @@
+version 1.3.3.32 (06/12/2025)
+- Correction bug sur facturation de frais complémentaires
+
 version 1.3.3.31 (04/12/2025)
 - Contrôle de la facturation lors d'un changement de nature d'une pièce
 
