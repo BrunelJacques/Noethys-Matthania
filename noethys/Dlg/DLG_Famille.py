@@ -819,7 +819,7 @@ class Dialog(wx.Dialog):
         # Mémorise l'action dans l'historique
         UTILS_Historique.InsertActions([{
                 "IDfamille" : self.IDfamille,
-                "IDcategorie" : 4, 
+                "IDcategorie" : 12,
                 "action" : _("Création de la famille ID%d") % self.IDfamille,
                 },])
     
@@ -834,6 +834,8 @@ class Dialog(wx.Dialog):
         req = """SELECT IDcompte_payeur FROM comptes_payeurs WHERE IDfamille=%d""" % self.IDfamille
         self.DB.ExecuterReq(req, MsgBox="ExecuterReq")
         listeDonnees = self.DB.ResultatReq()
+        if not listeDonnees:
+            return
         try:
             IDcompte_payeur = listeDonnees[0][0]
             nblignes = 0
@@ -847,26 +849,40 @@ class Dialog(wx.Dialog):
             if nblignes == 0:
                 """ Suppression de la fiche famille """
                 # Suppression des tables rattachées
-                self.DB.ReqDEL("payeurs", "IDcompte_payeur", IDcompte_payeur)
-                self.DB.ReqDEL("aides", "IDcompte_payeur", self.IDfamille)
-                self.DB.ReqDEL("deductions", "IDcompte_payeur", IDcompte_payeur)
-                self.DB.ReqDEL("rappels", "IDcompte_payeur", IDcompte_payeur)
-                self.DB.ReqDEL("quotients", "IDfamille", self.IDfamille)
-                self.DB.ReqDEL("attestations", "IDfamille", self.IDfamille)
-                self.DB.ReqDEL("messages", "IDfamille", self.IDfamille)
-                self.DB.ReqDEL("comptes_payeurs", "IDfamille", self.IDfamille)
-                self.DB.ReqDEL("familles", "IDfamille", self.IDfamille)
-                mess = "La fiche famille a été supprimée."
+                self.DB.ReqDEL("payeurs", "IDcompte_payeur",
+                               IDcompte_payeur,MsgBox='del payeurs')
+                self.DB.ReqDEL("aides", "IDfamille",
+                               self.IDfamille,MsgBox='del aides')
+                self.DB.ReqDEL("deductions", "IDcompte_payeur",
+                               IDcompte_payeur,MsgBox='del deductions')
+                self.DB.ReqDEL("rappels", "IDcompte_payeur",
+                               IDcompte_payeur,MsgBox='del rappels')
+                self.DB.ReqDEL("quotients", "IDfamille",
+                               self.IDfamille,MsgBox='del quotients')
+                self.DB.ReqDEL("attestations", "IDfamille",
+                               self.IDfamille,MsgBox='del attestations')
+                self.DB.ReqDEL("messages", "IDfamille",
+                               self.IDfamille,MsgBox='del messages')
+                self.DB.ReqDEL("comptes_payeurs", "IDfamille",
+                               self.IDfamille,MsgBox='del comptes_payeurs')
+                self.DB.ReqDEL("familles", "IDfamille",
+                               self.IDfamille,MsgBox='del familles')
+                mess = "La fiche famille %d a été supprimée."%self.IDfamille
             else:
-                mess = "La fiche famille a été conservée car a fait l'objet de règlements, inscriptions ou prestations."
-        except:
-            mess = "Echec lors de la purge de la famille"
+                mess = "La fiche famille %d a été conservée car a fait l'objet de règlements, inscriptions ou prestations."%self.IDfamille
+        except Exception as err:
+            mess = "Echec lors de la purge de la famille %d: %s"%(self.IDfamille,err)
 
         if mess:
-            dlg = wx.MessageDialog(self, mess, _("Suppression"),
+            dlg = wx.MessageDialog(self, mess, "Suppression famille",
                                    wx.OK | wx.ICON_INFORMATION)
             dlg.ShowModal()
             dlg.Destroy()
+        UTILS_Historique.InsertActions([{
+                "IDfamille" : self.IDfamille,
+                "IDcategorie" : 5,
+                "action" : mess
+                },])
         return True
 
     def MenuEditionEtiquettes(self, event):

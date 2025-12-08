@@ -1319,7 +1319,8 @@ class CTRL_Graphique(wx.ScrolledWindow):
             if dlg.ShowModal() == wx.ID_OK:
                 ok = True
                 self.dataRattach = dlg.GetData()
-            else: ok = False
+            else:
+                ok = False
             dlg.Destroy()
         if ok:
             mode, IDcategorie, titulaire, IDindividu, nom, prenom = self.dataRattach

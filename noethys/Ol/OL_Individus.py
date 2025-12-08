@@ -691,6 +691,15 @@ class ListView(FastObjectListView):
         DB.ExecuterReq(req,MsgBox="OL_Individus8")
         
         DB.Commit() 
+
+        # Mémorise l'action dans l'historique
+        import Utils.UTILS_Historique as UTILS_Historique
+        UTILS_Historique.InsertActions([{
+                "IDindividu" : IDindividu,
+                "IDcategorie" : 12,
+                "action" : "Suppression de l'individu %d, sans historique d'activité" % IDindividu,
+                },])
+
         DB.Close()
                 
         dlg = wx.MessageDialog(self, _("La fiche individuelle a été supprimée avec succès."), _("Suppression"), wx.OK | wx.ICON_INFORMATION)

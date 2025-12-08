@@ -653,5 +653,3 @@ class DLG_Selection(wx.Dialog):
 
 if __name__ == "__main__":
     app = wx.App(0)
-    #Effacer(liste_familles=[1, 2])
-    Effacer(liste_individus=[1, 2, 3, 4, 5, 6])

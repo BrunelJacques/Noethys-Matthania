@@ -287,7 +287,7 @@ class Dialog(wx.Dialog):
             return
         
         prenom = self.ctrl_prenom.GetValue()
-        if prenom == "":
+        if not prenom:
             dlg = wx.MessageDialog(self, _("Etes-vous sûr de ne pas vouloir saisir de prénom ?"), _("Confirmation"), wx.YES_NO | wx.NO_DEFAULT | wx.CANCEL | wx.ICON_EXCLAMATION)
             reponse = dlg.ShowModal()
             dlg.Destroy()

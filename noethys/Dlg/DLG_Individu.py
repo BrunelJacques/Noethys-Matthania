@@ -576,7 +576,13 @@ class Dialog(wx.Dialog):
                 DB.ReqDEL("messages", "IDindividu", self.IDindividu)
                 DB.ReqDEL("scolarite", "IDindividu", self.IDindividu)
                 DB.ReqDEL("transports", "IDindividu", self.IDindividu)
-                DB.Close() 
+                UTILS_Historique.InsertActions([{
+                    "IDfamille": self.IDfamille,
+                    "IDindividu": self.IDindividu,
+                    "IDcategorie": 5,
+                    "action": "Abandon création individu",
+                }, ])
+                DB.Close()
                 # Suppression de la photo 
                 DB = GestionDB.DB(suffixe="PHOTOS")
                 DB.ReqDEL("photos", "IDindividu", self.IDindividu)
