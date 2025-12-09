@@ -106,7 +106,12 @@ def InsertActions(listeActions=[], DB=None):
         if len(action) >= 500 :
             action = action[:495] + "..." # Texte limité à 499 caractères
 
-        listeAjouts.append((date, heure, IDutilisateur, IDfamille, IDindividu, IDcategorie, action))
+        lstData = [date, heure, IDutilisateur, IDfamille, IDindividu, IDcategorie, action]
+        # élude les ID non entiers
+        for ix in range(len(lstData[2:-1])):
+            if lstData[ix + 2] and not isinstance(lstData[ix + 2 ],int):
+                lstData[ix + 2] = None
+        listeAjouts.append(lstData)
     
     # Enregistrement dans la base
     if len(listeAjouts) > 0 :

@@ -374,9 +374,6 @@ class DB():
         """ Permet d'insérer des données dans une table """
         #retourID none et True : retourne l'ID, gére self.newID, False : retourne 'ok'
         # Préparation des données
-        if retourID == None:   modeRetour = 1
-        elif retourID == True: modeRetour = 2
-        else :                 modeRetour = 3
         champs = "("
         interr = "("
         valeurs = []
@@ -416,7 +413,7 @@ class DB():
                 msg.Box(titre = "Erreur GestionDB",message="%s\n\n%s"%(MsgBox,self.retourReq))
                 return
         self.retour = retourReq
-        if modeRetour in [3]:
+        if not retourID:
             retour = retourReq
         else :
             retour = self.newID

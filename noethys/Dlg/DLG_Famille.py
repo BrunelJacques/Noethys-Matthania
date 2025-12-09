@@ -217,8 +217,13 @@ class Dialog(wx.Dialog):
             raise Exception("Interrompu par absence de base de donnees")
 
         self.nouvelleFiche = False
+        if dataRattach and (len(dataRattach) >= 6):
+            mode, IDcategorie, titulaire, IDindividu, nom, prenom = dataRattach
+            lblIndividu = f"{IDindividu}-{prenom} {nom}"
+        else:
+            lblIndividu = "???"
         if IDfamille == None :
-            self.CreateIDfamille(self.DB)
+            self.CreateIDfamille(self.DB,lblIndividu)
             self.nouvelleFiche = True
         # Adapte taille Police pour Linux
         from Utils import UTILS_Linux
@@ -363,13 +368,8 @@ class Dialog(wx.Dialog):
         self.CenterOnScreen() 
     
     def CreerPremierIndividu(self):
-        IDindividu = self.ctrl_composition.Ajouter()
-        # Renseigne le premier individu comme titulaire Hélios
-        if IDindividu != None :
-            try :
-                self.notebook.GetPageAvecCode("divers").ctrl_parametres.SetPropertyValue("titulaire_helios", IDindividu)
-            except Exception as err:
-                print(err)
+        self.ctrl_composition.Ajouter()
+
 
     def MAJpageActive(self):
         self.notebook.MAJpageActive() 
@@ -813,14 +813,21 @@ class Dialog(wx.Dialog):
             print(("Erreur sortie fiche famille: ",err))
             self.EndModal(wx.ID_NONE)
 
-    def CreateIDfamille(self,DB=None):
+    def CreateIDfamille(self,DB=None,lblIndividu = ""):
         """ Crée la fiche famille dans la base de données afin d'obtenir un IDfamille et un IDcompte_payeur """
         self.IDfamille = CreateIDfamille(DB)
         # Mémorise l'action dans l'historique
+        lstLblIndividu = lblIndividu.split('-')
+        individu = lstLblIndividu[0]
+        try:
+            IDindividu = int(individu)
+        except:
+            IDindividu = None
         UTILS_Historique.InsertActions([{
                 "IDfamille" : self.IDfamille,
+                "IDindividu": IDindividu,
                 "IDcategorie" : 12,
-                "action" : _("Création de la famille ID%d") % self.IDfamille,
+                "action" : f"Création de la famille {self.IDfamille} pour : {lblIndividu}",
                 },])
     
     def SupprimerFicheFamille(self,IDfamille=None):
@@ -965,7 +972,7 @@ if __name__ == "__main__":
     heure_debut = time.time()
     # ramel 567; perez marc 1724; bartoOliv 1861; branco 4499;  bourrel 6191
     #7735 parrainage; 8107 multifactures; 709 Brunel jacques
-    dialog_1 = Dialog(None, IDfamille=8458)
+    dialog_1 = Dialog(None, IDfamille=10115)
     print("Temps de chargement fiche famille =", time.time() - heure_debut)
     app.SetTopWindow(dialog_1)
 

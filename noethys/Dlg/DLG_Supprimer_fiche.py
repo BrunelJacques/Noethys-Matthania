@@ -102,10 +102,10 @@ class Dialog(wx.Dialog):
         req = """   SELECT familles.IDfamille, Count(rattachements.IDrattachement)
                     FROM familles  
                     INNER JOIN rattachements ON familles.IDfamille = rattachements.IDfamille
-                    WHERE (IDfamille=%d AND (adresse_individu=%d))
+                    WHERE (familles.IDfamille=%d AND (adresse_individu=%d))
                     GROUP BY familles.IDfamille;
                     """% (self.IDfamille, self.IDindividu)
-        DB.ExecuterReq(req)
+        ret = DB.ExecuterReq(req)
         listeDonnees = DB.ResultatReq()
         if len(listeDonnees) > 0 :
             (IDfamille, nbreRattachements) = listeDonnees[0]
@@ -120,7 +120,7 @@ class Dialog(wx.Dialog):
 
 
         # Vérifie si son adresse n'est pas utilisée dans la famille
-        req = """   SELECT individus.nom, individus.prenom
+        req = """   SELECT individus.IDindividu,individus.nom, individus.prenom
                     FROM individus INNER JOIN rattachements ON individus.IDindividu = rattachements.IDindividu
                     WHERE ((rattachements.IDfamille = %d) AND (individus.adresse_auto = %d));
                     """% (self.IDfamille, self.IDindividu)
@@ -128,7 +128,7 @@ class Dialog(wx.Dialog):
         listeDonnees = DB.ResultatReq()
         if len(listeDonnees) > 0 :
             strNoms = ""
-            for nom,prenom in listeDonnees:
+            for ID,nom,prenom in listeDonnees:
                 strNoms +=  "\n" + prenom + " " + nom
             dlg = wx.MessageDialog(self, "L'adresse du détaché sert à d'autres membres, corrigez : %s"%(strNoms), _("Détachement impossible"), wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
@@ -255,20 +255,24 @@ class Dialog(wx.Dialog):
 
        # Vérifie si son adresse était de type auto pour la dupliquer
         req = """   
-                SELECT individus_1.rue_resid, individus_1.cp_resid, individus_1.ville_resid, individus.IDindividu
+                SELECT individus_1.rue_resid, individus_1.cp_resid, individus_1.ville_resid, 
+                individus.IDindividu, individus.nom, individus.prenom,individus.cp_resid
                 FROM individus 
                 LEFT JOIN individus AS individus_1 ON individus.adresse_auto = individus_1.IDindividu
                 WHERE (individus.IDindividu = %d );
                     """% (self.IDindividu)
         DB.ExecuterReq(req)
         lstDonnees = DB.ResultatReq()
-        if len(lstDonnees)>0:
-            # l'adresse était auto on la duplique en propre
-            lstDonnees = [('rue_resid', lstDonnees[0][0]),
-                          ('cp_resid', lstDonnees[0][1]),
-                          ('ville_resid',lstDonnees[0][2]),
-                          ('adresse_auto',None)]
-            DB.ReqMAJ("individus",lstDonnees,"IDindividu",self.IDindividu)
+        dictIndividus = {}
+        for rue_1, cp_1,ville_1,IDindividu,nom,prenom,cp in lstDonnees:
+            dictIndividus[IDindividu] = f"{IDindividu}-{prenom} {nom}"
+            if cp_1 and not cp:
+                # l'adresse était auto et pas de perso, on la duplique en perso
+                lstDonnees = [('rue_resid', rue_1),
+                              ('cp_resid', cp_1),
+                              ('ville_resid',ville_1),
+                              ('adresse_auto',None)]
+                DB.ReqMAJ("individus",lstDonnees,"IDindividu",self.IDindividu)
 
         if not existRattach:
             # création et rattachement à une nouvelle famille après proposition
@@ -277,9 +281,14 @@ class Dialog(wx.Dialog):
             reponse = dlg.ShowModal()
             dlg.Destroy()
             if reponse ==  wx.ID_YES :
-                self.dlgFamille.CreateIDfamille(DB)
+                # crétion d'une nouvelle famille
+                if dictIndividus and self.IDindividu in dictIndividus:
+                    lblIndividu = dictIndividus[self.IDindividu]
+                else: # ne devrait pas se produire vérifier dans table 'historique'
+                    lblIndividu = "Inconnu encore!"
+                self.dlgFamille.CreateIDfamille(DB,lblIndividu)
                 IDfamilleNew = self.dlgFamille.IDfamille
-                # composition désignation
+                # composition désignation de la famille
                 dicIndividu = UTILS_Titulaires.GetIndividus([self.IDindividu,])[self.IDindividu]
                 designation = "%s %s"%(dicIndividu["civiliteAbrege"],dicIndividu["nom_complet"])
                 correspondant = self.IDindividu
@@ -300,8 +309,19 @@ class Dialog(wx.Dialog):
             ("IDcategorie", 1),
             ("titulaire", 1),
             ]
-        IDrattachement = DB.ReqInsert("rattachements", listeDonnees ,
+        ret = DB.ReqInsert("rattachements", listeDonnees,retourID=None,
                             MsgBox = "DLG_Supprimer_fiche.Detacher newRattachement")
+        if ret == 'ok':
+            action = f"Ratachement individu {IDindividu} à la famille {IDfamille}"
+        else:
+            action = f"Echec ratachement individu {IDindividu} famille {IDfamille}, {ret}"
+        UTILS_Historique.InsertActions([{
+            "IDfamille": self.IDfamille,
+            "IDindividu": self.IDindividu,
+            "IDcategorie": 13,
+            "action": action,
+        }, ])
+
 
     def AjouteMemo(self,DB):
         # ajoute dans le memo de la fiche client

@@ -348,6 +348,8 @@ class Panel_contact(wx.Panel):
         self.lstAdresse = []
         self.cat = cat
         self.intitule = ""
+        self.oldCorresp = ""
+        self.oldIntitule = ""
         if cat == "individu":
             titre = "Coordonnées individu"
             self.radio_adresse_auto = wx.RadioButton(self, -1, "adresse de :", style=wx.RB_GROUP)
@@ -866,7 +868,7 @@ class Panel_contact(wx.Panel):
             self.ctrl_refus_pub.SetValue(refus_pub)
             self.ctrl_refus_mel.SetValue(refus_mel)
 
-        if not (self.intitule and self.correspondant):
+        if False and not (self.intitule and self.correspondant):
             # On prend le premier titulaire pour adresse et désignation famille
             req = """
                     SELECT individus.IDindividu, individus.IDcivilite, individus.nom, individus.prenom
@@ -885,6 +887,7 @@ class Panel_contact(wx.Panel):
 
                 if not self.correspondant:
                     self.correspondant = IDindividu
+
         self.refusInitiaux = (refus_pub,refus_mel)
 
         # Listes de diffusion de la famille
@@ -963,9 +966,21 @@ class Panel_contact(wx.Panel):
             self.ctrl_adresse.Enable(False)
         #self.OnTextAdresse(None)
         DB.Close()
+        self.oldCorresp = self.correspondant
+        self.oldIntitule = self.intitule
 
     def ValidationData(self):
         """ Validation des données avant Sauvegarde """
+        adresseAuto = self.ctrl_adresse_auto.GetDonnee()
+        adresse = self.ctrl_adresse.GetValue()
+        if not (adresseAuto or adresse) or 'à saisir' in adresse:
+            dlg = wx.MessageDialog(self,
+                                   "Pas d'adresse postale personnelle valide !",
+                                   "Saisie obligatoire", wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return False
+
         valide, messageErreur = self.ctrl_mail.Validation()
         if valide == False :
             dlg = wx.MessageDialog(self, _("L'adresse email personnelle n'est pas valide !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
@@ -980,6 +995,15 @@ class Panel_contact(wx.Panel):
             dlg.Destroy()
             return False
         if self.cat == "famille":
+            # vérif présence d'un individu correspondant
+            if not adresseAuto:
+                dlg = wx.MessageDialog(self,
+                                       "L'adresse de correspondance ne pointe pas un individu ",
+                                       _("Saisie obligatoire"), wx.OK | wx.ICON_EXCLAMATION)
+                dlg.ShowModal()
+                dlg.Destroy()
+                return False
+
             adresse_intitule = self.designationB.GetValue().lower()
             mess = ""
             if not "famille" in adresse_intitule.lower():
@@ -1017,10 +1041,22 @@ class Panel_contact(wx.Panel):
 
         return dictDonnees
 
+    def SauveCorrespondant(self,IDfamille,IDcorrespondant,intitule,DB):
+        # Changement de correspondant de la famille
+        ret = DB.ReqMAJ("familles",[('adresse_intitule',intitule),
+                              ('adresse_individu',IDcorrespondant)],
+                              'IDfamille',IDfamille,
+                              MsgBox="DLG_Individu_coords.SauveCorrespondant")
+
     def Sauvegarde(self):
         """ Sauvegarde des données dans la base """
-        dictDonnees = self.GetData()
         DB = GestionDB.DB()
+        dictDonnees = self.GetData()
+
+        if self.cat == "famille":
+            correspondant = self.ctrl_adresse_auto.GetDonnee()
+            if self.oldCorresp != correspondant or self.oldIntitule != self.intitule:
+                self.SauveCorrespondant(self.IDfamille,correspondant,self.intitule,DB)
 
         # modification de champs de l'individu pointé et représentant la famille
         listeDonnees = []

@@ -185,10 +185,8 @@ class CTRL_Parametres(wxpg.PropertyGrid) :
                         propriete.Hide(True)
                         propriete.SetAttribute("obligatoire", False)
 
-        if 'phoenix' in wx.PlatformInfo:
-            self.Refresh()
-        else :
-            self.RefreshGrid()
+        self.Refresh()
+
 
     def MAJ_titulaire_helios(self):
         propriete = self.GetPropertyByName("titulaire_helios")
