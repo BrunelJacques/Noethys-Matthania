@@ -344,5 +344,6 @@ if __name__ == "__main__":
     #wx.InitAllImageHandlers()
     dialog_1 = Dialog(None, IDfamille=None)
     app.SetTopWindow(dialog_1)
-    dialog_1.ShowModal()
+    print(dialog_1.ShowModal())
+    print(dialog_1.GetData())
     app.MainLoop()

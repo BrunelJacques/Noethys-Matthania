@@ -503,7 +503,7 @@ class Dialog(wx.Dialog):
                 "IDindividu" : self.IDindividu,
                 "IDfamille" : IDfamille,
                 "IDcategorie" : 13, 
-                "action" : _("Rattachement de l'individu ID%d à la famille ID%d en tant que %s") % (self.IDindividu, IDfamille, labelCategorie),
+                "action" : _("Rattachement de l'individu %d à la famille %d en tant que %s") % (self.IDindividu, IDfamille, labelCategorie),
                 },])
         return True
         

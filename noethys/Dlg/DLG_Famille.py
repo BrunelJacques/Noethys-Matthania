@@ -368,8 +368,7 @@ class Dialog(wx.Dialog):
         self.CenterOnScreen() 
     
     def CreerPremierIndividu(self):
-        self.ctrl_composition.Ajouter()
-
+        self.ctrl_composition.Ajouter(self.dataRattach)
 
     def MAJpageActive(self):
         self.notebook.MAJpageActive() 
@@ -837,14 +836,24 @@ class Dialog(wx.Dialog):
                 "Problème de programmation\n\n incohérence IDfamille en DLG_Famille.SupprimerFamille",
                 "Impossible")
             return False
+
         # Récupération du IDcompte_payeur
         req = """SELECT IDcompte_payeur FROM comptes_payeurs WHERE IDfamille=%d""" % self.IDfamille
-        self.DB.ExecuterReq(req, MsgBox="ExecuterReq")
+        self.DB.ExecuterReq(req, MsgBox="DLG_Famille.SupprimerFicheFamille recherche payeur")
         listeDonnees = self.DB.ResultatReq()
         if not listeDonnees:
-            return
-        try:
+            IDcompte_payeur = self.IDfamille
+        else:
             IDcompte_payeur = listeDonnees[0][0]
+
+        # Récupération de la désignation famille pour historique
+        req = """SELECT adresse_intitule FROM familles WHERE IDfamille=%d""" % self.IDfamille
+        self.DB.ExecuterReq(req, MsgBox="DLG_Famille.SupprimerFicheFamille recherche désignation")
+        listeDonnees = self.DB.ResultatReq()
+        name = "no_name"
+        if listeDonnees: name = listeDonnees[0][0]
+        intitule = f"{self.IDfamille}-{name}"
+        try:
             nblignes = 0
             for table in ('prestations', 'reglements', 'inscriptions'):
                 req = """SELECT IDcompte_payeur
@@ -874,11 +883,11 @@ class Dialog(wx.Dialog):
                                self.IDfamille,MsgBox='del comptes_payeurs')
                 self.DB.ReqDEL("familles", "IDfamille",
                                self.IDfamille,MsgBox='del familles')
-                mess = "La fiche famille %d a été supprimée."%self.IDfamille
+                mess = f"La fiche famille {intitule} a été supprimée."
             else:
-                mess = "La fiche famille %d a été conservée car a fait l'objet de règlements, inscriptions ou prestations."%self.IDfamille
+                mess = f"La fiche famille {intitule} a été conservée car a fait l'objet de règlements, inscriptions ou prestations."
         except Exception as err:
-            mess = "Echec lors de la purge de la famille %d: %s"%(self.IDfamille,err)
+            mess = f"Echec lors de la purge de la famille {intitule}: {err}"
 
         if mess:
             dlg = wx.MessageDialog(self, mess, "Suppression famille",
@@ -972,7 +981,7 @@ if __name__ == "__main__":
     heure_debut = time.time()
     # ramel 567; perez marc 1724; bartoOliv 1861; branco 4499;  bourrel 6191
     #7735 parrainage; 8107 multifactures; 709 Brunel jacques
-    dialog_1 = Dialog(None, IDfamille=10115)
+    dialog_1 = Dialog(None, IDfamille=10114)
     print("Temps de chargement fiche famille =", time.time() - heure_debut)
     app.SetTopWindow(dialog_1)
 

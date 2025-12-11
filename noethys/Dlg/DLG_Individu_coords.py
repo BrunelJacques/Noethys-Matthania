@@ -141,6 +141,8 @@ class Adresse_auto(wx.Choice):
 
         # pointeur du correspondant actuel
         if self.cat=="famille":
+            if not IDcorresp:
+                IDcorresp = IDindividu
             self.SetID(ID=IDcorresp)
         if fermerDB: DB.Close()
         return
@@ -990,21 +992,28 @@ class Panel_contact(wx.Panel):
         
         valide, messageErreur = self.ctrl_travail_mail.Validation()
         if valide == False :
-            dlg = wx.MessageDialog(self, _("L'adresse email professionnelle n'est pas valide !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
+            dlg = wx.MessageDialog(self, "L'adresse email professionnelle n'est pas valide !",
+                                   "Erreur de saisie", wx.OK | wx.ICON_EXCLAMATION)
             dlg.ShowModal()
             dlg.Destroy()
             return False
         if self.cat == "famille":
+
             # vérif présence d'un individu correspondant
-            if not adresseAuto:
+            if not adresseAuto and not self.IDindividu:
                 dlg = wx.MessageDialog(self,
                                        "L'adresse de correspondance ne pointe pas un individu ",
                                        _("Saisie obligatoire"), wx.OK | wx.ICON_EXCLAMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
                 return False
-
+            elif not adresseAuto:
+                self.ctrl_adresse_auto.SetID(self.IDindividu)
             adresse_intitule = self.designationB.GetValue().lower()
+            if not adresse_intitule:
+                mess = "Absence d'un intitulé famille pour la correspondance"
+                wx.MessageBox(mess,"Saisie nécessaire",style=wx.ICON_EXCLAMATION)
+                return False
             mess = ""
             if not "famille" in adresse_intitule.lower():
                 for prenom in self.ctrl_adresse_auto.lstPrenomsTitulaires:

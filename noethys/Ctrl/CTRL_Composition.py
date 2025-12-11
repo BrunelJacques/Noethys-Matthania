@@ -32,35 +32,10 @@ from Utils import UTILS_Utilisateurs
 
 DICT_TYPES_LIENS = Liens.DICT_TYPES_LIENS
 
-def Capitalize(prenom):
-    # capitalize les différents éléments du prénom composé
-    if not prenom or len(prenom) == 0:
-        return prenom
-
-    def action(mot):
-        if len(mot) > 1:
-            if mot.lower() not in ("et","ou", "de"):
-                mot = mot.capitalize()
-        return mot
-
-    lstSpaces = [x for x in prenom.split(" ")]
-    for i in range(len(lstSpaces)):
-        lstSpaces[i] = action(lstSpaces[i])
-        lstTiret = lstSpaces[i].split("-")
-        for j in range(len(lstTiret)):
-            lstTiret[j] = action(lstTiret[j])
-            lstEt = lstTiret[j].split("&")
-            for h in range(len(lstEt)):
-                lstEt[h] = action(lstEt[h])
-            lstTiret[j] = "&".join(lstEt)
-        lstSpaces[i] = "-".join(lstTiret)
-
-    return " ".join(lstSpaces)
-
 class GetValeurs():
     def __init__(self, IDfamille=None):
         self.IDfamille = IDfamille
-        self.listeIDindividus, self.dictInfosIndividus, self.listeLiens = self.GetInfosIndividus()
+        (self.listeIDindividus,self.dictInfosIndividus,self.listeLiens) = self.GetInfosIndividus()
 
     def GetLiensCadres(self):
         """ Retourne les liens de filiation ou de couple """
@@ -86,7 +61,6 @@ class GetValeurs():
                                         dictRelations[numCol]["filiation"][IDenfant].append(IDparent)
         
         return dictRelations
-        
 
     def RechercheLien(self, IDindividu):
         listeLiens = []
@@ -274,7 +248,6 @@ class GetValeurs():
             dictInfos[IDindividu]["photo"] = bmp
             
         return listeIDindividus, dictInfos, listeLiens
-    
     
     def GetDictCadres(self):
         """ Crée le dictionnaire spécial pour l'affichage des cadres individus """
@@ -598,7 +571,6 @@ class CTRL_Graphique(wx.ScrolledWindow):
         self.init_ok = False
         
         # Initialisation du tooltip
-##        self.SetToolTip("")
         self.tip = STT.SuperToolTip("")
         self.tip.SetEndDelay(10000) # Fermeture auto du tooltip après 10 secs
         self.tip.IDindividu = None
@@ -956,8 +928,7 @@ class CTRL_Graphique(wx.ScrolledWindow):
             self.SetCursor(wx.Cursor(wx.CURSOR_DEFAULT))
             # Dézoom tous les cadres
             self.DezoomTout()
-    
-            
+
     def OnLeaveWindow(self, event):
         """ Rétablit le zoom normal pour tous les cadres si le focus quitte la fenêtre """
         self.SetCursor(wx.Cursor(wx.CURSOR_DEFAULT))
@@ -1088,7 +1059,7 @@ class CTRL_Graphique(wx.ScrolledWindow):
         # Pour éviter que l'utilisateur bouge la souris trop vite
         if self.tip.IDindividu != None and self.tip.IDindividu != IDindividu :
             actif = False
-            
+
         if actif == True :
             # Active le tooltip
             if hasattr(self, "tipFrame") == False and hasattr(self, "timerTip") == False :
@@ -1102,7 +1073,7 @@ class CTRL_Graphique(wx.ScrolledWindow):
                     self.timerTip.Stop()
                     del self.timerTip
                     self.tip.IDindividu = None
-            self.CacheTooltip() 
+            self.CacheTooltip()
 
     def OuvrirCalendrier(self, IDindividu=None):
         """ Ouverture du calendrier de l'individu """
@@ -1116,7 +1087,7 @@ class CTRL_Graphique(wx.ScrolledWindow):
             dlg.Destroy()
         except :
             pass
-    
+
     def Calendrier_selection(self):
         IDindividu = self.selectionCadre
 
@@ -1334,7 +1305,7 @@ class CTRL_Graphique(wx.ScrolledWindow):
                     "IDcategorie" : IDcategorie,
                     "titulaire" : titulaire,
                     "nom" : nom.upper(),
-                    "prenom" : Capitalize(prenom),
+                    "prenom" : prenom.capitalize(),
                     }
                 dlg = DLG_Individu.Dialog(None, IDindividu=None, dictInfosNouveau=dictInfosNouveau)
                 if dlg.ShowModal() == wx.ID_OK:
@@ -1345,6 +1316,7 @@ class CTRL_Graphique(wx.ScrolledWindow):
             else:
                 # Rattachement d'un individu existant
                 succes = self.RattacherIndividu(IDindividu, IDcategorie, titulaire)
+
             # MAJ de l'affichage
             self.MAJ()
             self.MAJnotebook()
@@ -1431,21 +1403,13 @@ class CTRL_Graphique(wx.ScrolledWindow):
         dlg.Destroy()
 
         # MAJ de la fiche famille
-        if reponse  == 1 or reponse == 2 :
+        if reponse:
             self.MAJ() 
-            self.MAJnotebook() 
-        
-        # Suppression de la fiche famille
-        if reponse == 3 :
-            p = self.GetParent()
-            p.SupprimerFicheFamille()
-            p.parent.Destroy()
+            self.MAJnotebook()
 
     def MAJnotebook(self):
         """ MAJ la page active du notebook de la fenêtre famille """
         self.parent.MAJpageActive()
-
-# --------------------------------------------------------------------------------------------------------------------------
 
 class CTRL_Liste(HTL.HyperTreeList):
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
@@ -1706,12 +1670,12 @@ class CTRL_Liste(HTL.HyperTreeList):
                     "IDfamille" : self.IDfamille,
                     "IDcategorie" : IDcategorie,
                     "titulaire" : titulaire,
-                    "nom" : nom,
-                    "prenom" : prenom,
+                    "nom": nom.upper(),
+                    "prenom": prenom.capitalize(),
                     }
                 dlg = DLG_Individu.Dialog(None, IDindividu=None, dictInfosNouveau=dictInfosNouveau)
                 if dlg.ShowModal() == wx.ID_OK:
-                    pass #print "Nouvelle fiche creee et deja rattachee."
+                    IDindividu = dlg.IDindividu #print "Nouvelle fiche creee et deja rattachee."
                 else:
                     self.SupprimerFamille() 
                 dlg.Destroy()
@@ -2016,6 +1980,8 @@ class CTRL_Liste(HTL.HyperTreeList):
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+# --------------------------------------------------------------------------------------------------------------------------
+
 class Notebook(wx.Notebook):
     def __init__(self, parent, IDfamille=None):
         if "linux" in sys.platform :
@@ -2115,7 +2081,8 @@ class Notebook(wx.Notebook):
     
     def SupprimerFicheFamille(self):
         self.parent.SupprimerFicheFamille()
-        
+
+# --------------------------------------------------------------------------------------------------------------------------
 
 class MyFrame(wx.Frame):
     def __init__(self, *args, **kwds):
@@ -2134,8 +2101,6 @@ class MyFrame(wx.Frame):
 
 if __name__ == '__main__':
     app = wx.App(0)
-    print((Capitalize("maRie-joSé et jEan marc")))
-
     import time
     heure_debut = time.time()
     #wx.InitAllImageHandlers()

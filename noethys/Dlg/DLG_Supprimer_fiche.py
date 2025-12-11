@@ -322,7 +322,6 @@ class Dialog(wx.Dialog):
             "action": action,
         }, ])
 
-
     def AjouteMemo(self,DB):
         # ajoute dans le memo de la fiche client
         action = _("Détaché de la famille ID %d le %s" ) % (self.IDfamille,str(datetime.date.today()))
@@ -370,7 +369,7 @@ class Dialog(wx.Dialog):
         resultat = self.Supprimer()
         if resultat == True : self.EndModal(ID_BOUTON_SUPPRIMER)
         if resultat == False : self.EndModal(wx.ID_CANCEL)
-        if resultat == "famille" : self.EndModal(ID_SUPPRIMER_FAMILLE)
+        if resultat == "famille" : self.EndModal()
 
     def Supprimer(self):
         """ Processus de suppression d'une fiche individuelle """
@@ -563,14 +562,13 @@ class Dialog(wx.Dialog):
                 DB.Close()
                 
                 # Suppression de la fiche individu
-                self.SupprimerIndividu() 
-                
+                self.SupprimerIndividu()
+
                 # Suppression de la fiche famille
                 self.dlgFamille.SupprimerFicheFamille(IDfamille=self.IDfamille)
                 self.familleDeleted = True
 
                 return "famille"
-                
         else :
             # Suppression de la fiche individuelle
             dlg = wx.MessageDialog(self, _("Etes-vous sûr de vouloir supprimer cette fiche ?"), _("Confirmation"), wx.YES_NO|wx.NO_DEFAULT|wx.CANCEL|wx.ICON_INFORMATION)
@@ -587,6 +585,14 @@ class Dialog(wx.Dialog):
     def SupprimerIndividu(self):
         # Suppression de l'individu
         DB = GestionDB.DB()
+        req = """
+            SELECT prenom,nom FROM individus 
+            WHERE IDindividu=%d""" % self.IDindividu
+        DB.ExecuterReq(req, MsgBox="DLG_Supprimer_fiche.SupprimerIndividu")
+        listeDonnees = DB.ResultatReq()
+        if len(listeDonnees) > 0:
+            name =  str(self.IDindividu) + "-" + " ".join(listeDonnees[0])
+
         req = "DELETE FROM rattachements WHERE IDfamille=%d AND IDindividu=%d;" % (self.IDfamille, self.IDindividu)
         DB.ExecuterReq(req,MsgBox="DLG_Supprimer_fiche")
         req = "DELETE FROM liens WHERE IDfamille=%d AND IDindividu_sujet=%d;" % (self.IDfamille, self.IDindividu)
@@ -608,7 +614,7 @@ class Dialog(wx.Dialog):
         DB = GestionDB.DB(suffixe="PHOTOS")
         DB.ReqDEL("photos", "IDindividu", self.IDindividu)
         DB.Close()
-        action = _("Suppression de l'individu ID%d de la famille ID%d") % (self.IDindividu, self.IDfamille)
+        action = f"Suppression de l'individu {name} de la famille {self.IDfamille}"
 
         UTILS_Historique.InsertActions([{
             "IDfamille" : self.IDfamille,
@@ -616,6 +622,7 @@ class Dialog(wx.Dialog):
             "IDcategorie" : 12,
             "action" : action,
         },])
+
     def OnBoutonAide(self, event): 
         from Utils import UTILS_Aide
         UTILS_Aide.Aide("Compositiondelafamille")

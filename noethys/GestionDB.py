@@ -586,7 +586,8 @@ class DB():
             self.connexion.commit()
 
     def ResultatReq(self):
-        if self.echec >= 1 : return []
+        if self.echec and self.echec >= 1 : return []
+        if not self.cursor: return []
         resultat = self.cursor.fetchall()
         try :
             # Pour contrer MySQL qui fournit des tuples alors que SQLITE fournit des listes
