@@ -674,7 +674,7 @@ class DlgTarification(wx.Dialog):
         objects = olv.GetObjects()
         listeLignesPiece = []
         for obj in objects:
-            if olv.IsItemChecked(self.IxItem(obj)) == True:
+            if olv.IsChecked(obj) == True:
                 dictTemp = {}
                 if hasattr(obj, "donnees"):
                     dictTemp = obj.donnees
@@ -1007,8 +1007,9 @@ class DlgTarification(wx.Dialog):
                 ligne.force = "NON"
                 ligne.saisie = False
                 self.resultsOlv.listeOLV.append(ligne)
+
                 lstCodeArt.append(ligne.codeArticle)
-                self.resultsOlv.SetCheckState(ligne, True)
+                ligne.isChecked = True
             dictConditionsMulti = {}
             for ligne in self.resultsOlv.listeOLV:
                 for codeArt in lstCodeArt:
@@ -1045,7 +1046,10 @@ class DlgTarification(wx.Dialog):
         # self.SupprimeDejaFacture()
 
     def IxItem(self,obj):
-        ix = self.resultsOlv.innerList.index(obj)
+        ix = None
+        objects = self.resultsOlv.GetObjects()
+        if objects and obj in objects:
+            ix = objects.index(obj)
         return ix
 
     def OnKeyDown(self, event):

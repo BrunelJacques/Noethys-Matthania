@@ -1,12 +1,13 @@
 #!/usr/bin/env python
-# -*- coding: iso-8859-15 -*-
+# -*- coding: utf-8 -*-
 #-----------------------------------------------------------
 # Derive de DLG_Appliquer_forfait.py class Forfaits
 # pour gerer l'enregistrement des inscriptions
 # Application :    Noethys, Matthania
 # Auteur:          Ivan LUCAS, Jacques Brunel
-# Traitement des inscriptions derrière la tarification
+# Traitement des inscriptions derriÃ¨re la tarification
 # -----------------------------------------------------------
+
 from Utils.UTILS_Traduction import _
 import wx
 import datetime
@@ -23,7 +24,7 @@ DictActions = {
     "SuppressionInscription" : 77,
     "Facturation" : 76,
     "AjoutFacturation" : 76,
-    "AvoirGénéré": 76,
+    "AvoirGÃ©nÃ©rÃ©": 76,
     "ModificationFacturation" : 75,
     "SuppressionFacturation" : 74,
     "MiseEnCoherence" : 73,
@@ -54,11 +55,11 @@ def DateIntToString(dateInt, format="%d/%m/%y"):
     return datetime.date(annee,mois,jour).strftime(format)
 
 def DateComplete(dateDD):
-    """ Transforme une date DD en date complète : Ex : lundi 15 janvier 2008 """
+    """ Transforme une date DD en date complÃ¨te : Ex : lundi 15 janvier 2008 """
     listeJours = (_("Lundi"), _("Mardi"), _("Mercredi"), _("Jeudi"), _("Vendredi"), _("Samedi"), _("Dimanche"))
     listeMois = (
-    _("janvier"), _("février"), _("mars"), _("avril"), _("mai"), _("juin"), _("juillet"), _("août"),
-    _("septembre"), _("octobre"), _("novembre"), _("décembre"))
+    _("janvier"), _("fÃ©vrier"), _("mars"), _("avril"), _("mai"), _("juin"), _("juillet"), _("aoÃ»t"),
+    _("septembre"), _("octobre"), _("novembre"), _("dÃ©cembre"))
     dateComplete = listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month - 1] + " " + str(
         dateDD.year)
     return dateComplete
@@ -89,7 +90,7 @@ def GetNoFactureSuivant():
                 FROM factures
                 WHERE numero= %s ;
                 """ % str(noFacture)
-        DB.ExecuterReq(req,MsgBox="Ctrl Unicité Facture " + str(noFacture))
+        DB.ExecuterReq(req,MsgBox="Ctrl UnicitÃ© Facture " + str(noFacture))
         recordset = DB.ResultatReq()
         nbre = recordset[0][0]
         if nbre == 0:
@@ -107,9 +108,9 @@ def GetNoFactureSuivant():
     return noFacture
 
 def GetNoFactureMin():
-    # principe : lors d'une suppression de facture le numéro et sa date sont mis dans matParams avec clé prmUser = "NoLibre",prmParam = str(numero), prmInt = numero, prmDate = dateFact
+    # principe : lors d'une suppression de facture le numÃ©ro et sa date sont mis dans matParams avec clÃ© prmUser = "NoLibre",prmParam = str(numero), prmInt = numero, prmDate = dateFact
     # la recherche d'un numero trouve le plus petit prmInt et sa date puis le supprime
-    # pour la date, priorité sera donnée à celle de la première ventilation associée si elle existe à une date antérieure à la facture.
+    # pour la date, prioritÃ© sera donnÃ©e Ã  celle de la premiÃ¨re ventilation associÃ©e si elle existe Ã  une date antÃ©rieure Ã  la facture.
     value,noFacture,date = None,None,None
     DB = GestionDB.DB()
     req = "SELECT MIN(prmInteger) FROM matParams WHERE prmUser = 'NoLibre';"
@@ -127,11 +128,11 @@ def GetNoFactureMin():
                         FROM factures
                         WHERE numero= %s ;
                         """ % str(value)
-                DB.ExecuterReq(req,MsgBox="Ctrl Unicité Facture " + str(value))
+                DB.ExecuterReq(req,MsgBox="Ctrl UnicitÃ© Facture " + str(value))
                 recordset = DB.ResultatReq()
                 nbre = recordset[0][0]
                 if nbre > 0:
-                    # le numero n'était pas vraiment libre
+                    # le numero n'Ã©tait pas vraiment libre
                     req = "DELETE FROM matParams WHERE prmUser = 'NoLibre' AND prmInteger = %d ;" % str(value)
                     date = None
                 else:
@@ -149,12 +150,12 @@ def GetNoFactureMin():
                     if retour != "ok" :
                         DB.Close
                         return
-                # condition année civile en cours
+                # condition annÃ©e civile en cours
                 if dateRet != None:
                     date = DateEngEnDateDD(dateRet)
                     if date.year != datetime.date.today().year:
                         date=None
-    # quand il n'y a plus de numéro libre on prend le suivant du plus grand
+    # quand il n'y a plus de numÃ©ro libre on prend le suivant du plus grand
     if date == None:
         date = datetime.date.today()
     if noFacture== None:
@@ -163,7 +164,7 @@ def GetNoFactureMin():
     return noFacture,date
 
 def RecordsToListeDict(listeChamps,records):
-    # retourne une liste de tuples, où [0] est le premier champ de la table (l'ID) et [1] le dictionnaire de tous les champs
+    # retourne une liste de tuples, oÃ¹ [0] est le premier champ de la table (l'ID) et [1] le dictionnaire de tous les champs
     listeDict = []
     if len(records) > 0:
         for record in records:
@@ -180,7 +181,7 @@ def DictToListeTuples(listeChamps,dictDonnees):
     return listeTuples
 
 def DictTrack(listeChamps, valeurs, prefixe = "pie"):
-    #transforme en dictionnaire un record de  requête (liste de valeurs ) selon liste champs (prefixe oté si présent)
+    #transforme en dictionnaire un record de  requÃªte (liste de valeurs ) selon liste champs (prefixe otÃ© si prÃ©sent)
     dictTrack = {}
     if listeChamps == None : listeChamps=[]
     if valeurs == None : valeurs = []
@@ -203,7 +204,7 @@ def DictTrack(listeChamps, valeurs, prefixe = "pie"):
     return dictTrack
 
 def StandardiseNomsChamps(listeChamps, prefixe = "pie"):
-    #ote le prefixe au nom du champ et lower sur premier caractère
+    #ote le prefixe au nom du champ et lower sur premier caractÃ¨re
     newListe=[]
     for champ in listeChamps:
         idx = listeChamps.index(champ)
@@ -216,7 +217,7 @@ def StandardiseNomsChamps(listeChamps, prefixe = "pie"):
     return newListe
 
 def RecordsetToDict(lstCles,recordset):
-    # le dictionnaire généré contient pour clé le premier champ de chaque record et un dict des valeurs du record
+    # le dictionnaire gÃ©nÃ©rÃ© contient pour clÃ© le premier champ de chaque record et un dict des valeurs du record
     dict = {}
     for record in recordset:
         dict[record[0]]= {}
@@ -225,7 +226,7 @@ def RecordsetToDict(lstCles,recordset):
             dict[record[0]][cle] = record[idx]
     return dict
 
-# Forfaits dans le sens de definition des consommations forfaitisées par un prix de camp
+# Forfaits dans le sens de definition des consommations forfaitisÃ©es par un prix de camp
 class Forfaits():
     def __init__(self,parent,DB=None):
         self.parent = parent
@@ -238,7 +239,7 @@ class Forfaits():
         self.dictPiece = {}
         
     def GetActivite(self,IDactivite):
-        # Données de l'activité avec liste des unités, groupes auant des dates d'ouverture
+        # DonnÃ©es de l'activitÃ© avec liste des unitÃ©s, groupes auant des dates d'ouverture
         req = """
                 SELECT activites.IDactivite, activites.nom, activites.abrege, activites.date_debut, 
                         activites.date_fin,ouvertures.IDunite,ouvertures.IDgroupe
@@ -267,10 +268,10 @@ class Forfaits():
         return dictActivite
 
     def GetOuvertures(self,IDactivite,IDgroupe=None,IDunite=None):
-        # liste des jours d'ouverture pour une activité-unité-groupe, première unité ou groupe est par défaut
+        # liste des jours d'ouverture pour une activitÃ©-unitÃ©-groupe, premiÃ¨re unitÃ© ou groupe est par dÃ©faut
         ldOuvertures = []
         dictActivite = self.GetActivite(IDactivite)
-        # compose requête
+        # compose requÃªte
         if not IDunite:
             if len(dictActivite["unites"]) == 0:
                 return []
@@ -281,7 +282,7 @@ class Forfaits():
                 return []
             IDgroupe = dictActivite["groupes"][0]
         whereGroupe = "AND activites.IDgroupe = %d"%IDgroupe
-        # Recherche des ouvertures de l'activité sur sa période d'ouverture
+        # Recherche des ouvertures de l'activitÃ© sur sa pÃ©riode d'ouverture
         req = """SELECT date
         FROM ouvertures
         WHERE IDactivite = %d 
@@ -293,7 +294,7 @@ class Forfaits():
         self.DB.ExecuterReq(req,MsgBox="GestionInscription.GetOuvertures")
         listeOuvertures = self.DB.ResultatReq()
 
-        # recherche élargie hors dates d'activité si nécessaire
+        # recherche Ã©largie hors dates d'activitÃ© si nÃ©cessaire
         if len(listeOuvertures) == 0:
             req = """SELECT date
             FROM ouvertures
@@ -307,19 +308,19 @@ class Forfaits():
         for (date,) in listeOuvertures:
             date = DateEngEnDateDD(date)
             ldOuvertures.append({"date":date, "IDunite":IDunite})
-            # plafonnement du nombre d'ouvertures au delà d'un mois continu, seulement la première date gardée
+            # plafonnement du nombre d'ouvertures au delÃ  d'un mois continu, seulement la premiÃ¨re date gardÃ©e
             if len(listeOuvertures) >27:
                 break
         return ldOuvertures
         #fin GetOuvertures
 
     def ChoixPiece(self,retour):
-        # On demande quelle piece supprimer  et on récupére la ligne retour
+        # On demande quelle piece supprimer  et on rÃ©cupÃ©re la ligne retour
         msg = GestionDB.Messages()
         listeTuples = []
         for ligneRetour in retour:
             listeTuples.append((ligneRetour[0],ligneRetour[9]))
-        ixChoix,nom = msg.Choix(listeTuples=listeTuples, titre = ("Cette inscription est rattachée à  %d pièces")% len(listeTuples), intro = "Double clic pour choisir la pièce")
+        ixChoix,nom = msg.Choix(listeTuples=listeTuples, titre = ("Cette inscription est rattachÃ©e Ã   %d piÃ¨ces")% len(listeTuples), intro = "Double clic pour choisir la piÃ¨ce")
         if ixChoix == None:
             return None
         else:
@@ -331,12 +332,12 @@ class Forfaits():
                             ligneRetour = ligne
         return ligneRetour
 
-    # Outil correctif : Mise en cohérence des autres tables aller retour en devis
+    # Outil correctif : Mise en cohÃ©rence des autres tables aller retour en devis
     def ChangeNaturePiece(self,parent,dictPiece,natureNew):
         dictOldPiece = {}
-        # dPpiece ne contient que les éléments de base pour trouver la pièce complète
+        # dPpiece ne contient que les Ã©lÃ©ments de base pour trouver la piÃ¨ce complÃ¨te
         liste_codesNaturePiece = ["DEV","RES","COM","FAC","AVO"]
-        # complète la pièce, getPieceModif alimente self.dictPiece
+        # complÃ¨te la piÃ¨ce, getPieceModif alimente self.dictPiece
         if dictPiece["IDindividu"] > 0:
             niveau = "individu"
             ret = self.GetPieceModif(parent,dictPiece["IDindividu"],dictPiece["IDactivite"],
@@ -346,30 +347,30 @@ class Forfaits():
             natureOld = self.dictPiece["nature"]
             dictOldPiece.update(self.dictPiece)
             self.dictPiece.update(dictPiece)
-            # Priorité aux données transmises après récup d'éventuels champs manquants
+            # PrioritÃ© aux donnÃ©es transmises aprÃ¨s rÃ©cup d'Ã©ventuels champs manquants
             dictPiece.update(self.dictPiece)
 
         else:
-            # pièce niveau famille
+            # piÃ¨ce niveau famille
             niveau = "famille"
             lstPieces = self.GetPieceModif999(parent,dictPiece["IDcompte_payeur"],dictPiece["IDinscription"],
                                                dictPiece["IDnumPiece"])
             dictOri = lstPieces[0]
             natureOld = dictOri["nature"]
             dictOldPiece.update(dictOri)
-            # Priorité aux données transmises, mais on récupére des clés manquantes
+            # PrioritÃ© aux donnÃ©es transmises, mais on rÃ©cupÃ©re des clÃ©s manquantes
             dictOri.update(dictPiece)
             dictPiece.update(dictOri)
             
         etatPiece = dictPiece["etat"]
         if not natureOld in ("DEV","RES","COM"):
             messStr = "Changement de nature %s non prevu ici!!!"%natureOld
-            wx.MessageBox(messStr,"Pb de programmation, non géré")
+            wx.MessageBox(messStr,"Pb de programmation, non gÃ©rÃ©")
             raise Exception(messStr)
     
         dictPiece["origine"]= "modif"
         i = liste_codesNaturePiece.index(natureOld)
-        # Mise à "1" du caractère en la position correspondant à la nature de la pièce (ex: FAC = 4eme)
+        # Mise Ã  "1" du caractÃ¨re en la position correspondant Ã  la nature de la piÃ¨ce (ex: FAC = 4eme)
         etatPiece = etatPiece[:i]+"1"+ etatPiece[i+1:]
         dictPiece["etat"] = etatPiece
     
@@ -387,7 +388,7 @@ class Forfaits():
             dictNewPiece[champ] = valeur
         ret = self.ModifiePiece(parent,dictNewPiece)
         ajout = True
-        # gestion des autres tables liées
+        # gestion des autres tables liÃ©es
         if natureOld == "DEV":
             if natureNew == "RES" and niveau == "individu":
                 ajout = self.AjoutConsommations(parent,dictNewPiece)
@@ -494,7 +495,7 @@ class Forfaits():
         listeChamps=[]
         for champ, natureChamp, comment in DATA_Tables.DB_DATA["matPieces"]:
             dictPiece[champ]=None
-        #compléments d'infos
+        #complÃ©ments d'infos
         dictPiece["pieIDinscription"]= exercice.year
         dictPiece["pieIDindividu"]=0
         dictPiece["pieIDcompte_payeur"]=IDcomptePayeur
@@ -527,22 +528,22 @@ class Forfaits():
 
     def AjoutConsommations(self,parent,dictDonnees,force=False) :
         if not force and ("nature" in dictDonnees) and dictDonnees["nature"] in ("DEV","AVO"):
-            # pas de consommations à ajouter dans les avoirs ou les devis
+            # pas de consommations Ã  ajouter dans les avoirs ou les devis
             return True
         IDinscription = dictDonnees["IDinscription"]
         IDindividu = dictDonnees["IDindividu"]
         IDactivite = dictDonnees["IDactivite"]
         IDgroupe = dictDonnees["IDgroupe"]
         IDfamille = dictDonnees["IDcompte_payeur"]
-        # Récupération des consommations à créer
+        # RÃ©cupÃ©ration des consommations Ã  crÃ©er
         ldConsommations = self.GetOuvertures(IDactivite,IDgroupe)
         if len(ldConsommations) == 0:
-            wx.MessageBox("Aucun jour d'ouverture pour l'activité %d, groupe %d!!!"%(IDactivite,IDgroupe))
+            wx.MessageBox("Aucun jour d'ouverture pour l'activitÃ© %d, groupe %d!!!"%(IDactivite,IDgroupe))
         listeDatesStr = []
         for dOuverture in ldConsommations:
             if dOuverture["date"] not in listeDatesStr : listeDatesStr.append(str(dOuverture["date"]))
 
-        # Vérifie que les dates ne sont pas déjà prises pour alerte conflit
+        # VÃ©rifie que les dates ne sont pas dÃ©jÃ  prises pour alerte conflit
         if len(listeDatesStr) == 0 : conditionDates = " "
         elif len(listeDatesStr) == 1 : conditionDates = " AND date IN('%s')" % listeDatesStr[0]
         else :
@@ -558,9 +559,9 @@ class Forfaits():
         self.DB.ExecuterReq(req,MsgBox="GestionInscription.AjoutConsos")
         listeConsoExistantes = self.DB.ResultatReq()
         if len(listeConsoExistantes) > 0 :
-            cle = "Famille %d, individu %d,activité %d, groupe %d"%(IDfamille,IDindividu,IDactivite,IDgroupe)
-            mess = "Déjà inscrit impossible d'enregistrer de nouvelles consommations! \n\n"
-            mess += "Des consommations existent déjà:\n%s\n"%(cle)
+            cle = "Famille %d, individu %d,activitÃ© %d, groupe %d"%(IDfamille,IDindividu,IDactivite,IDgroupe)
+            mess = "DÃ©jÃ  inscrit impossible d'enregistrer de nouvelles consommations! \n\n"
+            mess += "Des consommations existent dÃ©jÃ :\n%s\n"%(cle)
             wx.MessageBox(mess, "Inscriptions redondantes", wx.OK | wx.ICON_ERROR)
             return False
 
@@ -568,7 +569,7 @@ class Forfaits():
         for conso in ldConsommations :
             date = conso["date"]
             IDunite = conso["IDunite"]
-            # Récupération des données
+            # RÃ©cupÃ©ration des donnÃ©es
             if (not "nature" in dictDonnees) or dictDonnees["nature"] in ("COM","FAC",):
                 etatConsommation = "present"
             else : etatConsommation = "reservation"
@@ -590,7 +591,7 @@ class Forfaits():
             if "IDprestation" in dictDonnees:
                 listeDonnees.append(("IDprestation", dictDonnees["IDprestation"]))
 
-            # Insertion des données
+            # Insertion des donnÃ©es
             retour = self.DB.ReqInsert("consommations", listeDonnees,retourID=False,MsgBox="AjoutConso")
             if not retour == "ok":
                 return False
@@ -710,7 +711,7 @@ class Forfaits():
         # fin AjoutAvoPrestation
 
     def AjoutPrestation999(self,parent,dictDonnees,modif = False) :
-        # origine : niveau famille) ajoute la prestation et modifie la pièce pour IDprestation
+        # origine : niveau famille) ajoute la prestation et modifie la piÃ¨ce pour IDprestation
         montant = 0.00
         montantInit = 0.00
         if "lignes_piece" in dictDonnees:
@@ -759,7 +760,7 @@ class Forfaits():
             else:
                 self.DB.ReqInsert("prestations", listeDonnees,retourID = True,MsgBox="AjoutPrestation2")
                 newID = self.DB.newID
-        # maj de l'ID prestation dans la pièce
+        # maj de l'ID prestation dans la piÃ¨ce
         if newID :
             listeDonnees = [("pieIDprestation", newID),]
             ret = self.DB.ReqMAJ("matPieces", listeDonnees,"pieIDnumPiece",dictDonnees["IDnumPiece"],MsgBox="AjoutPrestation3")
@@ -770,7 +771,7 @@ class Forfaits():
 
     def GetPieceModif(self,parent,IDindividu,IDactivite,IDnumPiece = None,DB=None):
         try:
-            DBfourni = (DB.connexion.open == 1) # ajout tardif, on gère aussi le DB non fourni en kwds
+            DBfourni = (DB.connexion.open == 1) # ajout tardif, on gÃ¨re aussi le DB non fourni en kwds
         except: DBfourni = False
         if not DBfourni:
             DB = GestionDB.DB()
@@ -805,7 +806,7 @@ class Forfaits():
                 if not DBfourni: DB.Close()
                 return False
             self.dictPiece = DictTrack(listeChamps,retour)
-        # Appel des lignes de la pièce pour ajouter dans le dictPiece
+        # Appel des lignes de la piÃ¨ce pour ajouter dans le dictPiece
         listeChamps = []
         for descr in dicoDB["matPiecesLignes"]:
             nomChamp = descr[0]
@@ -867,7 +868,7 @@ class Forfaits():
         listePieces = []
         for piece in lstPieces:
             dictPiece = DictTrack(listeChamps,piece)
-            # Appel des lignes de la pièce pour ajouter dans le dictPiece
+            # Appel des lignes de la piÃ¨ce pour ajouter dans le dictPiece
             conditions = "ligIDnumPiece= %d ;" % (dictPiece["IDnumPiece"])
             req =  "SELECT * FROM matPiecesLignes WHERE " + conditions
             retour = self.DB.ExecuterReq(req,MsgBox="GestionInscription.GetPieceModif999")
@@ -885,7 +886,7 @@ class Forfaits():
         #fin GetPieceModif999
 
     def GetPiece_Supprimer(self, parent, IDinscription, IDindividu, IDactivite):
-        #retourne False pour abandon, None pour suppression sans piece, True pour self.dictPiece alimentée
+        #retourne False pour abandon, None pour suppression sans piece, True pour self.dictPiece alimentÃ©e
         self.dictPiece = {}
         listeChamps = ["pieIDnumPiece", "pieIDinscription", "pieIDprestation", "pieIDfamille","pieDateCreation", "pieUtilisateurCreateur", "pieNature", "pieNature", "pieEtat", "pieCommentaire"]
         champs=" "
@@ -908,20 +909,20 @@ class Forfaits():
                 reqPiece = self.GetPieceModif(self.parent,IDindividu,IDactivite)
                 if reqPiece: return True
                 else: return False
-            #la piece ne correspond pas à l'inscription
+            #la piece ne correspond pas Ã  l'inscription
             else:
-                dlg = GestionDB.MessageBox(parent, _("Suppression impossible car NoInscription dans piece différent "), titre = "Confirmation")
+                dlg = GestionDB.MessageBox(parent, _("Suppression impossible car NoInscription dans piece diffÃ©rent "), titre = "Confirmation")
                 return False
         else:
-            # On demande quelle piece supprimer  et on récupére l'IDinscription
+            # On demande quelle piece supprimer  et on rÃ©cupÃ©re l'IDinscription
             reqPiece = self.GetPieceModif(self.parent,IDindividu,IDactivite)
             if reqPiece : return True
             return False
         #fin GetPieceSupprime
 
-    # modif de la pièce dans matPièce seulement
+    # modif de la piÃ¨ce dans matPiÃ¨ce seulement
     def ModifiePieceCree(self,parent,dictDonnees):
-        # ne s'occupe pas des dépendances de la pièce ni de ses lignes
+        # ne s'occupe pas des dÃ©pendances de la piÃ¨ce ni de ses lignes
         listeDonnees = [
             ("pieIDinscription", dictDonnees["IDinscription"]),
             ("pieIDprestation", dictDonnees["IDprestation"]),
@@ -954,8 +955,8 @@ class Forfaits():
         return retour
 
     def RazTransport(self,parent,dictDonnees,sens = "deux"):
-        # supprime dans les tables transports et matPiece les références transports
-        # conserve les montants facturés
+        # supprime dans les tables transports et matPiece les rÃ©fÃ©rences transports
+        # conserve les montants facturÃ©s
         listeDonnees = []
         def Raz(listeDonnees,IDnumPiece,IDtransport):
             self.SupprimeTransport(IDtransport)
@@ -975,7 +976,7 @@ class Forfaits():
         #fin RazTransport
 
     def SupprimeTransport(self,IDtransport):
-        #le transport ne sera supprimé que s'il n'y a qu'une seule pièce qui le référence
+        #le transport ne sera supprimÃ© que s'il n'y a qu'une seule piÃ¨ce qui le rÃ©fÃ©rence
         if IDtransport and IDtransport >0 :
             req =  """SELECT COUNT(pieIDnumPiece)
                         FROM matPieces WHERE pieIDtranspAller = %d OR pieIDtranspRetour = %d
@@ -994,7 +995,7 @@ class Forfaits():
                 if retour != "ok" :
                     GestionDB.MessageBox(self.parent,retour)
             else:
-                GestionDB.MessageBox(self.parent,"Le transport %d est pointé par plusieurs pièces !\n pas de suppression" % IDtransport,titre = "Remarque")
+                GestionDB.MessageBox(self.parent,"Le transport %d est pointÃ© par plusieurs piÃ¨ces !\n pas de suppression" % IDtransport,titre = "Remarque")
         #fin SupprimeTransport
 
     def ModifPrestationVentilation999(self, DB, dictDonnees):
@@ -1002,9 +1003,9 @@ class Forfaits():
             self.Suppression999(dictDonnees)
             return
 
-        # Appelle AjoutPrestation, mais gère avant cela la ventilation associée
+        # Appelle AjoutPrestation, mais gÃ¨re avant cela la ventilation associÃ©e
         lstVentilation = []
-        # Réservation des éventuelles ventilations de règlements
+        # RÃ©servation des Ã©ventuelles ventilations de rÃ¨glements
         IDprestation = None
         for IDprestation in dictDonnees['lstIDprestationsOrigine']:
             if IDprestation != None and IDprestation > 0 :
@@ -1022,7 +1023,7 @@ class Forfaits():
         # appelle l'ajout de prestation
         if IDprestation != None:
             for ID in dictDonnees['lstIDprestationsOrigine'][:-1]:
-                # suppression d'éventuelles prestations en surnombre
+                # suppression d'Ã©ventuelles prestations en surnombre
                 DB.ReqDEL("prestations", "IDprestation", ID)
             IDprestation = self.AjoutPrestation999(None,dictDonnees, modif = True)
         else:
@@ -1034,29 +1035,29 @@ class Forfaits():
             mttPrestation += lig['montant']
         for IDventil, montant in lstVentilation:
             if mttPrestation >= 0:
-                if mttPrestation >= montant and montant > 0 : # on conserve la ventilation que règle partiellement la prestation
+                if mttPrestation >= montant and montant > 0 : # on conserve la ventilation que rÃ¨gle partiellement la prestation
                     mttPrestation -= montant
-                elif montant >0: # on réduit le montant pour ne pas sur ventiler
+                elif montant >0: # on rÃ©duit le montant pour ne pas sur ventiler
                     montant = mttPrestation
                     mttPrestation == 0
                     DB.ReqMAJ('ventilation',[('montant',montant),],'IDventilation',IDventil,MsgBox="GestionInscription MAJ ventilation %d"%IDventil )
                 else: # on ne garde pas
                     DB.ReqDEL('ventilation','IDventilation',IDventil,MsgBox="GestionInscription DEL ventilation %d"%IDventil )
-            else: # mttPrestation négatif
-                if mttPrestation <= montant and montant < 0 : # on conserve la ventilation que règle partiellement la prestation
+            else: # mttPrestation nÃ©gatif
+                if mttPrestation <= montant and montant < 0 : # on conserve la ventilation que rÃ¨gle partiellement la prestation
                     mttPrestation -= montant
-                elif montant <0: # on réduit le montant pour ne pas sur ventiler
+                elif montant <0: # on rÃ©duit le montant pour ne pas sur ventiler
                     montant = mttPrestation
                     mttPrestation == 0
                     DB.ReqMAJ('ventilation',[('montant',montant),],'IDventilation',IDventil,MsgBox="GestionInscription MAJ ventilation %d"%IDventil )
                 else: # on ne garde pas
                     DB.ReqDEL('ventilation','IDventilation',IDventil,MsgBox="GestionInscription DEL ventilation %d"%IDventil )
 
-    # Modif de la pièce et de ses lignes
+    # Modif de la piÃ¨ce et de ses lignes
     def ModifiePiece(self,parent,dictDonnees):
-        # recherche date d'échéance
+        # recherche date d'Ã©chÃ©ance
         if dictDonnees["nature"] in  ('FAC','AVO'):
-            # gestion des dates de pièce
+            # gestion des dates de piÃ¨ce
             dateFact = self.DB.GetDateFacture(dictDonnees["IDinscription"],dictDonnees["IDactivite"],datetime.date.today())
             dictActivite = self.GetActivite(dictDonnees["IDactivite"])
             dd = dictActivite["date_debut"]
@@ -1078,7 +1079,7 @@ class Forfaits():
             dictDonnees["dateAvoir"] = None
             dictDonnees["noAvoir"] = None
 
-        # composition des valeurs matPiece à mettre à jour
+        # composition des valeurs matPiece Ã  mettre Ã  jour
         listeDonnees = [
             ("pieIDinscription", dictDonnees["IDinscription"]),
             ("pieIDprestation", dictDonnees["IDprestation"]),
@@ -1113,7 +1114,7 @@ class Forfaits():
         if dictDonnees["nature"]=="AVO" and dictDonnees["noFacture"] != None :
             return None
         
-        # Purge les lignes précédentes
+        # Purge les lignes prÃ©cÃ©dentes
         ret = self.DB.ReqDEL("matPiecesLignes", "ligIDNumPiece",dictDonnees["IDnumPiece"])
         if 'selfParrainage' in dictDonnees:
             for IDligne in dictDonnees['selfParrainage']['lstIDoldPar']:
@@ -1124,7 +1125,7 @@ class Forfaits():
             ("ligDate",str(datetime.date.today())),
             ("ligUtilisateur", self.user),
             ]
-        # recalcul du montant non forcé pour stockage avec valeur
+        # recalcul du montant non forcÃ© pour stockage avec valeur
         for item in dictDonnees["lignes_piece"]:
             if item["montant"] == 0:
                 item["montant"] = (item["quantite"] * item["prixUnit"])
@@ -1152,19 +1153,19 @@ class Forfaits():
         return retour
         #fin ModifiePiece
 
-    # Modif de la pièce famille et de toutes ses dépendances
+    # Modif de la piÃ¨ce famille et de toutes ses dÃ©pendances
     def ModifiePiece999(self,parent,dictDonnees,nature):
         if len(dictDonnees['lignes_piece']) == 0:
             return  self.Suppression999(dictDonnees)
 
-        # à supprimer toutes les lignes plus présentes
+        # Ã  supprimer toutes les lignes plus prÃ©sentes
         lstLignesDel = [lig for lig in dictDonnees['lignes_pieceOrigine'] if not lig in dictDonnees['lignes_piece']]
         lstIDlignesDel = [lig['IDnumLigne'] for lig in lstLignesDel]
 
-        # à insérer toutes les nouvelles lignes présentes
+        # Ã  insÃ©rer toutes les nouvelles lignes prÃ©sentes
         lstLignesInsert = [lig for lig in dictDonnees['lignes_piece'] if not lig in dictDonnees['lignes_pieceOrigine']]
 
-        # on ne modifie pas les lignes à inserer ou déja présentes sans changement
+        # on ne modifie pas les lignes Ã  inserer ou dÃ©ja prÃ©sentes sans changement
         lstLignesModif = [x for x in dictDonnees['lignes_piece'] if not ((x in lstLignesInsert)
                                                                          or (x in dictDonnees['lignes_pieceOrigine'])) ]
 
@@ -1177,13 +1178,13 @@ class Forfaits():
                 lig['montant'] = lig['quantite'] * lig['prixUnit']
             mttNew += lig['montant']
 
-        # contrôle cohérence programmation
+        # contrÃ´le cohÃ©rence programmation
         if (len(dictDonnees['lignes_pieceOrigine']) - len(lstIDlignesDel) + len(lstLignesInsert) - len(dictDonnees['lignes_piece'])) != 0:
             raise Exception("Revoir la programmation en GestionInscription.ModifiePieceTout, variation du nbre de ligne incorrecte")
         if len(dictDonnees['lignes_pieceOrigine'])  - len(lstIDlignesDel) < len(lstLignesModif):
             raise Exception("Revoir la programmation en GestionInscription.ModifiePieceTout, trop de modifs")
 
-        # la nature héritée de la pièce individu,a pu changer celle de la piece
+        # la nature hÃ©ritÃ©e de la piÃ¨ce individu,a pu changer celle de la piece
         if 'pieceOrigine' in dictDonnees:
             natureOld = dictDonnees['pieceOrigine']['nature']
             if natureOld != nature:
@@ -1192,13 +1193,13 @@ class Forfaits():
         if mttOrigine != mttNew:
             ret = self.ModifPrestationVentilation999(self.DB,dictDonnees)
 
-        # action sur la pièce
+        # action sur la piÃ¨ce
         dateFact = datetime.date.today()
         if dictDonnees["nature"] in  ('FAC','AVO'):
             dateFact = self.DB.GetDateFacture(dictDonnees["IDinscription"],
                                      dictDonnees["IDactivite"],
                                      datetime.date.today())
-        # recherche date d'échéance
+        # recherche date d'Ã©chÃ©ance
         if dictDonnees["nature"] in  ('FAC','AVO'):
             dictActivite = self.GetActivite(dictDonnees["IDactivite"])
             dd = dictActivite["date_debut"]
@@ -1220,7 +1221,7 @@ class Forfaits():
             dictDonnees["dateAvoir"] = None
             dictDonnees["noAvoir"] = None
 
-        # composition des valeurs matPiece à mettre à jour
+        # composition des valeurs matPiece Ã  mettre Ã  jour
         listeDonnees = [
             ("pieIDinscription", dictDonnees["IDinscription"]),
             ("pieIDprestation", dictDonnees["IDprestation"]),
@@ -1254,7 +1255,7 @@ class Forfaits():
         if dictDonnees["nature"]=="AVO" and dictDonnees["noFacture"] != None :
             return None
 
-        # Purge les lignes à supprimer dans matLignes et matParrainages
+        # Purge les lignes Ã  supprimer dans matLignes et matParrainages
         for ID in lstIDlignesDel:
             ret = self.DB.ReqDEL("matPiecesLignes", "ligIDNumLigne",ID,MsgBox="GestionInscription.ModifiePiece999.del matPieceLigne")
             ret = self.DB.ReqDEL("matParrainages","parIDligneParr",ID,MsgBox="GestionInscription.ModifiePiece999.del matParrainages")
@@ -1285,7 +1286,7 @@ class Forfaits():
                         dicParr['parIDligneParr'] = IDnumLigne
                         self.InsertParrain(self,dicParr)
 
-        # modifie les lignes changées
+        # modifie les lignes changÃ©es
         for ligne in lstLignesModif:
             if ligne["montant"] == 0.0:
                 ligne["montant"] = (ligne["quantite"] * ligne["prixUnit"])
@@ -1313,7 +1314,7 @@ class Forfaits():
 
     def ModifieConsommations(self,parent,dictDonnees,fromInscr=None):
         if dictDonnees["nature"] in ("AVO","DEV"):
-            wx.MessageBox("Consommation à supprimer si avoir, pas à modifier","Cf program")
+            wx.MessageBox("Consommation Ã  supprimer si avoir, pas Ã  modifier","Cf program")
             return False
 
         if not fromInscr:
@@ -1360,7 +1361,7 @@ class Forfaits():
         return True
 
     def SupprReducParrainage(self, parIDligneParr,IDfamFilleul=None):
-        # Tente la suppression d'une ligne de réduction parrainage chez le parrain
+        # Tente la suppression d'une ligne de rÃ©duction parrainage chez le parrain
         if not parIDligneParr > 0:
             return False
         req = """
@@ -1380,29 +1381,29 @@ class Forfaits():
         retDel = None
         for IDpiece,IDinscription,nature,IDfamille,nom,libelle,montant,IDligne in recordset:
             if nature == 'FAC' :
-                mess = "Réduction parrainage à annuler\n\n"
-                mess +="La famille %d %s a bénéficié d'une réduction de facture:\n"%(IDfamille,nom,)
-                mess += "%.2f¤ '%s'"%(montant,libelle)
+                mess = "RÃ©duction parrainage Ã  annuler\n\n"
+                mess +="La famille %d %s a bÃ©nÃ©ficiÃ© d'une rÃ©duction de facture:\n"%(IDfamille,nom,)
+                mess += "%.2fâ‚¬ '%s'"%(montant,libelle)
                 mess += "Il convient de refacturer l'annulation de ce parrainage"
                 wx.MessageBox(mess,"A FAIRE",style=wx.ICON_WARNING)
             elif nature == 'AVO':
-                # la réduc pratiquée a été annulée par l'avoir
+                # la rÃ©duc pratiquÃ©e a Ã©tÃ© annulÃ©e par l'avoir
                 pass
             elif IDfamFilleul == IDfamille:
-                # c'était un abandon à filleul dans la pièce qui va être supprimée
+                # c'Ã©tait un abandon Ã  filleul dans la piÃ¨ce qui va Ãªtre supprimÃ©e
                 pass
             else:
-                # Suppression d'une ligne dans la pièce du parrain non facturée
+                # Suppression d'une ligne dans la piÃ¨ce du parrain non facturÃ©e
                 retDel = self.DB.ReqDEL('matPiecesLignes','ligIDnumLigne',IDligne,
                                MsgBox="SupprReducParrainage.matPiecesLignes")
             self.DB.ReqDEL('matParrainages', 'parIDligneParr', IDligne,
                            MsgBox="SupprReducParrainage.matParrainages")
 
-            mess = "Inscription parrainée\n\n"
-            mess += "La famille %d %s avait bénéficié d'une réduction de facture:\n" % (
+            mess = "Inscription parrainÃ©e\n\n"
+            mess += "La famille %d %s avait bÃ©nÃ©ficiÃ© d'une rÃ©duction de facture:\n" % (
                 IDfamille, nom,)
             if retDel == 'ok':
-                mess += "Cette ligne de réduction a été enlevée"
+                mess += "Cette ligne de rÃ©duction a Ã©tÃ© enlevÃ©e"
             else: mess += "Il FAUT REFACTURER LE parrain de cette annulation"
             wx.MessageBox(mess, "INFO IMPORTANTE",style=wx.ICON_WARNING)
         return True
@@ -1436,7 +1437,7 @@ class Forfaits():
         return nom
 
     def ParrainageIsImpute(self,DB,IDinscription):
-        # vérifie si un parrainage est imputé
+        # vÃ©rifie si un parrainage est imputÃ©
         test = False
         req = """SELECT matParrainages.parIDligneParr
                 FROM matParrainages
@@ -1451,7 +1452,7 @@ class Forfaits():
         return test
 
     def SuppressionInscription(self,IDinscription):
-        #pour cette inscription suppression des consos et prestation éventuelle
+        #pour cette inscription suppression des consos et prestation Ã©ventuelle
         conditions = "IDinscription = %d" % (IDinscription)
         req =  """
             SELECT IDindividu, IDfamille,IDactivite,IDcategorie_tarif,IDgroupe
@@ -1461,10 +1462,10 @@ class Forfaits():
             return False
         retour = self.DB.ResultatReq()
         if len(retour) == 0:
-            wx.MessageBox("Inscription '%d' non trouvée!!"%IDinscription,"Problème",style=wx.ICON_ERROR)
+            wx.MessageBox("Inscription '%d' non trouvÃ©e!!"%IDinscription,"ProblÃ¨me",style=wx.ICON_ERROR)
             return
 
-        # recherche d'un éventuel IDprestation correspondant à l'inscription de manière floue
+        # recherche d'un Ã©ventuel IDprestation correspondant Ã  l'inscription de maniÃ¨re floue
         for IDindividu, IDfamille,IDactivite,IDcategorie_tarif,IDgroupe in retour :
             req =  """
             SELECT IDprestation
@@ -1492,7 +1493,7 @@ class Forfaits():
 
     def ZeroPiece(self,IDinscription):
         DB = GestionDB.DB()
-        # ctrl de présence d'autre piece pointant la même inscription
+        # ctrl de prÃ©sence d'autre piece pointant la mÃªme inscription
         req = """SELECT Count(pieIDnumPiece)
             FROM matPieces
             WHERE pieIDinscription = %s;
@@ -1509,7 +1510,7 @@ class Forfaits():
         #fin ZeroPiece
     
     def SuppressionPiece(self, parent, dictDonnees):
-        #suppression d'une pièce non facturée et de tout ce qui va avec
+        #suppression d'une piÃ¨ce non facturÃ©e et de tout ce qui va avec
         IDinscription = dictDonnees["IDinscription"]
         IDprestation = dictDonnees["IDprestation"]
         IDnumPiece = dictDonnees["IDnumPiece"]
@@ -1520,7 +1521,7 @@ class Forfaits():
         self.SupprimeTransport(IDtranspAller)
         self.SupprimeTransport(IDtranspRetour)
 
-        # suppression du parrainage affecté
+        # suppression du parrainage affectÃ©
         if dictDonnees['IDparrain'] and dictDonnees['IDparrain'] > 0 :
             mess = "GestionInscription.Suppression.recherche_parrainage"
             where = "parIDinscription = %d"%IDinscription
@@ -1536,9 +1537,9 @@ class Forfaits():
                 dictDonnees["IDparrain"]=0
             nomParrain = self.GetNomParrain(self.DB,dictDonnees['IDparrain'])
             parrain = "Parrain : %d - %s\nRetournez sur sa fiche"%(dictDonnees["IDparrain"],nomParrain)
-            wx.MessageBox("Inscription parrainée!\n\n%s"%parrain)
+            wx.MessageBox("Inscription parrainÃ©e!\n\n%s"%parrain)
 
-        # suppression de la pièce et de ses lignes
+        # suppression de la piÃ¨ce et de ses lignes
         self.DB.ReqDEL("matPiecesLignes", "ligIDNumPiece", IDnumPiece)
         self.DB.ReqDEL("matPieces", "pieIDNumPiece", IDnumPiece)
 
@@ -1557,9 +1558,9 @@ class Forfaits():
         #fin Suppression
 
     def Suppression999(self,dictDonnees):
-        # suppression d'une pièce niveau famille
+        # suppression d'une piÃ¨ce niveau famille
         if "IDnumPiece" in dictDonnees:
-            # suppression de la pièce et des parrainages qu'elle peut contenir
+            # suppression de la piÃ¨ce et des parrainages qu'elle peut contenir
             IDnumPiece = dictDonnees["IDnumPiece"]
             req = """
                 SELECT matParrainages.parIDligneParr
@@ -1600,7 +1601,7 @@ class Forfaits():
         IDnumPiece = dictDonnees["IDnumPiece"]
         ret = "ko"
         if "compta" in dictDonnees and dictDonnees["compta"] != None:
-            # sécurité: pas modifier une prestation transférée en compta
+            # sÃ©curitÃ©: pas modifier une prestation transfÃ©rÃ©e en compta
             return ret
         if IDprestation != None:
             ret = self.DB.ReqDEL("prestations", "IDprestation", IDprestation)
@@ -1618,17 +1619,17 @@ class Forfaits():
     def RetroFact(self,parent,dictDonnees):
         if dictDonnees["comptaFac"] != None:
             date = DateIntToString(dictDonnees["comptaFac"])
-            GestionDB.MessageBox(self.parent,"Cette facture a été transférée en compta le %s" % date, titre="Traitement impossible")
+            GestionDB.MessageBox(self.parent,"Cette facture a Ã©tÃ© transfÃ©rÃ©e en compta le %s" % date, titre="Traitement impossible")
             return
         if dictDonnees["noAvoir"] != None:
-            GestionDB.MessageBox(self.parent,"Cette facture a un no d'avoir !\nProblème logique", titre="Traitement impossible")
+            GestionDB.MessageBox(self.parent,"Cette facture a un no d'avoir !\nProblÃ¨me logique", titre="Traitement impossible")
             return
-        #Rétrogradation d'une piece de type facture en commande
+        #RÃ©trogradation d'une piece de type facture en commande
         if dictDonnees["noFacture"] == None:
-            GestionDB.MessageBox(self.parent,"Cette facture n'a pas de no de facture !\nProblème logique", titre="Cas Anormal à vérifier")
+            GestionDB.MessageBox(self.parent,"Cette facture n'a pas de no de facture !\nProblÃ¨me logique", titre="Cas Anormal Ã  vÃ©rifier")
         DB = GestionDB.DB()
         pGest = GestionPieces.Forfaits(parent)
-        #recharge la pièce pour avoir tous les champs
+        #recharge la piÃ¨ce pour avoir tous les champs
         ok = self.GetPieceModif(self.parent,None,None,IDnumPiece=dictDonnees['IDnumPiece'])
         dictDonnees = self.dictPiece
         commentaire = Decod(dictDonnees['commentaire'])
@@ -1637,10 +1638,10 @@ class Forfaits():
         ligneComm = " "
         action = ""
         if not dictDonnees["noFacture"]:
-            # anomalie d'une pièce FAC sans numéro facture
+            # anomalie d'une piÃ¨ce FAC sans numÃ©ro facture
             pass
         elif pGest.FactureMonoPiece(dictDonnees["noFacture"],dictDonnees["IDnumPiece"]):
-            # suppression de la facture et stockage du numéro
+            # suppression de la facture et stockage du numÃ©ro
             if pGest.DestroyFacture(dictDonnees["noFacture"],dictDonnees["IDcompte_payeur"]):
                 DB.SetParam(param = str(dictDonnees["noFacture"]),value= dictDonnees["noFacture"],user = "NoLibre",
                             type = "integer",unique=False)
@@ -1650,12 +1651,12 @@ class Forfaits():
             # simple diminution du montant de la facture
             mtt = Nz(dictDonnees["total"])+ Nz(dictDonnees["prixTranspAller"]) +  Nz(dictDonnees["prixTranspRetour"])
             pGest.ReduitFacture(dictDonnees["noFacture"],mtt,dictDonnees["IDprestation"])
-            ligneComm = " Rétrogradation %s " % dictDonnees['nature']
+            ligneComm = " RÃ©trogradation %s " % dictDonnees['nature']
             action = "ModificationFacturation"
         commentaire = datetime.date.today().strftime("%d/%m/%y : ") + ligneComm + "\n" + commentaire
-        #force à None l'IDfacture dans la prestation
+        #force Ã  None l'IDfacture dans la prestation
         DB.ReqMAJ('prestations',[('IDfacture',None),],'IDprestation',dictDonnees['IDprestation'],MsgBox = 'RAZ IDfacture en prestation')
-        #on traite la pièce
+        #on traite la piÃ¨ce
         DB.ReqMAJ('matPieces',[('pieNoFacture',None),('pieNoAvoir',None),('pieNature','COM'),
                                ('pieDateFacturation',None),('pieDateAvoir',None),
                                ('pieCommentaire',commentaire)],
@@ -1665,17 +1666,17 @@ class Forfaits():
         #fin RetroFact
 
     def RetroAvo(self,parent,dictDonnees):
-        #Rétrogradation d'une piece de type Avoir en Facture normale
+        #RÃ©trogradation d'une piece de type Avoir en Facture normale
         if dictDonnees["comptaAvo"] != None:
             date = DateIntToString(dictDonnees["comptaAvo"],format = "%d/%m/%Y")
-            GestionDB.MessageBox(self.parent,"Cet Avoir a été transférée en compta le %s\nVous pouvez faire un complement en saisie d'inscription" % date, titre="Traitement impossible")
+            GestionDB.MessageBox(self.parent,"Cet Avoir a Ã©tÃ© transfÃ©rÃ©e en compta le %s\nVous pouvez faire un complement en saisie d'inscription" % date, titre="Traitement impossible")
             return
         if dictDonnees["noAvoir"] == None:
-            GestionDB.MessageBox(self,"Cette pièce n'est pas un avoir !", titre="Traitement impossible")
+            GestionDB.MessageBox(self,"Cette piÃ¨ce n'est pas un avoir !", titre="Traitement impossible")
         else:
             DB = GestionDB.DB()
             pGest = GestionPieces.Forfaits(parent)
-            #recharge la pièce pour avoir tous les champs
+            #recharge la piÃ¨ce pour avoir tous les champs
             ok = self.GetPieceModif(self.parent,None,None,IDnumPiece=dictDonnees['IDnumPiece'])
             dictDonnees = self.dictPiece
             commentaire = Decod(dictDonnees['commentaire'])
@@ -1683,7 +1684,7 @@ class Forfaits():
             #on traite le numero avoir
             ligneComm = " "
             action = ""
-            #récupérer l'IDfacture pour recherche ultérieur
+            #rÃ©cupÃ©rer l'IDfacture pour recherche ultÃ©rieur
             IDfacture = 0
             req = """ SELECT IDfacture
                     FROM factures
@@ -1699,7 +1700,7 @@ class Forfaits():
                 IDfacture = recordset[0][0]
 
             if pGest.FactureMonoPiece(dictDonnees["noAvoir"],dictDonnees["IDnumPiece"]):
-                # suppression de l'avoir et stockage du numéro
+                # suppression de l'avoir et stockage du numÃ©ro
                 if pGest.DestroyFacture(dictDonnees["noAvoir"],dictDonnees["IDcompte_payeur"]):
                     DB.SetParam(param = str(dictDonnees["noFacture"]),value= dictDonnees["noAvoir"],
                                 user = "NoLibre",type = "integer",unique=False)
@@ -1709,10 +1710,10 @@ class Forfaits():
                 # Modification du montant de la facture
                 mtt = Nz(dictDonnees["total"])+ Nz(dictDonnees["prixTranspAller"]) +  Nz(dictDonnees["prixTranspRetour"])
                 pGest.ReduitFacture(dictDonnees["noAvoir"],-mtt,dictDonnees["IDprestation"])
-                ligneComm = " Rétrogradation %s " % dictDonnees['nature']
+                ligneComm = " RÃ©trogradation %s " % dictDonnees['nature']
                 action = "ModificationFacturation"
             commentaire = datetime.date.today().strftime("%d/%m/%y : ") + ligneComm + "\n" + commentaire
-            #pour supprimer la prestation il faut récupérer son ID
+            #pour supprimer la prestation il faut rÃ©cupÃ©rer son ID
             req = """ SELECT prestations.IDprestation
                     FROM prestations INNER JOIN matPieces ON (prestations.IDactivite = matPieces.pieIDactivite) AND (prestations.IDindividu = matPieces.pieIDindividu)
                     WHERE prestations.IDfacture = %d;
@@ -1742,7 +1743,7 @@ class Forfaits():
         if IDindividu != None:
             condition = "inscriptions.IDindividu = %d AND inscriptions.IDactivite = %d" % (IDindividu, IDactivite)
             dlg = GestionDB.MessageBox(self.parent,  _("Souhaitez-vous neutraliser cette inscriptions pour la refaire ?"), titre = "NeutraliseReport", YesNo = True)
-        # Gestion des inscriptions importées qui ne permettront pas de calculer les réductions
+        # Gestion des inscriptions importÃ©es qui ne permettront pas de calculer les rÃ©ductions
         if dlg != wx.ID_YES:
             print("KO !")
             return
@@ -1806,7 +1807,7 @@ class Forfaits():
             recordset = self.DB.ResultatReq()
             dictPrestations = RecordsToListeDict(champs,recordset)
             for IDprestation,dictPrestation in dictPrestations:
-                # génération d'une prestation de neutralisation
+                # gÃ©nÃ©ration d'une prestation de neutralisation
                 dictPrestation["montant"] = -1 * dictPrestation["montant"]
                 dictPrestation["label"] = "Annul "+ dictPrestation["label"]
                 dictPrestation["categorie"] = "importAnnul"
@@ -1815,7 +1816,7 @@ class Forfaits():
                 # Insertion de la prestation
                 self.DB.ReqInsert("prestations", listeDonnees, retourID=True, MsgBox="Neutralise prestation")
                 listePrestationsNeutr.append((self.DB.newID,dictPrestation["montant"]))
-            # génération d'un réglement à zéro pour les ventilations.
+            # gÃ©nÃ©ration d'un rÃ©glement Ã  zÃ©ro pour les ventilations.
             listeDonnees = [
                 ("IDcompte_payeur" ,IDcomptePayeur ),
                 ("date" , datetime.date.today() ),
@@ -1828,7 +1829,7 @@ class Forfaits():
                 # Insertion de la prestation
             self.DB.ReqInsert("reglements", listeDonnees, retourID=True, MsgBox="Reglement zero")
             IDreglement = self.DB.newID
-            # génération des ventilations.
+            # gÃ©nÃ©ration des ventilations.
             for IDprestation, montant in listePrestations:
                 listeDonnees = [
                     ("IDcompte_payeur" ,IDcomptePayeur ),
@@ -1872,7 +1873,7 @@ class Forfaits():
         #fin AjoutDictDonnees
 
     def GetPayeurFamille(self,parent, IDfamille = None) :
-        #Récupère le compte_payeur par défaut de la famille
+        #RÃ©cupÃ¨re le compte_payeur par dÃ©faut de la famille
         req = """SELECT IDfamille, IDcompte_payeur
         FROM familles
         WHERE IDfamille=%d;""" % IDfamille
@@ -1886,11 +1887,11 @@ class Forfaits():
         return IDcompte_payeur
 
     def GetFamille(self,parent):
-        # Fixe IDfamille listeFamille (unique) listeNOms (des membres ) si l'individu est rattaché à d'autres familles
+        # Fixe IDfamille listeFamille (unique) listeNOms (des membres ) si l'individu est rattachÃ© Ã  d'autres familles
         parent.lstLibTypes = []
         parent.listeFamille = []
         parent.listeNoms = []
-        # Vérifie que l'individu est rattaché comme REPRESENTANT ou ENFANT à une famille
+        # VÃ©rifie que l'individu est rattachÃ© comme REPRESENTANT ou ENFANT Ã  une famille
         if parent.dictFamillesRattachees == None: return False
         valide = False
         self.nbreFamilles = 0
@@ -1902,7 +1903,7 @@ class Forfaits():
                 lastIDfamille = parent.IDfamille
                 valide = True
         if valide == False :
-            msg.Box(message = "Pour être inscrit à une activité, un individu doit obligatoirement être\nrattaché comme représentant ou enfant à une fiche famille !")
+            msg.Box(message = "Pour Ãªtre inscrit Ã  une activitÃ©, un individu doit obligatoirement Ãªtre\nrattachÃ© comme reprÃ©sentant ou enfant Ã  une fiche famille !")
             return False
         if self.nbreFamilles == 1 :
             parent.IDfamille = lastIDfamille
@@ -1910,7 +1911,7 @@ class Forfaits():
             parent.lstLibTypes.append(parent.dictFamillesRattachees[parent.IDfamille]["nomsTitulaires"])
             parent.listeNoms.append(parent.dictFamillesRattachees[parent.IDfamille]["nomsTitulaires"])
         else:
-            # Si rattachée à plusieurs familles
+            # Si rattachÃ©e Ã  plusieurs familles
             listeTuplesFamilles = []
             for IDfamille, dictFamille in parent.dictFamillesRattachees.items() :
                 IDcategorie = dictFamille["IDcategorie"]
@@ -1919,9 +1920,9 @@ class Forfaits():
                     parent.lstLibTypes.append(dictFamille["nomsTitulaires"])
                     parent.listeNoms.append(dictFamille["nomsTitulaires"])
                     listeTuplesFamilles.append((IDfamille,dictFamille["nomsTitulaires"]))
-            # On demande à quelle famille rattacher cette inscription
-            retour = GestionDB.Messages().Choix(listeTuples=listeTuplesFamilles, titre = ("Cet individu est rattaché à %d familles")
-                    % len(parent.lstLibTypes), intro ="Double clic pour rattacher cette inscription à une famille !")
+            # On demande Ã  quelle famille rattacher cette inscription
+            retour = GestionDB.Messages().Choix(listeTuples=listeTuplesFamilles, titre = ("Cet individu est rattachÃ© Ã  %d familles")
+                    % len(parent.lstLibTypes), intro ="Double clic pour rattacher cette inscription Ã  une famille !")
             ixChoix = retour[0]
             famille = retour[1]
             if  ixChoix != None:
@@ -1937,14 +1938,14 @@ class Forfaits():
             comment = "%s"%commentaire
         except: comment = Decod(commentaire)
 
-        # Mémorise l'action dans l'historique
+        # MÃ©morise l'action dans l'historique
         if action in DictActions :
             IDcat = DictActions[action]
             texte = "'%s'"%comment
         else :
-            mess = "Transmettre au développeur:\n\nHistorisation action '%s' non codée\n"%action
+            mess = "Transmettre au dÃ©veloppeur:\n\nHistorisation action '%s' non codÃ©e\n"%action
             mess += "cf GestionInscription.Historise"
-            wx.MessageBox(mess, "Problème mineur à signaler")
+            wx.MessageBox(mess, "ProblÃ¨me mineur Ã  signaler")
             IDcat = None
             texte = "%s'%s'"%(action,comment)
 

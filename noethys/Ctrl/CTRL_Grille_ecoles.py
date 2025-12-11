@@ -112,8 +112,8 @@ class CTRL(HTL.HyperTreeList):
         menu.AppendItem(item)
 
         # Attache les événements
-        wx.EVT_MENU(menu, self.ID_COCHER_TOUTES, self.OnCocher)
-        wx.EVT_MENU(menu, self.ID_COCHER_AUCUNE, self.OnCocher)
+        menu.Bind(wx.EVT_MENU, self.OnCocher, id=self.ID_COCHER_AUCUNE)
+        menu.Bind(wx.EVT_MENU, self.OnCocher, id=self.ID_COCHER_TOUTES)
 
         # Affiche le menu
         self.PopupMenu(menu, event.GetPoint())

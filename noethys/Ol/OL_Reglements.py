@@ -346,12 +346,13 @@ class ListView(FastObjectListView):
         self.Bind(wx.EVT_MENU, self.VentilationAuto, id=201)
         if noSelection == True : item.Enable(False)
 
-        item = wx.MenuItem(sousMenuVentilation, 202, _("Tous les règlements"))
-        item.SetBitmap(wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Magique.png"), wx.BITMAP_TYPE_PNG))
+        item = wx.MenuItem(sousMenuVentilation, 202, "Tous les règlements")
+        item.SetBitmap(wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Magique.png"),
+                                 wx.BITMAP_TYPE_PNG))
         sousMenuVentilation.Append(item)
         self.Bind(wx.EVT_MENU, self.VentilationAuto, id=202)
 
-        menuPop.Append(wx.Window.NewControlId(), _("Ventilation automatique"), sousMenuVentilation)
+        menuPop.AppendSubMenu(sousMenuVentilation, "Ventilation automatique")
         
         menuPop.AppendSeparator()
         

@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------
 # Application :    Noethys, gestion multi-activités
 # Site internet :  www.noethys.com
-# Auteur:          Ivan LUCAS
+# Auteur:          Ivan LUCAS, JB
 # Copyright:       (c) 2010-17 Ivan LUCAS
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
@@ -36,24 +36,35 @@ def Import(nom_module=""):
 
     return None
 
-
+import wx
+import warnings
 
 class Menu(wx.Menu):
     def __init__(self, *args, **kwds):
-        wx.Menu.__init__(self, *args, **kwds)
+        super().__init__(*args, **kwds)
 
     def AppendItem(self, item):
-        if 'phoenix' in wx.PlatformInfo:
-            super(Menu, self).Append(item)
-        else :
-            super(Menu, self).AppendItem(item)
+        super().Append(item)
 
     def AppendMenu(self, *args, **kwds):
-        if 'phoenix' in wx.PlatformInfo:
-            super(Menu, self).Append(*args, **kwds)
-        else :
-            super(Menu, self).AppendMenu(*args, **kwds)
+        # Old style: (id, text, submenu)
+        if len(args) >= 3 and isinstance(args[0], int) and isinstance(args[2], wx.Menu):
+            _id, text, submenu = args[:3]
+            warnings.warn(
+                "\nLa forme AppendMenu(id, text, submenu) est obsolète\n"
+                f"Modifier en: AppendMenu(submenu, text) dans module Parent",
+                DeprecationWarning,
+                stacklevel=2
+            )
+            return super().AppendSubMenu(submenu, text, **kwds)
 
+        # New style: (submenu, text)
+        elif len(args) >= 2 and isinstance(args[0], wx.Menu):
+            submenu, text = args[:2]
+            return super().AppendSubMenu(submenu, text, **kwds)
+
+        else:
+            raise TypeError("Unsupported arguments for AppendMenu")
 
 class ToolBar(wx.ToolBar):
     def __init__(self, *args, **kwds):

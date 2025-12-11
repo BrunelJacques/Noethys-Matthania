@@ -35,7 +35,9 @@ DICT_TYPES_LIENS = Liens.DICT_TYPES_LIENS
 class GetValeurs():
     def __init__(self, IDfamille=None):
         self.IDfamille = IDfamille
-        (self.listeIDindividus,self.dictInfosIndividus,self.listeLiens) = self.GetInfosIndividus()
+        (self.listeIDindividus,
+         self.dictInfosIndividus,
+         self.listeLiens) = self.GetInfosIndividus()
 
     def GetLiensCadres(self):
         """ Retourne les liens de filiation ou de couple """
@@ -1164,7 +1166,7 @@ class CTRL_Graphique(wx.ScrolledWindow):
             self.Bind(wx.EVT_MENU, self.Changer_categorie, id=603)
             if self.dictCadres[self.IDindividu_menu]["categorie"] == 3 : item.Check(True)
             
-            menu.Append(wx.Window.NewControlId(), _("Changer de catégorie"), sousMenuCategorie)
+            menu.AppendSubMenu(wx.Window.NewControlId(), _("Changer de catégorie"), sousMenuCategorie)
             
             # Définir comme titulaire
             if self.dictCadres[self.IDindividu_menu]["categorie"] == 1 :
@@ -1476,7 +1478,8 @@ class CTRL_Liste(HTL.HyperTreeList):
         
     def MAJ(self):
         """ Met à jour (redessine) tout le contrôle """
-        self.donnees = GetValeurs(self.IDfamille) 
+        self.donnees = GetValeurs(self.IDfamille)
+
         nbreBranches = self.GetChildrenCount(self.root)
         if nbreBranches > 1 :
             self.DeleteChildren(self.root)
@@ -1558,8 +1561,8 @@ class CTRL_Liste(HTL.HyperTreeList):
 
     def OnContextMenu(self, event):
         """Ouverture du menu contextuel """
-        IDindividu = self.GetSelectionIndividu(event) 
-        
+        IDindividu = self.GetSelectionIndividu(event)
+        self.IDindividu_menu = IDindividu
         # Création du menu contextuel
         menu = wx.Menu()
 
