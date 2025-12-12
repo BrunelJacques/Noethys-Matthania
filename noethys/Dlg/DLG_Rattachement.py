@@ -276,7 +276,17 @@ class Dialog(wx.Dialog):
         nom = self.ctrl_nom.GetValue()
         prenom = self.ctrl_prenom.GetValue()
         return mode, IDcategorie, titulaire, IDindividu, nom, prenom
-    
+
+    def GetDictData(self):
+        mode, IDcategorie, titulaire, IDindividu, nom, prenom = self.GetData()
+        return {
+            "mode":mode,
+            "IDcategorie": IDcategorie,
+            "titulaire": titulaire,
+            "IDindividu": IDindividu,
+            "nom": nom,
+            "prenom": prenom,}
+
     def CreationIDindividu(self):
         nom = self.ctrl_nom.GetValue()
         if nom  == "" :

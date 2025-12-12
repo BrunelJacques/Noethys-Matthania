@@ -17,13 +17,19 @@ from Utils import UTILS_SaisieAdresse
 from Utils import UTILS_Utilisateurs
 from Dlg import DLG_Individu
 
+def MAJ(self):
+    if hasattr(self, 'MAJ'):
+        self.MAJ()
+    if hasattr(self, 'MAJnotebook'):
+        self.MAJnotebook()
+
 class GestCompo():
     def __init__(self, parent, IDfamille=None):
         self.parent = parent
         self.IDfamille = IDfamille
         self.IDindividu = None
         self.dIndividus = {}
-        self.dataRattach = {}
+        self.dictRattach = {}
 
     def Changer_categorie(self, event):
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_fiche",
@@ -47,8 +53,7 @@ class GestCompo():
                 DB.ReqMAJ("rattachements", [("IDcategorie", IDcategorie), ],
                           "IDrattachement", IDrattachement)
                 DB.Close()
-                self.MAJ()
-                self.MAJnotebook()
+                MAJ(self)
             dlg.Destroy()
 
     def On_SetTitulaire(self, event):
@@ -76,8 +81,7 @@ class GestCompo():
         DB.ExecuterReq(req, MsgBox="ExecuterReq")
         DB.Commit()
         DB.Close()
-        self.MAJ()
-        self.MAJnotebook()
+        MAJ(self)
 
     def On_SetCorrespondant(self, event):
         if self.dictCadres[self.IDindividu_menu]["correspondant"]:
@@ -131,27 +135,26 @@ class GestCompo():
                     self.dictCadres[self.IDindividu_menu][item] = \
                     self.getVal.dictInfosIndividus[self.IDindividu_menu][item]
         DB.Close()
-        self.MAJ()
-        self.MAJnotebook()
+        MAJ(self)
 
     def Ajouter(self, event=None):
         """ Rattacher un nouvel individu """
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_fiche",
                                                                   "creer") == False: return
         ok = True
-        if not self.dataRattach:
+        if not self.dictRattach:
             # Cas du lancement par ajouter à partir de composition
             from Dlg import DLG_Rattachement
             dlg = DLG_Rattachement.Dialog(None, IDfamille=self.IDfamille)
             if dlg.ShowModal() == wx.ID_OK:
                 ok = True
-                self.dataRattach = dlg.GetData()
+                self.dictRattach = dlg.GetData()
             else:
                 ok = False
             dlg.Destroy()
         if ok:
-            mode, IDcategorie, titulaire, IDindividu, nom, prenom = self.dataRattach
-            self.dataRattach = None
+            mode, IDcategorie, titulaire, IDindividu, nom, prenom = self.dictRattach
+            self.dictRattach = None
             nom = fp.NoPunctuation(nom)
             prenom = fp.NoPunctuation(prenom)
             if mode == "creation":
@@ -172,11 +175,49 @@ class GestCompo():
                 dlg.Destroy()
             else:
                 # Rattachement d'un individu existant
-                succes = self.RattacherIndividu(IDindividu, IDcategorie, titulaire)
+                self.RattacherIndividu(IDindividu, IDcategorie, titulaire)
 
             # MAJ de l'affichage
-            self.MAJ()
-            self.MAJnotebook()
+            MAJ(self)
+            return IDindividu
+        else:
+            self.SupprimerFamille()
+            return None
+
+    def Ajouter_individu(self, dictRattach=None):
+        # Rattacher un nouvel individu, dont l'identité est issue de DLG_Rattachement
+        if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_fiche",
+                                                                  "creer") == False: return
+        ok = True
+        self.dictRattach = dictRattach
+        if not dictRattach:
+            # Cas du lancement par ajouter à partir de composition
+            from Dlg import DLG_Rattachement
+            dlg = DLG_Rattachement.Dialog(None, IDfamille=self.IDfamille)
+            if dlg.ShowModal() == wx.ID_OK:
+                ok = True
+                self.dictRattach = dlg.GetDictData()
+            else:
+                ok = False
+            dlg.Destroy()
+        if ok:
+            IDindividu = dictRattach['IDindividu']
+            if self.dictRattach['mode'] == "creation":
+                # Création d'un nouvel individu rattaché
+                dlg = DLG_Individu.Dialog(None, IDindividu=None,
+                                          dictInfosNouveau=self.dictRattach)
+                if dlg.ShowModal() == wx.ID_OK:
+                    IDindividu = dlg.IDindividu  # print "Nouvelle fiche creee et deja rattachee."
+                else:
+                    self.SupprimerFamille()
+                dlg.Destroy()
+            else:
+                # Rattachement d'un individu existant
+                args = [self.dictRattach[x] for x in ('IDindividu','IDcategorie','titulaire')]
+                self.RattacherIndividu(*args)
+
+            # MAJ de l'affichage
+            MAJ(self)
             return IDindividu
         else:
             self.SupprimerFamille()
@@ -194,6 +235,8 @@ class GestCompo():
             self.GetParent().SupprimerFicheFamille()
 
     def RattacherIndividu(self, IDindividu=None, IDcategorie=None, titulaire=0):
+        if not IDindividu or not self.IDfamille:
+            return False
         # Saisie dans la base d'un rattachement
         DB = GestionDB.DB()
         listeDonnees = [
@@ -242,8 +285,7 @@ class GestCompo():
         if ret != wx.ID_OK:
             return
         # dlg.Destroy()
-        self.MAJ()
-        self.MAJnotebook()
+        MAJ(self)
 
     def Supprimer(self, IDindividu=None):
         """ Supprimer un individu """
@@ -257,5 +299,6 @@ class GestCompo():
 
         # MAJ de la fiche famille
         if reponse:
-            self.MAJ()
-            self.MAJnotebook()
+            # MAJ de l'affichage
+            MAJ(self)
+

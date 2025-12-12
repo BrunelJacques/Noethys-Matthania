@@ -431,14 +431,14 @@ class ListView(FastObjectListView):
         menuPop = wx.Menu()
 
         # Item Modifier
-        item = wx.MenuItem(menuPop, 10, _("Ajouter une fiche famille"))
-        bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Famille_ajouter.png"), wx.BITMAP_TYPE_PNG)
+        item = wx.MenuItem(menuPop, 10, _("Ajouter une fiche Individu"))
+        bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Homme.png"), wx.BITMAP_TYPE_PNG)
         item.SetBitmap(bmp)
         menuPop.Append(item)
         self.Bind(wx.EVT_MENU, self.Ajouter, id=10)
         
         # Item Modifier
-        item = wx.MenuItem(menuPop, 20, _("Modifier la fiche famille"))
+        item = wx.MenuItem(menuPop, 20, _("Ouvrir la fiche Famille"))
         bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Famille_modifier.png"), wx.BITMAP_TYPE_PNG)
         item.SetBitmap(bmp)
         menuPop.Append(item)
@@ -446,8 +446,8 @@ class ListView(FastObjectListView):
         if noSelection == True : item.Enable(False)
         
         # Item Supprimer
-        item = wx.MenuItem(menuPop, 30, _("Supprimer la fiche famille"))
-        bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Famille_supprimer.png"), wx.BITMAP_TYPE_PNG)
+        item = wx.MenuItem(menuPop, 30, _("Supprimer la fiche Individu"))
+        bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Homme.png"), wx.BITMAP_TYPE_PNG)
         item.SetBitmap(bmp)
         menuPop.Append(item)
         self.Bind(wx.EVT_MENU, self.Supprimer, id=30)
@@ -464,8 +464,8 @@ class ListView(FastObjectListView):
         if noSelection == True : item.Enable(False)
         
         # Item Supprimer
-        item = wx.MenuItem(menuPop, 70, _("Ouvrir la fiche individuelle"))
-        bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Personnes.png"), wx.BITMAP_TYPE_PNG)
+        item = wx.MenuItem(menuPop, 70, _("Ouvrir la fiche Individu/famille"))
+        bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Homme.png"), wx.BITMAP_TYPE_PNG)
         item.SetBitmap(bmp)
         menuPop.Append(item)
         self.Bind(wx.EVT_MENU, self.Modifier, id=70)
@@ -484,17 +484,17 @@ class ListView(FastObjectListView):
         # lance le rattachement par anticipation
         from Dlg import DLG_Rattachement
         dlgRattach = DLG_Rattachement.Dialog(None, IDfamille=None)
-        dataRattach = None
+        dictRattach = None
         IDfamille = None
         if dlgRattach.ShowModal() == wx.ID_OK:
-            dataRattach = dlgRattach.GetData()
+            dictRattach = dlgRattach.GetDictData()
             IDfamille = dlgRattach.GetIDfamille()
             # l'individu créé était déjà dans une famille
             if IDfamille:
-                dataRattach = None
+                dictRattach = None
         dlgRattach.Destroy()
         from Dlg import DLG_Famille
-        dlg = DLG_Famille.Dialog(self, IDfamille=IDfamille, dataRattach=dataRattach)
+        dlg = DLG_Famille.Dialog(self, IDfamille=IDfamille, dictRattach=dictRattach)
         ret = dlg.ShowModal()
         if ret == wx.ID_OK:
             pass
@@ -504,17 +504,13 @@ class ListView(FastObjectListView):
         try :
             if self.GetGrandParent().GetName() == "general" :
                 self.GetGrandParent().MAJ() 
-##                self.GetGrandParent().ctrl_remplissage.MAJ() 
             else:
                 self.MAJ() 
         except : pass
 
     def Modifier(self, event):
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_fiche", "consulter") == False : return
-        # Si on est dans le DLG Rattachement
-        if self.GetParent().GetName() == "DLG_Rattachement" :
-            self.GetParent().OnBoutonOk(None)
-            return
+
         # Si on est dans le panel de recherche d'individus
         if len(self.Selection()) == 0 :
             dlg = wx.MessageDialog(self, _("Vous n'avez sélectionné aucun individu dans la liste !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
@@ -549,13 +545,13 @@ class ListView(FastObjectListView):
 
         # Rattaché à aucune famille
         if rattachements == None :
-            dlg = wx.MessageDialog(self, _("Cet individu n'est rattaché à aucune famille.\n\nSouhaitez-vous ouvrir sa fiche individuelle ?"), _("Confirmation"), wx.YES_NO|wx.YES_DEFAULT|wx.CANCEL|wx.ICON_INFORMATION)
+            dlg = wx.MessageDialog(self, _("Cet individu n'est rattaché à aucune famille.\n\nSouhaitez-vous ouvrir sa fiche Individu ?"), _("Confirmation"), wx.YES_NO|wx.YES_DEFAULT|wx.CANCEL|wx.ICON_INFORMATION)
             reponse = dlg.ShowModal()
             dlg.Destroy()
             if reponse !=  wx.ID_YES :
                 return False
             else:
-                # Ouverture de la fiche individuelle
+                # Ouverture de la fiche Individu
                 from Dlg import DLG_Individu
                 dlg = DLG_Individu.Dialog(None, IDindividu=IDindividu)
                 if dlg.ShowModal() == wx.ID_OK:
@@ -590,7 +586,7 @@ class ListView(FastObjectListView):
                 return
             
         # Ouverture de la fiche famille
-        if IDfamille != None and IDfamille != -1 :
+        if IDfamille and IDfamille > 0 :
             from Dlg import DLG_Famille
             dlg = DLG_Famille.Dialog(self, IDfamille)
             # Ouverture grille de l'individ
@@ -652,9 +648,9 @@ class ListView(FastObjectListView):
         listeDonnees = DB.ResultatReq()
         if len(listeDonnees) > 0:
             IDfamille = listeDonnees[0][1]
-            dlg = wx.MessageDialog(self, _(
-                "Vous ne pouvez pas supprimer cette fiche car elle est rattachée à au moins une inscription.\n\nSi vous souhaitez vraiment la supprimer, veuillez effectuer cette action à partir de la fiche famille %d, après avoir recréé le rattachement!"%IDfamille),
-                                   _("Suppression impossible"), wx.OK | wx.ICON_ERROR)
+            dlg = wx.MessageDialog(self,
+                "Vous ne pouvez pas supprimer cette fiche car elle est rattachée à au moins une inscription.\n\nSi vous souhaitez vraiment la supprimer, veuillez effectuer cette action à partir de la fiche famille %d, après avoir recréé le rattachement!"%IDfamille,
+                "Suppression impossible", wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
             dlg.Destroy()
             DB.Close()
@@ -702,7 +698,7 @@ class ListView(FastObjectListView):
 
         DB.Close()
                 
-        dlg = wx.MessageDialog(self, _("La fiche individuelle a été supprimée avec succès."), _("Suppression"), wx.OK | wx.ICON_INFORMATION)
+        dlg = wx.MessageDialog(self, _("La fiche Individu a été supprimée avec succès."), _("Suppression"), wx.OK | wx.ICON_INFORMATION)
         dlg.ShowModal()
         dlg.Destroy()
 

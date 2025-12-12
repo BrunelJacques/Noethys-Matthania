@@ -493,7 +493,7 @@ class CTRL(wx.TreeCtrl):
         # Récupération des pièces de la famille
         dateDuJour = datetime.date.today()
         
-        if self.IDindividu != None :
+        if self.IDindividu :
             # Pour un individu
             if self.dictFamillesRattachees != None :
                 listeIDfamille = []
@@ -525,6 +525,7 @@ class CTRL(wx.TreeCtrl):
             listeIDindividus = []
             for IDindividu, IDcategorie in listeDonnees :
                 if IDindividu not in listeIDindividus :
+                    if not IDindividu: continue
                     listeIDindividus.append(IDindividu) 
             if len(listeIDindividus) == 0 : conditionIndividus = "()"
             if len(listeIDindividus) == 1 : conditionIndividus = "(%d)" % listeIDindividus[0]

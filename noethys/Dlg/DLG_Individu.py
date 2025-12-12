@@ -92,6 +92,7 @@ class Notebook(wx.Notebook):
             ("transports", _("Transports"), "DLG_Individu_transports.Panel(self, IDindividu=IDindividu, dictFamillesRattachees=dictFamillesRattachees)", "Transport.png"),
             ("medical", _("Médical"), "DLG_Individu_medical.Panel(self, IDindividu=IDindividu)", "Medical.png"),
             ]
+        self.antiboucle = False
             
         # ImageList pour le NoteBook
         il = wx.ImageList(16, 16)
@@ -123,16 +124,19 @@ class Notebook(wx.Notebook):
         self.SetSelection(indexPage)
 
     def OnPageChanged(self, event):
+        print(self.antiboucle)
+        if self.antiboucle:
+            return
         """ Quand une page du notebook est sélectionnée """
         ixOld = event.GetOldSelection()
         if ixOld ==-1: return
         ret = self.SauveOldPage(ixOld)
-        if ret:
-            indexPage = event.GetSelection()
-            page = self.GetPage(indexPage)
-            self.Freeze()
-            wx.CallLater(1, page.MAJ)
-            self.Thaw()
+        indexPage = event.GetSelection()
+        page = self.GetPage(indexPage)
+        self.Freeze()
+        wx.CallLater(1, page.MAJ)
+        self.Thaw()
+        self.antiboucle = False
         event.Skip()
 
     def GetParametres(self):
@@ -196,13 +200,15 @@ class Notebook(wx.Notebook):
         listePages = (None,"identite","coords")
         codePage = listePages[ixPage]
         page = self.GetPageAvecCode(codePage)
-        if page.majEffectuee == True and page.ValidationData() == False :
-            self.AffichePage(codePage)
-            return False
-        else: return True
+        valide = page.ValidationData()
+        if not valide:
+            self.antiboucle = True
+        if page.majEffectuee and not valide :
+            if not self.antiboucle:
+                self.AffichePage(codePage)
+            return
         # Sauvegarde des données
         page.Sauvegarde()
-
 
 class Dialog(wx.Dialog):
     def __init__(self, parent, IDindividu=None,IDfamille=None ,dictInfosNouveau={}):
@@ -487,6 +493,8 @@ class Dialog(wx.Dialog):
                 },])
                 
     def RattacherIndividu(self, IDfamille=None, IDcategorie=None, titulaire=0):
+        if not IDfamille or not self.IDindividu:
+            return False
         # Saisie dans la base
         DB = GestionDB.DB()
         listeDonnees = [
@@ -495,7 +503,7 @@ class Dialog(wx.Dialog):
             ("IDcategorie", IDcategorie),
             ("titulaire", titulaire),
             ]
-        IDrattachement = DB.ReqInsert("rattachements", listeDonnees)
+        DB.ReqInsert("rattachements", listeDonnees)
         DB.Close()
         # Mémorise l'action dans l'historique
         if IDcategorie == 1 : labelCategorie = _("représentant")
@@ -629,7 +637,7 @@ if __name__ == "__main__":
     #wx.InitAllImageHandlers()
     import time
     heure_debut = time.time()
-    fiche_individu = Dialog(None, IDindividu=12436)
+    fiche_individu = Dialog(None, IDindividu=22137)
     app.SetTopWindow(fiche_individu)
     print("Temps de chargement fiche individuelle =", time.time() - heure_debut)
     fiche_individu.ShowModal()

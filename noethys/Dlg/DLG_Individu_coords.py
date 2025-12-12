@@ -870,7 +870,7 @@ class Panel_contact(wx.Panel):
             self.ctrl_refus_pub.SetValue(refus_pub)
             self.ctrl_refus_mel.SetValue(refus_mel)
 
-        if False and not (self.intitule and self.correspondant):
+        if not (self.intitule and self.correspondant):
             # On prend le premier titulaire pour adresse et désignation famille
             req = """
                     SELECT individus.IDindividu, individus.IDcivilite, individus.nom, individus.prenom

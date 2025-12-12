@@ -204,21 +204,21 @@ class Notebook(wx.Notebook):
         dlg.Destroy()
 
 class Dialog(wx.Dialog):
-    def __init__(self, parent, IDfamille=None, dataRattach=None, AfficherMessagesOuverture=True):
+    def __init__(self, parent, IDfamille=None, dictRattach=None, AfficherMessagesOuverture=True):
         wx.Dialog.__init__(self, parent, id=-1, name="fiche_famille", style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
         print("lancé famille",IDfamille)
 
         self.parent = parent
-        self.dataRattach = dataRattach
+        self.dictRattach = dictRattach
         self.IDfamille = IDfamille
         self.DB = GestionDB.DB()
         if self.DB.echec == 1:
             raise Exception("Interrompu par absence de base de donnees")
 
         self.nouvelleFiche = False
-        if dataRattach and (len(dataRattach) >= 6):
-            mode, IDcategorie, titulaire, IDindividu, nom, prenom = dataRattach
-            lblIndividu = f"{IDindividu}-{prenom} {nom}"
+        if dictRattach and (len(dictRattach) >= 6):
+            dr = dictRattach
+            lblIndividu = f"{dr['IDindividu']}-{dr['prenom']} {dr['nom']}"
         else:
             lblIndividu = "???"
         if IDfamille == None :
@@ -367,7 +367,8 @@ class Dialog(wx.Dialog):
         self.CenterOnScreen() 
     
     def CreerPremierIndividu(self):
-        self.ctrl_composition.Ajouter(self.dataRattach)
+        self.dictRattach['IDfamille'] = self.IDfamille
+        self.ctrl_composition.Ajouter_individu(self.dictRattach)
 
     def MAJpageActive(self):
         self.notebook.MAJpageActive() 

@@ -98,6 +98,7 @@ class GetValeurs():
 
         # Intégration de ces premières valeurs dans le dictValeurs
         for IDrattachement, IDindividu, IDcategorie, titulaire, IDcorrespondant in listeRattachements:
+            if not IDindividu: continue
             lstIndividus.append(IDindividu)
             dictInfos[IDindividu] = {"categorie": IDcategorie,
                                      "titulaire": titulaire,
@@ -1565,7 +1566,7 @@ class CTRL_Liste(HTL.HyperTreeList, VISU_Compo):
                 dlg.Destroy()
             else:
                 # Rattachement d'un individu existant
-                succes = self.RattacherIndividu(IDindividu, IDcategorie, titulaire)
+                self.RattacherIndividu(IDindividu, IDcategorie, titulaire)
             # MAJ de l'affichage
             self.MAJ()
             self.MAJnotebook()
@@ -1586,6 +1587,8 @@ class CTRL_Liste(HTL.HyperTreeList, VISU_Compo):
 
     def RattacherIndividu(self, IDindividu=None, IDcategorie=None, titulaire=0):
         # Saisie dans la base d'un rattachement
+        if not IDindividu or not self.IDfamille:
+            return False
         DB = GestionDB.DB()
         listeDonnees = [
             ("IDindividu", IDindividu),
@@ -1593,7 +1596,7 @@ class CTRL_Liste(HTL.HyperTreeList, VISU_Compo):
             ("IDcategorie", IDcategorie),
             ("titulaire", titulaire),
         ]
-        IDrattachement = DB.ReqInsert("rattachements", listeDonnees)
+        DB.ReqInsert("rattachements", listeDonnees)
         DB.Close()
         return True
 
@@ -1934,11 +1937,7 @@ class Notebook(wx.Notebook):
         page.MAJ()
         event.Skip()
 
-    ##    def MAJpageActive(self):
-    ##        """ MAJ la page active du notebook """
-    ##        indexPage = self.GetSelection()
-    ##        page = self.GetPage(indexPage)
-    ##        page.MAJ()
+    # -------- relais pour le parent DLG --------------------------------------------
 
     def Sauvegarde(self):
         self.parent.Sauvegarde()
@@ -1949,9 +1948,19 @@ class Notebook(wx.Notebook):
     def MAJpage(self, codePage=""):
         self.parent.MAJpage(codePage)
 
+    def SupprimerFicheFamille(self):
+        self.parent.SupprimerFicheFamille()
+
+    # -------- relais pour le ctrl composition affiché (graphique ou liste) ---------
+
     def Ajouter(self, event=None):
         page = self.GetPage(self.GetSelection())
         IDindividu = page.Ajouter(None)
+        return IDindividu
+
+    def Ajouter_individu(self, dictRattach):
+        page = self.GetPage(self.GetSelection())
+        IDindividu = page.Ajouter_individu(dictRattach)
         return IDindividu
 
     def Modifier_selection(self, event=None):
@@ -1974,9 +1983,6 @@ class Notebook(wx.Notebook):
         page = self.GetPage(self.GetSelection())
         page.MAJ()
 
-    def SupprimerFicheFamille(self):
-        self.parent.SupprimerFicheFamille()
-
 
 class MyFrameTest(wx.Frame):
     def __init__(self, *args, **kwds):
@@ -1995,7 +2001,6 @@ class MyFrameTest(wx.Frame):
         def sauvegarde():
             return print("Lancé: MyFrameTest.Sauvegarde() : return None en test")
         panel_test.Sauvegarde = sauvegarde
-
 
 if __name__ == '__main__':
     app = wx.App(0)
