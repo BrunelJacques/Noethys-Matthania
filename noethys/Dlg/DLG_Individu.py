@@ -126,12 +126,13 @@ class Notebook(wx.Notebook):
         """ Quand une page du notebook est sélectionnée """
         ixOld = event.GetOldSelection()
         if ixOld ==-1: return
-        self.SauveOldPage(ixOld)
-        indexPage = event.GetSelection()
-        page = self.GetPage(indexPage)
-        self.Freeze()
-        wx.CallLater(1, page.MAJ)
-        self.Thaw()
+        ret = self.SauveOldPage(ixOld)
+        if ret:
+            indexPage = event.GetSelection()
+            page = self.GetPage(indexPage)
+            self.Freeze()
+            wx.CallLater(1, page.MAJ)
+            self.Thaw()
         event.Skip()
 
     def GetParametres(self):
@@ -191,13 +192,14 @@ class Notebook(wx.Notebook):
     def SauveOldPage(self,ixPage):
         # Validation des données avant sauvegarde
         if not (ixPage >0 and ixPage <3):
-            return
+            return False
         listePages = (None,"identite","coords")
         codePage = listePages[ixPage]
         page = self.GetPageAvecCode(codePage)
         if page.majEffectuee == True and page.ValidationData() == False :
             self.AffichePage(codePage)
-            return
+            return False
+        else: return True
         # Sauvegarde des données
         page.Sauvegarde()
 

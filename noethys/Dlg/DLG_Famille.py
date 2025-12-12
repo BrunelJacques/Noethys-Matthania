@@ -52,8 +52,7 @@ def CreateIDfamille(DB):
     try:
         # Création du compte payeur
         DB.ReqInsert("comptes_payeurs", [("IDfamille", IDfamille),
-                                        ("IDcompte_payeur", IDfamille)],
-                                       MsgBox=mess)
+                                        ("IDcompte_payeur", IDfamille)])
     except: pass
     # Création des codes internet
     internet_identifiant= UTILS_Internet.CreationIdentifiant(IDfamille=IDfamille)

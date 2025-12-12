@@ -23,6 +23,7 @@ class GestCompo():
         self.IDfamille = IDfamille
         self.IDindividu = None
         self.dIndividus = {}
+        self.dataRattach = {}
 
     def Changer_categorie(self, event):
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_fiche",
