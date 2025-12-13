@@ -211,6 +211,7 @@ class GestCompo():
                 else:
                     self.SupprimerFamille()
                 dlg.Destroy()
+                return
             else:
                 # Rattachement d'un individu existant
                 args = [self.dictRattach[x] for x in ('IDindividu','IDcategorie','titulaire')]

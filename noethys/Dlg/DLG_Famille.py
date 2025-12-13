@@ -368,7 +368,9 @@ class Dialog(wx.Dialog):
     
     def CreerPremierIndividu(self):
         self.dictRattach['IDfamille'] = self.IDfamille
-        self.ctrl_composition.Ajouter_individu(self.dictRattach)
+        IDindividu = self.ctrl_composition.Ajouter_individu(self.dictRattach)
+        if not IDindividu:
+            self.Final(None)
 
     def MAJpageActive(self):
         self.notebook.MAJpageActive() 

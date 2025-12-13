@@ -535,7 +535,13 @@ class ListView(FastObjectListView):
         self.OuvrirFicheFamille(track, ouvrirGrille, ouvrirFicheInd)
     
     def OuvrirFicheFamille(self, track=None, ouvrirGrille=False, ouvrirFicheInd=False, IDfamille=None):
-        if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_fiche", "consulter") == False : return
+        if self.Parent.Name == 'DLG_Rattachement':
+            self.Parent.OnBoutonOk(None)
+            return
+
+        if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_fiche",
+                                                                  "consulter") == False :
+            return
 
         IDindividu = track.IDindividu
 
