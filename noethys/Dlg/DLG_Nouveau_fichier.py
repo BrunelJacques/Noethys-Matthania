@@ -17,7 +17,7 @@ from Data import DATA_Tables as Tables
 from Ctrl import CTRL_Bandeau
 import wx.lib.agw.hyperlink as hl
 import wx.lib.agw.customtreectrl as CT
-from Crypto.Hash import SHA256
+from hashlib import sha256
 
 class PanelReseau(wx.Panel):
     def __init__(self, parent, ID=-1):
@@ -452,7 +452,7 @@ class MyDialog(wx.Dialog):
         nom = self.ctrl_nom.GetValue() 
         prenom = self.ctrl_prenom.GetValue()
         mdp = self.ctrl_mdp.GetValue()
-        mdpcrypt = SHA256.new(self.ctrl_mdp.GetValue().encode('utf-8')).hexdigest()
+        mdpcrypt = sha256(self.ctrl_mdp.GetValue().encode('utf-8')).hexdigest()
         profil = "administrateur"
         actif = 1
         dictTemp = { "sexe":sexe, "nom":nom, "prenom":prenom, "mdp":mdp, "mdpcrypt":mdpcrypt, "profil":profil, "actif":actif, "image":None }

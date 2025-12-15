@@ -47,7 +47,7 @@ from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
 from Dlg.DLG_Portail_config import VALEURS_DEFAUT as VALEURS_DEFAUT_CONFIG
 from Dlg.DLG_Portail_config import LISTE_THEMES
 
-from Crypto.Hash import SHA256
+from hashlib import sha256
 
 
 def patch_crypto_be_discovery():
@@ -635,7 +635,7 @@ class Synchro():
                         mdp = dictDonnee["internet_mdp"]
                         if mdp.startswith("#@#"):
                             mdp = UTILS_Internet.DecrypteMDP(mdp, IDfichier=IDfichier)
-                        dictDonnee["internet_mdp"] = SHA256.new(mdp.encode('utf-8')).hexdigest()
+                        dictDonnee["internet_mdp"] = sha256(mdp.encode('utf-8')).hexdigest()
 
                     # Génération du session_token
                     session_token = "%s-%d-%s-%s-%d" % (profil, dictDonnee["ID"], dictDonnee["internet_identifiant"], dictDonnee["internet_mdp"][:20], dictDonnee["internet_actif"])

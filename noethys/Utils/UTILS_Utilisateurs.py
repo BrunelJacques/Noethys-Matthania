@@ -11,7 +11,7 @@
 import Chemins
 from Utils.UTILS_Traduction import _
 import wx
-from Crypto.Hash import SHA256
+from hashlib import sha256
 import GestionDB
 
 def GetListeUtilisateurs(nomFichier=""):

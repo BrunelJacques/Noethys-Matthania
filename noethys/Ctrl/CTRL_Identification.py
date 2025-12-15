@@ -11,7 +11,7 @@
 import wx
 from Dlg import DLG_Saisie_utilisateur
 from Ctrl import CTRL_Bouton_image
-from Crypto.Hash import SHA256
+from hashlib import sha256
 
 # L'attribut TE_PASSWORD ne fonctionnait pas sous Ubuntu, SearchCtrl remplacé par TextCtrl
 #class CTRL(wx.SearchCtrl):
@@ -50,7 +50,7 @@ class CTRL(wx.TextCtrl):
 
     def Recherche(self):
         txtSearch = self.GetValue()
-        mdpcrypt = SHA256.new(txtSearch.encode('utf-8')).hexdigest()
+        mdpcrypt = sha256(txtSearch.encode('utf-8')).hexdigest()
         if self.modeDLG == True :
             listeUtilisateurs = self.listeUtilisateurs
         else:

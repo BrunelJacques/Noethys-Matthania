@@ -10,7 +10,7 @@
 
 try :
     from Crypto.Cipher import AES
-    from Crypto import Random
+    from Crypto.Random import get_random_bytes
     CRYPTO_IMPORT = True
 except :
     CRYPTO_IMPORT = False
@@ -108,7 +108,7 @@ def pad(s):
 
 def encrypt2(message, key, key_size=256):
 	message, padding_size = pad(message)
-	iv = Random.new().read(AES.block_size)
+	iv = get_random_bytes(AES.block_size)
 	cipher = AES.new(key, AES.MODE_CFB, iv)
 	enc_bytes = iv + cipher.encrypt(message)
 	if six.PY2:
@@ -216,7 +216,7 @@ class AESCipher(object):
         if raw == None :
             return None
         raw = self._pad(AESCipher.str_to_bytes(raw))
-        iv = Random.new().read(AES.block_size)
+        iv = get_random_bytes(AES.block_size)
         cipher = AES.new(self.key, AES.MODE_CBC, iv)
         texte = base64.b64encode(iv + cipher.encrypt(raw)).decode('utf-8')
         if self.prefixe != None :

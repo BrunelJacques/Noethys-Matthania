@@ -16,7 +16,7 @@ from Ctrl import CTRL_Bouton_image
 import GestionDB
 from Ctrl import CTRL_Droits
 import wx.lib.agw.hyperlink as Hyperlink
-from Crypto.Hash import SHA256
+from hashlib import sha256
 from Utils import UTILS_Internet
 from Utils import UTILS_Parametres
 from Ctrl import CTRL_Compte_internet
@@ -312,7 +312,7 @@ class DLG_Saisie_mdp(wx.Dialog):
         self.CentreOnScreen()
 
     def GetMdpCrypt(self):
-        return SHA256.new(self.ctrl_mdp.GetValue().encode('utf-8')).hexdigest()
+        return sha256(self.ctrl_mdp.GetValue().encode('utf-8')).hexdigest()
 
     def GetMdp(self):
         return self.ctrl_mdp.GetValue()

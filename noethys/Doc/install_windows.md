@@ -5,8 +5,6 @@ Installer Noethys-Matthania sur Windows (version accompagnée : cf TutoInstallat
 Sur Windows, vous devez aller sur les sites des auteurs pour 
 rechercher et installer les bibliothèques suivantes.
 - Python 3.11 avec l'option pip (http://www.python.org/)
-- wxPython 4+ - version unicode (http://www.wxpython.org/) se charge par :
-- dans un terminal shell lancez 'pip install -U wxPython'
 - créez un répertoire c:\'Program Files\Noethys-Matthania'
 - Accordez le controle total à tous les utilisateurs via propriétés/sécurité
 

@@ -885,7 +885,7 @@ def A9061():
 
 def A9073():
     """ Cryptage des mots de passe utilisateurs """
-    from Crypto.Hash import SHA256
+    from hashlib import sha256
 
     DB = GestionDB.DB()
     req = """SELECT IDutilisateur, mdp FROM utilisateurs;"""
@@ -893,7 +893,7 @@ def A9073():
     liste_utilisateurs = DB.ResultatReq()
     liste_modifications = []
     for IDutilisateur, mdp in liste_utilisateurs :
-        mdp_crypte = SHA256.new(mdp.encode('utf-8')).hexdigest()
+        mdp_crypte = sha256(mdp.encode('utf-8')).hexdigest()
         liste_modifications.append((mdp_crypte, IDutilisateur))
 
     # Enregistrement des mots de passe cryptés
@@ -902,7 +902,7 @@ def A9073():
 
 def A9074():
     """ Cryptage des mots de passe utilisateurs dans nouveau champ mdpcrypt """
-    from Crypto.Hash import SHA256
+    from hashlib import sha256
 
     DB = GestionDB.DB()
     req = """SELECT IDutilisateur, mdp FROM utilisateurs;"""
@@ -911,7 +911,7 @@ def A9074():
     liste_modifications = []
     for IDutilisateur, mdp in liste_utilisateurs :
         if mdp != None and len(mdp) < 40 :
-            mdp_crypte = SHA256.new(mdp.encode('utf-8')).hexdigest()
+            mdp_crypte = sha256(mdp.encode('utf-8')).hexdigest()
         else :
             mdp_crypte = mdp
         liste_modifications.append((mdp_crypte, IDutilisateur))

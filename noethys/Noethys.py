@@ -24,7 +24,7 @@ import wx.lib.agw.aui as aui
 from Outils.dockart import ModernDockArt
 import wx.lib.agw.advancedsplash as AS
 import wx.lib.agw.toasterbox as Toaster
-from Crypto.Hash import SHA256
+from hashlib import sha256
 from Utils.UTILS_Traduction import _
 import Utils.UTILS_Traduction as UTILS_Traduction
 import Utils.UTILS_Linux as UTILS_Linux
@@ -51,7 +51,7 @@ import Ctrl.CTRL_TaskBarIcon as CTRL_TaskBarIcon
 import Dlg.DLG_Effectifs as DLG_Effectifs
 import Dlg.DLG_Message_html as DLG_Message_html
 
-#from Cryptodome.Hash import SHA256 # possible avec $ pip install pycryptodomex
+#from Cryptodome.Hash import sha256 # possible avec $ pip install pycryptodomex
 
 
 if "linux" in sys.platform:
@@ -1685,7 +1685,7 @@ class MainFrame(wx.Frame):
         if not listeUtilisateurs: listeUtilisateurs = []
         passmdp = CUSTOMIZE.GetValeur("utilisateur", "pass", "")
         if passmdp != "":
-            passmdpcrypt = SHA256.new(passmdp.encode('utf-8')).hexdigest()
+            passmdpcrypt = sha256(passmdp.encode('utf-8')).hexdigest()
             for dictTemp in listeUtilisateurs:
                 if dictTemp["mdpcrypt"] == passmdpcrypt or dictTemp[
                     "mdp"] == passmdp:  # or dictTemp["mdp"] == passmdp à retirer plus tard
