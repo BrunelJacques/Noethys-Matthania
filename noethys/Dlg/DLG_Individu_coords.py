@@ -126,6 +126,7 @@ class Adresse_auto(wx.Choice):
         self.lstIndividusAffiches = []
         self.lstNomsIndividus = []
         self.AjouteItem(0,"","",None,"","","",force=True)
+        IDindividu = None
         for IDindividu, nom, prenom, auto, rue, cp, ville, titulaire in listeDonnees :
             # stockage collatéral de tous les individus de la famille pour les listes de diffusion
             if self.cat=="individu" and self.IDindividu == IDindividu:
@@ -140,7 +141,7 @@ class Adresse_auto(wx.Choice):
             self.AjouteItem(IDindividu, nom, prenom, auto, rue, cp, ville, force)
 
         # pointeur du correspondant actuel
-        if self.cat=="famille":
+        if IDindividu and self.cat=="famille":
             if not IDcorresp:
                 IDcorresp = IDindividu
             self.SetID(ID=IDcorresp)
@@ -350,7 +351,7 @@ class Panel_contact(wx.Panel):
         self.lstAdresse = []
         self.cat = cat
         self.intitule = ""
-        self.oldCorresp = ""
+        self.oldCorresp = 0
         self.oldIntitule = ""
         if cat == "individu":
             titre = "Coordonnées individu"
@@ -875,7 +876,7 @@ class Panel_contact(wx.Panel):
             req = """
                     SELECT individus.IDindividu, individus.IDcivilite, individus.nom, individus.prenom
                     FROM rattachements INNER JOIN individus ON rattachements.IDindividu = individus.IDindividu
-                    WHERE ((rattachements.IDfamille = %d ) AND ((rattachements.titulaire)=1));
+                    WHERE ((rattachements.IDfamille = %d ) AND ((rattachements.titulaire)=1))
                     ;""" % self.IDfamille
             DB.ExecuterReq(req,MsgBox="ExecuterReq")
             recordset = DB.ResultatReq()
@@ -998,7 +999,6 @@ class Panel_contact(wx.Panel):
             dlg.Destroy()
             return False
         if self.cat == "famille":
-
             # vérif présence d'un individu correspondant
             if not adresseAuto and not self.IDindividu:
                 dlg = wx.MessageDialog(self,
@@ -1056,6 +1056,7 @@ class Panel_contact(wx.Panel):
                               ('adresse_individu',IDcorrespondant)],
                               'IDfamille',IDfamille,
                               MsgBox="DLG_Individu_coords.SauveCorrespondant")
+        print(ret)
 
     def Sauvegarde(self):
         """ Sauvegarde des données dans la base """
@@ -1064,8 +1065,7 @@ class Panel_contact(wx.Panel):
 
         if self.cat == "famille":
             correspondant = self.ctrl_adresse_auto.GetDonnee()
-            if self.oldCorresp != correspondant or self.oldIntitule != self.intitule:
-                self.SauveCorrespondant(self.IDfamille,correspondant,self.intitule,DB)
+            self.SauveCorrespondant(self.IDfamille,correspondant,self.intitule,DB)
 
         # modification de champs de l'individu pointé et représentant la famille
         listeDonnees = []

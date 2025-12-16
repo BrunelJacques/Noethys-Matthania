@@ -498,7 +498,8 @@ class Impression():
                                 tva = dictLigne["tva"]
 
                                 # Date
-                                texteDate = GetParagraph("<para align='center'>%s</para>" % date, paraStyle)
+                                #texteDate = GetParagraph("<para align='center'>%s</para>" % date, paraStyle)
+                                texteDate = " "
 
                                 # recherche d'un commentaire
                                 if "dictCommentaires" in dictOptions :

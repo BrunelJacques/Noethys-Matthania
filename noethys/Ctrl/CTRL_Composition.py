@@ -24,7 +24,7 @@ from Data import DATA_Liens as Liens
 from Ctrl import CTRL_Photo
 from Dlg import DLG_Individu
 from Utils import UTILS_Interface
-from Gest import GestionComposition as gescomp
+from Gest.GestionComposition import GestCompo
 from Utils import UTILS_Utilisateurs
 
 DICT_TYPES_LIENS = Liens.DICT_TYPES_LIENS
@@ -397,10 +397,10 @@ class GetValeurs():
                 pass
         return txtDatenaiss
 
-class VISU_Compo(gescomp.GestCompo):
+class VISU_Compo(GestCompo):
     # SuperClass contient toutes les fonctions Communes à CTRL_Graphique et CTRL_Liste
     def __init__(self, parent, IDfamille=None):
-        gescomp.GestCompo.__init__(self, parent, IDfamille)
+        GestCompo.__init__(self, parent, IDfamille)
         self.parent = parent
         self.IDfamille = IDfamille
         self.IDindividu = None
@@ -410,7 +410,6 @@ class VISU_Compo(gescomp.GestCompo):
         self.tip = STT.SuperToolTip("")
         self.tip.SetEndDelay(10000)  # Fermeture auto du tooltip après 10 secs
         self.tip.IDindividu = None
-
 
     def SetNewIndividu(self, dIndividu):
         self.parent.dIndividu = dIndividu
@@ -453,8 +452,7 @@ class VISU_Compo(gescomp.GestCompo):
         IDindividu = self.tip.IDindividu
         dIndividu = self.getVal.dictIndividus[IDindividu]
 
-        if self.Name == 'graphique':
-            cadreIndividu = self.dictCadres[IDindividu]["ctrl"]
+        cadreIndividu = self.dictCadres[IDindividu]["ctrl"]
 
         # Paramétrage du tooltip
         self.tip.SetHyperlinkFont(
@@ -602,10 +600,10 @@ class VISU_Compo(gescomp.GestCompo):
         except:
             pass
 
-    def CreateMenu(self):
+    def CreateMenu(self,ctrlSelf):
         # Creation du pop menu clic Droit
         menu = wx.Menu()
-        IDindividu = self.IDindividu_menu
+        IDindividu = ctrlSelf.IDindividu_menu
 
         # Ajouter
         id = wx.Window.NewControlId()
@@ -613,10 +611,9 @@ class VISU_Compo(gescomp.GestCompo):
         item.SetBitmap(wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"),
                                  wx.BITMAP_TYPE_PNG))
         menu.Append(item)
-        self.Bind(wx.EVT_MENU, self.Ajouter, id=id)
+        ctrlSelf.Bind(wx.EVT_MENU, self.Ajouter, id=id)
 
         if IDindividu != None:
-
             menu.AppendSeparator()
 
             # Modifier
@@ -625,7 +622,7 @@ class VISU_Compo(gescomp.GestCompo):
             item.SetBitmap(wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"),
                                      wx.BITMAP_TYPE_PNG))
             menu.Append(item)
-            self.Bind(wx.EVT_MENU, self.Modifier_menu, id=id)
+            ctrlSelf.Bind(wx.EVT_MENU, self.Modifier_menu, id=id)
 
             # Détacher ou supprimer
             id = wx.Window.NewControlId()
@@ -633,7 +630,7 @@ class VISU_Compo(gescomp.GestCompo):
             item.SetBitmap(wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"),
                                      wx.BITMAP_TYPE_PNG))
             menu.Append(item)
-            self.Bind(wx.EVT_MENU, self.Supprimer_menu, id=id)
+            ctrlSelf.Bind(wx.EVT_MENU, self.Supprimer_menu, id=id)
 
             menu.AppendSeparator()
 
@@ -644,17 +641,17 @@ class VISU_Compo(gescomp.GestCompo):
                                kind=wx.ITEM_RADIO)
             sousMenuCategorie.Append(item)
 
-            self.Bind(wx.EVT_MENU, self.Changer_categorie, id=601)
+            ctrlSelf.Bind(wx.EVT_MENU, self.Changer_categorie, id=601)
             if self.dictCadres[self.IDindividu_menu]["categorie"] == 1: item.Check(True)
 
             item = wx.MenuItem(sousMenuCategorie, 602, _("Enfant"), kind=wx.ITEM_RADIO)
             sousMenuCategorie.Append(item)
-            self.Bind(wx.EVT_MENU, self.Changer_categorie, id=602)
+            ctrlSelf.Bind(wx.EVT_MENU, self.Changer_categorie, id=602)
             if self.dictCadres[self.IDindividu_menu]["categorie"] == 2: item.Check(True)
 
             item = wx.MenuItem(sousMenuCategorie, 603, _("Contact"), kind=wx.ITEM_RADIO)
             sousMenuCategorie.Append(item)
-            self.Bind(wx.EVT_MENU, self.Changer_categorie, id=603)
+            ctrlSelf.Bind(wx.EVT_MENU, self.Changer_categorie, id=603)
             if self.dictCadres[self.IDindividu_menu]["categorie"] == 3: item.Check(True)
 
             menu.AppendSubMenu(sousMenuCategorie,"Changer de catégorie")
@@ -665,7 +662,7 @@ class VISU_Compo(gescomp.GestCompo):
                 item = wx.MenuItem(menu, id, _("Définir comme titulaire"),
                                    kind=wx.ITEM_CHECK)
                 menu.Append(item)
-                self.Bind(wx.EVT_MENU, self.On_SetTitulaire, id=id)
+                ctrlSelf.Bind(wx.EVT_MENU, self.On_SetTitulaire, id=id)
                 if self.dictCadres[self.IDindividu_menu]["titulaire"] == 1:
                     item.Check(True)
 
@@ -675,12 +672,12 @@ class VISU_Compo(gescomp.GestCompo):
                 item = wx.MenuItem(menu, id, _("Définir correspondant famille"),
                                    kind=wx.ITEM_CHECK)
                 menu.Append(item)
-                self.Bind(wx.EVT_MENU, self.On_SetCorrespondant, id=id)
+                ctrlSelf.Bind(wx.EVT_MENU, self.On_SetCorrespondant, id=id)
                 if self.dictCadres[self.IDindividu_menu]["correspondant"] == 1:
                     item.Check(True)
 
         # Finalisation du menu
-        self.PopupMenu(menu)
+        ctrlSelf.PopupMenu(menu)
         menu.Destroy()
         self.IDindividu_menu = None
 
@@ -927,7 +924,7 @@ class CadreIndividu():
                 self.parent.Refresh()
                 self.parent.Update()
 
-# ----------Classes d'affichage des compositions --------
+# ----------Classes d'affichage des compositions -----------------------------------------
 
 class CTRL_Graphique(wx.ScrolledWindow, VISU_Compo):
     def __init__(self, parent, IDfamille=None):
@@ -1373,7 +1370,7 @@ class CTRL_Graphique(wx.ScrolledWindow, VISU_Compo):
         self.DeselectionneTout()
 
         # Création du menu
-        self.CreateMenu()
+        self.CreateMenu(self)
 
 
 class CTRL_Liste(HTL.HyperTreeList, VISU_Compo):
@@ -1533,140 +1530,10 @@ class CTRL_Liste(HTL.HyperTreeList, VISU_Compo):
         """Ouverture du menu contextuel """
         IDindividu = self.GetSelectionIndividu(event)
         self.IDindividu_menu = IDindividu
-
-        self.CreateMenu()
+        self.CreateMenu(self)
 
     def Calendrier_selection(self):
         self.OuvrirCalendrier()
-
-    def Ajouter(self, event=None):
-        """ Rattacher un nouvel individu """
-        if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_fiche",
-                                                                  "creer") == False: return
-        from Dlg import DLG_Rattachement
-        dlg = DLG_Rattachement.Dialog(None, IDfamille=self.IDfamille)
-        if dlg.ShowModal() == wx.ID_OK:
-            mode, IDcategorie, titulaire, IDindividu, nom, prenom = dlg.GetData()
-            dlg.Destroy()
-            if mode == "creation":
-                # Création d'un nouvel individu rattaché
-                dictInfosNouveau = {
-                    "IDfamille": self.IDfamille,
-                    "IDcategorie": IDcategorie,
-                    "titulaire": titulaire,
-                    "nom": nom.upper(),
-                    "prenom": prenom.capitalize(),
-                }
-                dlg = DLG_Individu.Dialog(None, IDindividu=None,
-                                          dictInfosNouveau=dictInfosNouveau)
-                if dlg.ShowModal() == wx.ID_OK:
-                    IDindividu = dlg.IDindividu  # print "Nouvelle fiche creee et deja rattachee."
-                else:
-                    self.SupprimerFamille()
-                dlg.Destroy()
-            else:
-                # Rattachement d'un individu existant
-                self.RattacherIndividu(IDindividu, IDcategorie, titulaire)
-            # MAJ de l'affichage
-            self.MAJ()
-            self.MAJnotebook()
-        else:
-            dlg.Destroy()
-            self.SupprimerFamille()
-
-    def SupprimerFamille(self):
-        # Supprime la fiche famille lorsqu'on annule le rattachement du premier titulaire
-        DB = GestionDB.DB()
-        req = """SELECT IDrattachement, IDfamille 
-                FROM rattachements 
-                WHERE IDfamille=%d""" % self.IDfamille
-        DB.ExecuterReq(req, MsgBox="ExecuterReq")
-        listeRattachements = DB.ResultatReq()
-        if len(listeRattachements) == 0:
-            self.GetParent().SupprimerFicheFamille()
-
-    def RattacherIndividu(self, IDindividu=None, IDcategorie=None, titulaire=0):
-        # Saisie dans la base d'un rattachement
-        if not IDindividu or not self.IDfamille:
-            return False
-        DB = GestionDB.DB()
-        listeDonnees = [
-            ("IDindividu", IDindividu),
-            ("IDfamille", self.IDfamille),
-            ("IDcategorie", IDcategorie),
-            ("titulaire", titulaire),
-        ]
-        DB.ReqInsert("rattachements", listeDonnees)
-        DB.Close()
-        return True
-
-    def Modifier_selection(self, event=None):
-        self.Modifier(event)
-
-    def Modifier(self, event=None):
-        if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_fiche",
-                                                                  "modifier") == False: return
-        item = self.GetSelection()
-        dictItem = self.GetMainWindow().GetItemPyData(item)
-        if dictItem == None:
-            dlg = wx.MessageDialog(self,
-                                   _("Vous devez d'abord sélectionner un individu dans la liste !"),
-                                   _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
-            dlg.ShowModal()
-            dlg.Destroy()
-            return
-        type = dictItem["type"]
-        if type != "individu":
-            return
-        IDindividu = dictItem["IDindividu"]
-        if IDindividu == None:
-            dlg = wx.MessageDialog(self,
-                                   _("Vous devez d'abord sélectionner un individu dans la liste !"),
-                                   _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
-            dlg.ShowModal()
-            dlg.Destroy()
-            return
-        dlg = DLG_Individu.Dialog(None, IDindividu=IDindividu, IDfamille=self.IDfamille)
-        if dlg.ShowModal() == wx.ID_OK:
-            self.MAJ()
-        dlg.Destroy()
-        self.MAJ()
-        self.MAJnotebook()
-
-    def Supprimer_selection(self, event=None):
-        self.Supprimer(event)
-
-    def Supprimer(self, event=None):
-        """ Supprimer un individu """
-        if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_fiche",
-                                                                  "supprimer") == False: return
-        item = self.GetSelection()
-        dictItem = self.GetMainWindow().GetItemPyData(item)
-        if dictItem == None:
-            dlg = wx.MessageDialog(self,
-                                   _("Vous devez d'abord sélectionner un individu dans la liste !"),
-                                   _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
-            dlg.ShowModal()
-            dlg.Destroy()
-            return
-        type = dictItem["type"]
-        if type != "individu":
-            return
-        IDindividu = dictItem["IDindividu"]
-        from Dlg import DLG_Supprimer_fiche
-        dlg = DLG_Supprimer_fiche.Dialog(self, IDindividu=IDindividu,
-                                         IDfamille=self.IDfamille)
-        reponse = dlg.ShowModal()
-        dlg.Destroy()
-
-        # MAJ de la fiche famille
-        if reponse == 1 or reponse == 2:
-            self.MAJ()
-            self.MAJnotebook()
-
-            # Suppression de la fiche famille
-        if reponse == 3:
-            self.GetParent().SupprimerFicheFamille()
 
     def Changer_categorie(self, event):
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_fiche",
@@ -1744,137 +1611,7 @@ class CTRL_Liste(HTL.HyperTreeList, VISU_Compo):
     def OnLeaveWindow(self, event):
         self.ActiveTooltip(False)
 
-    def zzAfficheTooltip(self):
-        styleTooltip = "Office 2007 Blue"
-        taillePhoto = 30
-        font = self.GetFont()
-
-        # Récupération des infos sur l'individu
-        IDindividu = self.tip.IDindividu
-        dIndividu = self.getVal.dictIndividus[IDindividu]
-
-        # Paramétrage du tooltip
-        self.tip.SetHyperlinkFont(
-            wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
-                    False, 'Arial'))
-
-        if dIndividu["genre"] == "F":
-            # Couleur du toolTip version FILLE
-            self.tip.SetTopGradientColour(wx.Colour(255, 255, 255))
-            self.tip.SetMiddleGradientColour(wx.Colour(251, 229, 243))
-            self.tip.SetBottomGradientColour(wx.Colour(255, 210, 226))
-            self.tip.SetTextColor(wx.Colour(76, 76, 76))
-        else:
-            # Couleur du toolTip version GARCON
-            self.tip.SetTopGradientColour(wx.Colour(255, 255, 255))
-            self.tip.SetMiddleGradientColour(wx.Colour(242, 246, 251))
-            self.tip.SetBottomGradientColour(wx.Colour(202, 218, 239))
-            self.tip.SetTextColor(wx.Colour(76, 76, 76))
-
-        # Adaptation pour wxPython >= 2.9
-        if wx.VERSION > (2, 9, 0, 0):
-            qualite = wx.IMAGE_QUALITY_BICUBIC
-        else:
-            qualite = 100
-
-        # Titre du tooltip
-        nomImage = Civilites.GetDictCivilites()[
-            self.getVal.dictIndividus[IDindividu]["IDcivilite"]]["nomImage"]
-        if nomImage == None: nomImage = "Personne.png"
-        nomFichier = Chemins.GetStaticPath("Images/128x128/%s" % nomImage)
-        IDphoto, bmp = CTRL_Photo.GetPhoto(IDindividu=IDindividu, nomFichier=nomFichier,
-                                           taillePhoto=(taillePhoto, taillePhoto),
-                                           qualite=100)
-        bmp = bmp.ConvertToImage()
-        bmp = bmp.Rescale(width=taillePhoto, height=taillePhoto, quality=qualite)
-        bmp = bmp.ConvertToBitmap()
-        self.tip.SetHeaderBitmap(bmp)
-        self.tip.SetHeaderFont(
-            wx.Font(10, font.GetFamily(), font.GetStyle(), wx.BOLD, font.GetUnderlined(),
-                    font.GetFaceName()))
-        self.tip.SetHeader(dIndividu["nomComplet2"])
-        self.tip.SetDrawHeaderLine(True)
-
-        # Corps du tooltip
-        message = ""
-        if dIndividu["datenaissComplet"] != None: message += "%s\n" % \
-                                                                    dIndividu[
-                                                                        "datenaissComplet"]
-
-        adresse = ""
-        if dIndividu["adresse_ligne1"] not in (None, ""): adresse += "</b>%s\n" % \
-                                                                            dIndividu[
-                                                                                "adresse_ligne1"]
-        if dIndividu["adresse_ligne2"] not in (None, ""): adresse += "</b>%s\n" % \
-                                                                            dIndividu[
-                                                                                "adresse_ligne2"]
-        if len(adresse) > 3:
-            message += "\n" + adresse
-
-        coords = ""
-        if dIndividu["tel_domicile_complet"] not in (None, ""): coords += "%s\n" % \
-                                                                                 dIndividu[
-                                                                                     "tel_domicile_complet"]
-        if dIndividu["tel_mobile_complet"] not in (None, ""): coords += "%s\n" % \
-                                                                               dIndividu[
-                                                                                   "tel_mobile_complet"]
-        if dIndividu["travail_tel_complet"] not in (None, ""): coords += "%s\n" % \
-                                                                                dIndividu[
-                                                                                    "travail_tel_complet"]
-        if len(coords) > 3:
-            message += "\n" + coords
-        if dIndividu["mail_complet"] != None: message += "\n%s \n" % \
-                                                                dIndividu[
-                                                                    "mail_complet"]
-
-        # Liste des inscriptions de l'individu
-        if dIndividu["genre"] == "F":
-            lettreGenre = "e"
-        else:
-            lettreGenre = ""
-        if dIndividu["prenom"] != None:
-            prenom = dIndividu["prenom"]
-        else:
-            prenom = ""
-        if dIndividu["inscriptions"] == True:
-            nbreInscriptions = len(dIndividu["listeInscriptions"])
-            message += "\n"
-            if nbreInscriptions == 1:
-                message += _("%s est inscrit%s à 1 activité : \n") % (prenom, lettreGenre)
-            else:
-                message += _("%s est inscrit%s à %d activités : \n") % (
-                prenom, lettreGenre, nbreInscriptions)
-            for dictInscription in dIndividu["listeInscriptions"]:
-                message += "> %s (%s - %s) \n" % (
-                dictInscription["nomActivite"], dictInscription["nomGroupe"],
-                dictInscription["nomCategorie"])
-
-        self.tip.SetMessage(message)
-
-        # Pied du tooltip
-        self.tip.SetDrawFooterLine(True)
-        self.tip.SetFooterBitmap(
-            wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Aide.png"),
-                      wx.BITMAP_TYPE_ANY))
-        self.tip.SetFooterFont(
-            wx.Font(7, font.GetFamily(), font.GetStyle(), wx.LIGHT, font.GetUnderlined(),
-                    font.GetFaceName()))
-        self.tip.SetFooter(_("Double-cliquez pour ouvrir sa fiche"))
-
-        # Affichage du Frame tooltip
-        self.tipFrame = STT.ToolTipWindow(self, self.tip)
-        self.tipFrame.CalculateBestSize()
-        x, y = wx.GetMousePosition()
-        self.tipFrame.SetPosition((x + 15, y + 17))
-        self.tipFrame.DropShadow(True)
-        self.tipFrame.Show(True)  # ou .Show() pour un affichage immédiat
-
-        # Arrêt du timer
-        self.timerTip.Stop()
-        del self.timerTip
-
-
-# --------------------------------------------------------------------------------------------------------------------------
+# -------- Aiguillage vers les deux classes d'affichage ----------------------------------
 
 class Notebook(wx.Notebook):
     def __init__(self, parent, IDfamille=None):
@@ -1943,7 +1680,8 @@ class Notebook(wx.Notebook):
         self.parent.Sauvegarde()
 
     def MAJpageActive(self):
-        self.parent.MAJpageActive()
+        if hasattr(self.parent,'MAJpageActive'):
+            self.parent.MAJpageActive()
 
     def MAJpage(self, codePage=""):
         self.parent.MAJpage(codePage)
@@ -1959,8 +1697,11 @@ class Notebook(wx.Notebook):
         return IDindividu
 
     def Ajouter_individu(self, dictRattach):
+        # relai vers GestionComposition
+        self.dictRattach = dictRattach
         page = self.GetPage(self.GetSelection())
         IDindividu = page.Ajouter_individu(dictRattach)
+        dictRattach['IDindividu'] = IDindividu
         return IDindividu
 
     def Modifier_selection(self, event=None):
@@ -1983,6 +1724,7 @@ class Notebook(wx.Notebook):
         page = self.GetPage(self.GetSelection())
         page.MAJ()
 
+# ---------- Pour Test -------------------------------------------------------------------
 
 class MyFrameTest(wx.Frame):
     def __init__(self, *args, **kwds):

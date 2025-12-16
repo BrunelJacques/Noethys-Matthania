@@ -67,7 +67,7 @@ class Track(object):
         FROM rattachements 
         LEFT JOIN familles ON rattachements.IDfamille = familles.IDfamille
         WHERE IDindividu=%d
-        GROUP BY rattachements.IDcategorie, rattachements.IDfamille, rattachements.titulaire, familles.IDfamille;
+        GROUP BY rattachements.IDcategorie, rattachements.IDfamille, rattachements.titulaire, familles.IDfamille
         ;""" % self.IDindividu
         DB.ExecuterReq(req)
         listeRattachements = DB.ResultatReq()
@@ -489,17 +489,13 @@ class ListView(FastObjectListView):
         if dlgRattach.ShowModal() == wx.ID_OK:
             dictRattach = dlgRattach.GetDictData()
             IDfamille = dlgRattach.GetIDfamille()
-            # l'individu créé était déjà dans une famille
+            # si l'individu créé était déjà dans une famille, pas de nouveau rattachement
             if IDfamille:
                 dictRattach = None
         dlgRattach.Destroy()
         from Dlg import DLG_Famille
         dlg = DLG_Famille.Dialog(self, IDfamille=IDfamille, dictRattach=dictRattach)
-        ret = dlg.ShowModal()
-        if ret == wx.ID_OK:
-            pass
-        else:
-            pass
+        dlg.ShowModal()
 
         try :
             if self.GetGrandParent().GetName() == "general" :
@@ -922,8 +918,6 @@ class BarreRecherche(wx.SearchCtrl):
         track = self.listview.dictTracks[IDindividu]
         self.listview.SelectObject(track)
         self.listview.OuvrirFicheFamille(track)
-
-
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
 

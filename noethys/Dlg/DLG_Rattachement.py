@@ -76,8 +76,7 @@ class CtrlRecherche(wx.TextCtrl):
         self.listView.GetFilter().SetText(txtSearch)
         self.listView.RepopulateList()
         self.listView.Refresh()
-        
-        
+
 
 class Dialog(wx.Dialog):
     def __init__(self, parent, IDfamille=None):

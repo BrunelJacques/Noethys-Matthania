@@ -255,15 +255,6 @@ class Hyperlien(Hyperlink.HyperLinkCtrl):
     
     def OnLeftLink(self, event):
         self.UpdateLink()
-##        if self.IDindividu != None :
-##            import DLG_Individu
-##            dlg = DLG_Individu.Dialog(None, IDindividu=self.IDindividu)
-##            if dlg.ShowModal() == wx.ID_OK:
-##                pass
-##            dlg.Destroy()
-##            self.GetGrandParent().MAJ() 
-##            self.GetGrandParent().MAJnotebook() 
-
 
 class Hyperlien_LiensFamille(Hyperlink.HyperLinkCtrl):
     def __init__(self, parent, id=-1, label="", infobulle="", URL="", IDfamille=None, IDindividu=None, size=(-1, -1), pos=(0, 0)):

@@ -9,6 +9,7 @@
 #-----------------------------------------------------------
 
 import wx
+import datetime
 import GestionDB
 import FonctionsPerso as fp
 
@@ -86,14 +87,27 @@ class GestCompo():
     def On_SetCorrespondant(self, event):
         if self.dictCadres[self.IDindividu_menu]["correspondant"]:
             # déjà le correspondant de cette famille
+            mess = "Individu déjà correspondant de cette famille !\n"\
+                   "pour changer choisissez un autre titulaire"
             dlg = wx.MessageDialog(self,
-                                   "Déjà le correspondant de cette famille !\npour changer choisissez un autre titulaire",
+                       mess,
+                       "Erreur de saisie", wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
+
+        if not self.dictCadres[self.IDindividu_menu]["titulaire"]:
+            # Un correspondant doit être titulaire
+            mess = "Individu non titulaire de cette famille ne peut être correspondant!\n" \
+                   "pour changer choisissez un autre titulaire"
+            dlg = wx.MessageDialog(self,
+                                   mess,
                                    "Erreur de saisie", wx.OK | wx.ICON_EXCLAMATION)
             dlg.ShowModal()
             dlg.Destroy()
             return
 
-        # Récup de l'ancdien correspondant
+        # Récup de l'ancien correspondant
         exCorresp = None
         for IDindividu, dict in self.dictCadres.items():
             if dict["correspondant"]:
@@ -125,7 +139,8 @@ class GestCompo():
 
         # S'approprie les adresses auto de la famille pointant l'ancien correspondant
         if exCorresp:
-            for IDindividu, dictInfo in self.getVal.dictInfosIndividus.items():
+            dictInfosIndividus = self.getVal.GetInfosIndividus()[1]
+            for IDindividu, dictInfo in dictInfosIndividus.items():
                 if dictInfo[
                     "adresse_auto"] == exCorresp and IDindividu != self.IDindividu_menu:
                     DB.ReqMAJ("individus", [("adresse_auto", self.IDindividu_menu), ],
@@ -133,7 +148,7 @@ class GestCompo():
                               MsgBox="CTRL_Composition.On_SetCorrespondant3 ID %d" % IDindividu)
                 for item in ("rue_resid", "cp_resid", "ville_resid"):
                     self.dictCadres[self.IDindividu_menu][item] = \
-                    self.getVal.dictInfosIndividus[self.IDindividu_menu][item]
+                    dictInfosIndividus[self.IDindividu_menu][item]
         DB.Close()
         MAJ(self)
 
@@ -184,6 +199,27 @@ class GestCompo():
             self.SupprimerFamille()
             return None
 
+    def CreateIDindividu(self):
+        """ Crée la fiche individu dans la base de données afin d'obtenir un IDindividu """
+        DB = GestionDB.DB()
+        date_creation = str(datetime.date.today())
+        listeDonnees = [
+            ("date_creation", date_creation),
+            ("nom", self.dictRattach["nom"]),
+            ("prenom", self.dictRattach["prenom"]),
+            ]
+        self.IDindividu = DB.ReqInsert("individus", listeDonnees)
+        # Mémorise l'action dans l'historique
+        nomPrenom = f"{self.dictRattach['prenom']} {self.dictRattach['nom']}"
+        action = f"Création de l'individu {self.IDindividu}-{nomPrenom}"
+        UTILS_Historique.InsertActions([{
+                "IDindividu" : self.IDindividu,
+                "IDcategorie" : 11,
+                "action" : action
+                },])
+        DB.Close()
+        return self.IDindividu
+
     def Ajouter_individu(self, dictRattach=None):
         # Rattacher un nouvel individu, dont l'identité est issue de DLG_Rattachement
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_fiche",
@@ -201,17 +237,18 @@ class GestCompo():
                 ok = False
             dlg.Destroy()
         if ok:
-            IDindividu = dictRattach['IDindividu']
             if self.dictRattach['mode'] == "creation":
                 # Création d'un nouvel individu rattaché
-                dlg = DLG_Individu.Dialog(None, IDindividu=None,
-                                          dictInfosNouveau=self.dictRattach)
-                if dlg.ShowModal() == wx.ID_OK:
-                    IDindividu = dlg.IDindividu  # print "Nouvelle fiche creee et deja rattachee."
-                else:
+                IDindividu = self.CreateIDindividu()
+                self.dictRattach['IDindividu'] = IDindividu
+                self.RattacherIndividu(**self.dictRattach)
+                # composition de l'individu
+                dlg = DLG_Individu.Dialog(self, IDindividu=self.IDindividu,
+                                          dictRattach=self.dictRattach)
+                if dlg.ShowModal() != wx.ID_OK:
+                    self.IDindividu = None
                     self.SupprimerFamille()
                 dlg.Destroy()
-                return
             else:
                 # Rattachement d'un individu existant
                 args = [self.dictRattach[x] for x in ('IDindividu','IDcategorie','titulaire')]
@@ -219,10 +256,10 @@ class GestCompo():
 
             # MAJ de l'affichage
             MAJ(self)
-            return IDindividu
+            return self.IDindividu
         else:
             self.SupprimerFamille()
-            return None
+            return self.IDindividu
 
     def SupprimerFamille(self):
         # Supprime la fiche famille lorsqu'on annule le rattachement du premier titulaire
@@ -235,7 +272,7 @@ class GestCompo():
         if len(listeDonnees) == 0:
             self.GetParent().SupprimerFicheFamille()
 
-    def RattacherIndividu(self, IDindividu=None, IDcategorie=None, titulaire=0):
+    def RattacherIndividu(self, IDindividu=None, IDcategorie=None, titulaire=0,**kwd):
         if not IDindividu or not self.IDfamille:
             return False
         # Saisie dans la base d'un rattachement
@@ -246,7 +283,23 @@ class GestCompo():
             ("IDcategorie", IDcategorie),
             ("titulaire", titulaire),
         ]
-        IDrattachement = DB.ReqInsert("rattachements", listeDonnees)
+        ID = DB.ReqInsert("rattachements", listeDonnees)
+        if self.dictRattach:
+            self.dictRattach['IDrattachement'] = ID
+        # Mémorise l'action dans l'historique
+        if IDcategorie == 1: labelCategorie = "représentant"
+        if IDcategorie == 2: labelCategorie = "enfant"
+        if IDcategorie == 3: labelCategorie = "contact"
+
+        action = "Rattachement de l'individu %d à la famille %d en tant que %s"%(
+                      IDindividu, self.IDfamille, labelCategorie)
+
+        UTILS_Historique.InsertActions([{
+            "IDindividu": self.IDindividu,
+            "IDfamille": self.IDfamille,
+            "IDcategorie": 13,
+            "action": action,
+        }, ], DB)
         DB.Close()
         return True
 

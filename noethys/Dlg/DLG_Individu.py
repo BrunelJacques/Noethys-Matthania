@@ -12,15 +12,16 @@
 from Utils.UTILS_Traduction import _
 import Chemins
 import wx
+import datetime
 from Ctrl import CTRL_Bouton_image
 import wx.html as html
 import GestionDB
 from Utils import UTILS_Historique
 from Utils import UTILS_Utilisateurs
 from Utils import UTILS_Config
-import datetime
-
+from Gest.GestionComposition import GestCompo
 from Ctrl import CTRL_Photo
+
 from Dlg import DLG_Individu_informations
 from Dlg import DLG_Individu_identite
 from Dlg import DLG_Individu_coords
@@ -72,6 +73,7 @@ class CTRL_header_rattachement(html.HtmlWindow):
         IDfamille = int(linkinfo.GetHref())
 
 class Notebook(wx.Notebook):
+    # Aiguillage vers toutes les pages de la création d'un individu
     def __init__(self, parent, id=-1, IDindividu=None, IDfamille=None, dictFamillesRattachees=[]):
         wx.Notebook.__init__(self, parent, id, name="notebook_individu", style= wx.BK_DEFAULT | wx.NB_MULTILINE) 
         self.IDindividu = IDindividu
@@ -210,28 +212,33 @@ class Notebook(wx.Notebook):
         # Sauvegarde des données
         page.Sauvegarde()
 
-class Dialog(wx.Dialog):
-    def __init__(self, parent, IDindividu=None,IDfamille=None ,dictInfosNouveau={}):
+class Dialog(wx.Dialog, GestCompo):
+    def __init__(self, parent, IDindividu=None,IDfamille=None ,dictRattach={}):
         wx.Dialog.__init__(self, parent, id=-1, name="fiche_individu",style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
+        GestCompo.__init__(self, parent, IDfamille)
+        self.dictRattach.update(dictRattach)
         self.module = "DLG_Individu.Dialog"
+        if IDindividu == None:
+            raise "Programmer différement, ajouter_individu est en GestionComposition"
         self.IDindividu = IDindividu
         self.IDfamille = IDfamille
-        self.dictInfosNouveau = dictInfosNouveau
-        if not self.IDfamille and len(self.dictInfosNouveau) > 0:
-            self.IDfamille = self.dictInfosNouveau["IDfamille"]
+        if not self.IDfamille and len(dictRattach) > 0:
+            self.IDfamille = dictRattach["IDfamille"]
         self.nouvelleFiche = False
 
         # Adapte taille Police pour Linux
         from Utils import UTILS_Linux
         UTILS_Linux.AdaptePolice(self)
 
-        if IDindividu == None and len(self.dictInfosNouveau) > 0 :
+        """
+        if IDindividu == None and len(dictRattach) > 0 :
             self.nouvelleFiche = True
             # Création de l'IDindividu
             self.CreateIDindividu()
             # Création du rattachement à la famille
-            self.RattacherIndividu(self.dictInfosNouveau["IDfamille"], self.dictInfosNouveau["IDcategorie"], self.dictInfosNouveau["titulaire"])
-        
+            self.RattacherIndividu(**dictRattach)
+        """
+
         # Recherche des familles rattachées
         if self.IDindividu != None :
             self.dictFamillesRattachees = self.GetFamillesRattachees()
@@ -247,7 +254,9 @@ class Dialog(wx.Dialog):
         self.ctrl_liens = CTRL_header_rattachement(self, couleurFond=couleurFond) #wx.StaticText(self, -1, _("Aucun rattachement"))
         self.ctrl_photo = CTRL_Photo.CTRL_Photo(self, style=wx.SUNKEN_BORDER)
         self.ctrl_photo.SetPhoto(IDindividu=None, nomFichier=Chemins.GetStaticPath("Images/128x128/Personne.png"), taillePhoto=(128, 128), qualite=100)
-        self.ctrl_notebook = Notebook(self, IDindividu=self.IDindividu, IDfamille=self.IDfamille, dictFamillesRattachees=self.dictFamillesRattachees)
+        self.ctrl_notebook = Notebook(self, IDindividu=self.IDindividu,
+                                      IDfamille=self.IDfamille,
+                                      dictFamillesRattachees=self.dictFamillesRattachees)
 
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"), cheminImage="Images/32x32/Valider.png")
         self.bouton_annuler = CTRL_Bouton_image.CTRL(self, texte=_("Annuler"), cheminImage="Images/32x32/Annuler.png")
@@ -273,13 +282,13 @@ class Dialog(wx.Dialog):
         if self.nouvelleFiche == True :
             pageIdentite = self.ctrl_notebook.GetPageAvecCode("identite")
             pageIdentite.SetValeursDefaut(
-                self.dictInfosNouveau["nom"],
-                self.dictInfosNouveau["prenom"],
-                self.dictInfosNouveau["IDcategorie"],
+                dictRattach["nom"],
+                dictRattach["prenom"],
+                dictRattach["IDcategorie"],
                 )
             pageIdentite.majEffectuee = True
             # Si c'est un nouveau contact, on se met sur adresse manuelle
-            if self.dictInfosNouveau["IDcategorie"] == 3 : 
+            if dictRattach["IDcategorie"] == 3 :
                 pageCoords = self.ctrl_notebook.GetPageAvecCode("coords")
 
                 pageCoords.lstContacts[0].radio_adresse_manuelle.SetValue(True)
@@ -474,49 +483,6 @@ class Dialog(wx.Dialog):
             texteID = _("Rattaché à %d familles | ID : %d") % (len(self.dictFamillesRattachees), self.IDindividu)
         self.Set_Header("ID", texteID)
 
-    def CreateIDindividu(self):
-        """ Crée la fiche individu dans la base de données afin d'obtenir un IDindividu """
-        DB = GestionDB.DB()
-        date_creation = str(datetime.date.today())
-        listeDonnees = [
-            ("date_creation", date_creation), 
-            ("nom", self.dictInfosNouveau["nom"]), 
-            ("prenom", self.dictInfosNouveau["prenom"]), 
-            ]
-        self.IDindividu = DB.ReqInsert("individus", listeDonnees)
-        DB.Close()
-        # Mémorise l'action dans l'historique
-        UTILS_Historique.InsertActions([{
-                "IDindividu" : self.IDindividu,
-                "IDcategorie" : 11, 
-                "action" : _("Création de l'individu ID%d") % self.IDindividu,
-                },])
-                
-    def RattacherIndividu(self, IDfamille=None, IDcategorie=None, titulaire=0):
-        if not IDfamille or not self.IDindividu:
-            return False
-        # Saisie dans la base
-        DB = GestionDB.DB()
-        listeDonnees = [
-            ("IDindividu", self.IDindividu),
-            ("IDfamille", IDfamille),
-            ("IDcategorie", IDcategorie),
-            ("titulaire", titulaire),
-            ]
-        DB.ReqInsert("rattachements", listeDonnees)
-        DB.Close()
-        # Mémorise l'action dans l'historique
-        if IDcategorie == 1 : labelCategorie = _("représentant")
-        if IDcategorie == 2 : labelCategorie = _("enfant")
-        if IDcategorie == 3 : labelCategorie = _("contact")
-        UTILS_Historique.InsertActions([{
-                "IDindividu" : self.IDindividu,
-                "IDfamille" : IDfamille,
-                "IDcategorie" : 13, 
-                "action" : _("Rattachement de l'individu %d à la famille %d en tant que %s") % (self.IDindividu, IDfamille, labelCategorie),
-                },])
-        return True
-        
     def Annuler(self):
         """ Annulation des modifications """
         if self.nouvelleFiche == True and self.IDindividu != None :
