@@ -25,10 +25,16 @@ IX_CONNEXION = {"ix":0,"pointeurs":{}}
 
 # Import MySQLdb
 try :
-    import pymysql as MySQLdb
+    # sqlite
+    """
+        import pymysql as MySQLdb
     MySQLdb.install_as_MySQLdb()
     from pymysql.constants import FIELD_TYPE
     from pymysql.converters import conversions
+    """
+    import MySQLdb
+    from MySQLdb.constants import FIELD_TYPE
+    from MySQLdb.converters import conversions
     IMPORT_MYSQLDB_OK = True
     INTERFACE_MYSQL = "mysqldb"
 except Exception as err :
