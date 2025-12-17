@@ -104,7 +104,7 @@ class Forfaits():
         self.forcerGestion = forcerGestion
         req = """
             SELECT  matPieces.pieIDinscription, min(matPieces.pieDateCreation), min(matPieces.pieIDfamille),
-                    activites.abrege, CONCAT(individus.nom,' ',individus.prenom), 
+                    activites.abrege, individus.nom,individus.prenom, 
                     Sum(matPiecesLignes.ligMontant)
             FROM    (matPieces 
                     LEFT JOIN individus ON matPieces.pieIDindividu = individus.IDindividu) 
@@ -117,10 +117,13 @@ class Forfaits():
             """ %(IDfamille,IDfamille)
         retour = DB.ExecuterReq(req, MsgBox="GestionPiece.CoherenceParrainages1")
         dicInscriptions = {}
-        lstChampsInscr = ["IDinscription","date", "IDfamille", "activite","nom", "montant"]
+        lstChampsInscr = ["IDinscription","date", "IDfamille", "activite",
+                          "nom", "prenom", "montant"]
         if retour == "ok":
             recordset = DB.ResultatReq()
             dicInscriptions = GestionInscription.RecordsetToDict(lstChampsInscr, recordset)
+            if recordset:
+                dicInscriptions['nom'] += f" {dicInscriptions['nom']}"
         lstInscr = [x for x in dicInscriptions.keys()]
 
 
@@ -140,7 +143,8 @@ class Forfaits():
         lstChampsLigne = None
         if retour == "ok":
             recordset2 = DB.ResultatReq()
-            lstChampsLigne = ["IDligne","IDparrain","IDpiece","dteInsc","date", "nature", "article", "libelle", "montant"]
+            lstChampsLigne = ["IDligne","IDparrain","IDpiece","dteInsc","date", "nature",
+                              "article", "libelle", "montant"]
             dicLignes = GestionInscription.RecordsetToDict(lstChampsLigne,recordset2)
             for ID,dic in dicLignes.items():
                 if not dic["date"]:
@@ -714,11 +718,11 @@ class Forfaits():
                                                retourExercice=True)
             if (exercice == (None, None)) or exercice == False :
                 # l'exercice n'est pas encore ouvert pour cette ligne
-                GestionDB.Messages().Box(titre="Exercices comptables",
+                ret = GestionDB.Messages().Box(titre="Exercices comptables",
                                          message="Présence d'une pièce se rapportant à un exercice non ouvert\nSa facturation n'est pas possible")
                 lstSuppr.append(dictDonnees)
                 lstSupprID.append(IDpiece)
-                continue
+                return False
             inscriptions.append(inscription)
             activites.append(activite)
             if not (date in datesFacture):

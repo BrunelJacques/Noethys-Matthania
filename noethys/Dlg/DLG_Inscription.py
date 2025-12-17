@@ -69,7 +69,8 @@ class ListBox(wx.ListBox):
         self.Bind(wx.EVT_LISTBOX, self.OnSelection,)
 
     
-    def MAJ(self, IDcondition=None):
+    def MAJ(self, IDcondition=None,IDgroupe=None):
+        self.IDgroupe = IDgroupe
         if IDcondition != None : 
             self.IDcondition = IDcondition
         self.listeDonnees = []
@@ -85,7 +86,9 @@ class ListBox(wx.ListBox):
                 self.GetParent().SetAgeInconnu(False)
                 self.GetParent().ageConnu = True
             self.Importation_groupes()
-        if self.type == "categories" : self.Importation_categories()
+
+        if self.type == "categories" :
+            self.Importation_categories()
         listeItems = []
         if len(self.listeDonnees) > 0 :
             for dictValeurs in self.listeDonnees :
@@ -110,8 +113,10 @@ class ListBox(wx.ListBox):
         elif self.type == "groupes" :
             IDactivite = self.parent.IDactivite
             selection = self.GetSelection()
+            IDgroupe = self.listeDonnees[selection]['ID']
             self.parent.ctrl_groupes.campeur = self.listeDonnees[selection]["campeur"]
-            self.parent.ctrl_categories.MAJ((IDactivite,self.listeDonnees[selection]["campeur"]))
+            self.parent.ctrl_categories.MAJ((IDactivite,self.listeDonnees[selection]["campeur"]),
+                                            IDgroupe = IDgroupe)
         return
 
     def Importation_activites(self):
@@ -146,7 +151,8 @@ class ListBox(wx.ListBox):
                 FROM groupes
                 INNER JOIN ouvertures ON groupes.IDgroupe = ouvertures.IDgroupe
                 WHERE groupes.IDactivite=%d
-                GROUP BY groupes.IDgroupe, groupes.nom, groupes.ageMini, groupes.ageMaxi
+                GROUP BY groupes.IDgroupe, groupes.nom, groupes.ageMini, groupes.ageMaxi,
+                        groupes.campeur, ordre
                 ORDER BY ordre; """ % self.IDcondition
         db.ExecuterReq(req,MsgBox="Recherche Groupes")
         listeDonnees = db.ResultatReq()
@@ -181,16 +187,39 @@ class ListBox(wx.ListBox):
             conditionCampeur = "true"
         elif campeur == 1:
             conditionCampeur = "campeur in (0,1)" # un animateur '0' peut être mis dans un groupe campeurs '1'
-        elif campeur in (0,1,2) :
+        elif campeur in (0,2) :
             conditionCampeur = "campeur=%d"%campeur
         else:
             conditionCampeur = "true"
 
+        if self.IDgroupe:
+            condGroupe = " AND (matTarifs.trfIDgroupe = %d )"%self.IDgroupe
+        else:
+            condGroupe = ""
+
         # Recherche des catégories
-        req = """SELECT IDcategorie_tarif, nom, campeur
-        FROM categories_tarifs 
-        WHERE IDactivite=%d AND %s
-        ORDER BY nom; """ % (IDactivite, conditionCampeur)
+        req = """
+        SELECT
+            categories_tarifs.IDcategorie_tarif,
+            categories_tarifs.nom,
+            categories_tarifs.campeur
+        FROM
+            (categories_tarifs
+            INNER JOIN matTarifs ON ( categories_tarifs.IDactivite = matTarifs.trfIDactivite)
+                AND (categories_tarifs.IDcategorie_tarif = matTarifs.trfIDcategorie_tarif))
+            INNER JOIN matTarifsLignes ON matTarifs.trfCodeTarif = matTarifsLignes.trlCodeTarif
+        WHERE
+            IDactivite=%d AND %s %s
+        GROUP BY
+            categories_tarifs.IDcategorie_tarif,
+            categories_tarifs.nom,
+            categories_tarifs.campeur,
+            categories_tarifs.[IDactivite],
+            True
+        ORDER BY
+            categories_tarifs.nom
+        ;"""% (IDactivite, conditionCampeur, condGroupe)
+
         DB.ExecuterReq(req,MsgBox="DLG_Inscription")
         listeCategories = DB.ResultatReq()
 

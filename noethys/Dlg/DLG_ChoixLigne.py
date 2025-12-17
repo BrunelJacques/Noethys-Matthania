@@ -265,6 +265,7 @@ class DlgChoixArticle(wx.Dialog):
         """Constructor"""
         self.SetTitle("DLG_ChoixLigne :Choix d'un article")
         self.parent = parent
+        self.niveau = niveau
         self.choix = None
         self.label_article = wx.StaticText(self, -1, _("Article à ajouter :"))
         self.olv_article = OLVchoixArticles(self,niveau)
@@ -311,6 +312,26 @@ class DlgChoixArticle(wx.Dialog):
         # Coche l'enregistrement selectionné
         for obj in self.olv_article.GetSelectedObjects():
             self.olv_article.SetCheckState(obj, True)
+
+        if not self.niveau == 'Famille':
+            # Nouvelle instance olv pour récupérer les lignes selectionnées
+            olv_selection = OLVchoixArticles(self)
+            olv_selection.listeOLV=[]
+            for obj in self.olv_article.GetObjects():
+                if self.olv_article.IsChecked(obj):
+                    olv_selection.listeOLV.append(obj)
+            olv_selection.SetObjects(olv_selection.listeOLV)
+            for obj in olv_selection:
+                olv_selection.SetCheckState(obj,True)
+            # met les lignes sous forme de dictionnaires
+            try:
+                listeLignes = self.parent.ListeDict(olv_selection)
+                for ligne in listeLignes:
+                    self.parent.listeLignes.append(ligne)
+            except: pass
+        self.EndModal(wx.ID_OK)
+
+    def GetOlv(self):
         # Nouvelle instance olv pour récupérer les lignes selectionnées
         olv_selection = OLVchoixArticles(self)
         olv_selection.listeOLV=[]
@@ -320,11 +341,7 @@ class DlgChoixArticle(wx.Dialog):
         olv_selection.SetObjects(olv_selection.listeOLV)
         for obj in olv_selection:
             olv_selection.SetCheckState(obj,True)
-        # met les lignes sous forme de dictionnaires
-        listeLignes = self.parent.ListeDict(olv_selection)
-        for ligne in listeLignes:
-            self.parent.listeLignes.append(ligne)
-        self.EndModal(wx.ID_OK)
+        return olv_selection
 
     def OnGestionTarifs(self, event):
         from Dlg import DLG_TarifsListe

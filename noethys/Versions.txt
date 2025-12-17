@@ -2,6 +2,8 @@ version 1.3.3.33 (16/12/2025)
 - Suppression date sur lignes des factures
 - Refactorisation création individus et familles
 - Meilleure historisation des rattachements
+- Ajout de lignes niveau famille à nouveau possible
+- Proposition des seuls tarifs ayant des lignes tarif
 
 version 1.3.3.32 (06/12/2025)
 - Correction bug sur facturation de frais complémentaires

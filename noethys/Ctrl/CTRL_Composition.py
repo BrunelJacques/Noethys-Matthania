@@ -445,6 +445,7 @@ class VISU_Compo(GestCompo):
             self.CacheTooltip()
 
     def AfficheTooltip(self):
+
         taillePhoto = 30
         font = self.GetFont()
 
@@ -474,15 +475,16 @@ class VISU_Compo(GestCompo):
 
         qualite = wx.IMAGE_QUALITY_BICUBIC
 
+
         # Titre du tooltip
         nomImage = Civilites.GetDictCivilites()[self.getVal.dictIndividus[IDindividu]["IDcivilite"]]["nomImage"]
         if nomImage == None : nomImage = "Personne.png"
         nomFichier = Chemins.GetStaticPath("Images/128x128/%s" % nomImage)
+
         IDphoto, bmp = CTRL_Photo.GetPhoto(IDindividu=IDindividu, nomFichier=nomFichier, taillePhoto=(taillePhoto, taillePhoto), qualite=100)
 
         if self.Name == 'graphique':
             bmp = cadreIndividu.bmp
-
 
         if bmp != None:
             bmp = bmp.ConvertToImage()
@@ -494,19 +496,13 @@ class VISU_Compo(GestCompo):
             wx.Font(10, font.GetFamily(), font.GetStyle(), wx.BOLD, font.GetUnderlined(),
                     font.GetFaceName()))
         self.tip.SetHeader(dIndividu["nomComplet2"])
+
+
         self.tip.SetDrawHeaderLine(True)
 
         # Corps du tooltip
         message = ""
 
-        """
-        # Archive
-        if dIndividu["etat"] == "archive":
-            message += _("</b>######### Individu archivé #########\n\n")
-        # Effacé
-        if dIndividu["etat"] == "efface":
-            message += _("</b>######### Individu effacé #########\n\n")
-        """
         if dIndividu["datenaissComplet"] != None: message += "%s\n" % \
                                                                     dIndividu[
                                                                         "datenaissComplet"]
@@ -564,12 +560,12 @@ class VISU_Compo(GestCompo):
         # Pied du tooltip
         self.tip.SetDrawFooterLine(True)
         self.tip.SetFooterBitmap(
-            wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Aide.png"),
+            wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ok_2.png"),
                       wx.BITMAP_TYPE_ANY))
         self.tip.SetFooterFont(
             wx.Font(7, font.GetFamily(), font.GetStyle(), wx.LIGHT, font.GetUnderlined(),
                     font.GetFaceName()))
-        self.tip.SetFooter(_("Double-cliquez pour ouvrir sa fiche"))
+        self.tip.SetFooter(_("Cliquez pour fermer"))
 
         # Affichage du Frame tooltip
         self.tipFrame = STT.ToolTipWindow(self, self.tip)
@@ -579,7 +575,6 @@ class VISU_Compo(GestCompo):
         self.tipFrame.SetPosition((x + 15, y + 17))
         self.tipFrame.DropShadow(True)
         self.tipFrame.Show()
-        # self.tipFrame.StartAlpha(True) # ou .Show() pour un affichage immédiat
 
         # Arrêt du timer
         self.timerTip.Stop()

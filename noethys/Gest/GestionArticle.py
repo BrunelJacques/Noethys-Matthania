@@ -793,7 +793,8 @@ def MultiParrain(codeArticle,dictDonnees,listeOLV):
     # Appel de l'article original pour test de modif de son libellé.
     req = """SELECT artCodeArticle, artLibelle
             FROM matArticles
-            WHERE artCodeArticle LIKE '%s%%';
+            WHERE artCodeArticle LIKE '%s%%'
+            GROUP BY artCodeArticle, artLibelle;
           """ % (codeArticle[:-2])
     DB.ExecuterReq(req,MsgBox = "GestionArticle.MultiParrain.matArticle")
     retArticle = DB.ResultatReq()
