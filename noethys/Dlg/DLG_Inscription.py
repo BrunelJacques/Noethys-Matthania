@@ -417,7 +417,11 @@ class Dialog(wx.Dialog):
             dlg.Destroy()
             return
         infoCategories = self.ctrl_categories.GetInfosSelection()
-        if infoCategories["campeur"] == 1 and self.ageConnu == False and infoGroupe["conditionAge"]:
+
+        if (not infoCategories) or (not infoGroupe):
+            mess = "Problème mineur de tarif ou groupe"
+            wx.MessageBox(mess,"DLG_Inscription.OnBoutonOk",style=wx.ICON_WARNIN)
+        elif infoCategories["campeur"] == 1 and (not self.ageConnu) and infoGroupe["conditionAge"]:
             mess = "Risque sur la condition d'âge\n\n"
             mess += "Vous avez choisi un tarif campeur, pour un groupe ayant des conditions sur l'âge,\n"
             mess += "et le campeur n'a pas de date de naissance connue. "

@@ -606,7 +606,7 @@ class VISU_Compo(GestCompo):
         item.SetBitmap(wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"),
                                  wx.BITMAP_TYPE_PNG))
         menu.Append(item)
-        ctrlSelf.Bind(wx.EVT_MENU, self.Ajouter, id=id)
+        ctrlSelf.Bind(wx.EVT_MENU, self.Rattacher_composition, id=id)
 
         if IDindividu != None:
             menu.AppendSeparator()

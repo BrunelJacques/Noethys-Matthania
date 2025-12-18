@@ -12,7 +12,6 @@
 from Utils.UTILS_Traduction import _
 import Chemins
 import wx
-import datetime
 from Ctrl import CTRL_Bouton_image
 import wx.html as html
 import GestionDB
@@ -33,24 +32,6 @@ from Dlg import DLG_Individu_questionnaire
 from Dlg import DLG_Individu_scolarite
 from Dlg import DLG_Individu_transports
 
-
-##import wx.html
-
-##class ResumeHtml(wx.html.HtmlWindow):
-##    def __init__(self, parent, id=-1):
-##        wx.html.HtmlWindow.__init__(self, parent, id)
-##        if "gtk2" in wx.PlatformInfo:
-##            self.SetStandardFonts()
-##        # Fond transparent
-##        self.couleurFond = wx.SystemSettings.GetColour(30)
-##        self.SetBackgroundColour(self.couleurFond)
-##    
-##    def SetContenuHtml(self, texte=""):
-##        self.SetPage(texte)
-##        self.SetBackgroundColour(self.couleurFond)
-##
-##    def OnLinkClicked(self, link):
-##        print link.GetHref()
 
 class CTRL_header_rattachement(html.HtmlWindow):
     def __init__(self, parent, texte="", hauteur=32,  couleurFond=(255, 255, 255)):
@@ -126,7 +107,6 @@ class Notebook(wx.Notebook):
         self.SetSelection(indexPage)
 
     def OnPageChanged(self, event):
-        print(self.antiboucle)
         if self.antiboucle:
             return
         """ Quand une page du notebook est sélectionnée """
@@ -218,26 +198,22 @@ class Dialog(wx.Dialog, GestCompo):
         GestCompo.__init__(self, parent, IDfamille)
         self.dictRattach.update(dictRattach)
         self.module = "DLG_Individu.Dialog"
-        if IDindividu == None:
+        if not IDindividu and hasattr(dictRattach,'IDindividu'):
+            IDindividu = dictRattach['IDindividu']
+
+        if not IDindividu:
             raise "Programmer différement, ajouter_individu est en GestionComposition"
         self.IDindividu = IDindividu
         self.IDfamille = IDfamille
-        if not self.IDfamille and len(dictRattach) > 0:
+        if not self.IDfamille and hasattr(dictRattach,'IDfamille'):
             self.IDfamille = dictRattach["IDfamille"]
         self.nouvelleFiche = False
+        if hasattr(dictRattach,'mode'):
+            self.nouvelleFiche = dictRattach['mode'] == 'creation'
 
         # Adapte taille Police pour Linux
         from Utils import UTILS_Linux
         UTILS_Linux.AdaptePolice(self)
-
-        """
-        if IDindividu == None and len(dictRattach) > 0 :
-            self.nouvelleFiche = True
-            # Création de l'IDindividu
-            self.CreateIDindividu()
-            # Création du rattachement à la famille
-            self.RattacherIndividu(**dictRattach)
-        """
 
         # Recherche des familles rattachées
         if self.IDindividu != None :
@@ -427,11 +403,14 @@ class Dialog(wx.Dialog, GestCompo):
         db.ExecuterReq(req,MsgBox="ExecuterReq")
         listeRattachements = db.ResultatReq()
         dictFamilles = {}
+        nomCategorie = ""
         for IDrattachement, IDfamille, IDcategorie, titulaire, IDcompte_payeur in listeRattachements :
-            if IDcategorie == 1 : nomCategorie = _("représentant")
-            if IDcategorie == 2 : nomCategorie = _("enfant")
-            if IDcategorie == 3 : nomCategorie = _("contact")
-            dictFamilles[IDfamille] = {"nomsTitulaires" : "", "listeNomsTitulaires" : [], "IDcategorie" : IDcategorie, "nomCategorie" : nomCategorie, "IDcompte_payeur" : IDcompte_payeur }
+            if IDcategorie == 1 : nomCategorie = "représentant"
+            if IDcategorie == 2 : nomCategorie = "enfant"
+            if IDcategorie == 3 : nomCategorie = "contact"
+            dictFamilles[IDfamille] = {"nomsTitulaires" : "", "listeNomsTitulaires" : [],
+                                       "IDcategorie" : IDcategorie, "nomCategorie" : nomCategorie,
+                                       "IDcompte_payeur" : IDcompte_payeur }
         # Recherche des noms des titulaires
         if len(dictFamilles) == 0 : condition = "()"
         if len(dictFamilles) == 1 : condition = "(%d)" % list(dictFamilles.keys())[0]
@@ -475,12 +454,13 @@ class Dialog(wx.Dialog, GestCompo):
         self.Set_Header("liens", texte)
     
         # MAJ du header ID
+        texteID = "???"
         if len(self.dictFamillesRattachees) == 0 :
-            texteID = _("Rattaché à aucune famille | ID : %d") % self.IDindividu
+            texteID = "Rattaché à aucune famille | ID : %d" % self.IDindividu
         if len(self.dictFamillesRattachees) == 1 :
-            texteID = _("Rattaché à 1 famille | ID : %d") % self.IDindividu
+            texteID = "Rattaché à 1 famille | ID : %d" % self.IDindividu
         if len(self.dictFamillesRattachees) > 1 :
-            texteID = _("Rattaché à %d familles | ID : %d") % (len(self.dictFamillesRattachees), self.IDindividu)
+            texteID = "Rattaché à %d familles | ID : %d" % (len(self.dictFamillesRattachees), self.IDindividu)
         self.Set_Header("ID", texteID)
 
     def Annuler(self):

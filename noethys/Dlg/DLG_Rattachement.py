@@ -10,7 +10,7 @@
 
 
 import Chemins
-from Utils import UTILS_Adaptations
+import FonctionsPerso as fp
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
@@ -267,6 +267,7 @@ class Dialog(wx.Dialog):
             return None
 
     def GetData(self):
+        # retourne un tuple de la saisie
         mode = self.mode
         IDcategorie = self.selection_categorie
         titulaire = int(self.ctrl_titulaire.GetValue())
@@ -274,9 +275,12 @@ class Dialog(wx.Dialog):
         IDindividu = self.GetSelectionIDindividu()
         nom = self.ctrl_nom.GetValue()
         prenom = self.ctrl_prenom.GetValue()
+        nom = fp.NoPunctuation(nom)
+        prenom = fp.NoPunctuation(prenom)
         return mode, IDcategorie, titulaire, IDindividu, nom, prenom
 
     def GetDictData(self):
+        # retourne la saisie en un dict
         mode, IDcategorie, titulaire, IDindividu, nom, prenom = self.GetData()
         return {
             "mode":mode,
@@ -318,7 +322,6 @@ class Dialog(wx.Dialog):
         self.EndModal(wx.ID_OK) 
 
     def OnBoutonOk(self, event):
-
         IDindividu = self.GetSelectionIDindividu()
         if IDindividu == None :
             dlg = wx.MessageDialog(self, _("Vous n'avez saisi aucun élément dans la liste !\n\n(Si vous souhaitez créer un individu, cliquez sur 'Saisir un nouvel individu')"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
