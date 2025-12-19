@@ -462,6 +462,22 @@ class  Dialog(wx.Dialog):
             dictDonnees["IDcompte_payeur"] = IDfamille
             dictDonnees["annee"] =annee
             dictDonnees['lanceur'] = 'facturation'
+            # évolution
+            """
+            dlg = DLG_PrixFamille.DlgTarification(self,dictDonnees)
+            lstAnomalies = dlg.TestReprise()
+            if lstAnomalies:
+                mess = "Anomalies dans la pièce 'Niveau famille'\n\n"
+                for txt in lstAnomalies:
+                    mess += txt +"\n"
+                mess += "\nCes lignes sont calculées anormalement, Voulez vous la consulter et la valider?"
+                ret = wx.MessageBox(mess,"RECALCUL FAMILLE",style= wx.YES_NO)
+                if ret == wx.YES:
+                    ret = dlg.ShowModal()
+                if ret in (wx.ID_OK,):
+                   ok = True
+            dlg.Destroy()
+            """
             dlg = DLG_PrixFamille.DlgTarification(self,dictDonnees)
             for ligne in dlg.resultsOlv.modelObjects:
                 if ligne.couleur == wx.RED:

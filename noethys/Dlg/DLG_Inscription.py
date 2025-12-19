@@ -214,14 +214,15 @@ class ListBox(wx.ListBox):
             categories_tarifs.IDcategorie_tarif,
             categories_tarifs.nom,
             categories_tarifs.campeur,
-            categories_tarifs.[IDactivite],
-            True
+            categories_tarifs.IDactivite
         ORDER BY
             categories_tarifs.nom
         ;"""% (IDactivite, conditionCampeur, condGroupe)
 
-        DB.ExecuterReq(req,MsgBox="DLG_Inscription")
-        listeCategories = DB.ResultatReq()
+        ret = DB.ExecuterReq(req,MsgBox="DLG_Inscription")
+        listeCategories = []
+        if ret == 'ok':
+            listeCategories = DB.ResultatReq()
 
         for IDcategorie_tarif, nom, campeur in listeCategories :
             valeurs = { "ID" : IDcategorie_tarif, "nom" : nom, "campeur":campeur}
@@ -420,7 +421,7 @@ class Dialog(wx.Dialog):
 
         if (not infoCategories) or (not infoGroupe):
             mess = "Problème mineur de tarif ou groupe"
-            wx.MessageBox(mess,"DLG_Inscription.OnBoutonOk",style=wx.ICON_WARNIN)
+            wx.MessageBox(mess,"DLG_Inscription.OnBoutonOk",style=wx.ICON_WARNING)
         elif infoCategories["campeur"] == 1 and (not self.ageConnu) and infoGroupe["conditionAge"]:
             mess = "Risque sur la condition d'âge\n\n"
             mess += "Vous avez choisi un tarif campeur, pour un groupe ayant des conditions sur l'âge,\n"

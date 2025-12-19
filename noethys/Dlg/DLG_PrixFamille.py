@@ -1058,6 +1058,20 @@ class DlgTarification(wx.Dialog):
         fOLV.Destroy()
         # fin ActionAjout
 
+    def TestReprise(self):
+        # Vérif du calcul réactualisé des articles
+        lstAnomalies = []
+        # Recueil des données
+        def getLdLines(lignes):
+            ldLines = []
+            for x in lignes:
+                y = {'mtt':x['mtt']}
+                ldLines.append(y)
+            return ldLines
+        ldLinesOrigin = getLdLines(self.dictDonnees['lignes_pieceorigine'])
+        ldLinesActual = getLdLines(self.dictDonnees['lignes_piece'])
+        return lstAnomalies
+
     def Reinitialiser(self):
         self.rappel = not self.rappel
         self.resultsOlv.InitObjectListView(rappel=self.rappel)
@@ -1310,10 +1324,25 @@ if __name__ == "__main__":
         champ = donnee[0]
         valeur = donnee[1]
         dictDonnees[champ] = valeur
-    f = DlgTarification(None, dictDonnees, )
-    app.SetTopWindow(f)
-    if f.ShowModal() == wx.ID_OK:
+    dlg = DlgTarification(None, dictDonnees, )
+    app.SetTopWindow(dlg)
+
+    lstAnomalies = dlg.TestReprise()
+    if lstAnomalies:
+        mess = "Anomalies dans la pièce 'Niveau famille'\n\n"
+        for txt in lstAnomalies:
+            mess += txt + "\n"
+        mess += "\nCes lignes sont calculées anormalement, Voulez vous la consulter et la valider?"
+        ret = wx.MessageBox(mess, "RECALCUL FAMILLE", style=wx.YES_NO)
+        if ret == wx.YES:
+            ret = dlg.ShowModal()
+        if ret in (wx.ID_OK,):
+            ok = True
+    # original direct
+    """  
+    if dlg.ShowModal() == wx.ID_OK:
         print("OKfin_main")
     else:
         print("KC")
+    """
     app.MainLoop()

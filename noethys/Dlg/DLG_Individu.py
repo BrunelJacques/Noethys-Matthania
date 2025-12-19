@@ -8,7 +8,6 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
 from Utils.UTILS_Traduction import _
 import Chemins
 import wx
@@ -18,7 +17,7 @@ import GestionDB
 from Utils import UTILS_Historique
 from Utils import UTILS_Utilisateurs
 from Utils import UTILS_Config
-from Gest.GestionComposition import GestCompo
+#from Gest.GestionComposition import GestCompo
 from Ctrl import CTRL_Photo
 
 from Dlg import DLG_Individu_informations
@@ -31,7 +30,6 @@ from Dlg import DLG_Individu_inscriptions
 from Dlg import DLG_Individu_questionnaire
 from Dlg import DLG_Individu_scolarite
 from Dlg import DLG_Individu_transports
-
 
 class CTRL_header_rattachement(html.HtmlWindow):
     def __init__(self, parent, texte="", hauteur=32,  couleurFond=(255, 255, 255)):
@@ -55,7 +53,7 @@ class CTRL_header_rattachement(html.HtmlWindow):
 
 class Notebook(wx.Notebook):
     # Aiguillage vers toutes les pages de la création d'un individu
-    def __init__(self, parent, id=-1, IDindividu=None, IDfamille=None, dictFamillesRattachees=[]):
+    def __init__(self, parent, id=-1, IDindividu=None, IDfamille=None, dictFamillesRattachees=None):
         wx.Notebook.__init__(self, parent, id, name="notebook_individu", style= wx.BK_DEFAULT | wx.NB_MULTILINE) 
         self.IDindividu = IDindividu
         self.IDfamille = IDfamille
@@ -192,11 +190,11 @@ class Notebook(wx.Notebook):
         # Sauvegarde des données
         page.Sauvegarde()
 
-class Dialog(wx.Dialog, GestCompo):
+class Dialog(wx.Dialog):
     def __init__(self, parent, IDindividu=None,IDfamille=None ,dictRattach={}):
         wx.Dialog.__init__(self, parent, id=-1, name="fiche_individu",style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
-        GestCompo.__init__(self, parent, IDfamille)
-        self.dictRattach.update(dictRattach)
+        #GestCompo.__init__(self, parent, IDfamille)
+        #self.dictRattach.update(dictRattach)
         self.module = "DLG_Individu.Dialog"
         if not IDindividu and hasattr(dictRattach,'IDindividu'):
             IDindividu = dictRattach['IDindividu']
@@ -221,7 +219,7 @@ class Dialog(wx.Dialog, GestCompo):
         else:
             self.dictFamillesRattachees = {}
         
-        self.ctrl_ID = wx.StaticText(self, -1, _("Rattaché à aucune famille | ID : %d") % self.IDindividu)
+        self.ctrl_ID = wx.StaticText(self, -1, "Rattaché à aucune famille | ID : %d"% self.IDindividu)
         self.ctrl_ligne = wx.StaticLine(self, -1)
         self.ctrl_nom = wx.StaticText(self, -1, _("NOM, Prénom"))
         self.ctrl_datenaiss = wx.StaticText(self, -1, _("Date de naissance inconnue"))
