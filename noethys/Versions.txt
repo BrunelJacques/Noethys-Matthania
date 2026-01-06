@@ -1,3 +1,7 @@
+version 1.3.3.36 (06/01/2026)
+- en cours: vérifications lors des facturations
+- correction du bug de controle des parrainages
+
 version 1.3.3.35 (19/12/2025)
 - Correction bug lors d'inscriptions, filtrage des tarifs
 
