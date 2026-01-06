@@ -10,6 +10,7 @@ from Utils.UTILS_Traduction import _
 import Chemins
 import wx
 import datetime
+from FonctionsPerso import Nz
 from operator import attrgetter
 import wx.lib.agw.hyperlink as Hyperlink
 from Ctrl.CTRL_ObjectListView import ObjectListView, ColumnDefn, Filter, CTRL_Outils
@@ -68,7 +69,7 @@ def Calcul(dictDonnees, obj, objects):
         mtt = round(mtt, 2)
         obj.montantCalcul = mtt
         obj.qte = qte
-        obj.force = 'OUI'
+        #obj.force = 'OUI'
 
 def Multilignes(listeOLV, dictDonnees):
     # démultiplication des articles multi lignes
@@ -105,11 +106,13 @@ def NormaliseLignes(lignes):
 def GetLignes999(parent, DB):
     # appel des lignes famille de la piece en cours non facturée ou des factures de l'exercice
     if not parent.facture:
+        # vérif parrainages pour piece famille non facturée
         pGest = GestionPieces.Forfaits(parent, DB=DB)
         pGest.CoherenceParrainages(parent.IDpayeur, DB=DB)
         del pGest
+
     fGest = GestionInscription.Forfaits(parent.parent, DB=DB)
-    listePieces = fGest.GetPieceModif999(parent, parent.IDpayeur, parent.annee,
+    listePieces = fGest.GetPieceModif999(parent, parent.IDpayeur, parent.parent.annee,
                                          facture=parent.facture)
     presence999 = len(listePieces)
     # rassemble les lignes des pièces existantes pour l'exercice
@@ -221,7 +224,7 @@ def FormateLignes(listeOLV, dictDonnees):
             if (obj.montant - obj.montantCalcul) != 0 and obj.condition.lower() != 'sans' and obj.montant != 0:
                 # le calcul a été forcé à un autre montant, conditions non respectée!
                 obj.couleur = wx.RED
-            if obj.montantCalcul != 0 and obj.force == "NON":
+            if obj.montantCalcul != 0 and obj.force == "OUI":
                 obj.couleur = wx.RED
 
 def InserArticles(listeOLV=[], articles=[], dictDonnees={}):
@@ -369,8 +372,7 @@ class OLVtarification(ObjectListView):
         self.parent = parent
         self.facture = facture
         self.IDpayeur = IDpayeur
-        self.periode = periode
-        self.annee = periode[1].year
+        annee = periode[1].year
         self.lstIDprestationsOrigine = []
         self.lstOLVmodele = []
         ObjectListView.__init__(self, parent, *args, **kwds)
@@ -392,10 +394,10 @@ class OLVtarification(ObjectListView):
                             "IDfamille": IDpayeur,
                             "IDactivite": 0,
                             "IDgroupe": None,
-                            "IDinscription": self.annee,
+                            "IDinscription": annee,
                             "db": DB,
-                            "annee": self.annee,
-                            "periode": (self.periode)
+                            "annee": annee,
+                            "periode": (periode)
                             }
 
         self.InitModel()
@@ -413,7 +415,7 @@ class OLVtarification(ObjectListView):
         lignes999 = GetLignes999(self, self.DB)
         lignesPieces = []
 
-        if lignes999 != None:
+        if lignes999:
             self.dictDonnees["origine"] = "modif"
             lignesPieces = NormaliseLignes(lignes999)
         else:
@@ -429,7 +431,8 @@ class OLVtarification(ObjectListView):
         return
 
     def InitObjectListView(self, rappel=False):
-        if rappel:
+        annee = self.parent.annee
+        if rappel or self.facture:
             self.InitModel()
         # composition du listView avec complémentation par les articles communs
         listeOLV = []
@@ -445,7 +448,7 @@ class OLVtarification(ObjectListView):
 
         # puis on ajoute les articles manquants
         if not self.facture and not rappel:
-            listeArticles = GetArticles(self.annee, self.dictDonnees)
+            listeArticles = GetArticles(annee, self.dictDonnees)
             InserArticles(listeOLV, listeArticles, self.dictDonnees)
 
 
@@ -600,11 +603,11 @@ class DlgTarification(wx.Dialog):
         if not 'IDactivite' in self.dictDonneesParent:
             self.dictDonneesParent['IDactivite'] = None
 
-        self.periode = GestionArticle.AnneeAcad(self.DB,
+        periode = GestionArticle.AnneeAcad(self.DB,
                                                 IDactivite=dictDonneesParent[
                                                     "IDactivite"],
                                                 date=dateAnnee)
-        (self.exerciceDeb, self.exerciceFin) = self.periode
+        (self.exerciceDeb, self.exerciceFin) = periode
         self.annee = self.exerciceFin.year
         self.IDcompte_payeur = dictDonneesParent["IDcompte_payeur"]
 
@@ -625,20 +628,20 @@ class DlgTarification(wx.Dialog):
                                                  hauteurHtml=10,
                                                  nomImage="Images/22x22/Smiley_nul.png")
 
-        self.SetBandeau()
+        self.SetBandeau(annee=self.annee)
 
         # conteneur des données
         self.staticbox_facture = wx.StaticBox(self, -1, _("Déjà facturé..."))
         self.staticbox_nonFacture = wx.StaticBox(self, -1,
                                                  _("Non facturé modifiable ..."))
         self.resultsOlv = OLVtarification(self, self.DB, self.IDcompte_payeur,
-                                          self.periode,
+                                          periode,
                                           facture=False, id=1,
                                           name="OLV_Saisie",
                                           style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.LC_HRULES | wx.LC_VRULES)
         self.ctrl_recherche = CTRL_Outils(self, listview=self.resultsOlv)
         self.resultsOlvFact = OLVtarification(self, self.DB, self.IDcompte_payeur,
-                                              self.periode,
+                                              periode,
                                               facture=True, id=2,
                                               name="OLV_Facture",
                                               style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.LC_HRULES | wx.LC_VRULES)
@@ -708,12 +711,12 @@ class DlgTarification(wx.Dialog):
         return ldLignesPiece
 
     def SetExercice(self, annee):
-        # Application de l'année
         # cas d'un deuxième passage après init, l'année a changé
-        if not annee == self.exerciceFin.year:
+        if annee != self.exerciceFin.year:
             dte = datetime.date(annee, self.exerciceFin.month, self.exerciceFin.day)
             periode = GestionArticle.AnneeAcad(self.DB, IDactivite=None, date=dte)
             self.exerciceDeb, self.exerciceFin = periode
+
             # mise à jour de l'olv modifiable
             self.resultsOlv.exerciceFin = self.exerciceFin
             self.resultsOlv.dictDonnees['annee'] = annee
@@ -721,26 +724,9 @@ class DlgTarification(wx.Dialog):
             self.resultsOlv.InitModel()
 
             # mise à jour du bandeau et des factures
-            self.SetBandeau()
+            self.SetBandeau(annee)
             self.MajOlvFact(periode)
 
-        # vérif de la présence d'une inscription
-        if "IDactivite" not in self.resultsOlv.dictDonnees:
-            # Recherche de pièces
-            req = """SELECT Count(pieIDnumPiece)
-                    FROM matPieces
-                    WHERE pieIDcompte_payeur = %d ;""" % self.IDcompte_payeur
-            self.DB.ExecuterReq(req, MsgBox="ExecuterReq")
-            nbrePieces = self.DB.ResultatReq()
-            if nbrePieces == 0:
-                GestionDB.MessageBox(self,
-                                     "Aucune inscription n'existe : Impossible de facturer même un complement",
-                                     titre="DLG_Famille.Init")
-                fGest = GestionInscription.Forfaits(self, self.DB)
-                fGest.NeutraliseReport(self.IDcompte_payeur, None, None)
-                self.DB.Close()
-                self.Destroy()
-                return
         self.obj = None
         self.lastObj = None
         self.resultsOlv.InitObjectListView()
@@ -759,12 +745,11 @@ class DlgTarification(wx.Dialog):
         self.resultsOlvFact.periode = periode
         self.resultsOlvFact.InitObjectListView(rappel=True)
 
-    def SetBandeau(self):
-        self.annee = self.exerciceFin.year
+    def SetBandeau(self,annee):
         texte = "Payeur : " + self.payeur + " - Période du " \
                 + self.exerciceDeb.strftime(
             "%d/%m/%Y") + " au " + self.exerciceFin.strftime("%d/%m/%Y")
-        titre = "NIVEAU FAMILLE - année %s" % str(self.annee)
+        titre = "NIVEAU FAMILLE - année %s" % str(annee)
         self.ctrl_bandeau.ctrl_titre.SetLabel(titre)
         self.ctrl_bandeau.ctrl_intro.SetPage(texte)
 
@@ -947,7 +932,7 @@ class DlgTarification(wx.Dialog):
                                                      IDnumPiece=IDnumPiece,
                                                      IDfamille=self.IDcompte_payeur)
             lstAno = [x for x in tracks if x.couleur == wx.RED]
-            if lstAno:
+            if lstAno :
                 mess = "Etes-vous sûr du montant des lignes en rouge!\n\n"
                 mess += "Vous pouvez les remplacer en enlevant le montant forcé, puis les recréer les montants souhaités avec un autre article non calculé\n\n"
                 mess += "Faut-il valider quand même ?"
@@ -1018,10 +1003,9 @@ class DlgTarification(wx.Dialog):
                 self.ActionAjout(ldLignes)
             del dlg
 
-    def ActionAjout(self, ldLignes, forcer=False):
+    def ActionAjout(self, ldLignes):
         # Ajout d'une ligne
-        fOLV = OLVtarification(self, self.DB, self.IDcompte_payeur, self.periode)
-        ldLignesPlus = fOLV.EnrichirDonnees(ldLignes, forcer=True)
+        ldLignesPlus = self.resultsOlv.EnrichirDonnees(ldLignes, forcer=True)
         if len(ldLignesPlus) > 0:
             lstCodeArt = []
             for ligne in ldLignesPlus:
@@ -1055,30 +1039,47 @@ class DlgTarification(wx.Dialog):
                 self.resultsOlv.CheckItem(ix, True)
             self.CalculSolde()
             self.resultsOlv.Refresh()
-        fOLV.Destroy()
         # fin ActionAjout
 
     def TestReprise(self):
         # Vérif du calcul réactualisé des articles
-        lstAnomalies = []
+        dictDonnees = self.resultsOlv.dictDonnees
         # Recueil des données
-        def getLdLines(lignes):
-            ldLines = []
+        def getDdLines(lignes):
+            ddLines = {}
             for x in lignes:
-                y = {'mtt':x['mtt']}
-                ldLines.append(y)
-            return ldLines
-        ldLinesOrigin = getLdLines(self.dictDonnees['lignes_pieceorigine'])
-        ldLinesActual = getLdLines(self.dictDonnees['lignes_piece'])
+                if Nz(x['montant']) != 0:
+                    montant = Nz(x['montant'])
+                else: montant = x['montantCalcul']
+                if x['codeArticle'][:6] in ddLines:
+                    ddLines[x['codeArticle'][:6]]['mtt'] += montant
+                else:
+                    ddLines[x['codeArticle'][:6]] = {'article':x['codeArticle'][:6],
+                                                  'libel':x['libelle'],
+                                                  'mtt':montant}
+            return ddLines
+        ddLinesOrigin = getDdLines(dictDonnees['lignes_pieceOrigine'])
+        tracks = self.resultsOlv.GetObjects()
+        ddLinesActual = getDdLines([x.__dict__ for x in tracks])
+        lstAnomalies = []
+        for key, dic in ddLinesActual.items():
+            ano = ""
+            if not key in ddLinesOrigin:
+                ano = f"Manque {key}: {dic['libel']}, non appelé pour {dic['mtt']} ¤"
+            elif ddLinesOrigin[key]['mtt'] != dic['mtt']:
+                montant = ddLinesOrigin[key]['mtt'] - dic['mtt']
+                ano = f"Ecart sur {key}: {dic['libel']}, d'un montant de {montant} ¤"
+            if ano:
+                lstAnomalies.append(ano)
         return lstAnomalies
 
     def Reinitialiser(self):
+        # le premier clic recalcule, le second réinitialise
         self.rappel = not self.rappel
         self.resultsOlv.InitObjectListView(rappel=self.rappel)
         self.PreCoche()
         self.CalculSolde()
         self.resultsOlv.Refresh()
-        # self.SupprimeDejaFacture()
 
     def OnKeyDown(self, event):
         pass
@@ -1295,54 +1296,31 @@ class Hyperlien(Hyperlink.HyperLinkCtrl):
 # --------------------Lancement de test ----------------------------------------------
 if __name__ == "__main__":
     app = wx.App(0)
-    listeDonnees = [
-        ("origine", "modif"),
-        ('lanceur', "individu"),
-        ("IDindividu", 4616),
-        ("IDfamille", 4616),
-        ("IDactivite", 421),
-        ("IDgroupe", 442),
-        ("IDcategorie_tarif", 795),
-        ("nature", "COM"),
-        ("noFacture", 0),
-        ("IDcompte_payeur", 4616),
-        ("IDinscription", 0),
-        ("date_inscription", datetime.date.today()),
-        ("parti", False),
-        ("nom_activite", "Sejour 41"),
-        ("nom_payeur", "ma famille"),
-        ("nom_groupe", "Groupe Pasto Plus"),
-        ("nom_categorie_tarif", "Tarif Normal"),
-        ("nom_individu", "nom de  l'individu"),
-        ("lignes_piece", [{'utilisateur': 'NoName', 'quantite': 1, 'montant': 480.5,
-                           'codeArticle': 'SEJ_CORSE_S1',
-                           'libelle': 'Séjour Jeunes Corse S1', 'IDnumPiece': 5,
-                           'prixUnit': 480.0, 'date': '2016-07-24', 'IDnumLigne': 128}]),
-    ]
-    dictDonnees = {}
-    for donnee in listeDonnees:
-        champ = donnee[0]
-        valeur = donnee[1]
-        dictDonnees[champ] = valeur
-    dlg = DlgTarification(None, dictDonnees, )
-    app.SetTopWindow(dlg)
 
-    lstAnomalies = dlg.TestReprise()
-    if lstAnomalies:
-        mess = "Anomalies dans la pièce 'Niveau famille'\n\n"
-        for txt in lstAnomalies:
-            mess += txt + "\n"
-        mess += "\nCes lignes sont calculées anormalement, Voulez vous la consulter et la valider?"
-        ret = wx.MessageBox(mess, "RECALCUL FAMILLE", style=wx.YES_NO)
-        if ret == wx.YES:
+    """dictDonnees = {'IDcompte_payeur': 9810, 'IDfamille': 9810, 'lanceur': 'famille'}"""
+    dictDonnees = {'IDactivite': 0, 'IDcompte_payeur': 9810, 'annee': 2026, 'lanceur': 'facturation', 'pieIDinscription': 2026}
+    dlg = DlgTarification(None, dictDonnees, )
+    # lancement simulé modif nature pièce
+    try:
+        lstAnomalies = dlg.TestReprise()
+        if lstAnomalies:
+            mess = "Anomalies dans la pièce 'Niveau famille'\n\n"
+            for txt in lstAnomalies:
+                mess += txt + "\n"
+            mess += "\nLe niveau famille semble facturé anormalement, Voulez vous consulter ou corriger?"
+            ret = wx.MessageBox(mess, "RECALCUL FAMILLE", style=wx.YES_NO | wx.ICON_WARNING)
+            if ret == wx.YES:
+                ret = dlg.ShowModal()
+            if ret in (wx.ID_OK,):
+                ok = True
+        else:
+            print("Aucune anomalie")
             ret = dlg.ShowModal()
-        if ret in (wx.ID_OK,):
-            ok = True
-    # original direct
-    """  
-    if dlg.ShowModal() == wx.ID_OK:
-        print("OKfin_main")
-    else:
-        print("KC")
-    """
+    except Exception as err:
+        print("pas de paramètres suffisant pour tests, lancé direct\n",err)
+        # lancement original direct 'famille'
+        if dlg.ShowModal() == wx.ID_OK:
+            print("OKfin_main")
+        else:
+            print("KC")
     app.MainLoop()

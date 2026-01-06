@@ -123,7 +123,8 @@ class Forfaits():
             recordset = DB.ResultatReq()
             dicInscriptions = GestionInscription.RecordsetToDict(lstChampsInscr, recordset)
             if recordset:
-                dicInscriptions['nom'] += f" {dicInscriptions['nom']}"
+                for id, dic in dicInscriptions.items():
+                    dicInscriptions[id]['nom'] += f" {dicInscriptions[id]['prenom']}"
         lstInscr = [x for x in dicInscriptions.keys()]
 
 

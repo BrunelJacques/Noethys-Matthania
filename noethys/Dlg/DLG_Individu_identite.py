@@ -281,7 +281,7 @@ class Panel_identite(wx.Panel):
         if len(prenom.strip()) > 0:
             txt += ", %s" % (prenom)
         self.Set_Header(nomLigne="nom", texte= txt)
-        if event != None :
+        if event:
             event.Skip()
 
     def OnKillFocusNom(self, event):
@@ -317,7 +317,8 @@ class Panel_identite(wx.Panel):
             if sexe == "F" : texte = _("Née le %s (%d ans)") % (dateFR, age)
             if age != None : self.ctrl_age.SetValue(_("%d ans") % age)
         self.Set_Header(nomLigne="datenaiss", texte=texte)
-        if event != None : event.Skip() 
+        if event:
+            event.Skip()
         
     def OnChoiceCivilite(self, event):
         # Signale que c'est une rubrique qui a été sélectionnée
@@ -590,7 +591,7 @@ class Panel_identite(wx.Panel):
         if genre == None :
             self.ctrl_civilite.SetFocus()
         else:
-            if IDcategorie == 1 and genre == "M" : IDcivilite = 1
+            IDcivilite = 1
             if IDcategorie == 1 and genre == "F" : IDcivilite = 3
             if IDcategorie == 2 and genre == "M" : IDcivilite = 4
             if IDcategorie == 2 and genre == "F" : IDcivilite = 5
@@ -600,8 +601,6 @@ class Panel_identite(wx.Panel):
         self.OnChoiceCivilite(None)
 
     def RechercheGenre(self, prenom=""):
-        import FonctionsPerso
-        #prenom = FonctionsPerso.supprime_accent(prenom)
         """ Recherche le genre de l'individu suivant son prénom """
         db = GestionDB.DB(nomFichier=Chemins.GetStaticPath("Databases/Prenoms.dat"), suffixe=None)
         req = """SELECT prenom, genre

@@ -463,29 +463,15 @@ class  Dialog(wx.Dialog):
             dictDonnees["annee"] =annee
             dictDonnees['lanceur'] = 'facturation'
             # évolution
-            """
             dlg = DLG_PrixFamille.DlgTarification(self,dictDonnees)
             lstAnomalies = dlg.TestReprise()
             if lstAnomalies:
+                ok = False
                 mess = "Anomalies dans la pièce 'Niveau famille'\n\n"
                 for txt in lstAnomalies:
                     mess += txt +"\n"
-                mess += "\nCes lignes sont calculées anormalement, Voulez vous la consulter et la valider?"
-                ret = wx.MessageBox(mess,"RECALCUL FAMILLE",style= wx.YES_NO)
-                if ret == wx.YES:
-                    ret = dlg.ShowModal()
-                if ret in (wx.ID_OK,):
-                   ok = True
-            dlg.Destroy()
-            """
-            dlg = DLG_PrixFamille.DlgTarification(self,dictDonnees)
-            for ligne in dlg.resultsOlv.modelObjects:
-                if ligne.couleur == wx.RED:
-                    ok = False
-            if not ok:
-                mess = "Anomalies dans la fiche famille\n\n"
-                mess += "Présence de lignes rouges dans la pièce famille, Voulez vous la consulter et la valider?"
-                ret = wx.MessageBox(mess,"RECALCUL FAMILLE",style= wx.YES_NO)
+                mess += "\nVoulez vous consulter ou modifier une proposition de correction?"
+                ret = wx.MessageBox(mess,"RECALCUL FAMILLE",style= wx.YES_NO|wx.ICON_WARNING)
                 if ret == wx.YES:
                     ret = dlg.ShowModal()
                 if ret in (wx.ID_OK,):
@@ -493,6 +479,7 @@ class  Dialog(wx.Dialog):
             dlg.Destroy()
             if not ok:
                 okfin = False
+                break
         # Mise à jour de l'affichage
         self.MAJ()
         return okfin

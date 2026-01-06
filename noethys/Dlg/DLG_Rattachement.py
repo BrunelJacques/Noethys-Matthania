@@ -275,8 +275,8 @@ class Dialog(wx.Dialog):
         IDindividu = self.GetSelectionIDindividu()
         nom = self.ctrl_nom.GetValue()
         prenom = self.ctrl_prenom.GetValue()
-        nom = fp.NoPunctuation(nom)
-        prenom = fp.NoPunctuation(prenom)
+        nom = fp.NoPunctuation(nom).strip()
+        prenom = fp.NoPunctuation(prenom).strip()
         return mode, IDcategorie, titulaire, IDindividu, nom, prenom
 
     def GetDictData(self):
