@@ -67,15 +67,19 @@ def OlvToDict(self,listeChamps,track):
         # pour tous les champs on peut aussi utiliser diretement : self.GetSelectedObject().__dict__
         dictDonnees = {}
         for champ in listeChamps:
-            dictDonnees["%s" %champ] = track.__dict__["%s" % champ]
+            if hasattr(track, f"{champ}"):
+                dictDonnees["%s" %champ] = track.__dict__["%s" % champ]
         return dictDonnees
 
 # ---------------------------------------- LISTVIEW DATES -----------------------------------------------------------------------
 
 class Track(object):
     def __init__(self, track):
-        if isinstance(track["commentaire"],memoryview):
-            track["commentaire"] = ""
+        try:
+            if isinstance(track["commentaire"],memoryview):
+                track["commentaire"] = ""
+        except:
+            pass
         self.__dict__ = copy.deepcopy(track)
 
 class ListView(ObjectListView):

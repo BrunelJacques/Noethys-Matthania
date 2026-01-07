@@ -211,7 +211,7 @@ def GetArticles(annee, dictDonnees):
     return lignesModel
     # fin GetArticles
 
-def FormateLignes(listeOLV, dictDonnees):
+def ColorLignes(listeOLV, dictDonnees):
     # colorisation des lignes
     for obj in listeOLV:
         if 'nature' in dictDonnees and dictDonnees['nature'] in ('FAC', 'AVO'):
@@ -219,13 +219,23 @@ def FormateLignes(listeOLV, dictDonnees):
         else:
             # cas des lignes modifiables
             obj.couleur = wx.BLUE
-            if obj.condition == 'Sans' or obj.montant != 0:
+            avecCondition = True
+            if obj.condition in ('Sans',None,'ZZZ',''):
+                avecCondition = False
+            avecCalcul = True
+            if obj.modeCalcul in ('Sans',None,''):
+                avecCalcul = False
+            if obj.codeArticle[0] != '$' or obj.montant != 0:
+                # lignes ajoutées ou montant modifié
                 obj.couleur = wx.BLACK
-            if (obj.montant - obj.montantCalcul) != 0 and obj.condition.lower() != 'sans' and obj.montant != 0:
-                # le calcul a été forcé à un autre montant, conditions non respectée!
+            if avecCalcul and obj.montant != 0 and (obj.montant - obj.montantCalcul) != 0:
+                # le calcul a été forcé à un autre montant
                 obj.couleur = wx.RED
-            if obj.montantCalcul != 0 and obj.force == "OUI":
+            if avecCondition and obj.montantCalcul == 0 and obj.montant != 0:
+                # condition non respectée
                 obj.couleur = wx.RED
+            if 'faux' in obj.origine:
+                obj.couleur = wx.GREEN
 
 def InserArticles(listeOLV=[], articles=[], dictDonnees={}):
     # ajout des articles manquant dans olv et retraitement de l'antérieur.
@@ -459,7 +469,7 @@ class OLVtarification(ObjectListView):
         self.listeOLV = sorted(listeOLV, key=attrgetter('ordre'))
         if self.facture:
             # Pour les devis c"est chaque calcul qui formate les lignes
-            FormateLignes(self.listeOLV,self.dictDonnees)
+            ColorLignes(self.listeOLV, self.dictDonnees)
 
         # Couleur en alternance des lignes
         self.oddRowsBackColor = "#F0FBED"
@@ -593,7 +603,6 @@ class DlgTarification(wx.Dialog):
                            style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX,
                            size=(800, 600))
         self.dictDonneesParent = dictDonneesParent
-
         self.DB = GestionDB.DB()
         if 'annee' in dictDonneesParent:
             dateAnnee = datetime.date(dictDonneesParent['annee'], 1, 1)
@@ -732,9 +741,9 @@ class DlgTarification(wx.Dialog):
         self.resultsOlv.InitObjectListView()
         self.resultsOlvFact.InitObjectListView()
         self.dataorigine = [copy.deepcopy(x) for x in self.resultsOlv.listeOLV]
+        self.DeduitDejaFacture()
         self.PreCoche()
         self.CalculSolde()
-        self.SupprimeDejaFacture()
         return
 
     def MajOlvFact(self, periode):
@@ -1159,41 +1168,70 @@ class DlgTarification(wx.Dialog):
             obj.montantCalcul = round(float(Nz(obj.montantCalcul)), 2)
         self.ctrl_solde.SetSolde(round(total, 2))
         self.total = round(total, 2)
-        FormateLignes(objects, self.resultsOlv.dictDonnees)
+        ColorLignes(objects, self.resultsOlv.dictDonnees)
         self.resultsOlv.RefreshObjects(objects)
         # fin CalculSolde
 
-    def SupprimeDejaFacture(self):
-        dictSuppression = {}
-        dictDecompte = {}
+    def DeduitDejaFacture(self):
+        dictCorrige = {}
+        dictInFact = {}
+        dictInCalc = {}
+        def addDic(dic,key,obj):
+            # ajoute le montant ou crée la clé dans le dic, si mtt != 0.0
+            if obj.montant == 0.0:
+                mtt = obj.montantCalcul
+            else: mtt = obj.montant
+            if mtt == 0.0:
+                return
+            if key in dic:
+                dic[key]['mtt'] += mtt
+                dic[key]['articles'].append((obj.codeArticle, mtt))
+            else:
+                dic[key] = {'mtt':mtt,'articles':[(obj.codeArticle,mtt),]}
+
+        # regroupement des lignes facturées et calculées en devis
+        for obj in self.resultsOlvFact.listeOLV:
+            addDic(dictInFact,obj.codeArticle[:6],obj)
         for obj in self.resultsOlv.listeOLV:
-            testFact = False
-            for objfac in self.resultsOlvFact.listeOLV:
-                if (objfac.codeArticle, objfac.libelle) == (obj.codeArticle, obj.libelle):
-                    testFact = True
-            if testFact:
-                # normalisation du montant
-                if obj.montant == 0:
-                    mtt = obj.montantCalcul
-                else:
-                    mtt = obj.montant
-                # cumul des  montants par code article
-                if obj.codeArticle in dictSuppression:
-                    dictSuppression[str(obj.codeArticle)] += mtt
-                    dictDecompte[str(obj.codeArticle)] += 1
-                else:
-                    dictSuppression[str(obj.codeArticle)] = mtt
-                    dictDecompte[str(obj.codeArticle)] = 1
-        # suppression des articles dont le total du montant est à zéro
-        for code in list(dictSuppression.keys()):
-            if dictSuppression[str(code)] == 0:
-                while dictDecompte[str(code)] > 0:
-                    for obj in self.resultsOlv.listeOLV:
-                        if obj.codeArticle == code:
-                            self.resultsOlv.listeOLV.remove(obj)
-                    dictDecompte[str(code)] -= 1
-        return
-        # fin SupprimeDejaFacture
+            # les articles optionnels peuvent être redondants
+            if obj.codeArticle[0] != '$':
+                continue
+            addDic(dictInCalc,obj.codeArticle[:6],obj)
+        # recherche doublons
+        for key,dic in dictInCalc.items():
+            if not key in dictInFact or round(dictInFact[key]['mtt'],2) == 0.0:
+                # non facturé ou déjà affecté
+                continue
+            # présence du déjà facturé
+            if dictInFact[key]['mtt'] > 0.0:
+                sign = 1
+            else: sign = -1
+            # négatifs possibles
+            mttcortotal = min(sign * dictInFact[key]['mtt'], sign * dictInCalc[key]['mtt'])
+            mttcortotal *= sign
+            # préparer la réduction à appliquer par article
+            for article, mtt in dictInCalc[key]['articles']:
+                mttcorr = sign * min(sign * mttcortotal,sign * mtt)
+                dictCorrige[article] = mttcorr
+                mttcortotal -= mttcorr
+                if round(mttcortotal,2) == 0.0:
+                    break
+            # appliquer la réduction
+            for obj in self.resultsOlv.listeOLV:
+                if obj.codeArticle in dictCorrige:
+                    if obj.montant == 0.0:
+                        mtt = obj.montantCalcul
+                    else: mtt = obj.montant
+                    mttcorr = sign * min(sign * dictCorrige[obj.codeArticle], sign * mtt)
+                    if obj.montantCalcul != 0.0:
+                        obj.montantCalcul -= mttcorr
+                    if obj.montant != 0.0:
+                        obj.montant -= mttcorr
+                    dictCorrige[obj.codeArticle] -= mttcorr
+                    if obj.montant == 0.0 and obj.montantCalcul == 0.0:
+                        obj.force = "NON"
+                        obj.qte = 0
+        # fin DeduitDejaFacture
 
     def RazUnchecked(self):
         objects = self.resultsOlv.GetObjects()

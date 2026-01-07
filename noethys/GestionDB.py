@@ -309,9 +309,7 @@ class DB():
         try :
             if self.isNetwork and self.connexion.open != 0:
                 self.connexion.close()
-                del DICT_CONNEXIONS[self.IDconnexion]
-                del IX_CONNEXION["pointeurs"][self.IDconnexion]
-            elif not self.isNetwork:
+            if self.IDconnexion in DICT_CONNEXIONS:
                 del DICT_CONNEXIONS[self.IDconnexion]
                 del IX_CONNEXION["pointeurs"][self.IDconnexion]
         except Exception as err:
@@ -562,7 +560,8 @@ class DB():
         self.retourReq = "ok"
         try:
             self.cursor.execute(req)
-            DICT_CONNEXIONS[self.IDconnexion].append(req)
+            if self.IDconnexion in DICT_CONNEXIONS:
+                DICT_CONNEXIONS[self.IDconnexion].append(req)
             if commit: self.Commit()
         except Exception as err:
             self.retourReq = self.ErrCursor(req,err)

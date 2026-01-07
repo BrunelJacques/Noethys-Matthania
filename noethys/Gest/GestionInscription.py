@@ -861,11 +861,13 @@ class Forfaits():
         self.nbPieces = len(lstPieces)
         if self.nbPieces == 0 :
             return []
+
+        # complète dans des dict pour y mettre les lignes de pièce
         listeChampsLignes = []
         for descr in dicoDB["matPiecesLignes"]:
             nomChamp = descr[0]
             listeChampsLignes.append(nomChamp)
-        listePieces = []
+        ldPieces = []
         for piece in lstPieces:
             dictPiece = DictTrack(listeChamps,piece)
             # Appel des lignes de la pièce pour ajouter dans le dictPiece
@@ -881,8 +883,8 @@ class Forfaits():
                     listeLignes.append(DictTrack(listeChampsLignes,ligne,prefixe="lig"))
                 dictPiece["lignes_piece"] = listeLignes
                 dictPiece["nom_payeur"] = self.DB.GetNomFamille(self.IDcomptePayeur)
-                listePieces.append(dictPiece)
-        return listePieces
+                ldPieces.append(dictPiece)
+        return ldPieces
         #fin GetPieceModif999
 
     def GetPiece_Supprimer(self, parent, IDinscription, IDindividu, IDactivite):

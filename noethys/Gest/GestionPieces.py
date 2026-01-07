@@ -106,16 +106,16 @@ class Forfaits():
             SELECT  matPieces.pieIDinscription, min(matPieces.pieDateCreation), min(matPieces.pieIDfamille),
                     activites.abrege, individus.nom,individus.prenom, 
                     Sum(matPiecesLignes.ligMontant)
-            FROM    (matPieces 
+            FROM    ((matPieces 
                     LEFT JOIN individus ON matPieces.pieIDindividu = individus.IDindividu) 
-                    LEFT JOIN matPiecesLignes ON matPieces.pieIDnumPiece = matPiecesLignes.ligIDnumPiece
+                    LEFT JOIN matPiecesLignes ON matPieces.pieIDnumPiece = matPiecesLignes.ligIDnumPiece)
                     LEFT JOIN activites ON matPieces.pieIDactivite = activites.IDactivite
             WHERE (((   matPieces.pieIDparrain= %d) AND (matPieces.pieParrainAbandon = 0))
                         OR ((matPieces.pieIDfamille = %d) AND (matPieces.pieParrainAbandon <> 0)))
                     AND (matPieces.pieNature <> 'AVO')                 
             GROUP BY matPieces.pieIDinscription, individus.nom,individus.prenom,activites.abrege;
             """ %(IDfamille,IDfamille)
-        retour = DB.ExecuterReq(req, MsgBox="GestionPiece.CoherenceParrainages1")
+        retour = DB.ExecuterReq(req,MsgBox="GestionPiece.CoherenceParrainages1" )
         dicInscriptions = {}
         lstChampsInscr = ["IDinscription","date", "IDfamille", "activite",
                           "nom", "prenom", "montant"]

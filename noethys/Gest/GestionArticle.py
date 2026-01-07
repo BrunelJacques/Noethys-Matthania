@@ -1142,12 +1142,6 @@ def ArticlePreExist(article, ligne, dictDonnees):
 
     # CAS PARRAINAGE: les articles ont pu être renumérotés
     if article.codeArticle[:6] == '$$PARR' and ligne.codeArticle[:6] == '$$PARR':
-        """
-        # Supprime les parrainages antérieurement choisis
-        for lignePiece in dictDonnees["lignes_piece"]:
-            if lignePiece["codeArticle"] == article.codeArticle:
-                supprimer = True
-        """
         # recherce dans le dicParr
         dicParrainage = dictDonnees['dicParrainages']
         for IDinscr, dicParr in list(dicParrainage.items()):
@@ -1187,15 +1181,17 @@ def ArticlePreExist(article, ligne, dictDonnees):
 
     # Autres cas
     elif ligne.codeArticle == article.codeArticle:
+        # article présent
         if ligne.montant == article.montantCalcul:
             artPres = True
-            ligne.montantCalcul = article.montantCalcul
-            ligne.oldValue = article.montantCalcul
             ligne.force = "OUI"
         else:
-            article.oldValue = article.montantCalcul
-            ligne.montantCalcul = article.montantCalcul
-            ligne.oldValue = article.montantCalcul
+            # mais montant différent, le nouveau calcul sera présent
+            ligne.force = "NON"
+            ligne.origine += "_faux"
+        ligne.montantCalcul = article.montantCalcul
+        ligne.oldValue = article.montantCalcul
+
     return artPres, supprimer, brk
 
 class ActionsModeCalcul() :

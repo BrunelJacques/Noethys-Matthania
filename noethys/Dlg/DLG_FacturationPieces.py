@@ -131,7 +131,7 @@ class PnlFactures(wx.Panel):
         #self.olv_piecesFiltrees.MAJ()
         #self.Refresh()
 
-class  Dialog(wx.Dialog):
+class Dialog(wx.Dialog):
     def __init__(self, parent, IDpayeur=None):
         wx.Dialog.__init__(self, parent, -1, pos=(3,3),  style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX)
         self.parent = parent
@@ -356,8 +356,6 @@ class  Dialog(wx.Dialog):
 
     def OnBoutonAnnuler(self,event):
         self.listviewAvecFooter.ctrl_footer.listview.DB.Close()
-        self.olv_piecesFiltrees.DB.Close()
-        self.ctrl_factures.listviewAvecFooter.ctrl_listview.DB.Close()
         self.DB.Close()
         if self.IsModal():
             self.EndModal(wx.ID_OK)
@@ -435,6 +433,19 @@ class  Dialog(wx.Dialog):
         self.MAJ()
         #fin OnBoutonOK
 
+    def GetPieceFamille(self,annee):
+        # return liste d'objets track de pièces niveau famille
+        fGest = GestionInscription.Forfaits(self, DB=self.DB)
+        ldPiece = fGest.GetPieceModif999(self,self.IDpayeur,annee)
+        return  [OL_FacturationPieces.Track(x) for x in ldPiece]
+
+    def Is999inObjects(self,piece,objects):
+        ok = False
+        for obj in objects:
+            if piece == obj:
+                ok = True
+        return ok
+
     def VerifierFamille(self,objects):
         # Recherche de l'année des pièces devant migrer
         lstActivites = []
@@ -455,15 +466,19 @@ class  Dialog(wx.Dialog):
             if not exerciceFin.year in lstAnnees:
                 lstAnnees.append(exerciceFin.year)
                 lstActivites.append(track.IDactivite)
-        for annee in lstAnnees:
+
+        dlg = None
+        for annee in sorted(lstAnnees,reverse=True):
             ok = True
             dictDonnees["IDactivite"] = 0
             dictDonnees["pieIDinscription"] = annee
             dictDonnees["IDcompte_payeur"] = IDfamille
             dictDonnees["annee"] =annee
             dictDonnees['lanceur'] = 'facturation'
-            # évolution
-            dlg = DLG_PrixFamille.DlgTarification(self,dictDonnees)
+            if not dlg:
+                dlg = DLG_PrixFamille.DlgTarification(self,dictDonnees)
+            else:
+                dlg.SetExercice(annee)
             lstAnomalies = dlg.TestReprise()
             if lstAnomalies:
                 ok = False
@@ -475,11 +490,17 @@ class  Dialog(wx.Dialog):
                 if ret == wx.YES:
                     ret = dlg.ShowModal()
                 if ret in (wx.ID_OK,):
-                   ok = True
-            dlg.Destroy()
+                    ok = True
+                    # Ajout la pièce niveau famille à la liste si elle n'y était pas
+                    lstPiece999 = self.GetPieceFamille(annee)
+                    for piece in lstPiece999:
+                        if not self.Is999inObjects(piece,objects):
+                            objects.append(piece)
             if not ok:
                 okfin = False
                 break
+        if dlg:
+            dlg.Destroy()
         # Mise à jour de l'affichage
         self.MAJ()
         return okfin
