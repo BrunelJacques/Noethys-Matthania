@@ -24,6 +24,17 @@ def Nz(valeur):
 
 # Listes de parametres :
 
+def AvecCondition(obj):
+    if obj.condition in ('Sans',None,'ZZZ',''):
+        return False
+    return True
+
+def AvecCalcul(obj):
+    if obj.modeCalcul in ('Sans',None,''):
+        return False
+    return True
+
+
 LISTEnaturesPieces = [
         ("DEV", "Devis", "Le devis n'enregistre pas de consommation, seulement l'inscription", ),
         ("RES", "Reservation", "La réservation enregistre l'inscription, la consommation pas la prestation", ),
@@ -938,7 +949,7 @@ def MultiParrain(codeArticle,dictDonnees,listeOLV):
                 nbj = NbreJoursActivite(DB,None,None,IDinscription=dicParr['parIDinscription'])
                 qte = 0
                 if nbj > 6 : qte = 1
-                modele.qte = qte
+                modele.quantite = qte
                 modele.montantCalcul = Nz(qte) * Nz(modele.prixUnit)
                 modele.montant = Nz(qte) * Nz(modele.prixUnit)
                 modele.modeCalcul = 'Sans'
@@ -1043,7 +1054,7 @@ def CalNuits(track, tracks, dictDonnees) :
 
 def CalReduction(track, tracks, dictDonnees) :
     if track.saisie :
-        qte = track.qte
+        qte = track.quantite
     else:
         qte = 0
     mtt = qte * track.prixUnit
@@ -1061,6 +1072,7 @@ def CalRedSejour(track, tracks, dictDonnees):
     return 1,calcul
 
 def CalRedCumul(track, tracks, dictDonnees) :
+
     if not 'dicCumul' in list(dictDonnees.keys()):
         CondCumul(dictDonnees,track.codeArticle)
     # réduction selon le nombre de camps >=6 nuits et enfants >=6 ans
@@ -1079,7 +1091,6 @@ def CalRedCumul(track, tracks, dictDonnees) :
             montant -= LISTEredCumul[ix]
     montant += dictDonnees['dicCumul']['mtReduc']
     montant = round(montant,2)
-    #if track.libelle[-1:] == "%": track.libelle = track.libelle[:-i]
 
     # intègre le nombre d'inscriptions dans le lbellé de réduction
     track.libelle = track.libelleArticle.replace('{nbInscr}',txt)
@@ -1102,7 +1113,7 @@ def CalAnnuelle(track, tracks, dictDonnees) :
         present=ArticlePresent(DB,codeArticle,listeIDnumPiece)
         if present:
             track.libelle = "Justificatif à fournir année " + annee + " : " + track.libelle
-            track.qte = 0
+            track.quantite = 0
             qte,mtt = 0,0
     return qte,mtt
 
@@ -1122,13 +1133,13 @@ def CalAbParrain(track, tracks, dictDonnees) :
     else:
         qte = 0
     track.libelle = "Parrainage abandonné par le parrain"
-    track.qte = qte
+    track.quantite = qte
     montant = track.prixUnit * qte
     return qte,montant
 
 def CalParrain(track, *args) :
     # Les calculs ont été fait lors de la génération de la ligne; cf multiParrain
-    qte,mtt = track.qte,track.montantCalcul
+    qte,mtt = track.quantite,track.montantCalcul
     return qte,mtt
     #fin CalParrain
 
@@ -1137,60 +1148,48 @@ def ArticlePreExist(article, ligne, dictDonnees):
     brk = False # provoquera un break dans 'for ligne in listeOLV'
     artPres = False
     supprimer = False
-    article.origine = "lignart"
+    article.origine = "article_ligne"
+    ligne.origine = "ligne_article"
+    # C'est l'article qui sera retenu, il faut donc l'alimenter de parties de la ligne
     article.force = "OUI"
+    article.saisie = True
+    article.oldValue = ligne.oldValue
+    #print('PreExist', article.oldLibelle,ligne.oldLibelle)
+    article.oldLibelle = ligne.oldLibelle
+    #print('PreExist2',ligne.libelleArticle,article.libelle)
+    ligne.libelleArticle = article.libelle
+    if ligne.montant == article.montantCalcul or ligne.montant == 0.0:
+            artPres = True
+            ligne.force = "OUI"
+    else:
+        # mais montant différent, le nouveau calcul sera présent
+        ligne.force = "NON"
+        ligne.origine += "_faux"
+        if AvecCalcul(ligne):
+            ligne.quantite = article.quantite
+            ligne.montant = article.montantCalcul
+
+    ligne.montantCalcul = article.montantCalcul
 
     # CAS PARRAINAGE: les articles ont pu être renumérotés
     if article.codeArticle[:6] == '$$PARR' and ligne.codeArticle[:6] == '$$PARR':
-        # recherce dans le dicParr
+        # recherche dans le dicParr
         dicParrainage = dictDonnees['dicParrainages']
         for IDinscr, dicParr in list(dicParrainage.items()):
+            brk = True
             if ligne.IDnumLigne and article.IDinscription:
                 if ligne.IDnumLigne == dicParr[
                     'IDligneParrain'] and article.IDinscription == IDinscr:
                     article.oldValue = ligne.montant
                     article.IDnumLigne = ligne.IDnumLigne
                     article.IDnumPiece = ligne.IDnumPiece
-                    if 'ok' in dicParr["ligneChoix"]:
-                        article.force = "OUI"
+                    if not 'ok' in dicParr["ligneChoix"]:
+                        article.force = "NON"
                     brk = False
 
     # CAS réduction cumul
-    elif (ligne.codeArticle == "$RED-CUMUL") and (ligne.codeArticle == article.codeArticle):
-        artPres = True
-        if ligne.montant == article.montantCalcul:
-            ligne.montantCalcul = article.montantCalcul
-            ligne.oldValue = article.montantCalcul
-        elif 'lig' in ligne.origine:
-            ligne.montantCalcul = article.montantCalcul
-        else:
-            artPres = False
-            supprimer = True
-            article.oldValue = article.montantCalcul
-            if ligne.saisie :
-                article.montant = ligne.montant
-                if ligne.qte and ligne.qte !=0:
-                    article.qte = ligne.qte
-                article.libelle = ligne.libelle
-                brk = True
-            article.prixUnit = 1
-            if article.qte != 0:
-                article.prixUnit = article.oldValue / article.qte
-        article.force = "OUI"
-        article.saisie = True
-
-    # Autres cas
-    elif ligne.codeArticle == article.codeArticle:
-        # article présent
-        if ligne.montant == article.montantCalcul:
-            artPres = True
-            ligne.force = "OUI"
-        else:
-            # mais montant différent, le nouveau calcul sera présent
-            ligne.force = "NON"
-            ligne.origine += "_faux"
-        ligne.montantCalcul = article.montantCalcul
-        ligne.oldValue = article.montantCalcul
+    elif (ligne.codeArticle == "$RED-CUMUL") and '{' in article.libelle:
+            ligne.libelle = article.libelle
 
     return artPres, supprimer, brk
 
@@ -1200,6 +1199,7 @@ class ActionsModeCalcul() :
 
         # Lancement de la fonction définie ci-dessus, retour du résultat
         def ModeCalcul(self,track,tracks):
+            if not tracks: track = [] # used in text for 'eval'
             qte,mtt= None,None
             modeCalcul = track.modeCalcul
             fonction = "KO"
@@ -1215,11 +1215,12 @@ class ActionsModeCalcul() :
             if fonction == "KO":
                 GestionDB.MessageBox(None, "Le mode de calcul '%s' de l'article '%s' n'est plus géré!" % (modeCalcul,track.codeArticle) ,titre = "Article: calcul obsolète !")
             else:
-                if fonction != None:
+                if fonction:
                     if fonction not in globals():
                         GestionDB.MessageBox(None, "La fonction '%s' est dans la liste des modes de calcul mais pas programmée dans GestionArticle.ActionsModeCalcul!" % fonction ,titre = "Erreur Programmation !")
                     else:
                         qte,mtt = eval(fonction + '(track,tracks,self.dictDonnees)')
+
             return qte,mtt
             #fin ModeCalcul
 
@@ -1227,7 +1228,7 @@ class ActionsModeCalcul() :
 class TestTrack(object):
     # Cette classe ne sert que pour les tests et rappelle les attributs des tracks reçus
     def __init__(self):
-        self.qte = 1.0
+        self.quantite = 1.0
         self.prixUnit = 20.0
         self.prix2 = 18.0
         self.montant = 80.0

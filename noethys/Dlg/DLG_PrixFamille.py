@@ -31,12 +31,18 @@ from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
 
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 
+def AvecCondition(obj):
+    return GestionArticle.AvecCondition(obj)
+
+def AvecCalcul(obj):
+    return GestionArticle.AvecCalcul(obj)
+
 def Nz(valeur):
     try:
-        u = float(valeur)
+        valFloat = float(valeur)
     except:
-        valeur = 0
-    return valeur
+        valFloat = 0.0
+    return valFloat
 
 def Fmt2d(montant):
     # Convert the given montant into a string with zero null
@@ -65,10 +71,10 @@ def GetTypesLignes():
 def Calcul(dictDonnees, obj, objects):
     aCalc = GestionArticle.ActionsModeCalcul(dictDonnees)
     qte, mtt = aCalc.ModeCalcul(obj, objects)
-    if mtt != None:
+    if mtt:
         mtt = round(mtt, 2)
         obj.montantCalcul = mtt
-        obj.qte = qte
+        obj.quantite = qte
         #obj.force = 'OUI'
 
 def Multilignes(listeOLV, dictDonnees):
@@ -183,7 +189,6 @@ def GetArticles(annee, dictDonnees):
             for champ in champsMatArticles:
                 ligne[champ] = item[i]
                 i = i + 1
-            ligne["libelleArticle"] = ligne["libelle"]
             # pour article cotisation, inclusion de l'année dans le libellé
             i = ligne["libelle"].upper().find("COTIS")
             if i != -1:
@@ -206,8 +211,6 @@ def GetArticles(annee, dictDonnees):
         if ligne.codeArticle in lstArtParr:
             ligne.IDinscription = lstInscrParr[lstArtParr.index(ligne.codeArticle)]
         Calcul(dictDonnees, ligne, lignesModel)
-
-
     return lignesModel
     # fin GetArticles
 
@@ -219,19 +222,14 @@ def ColorLignes(listeOLV, dictDonnees):
         else:
             # cas des lignes modifiables
             obj.couleur = wx.BLUE
-            avecCondition = True
-            if obj.condition in ('Sans',None,'ZZZ',''):
-                avecCondition = False
-            avecCalcul = True
-            if obj.modeCalcul in ('Sans',None,''):
-                avecCalcul = False
+
             if obj.codeArticle[0] != '$' or obj.montant != 0:
                 # lignes ajoutées ou montant modifié
                 obj.couleur = wx.BLACK
-            if avecCalcul and obj.montant != 0 and (obj.montant - obj.montantCalcul) != 0:
+            if AvecCalcul(obj) and obj.montant != 0 and (obj.montant - obj.montantCalcul) != 0:
                 # le calcul a été forcé à un autre montant
                 obj.couleur = wx.RED
-            if avecCondition and obj.montantCalcul == 0 and obj.montant != 0:
+            if AvecCondition(obj) and obj.montantCalcul == 0 and obj.montant != 0:
                 # condition non respectée
                 obj.couleur = wx.RED
             if 'faux' in obj.origine:
@@ -257,14 +255,14 @@ def InserArticles(listeOLV=[], articles=[], dictDonnees={}):
         present = False
         # test de présence antérieure pour alimenter la liste à supprimer
         for ligne in listeOLV:
-            if ligne.origine != 'lignes': continue
+            if not 'ligne' in ligne.origine: continue
             if article.codeArticle[:6] != '$$PARR' \
                     and ligne.codeArticle != article.codeArticle:
                 continue
 
             if float(ligne.montant) == 0.0 and not 'lig' in ligne.origine:
                 ligne.montant = ligne.montantCalcul
-            # match article déja présent?
+            # match article déja présent et corrige les montants calculés dans ligne
             pres, suppr, brk = GestionArticle.ArticlePreExist(article, ligne, dictDonnees)
             if suppr:
                 lstSupprimer.append(ligne)
@@ -306,21 +304,21 @@ class Track(object):
             self.libelleArticle = track["libelle"]
         if track["origine"] == "articles":
             self.prixUnit = round(track["prix1"], 4)
-            self.qte = 1
+            self.quantite = 1
             montant = 0
             self.prixUnit = track["prix1"]
             self.saisie = False
         if track["origine"] == "lignes":
             self.prixUnit = round(track["prixUnit"], 4)
-            self.qte = track["quantite"]
+            self.quantite = track["quantite"]
             self.saisie = True
             montant = track["montant"]
         if self.prixUnit == None: self.prixUnit = 0
-        if self.qte == None: self.qte = 0
-        self.montantCalcul = round(self.prixUnit * self.qte, 2)
+        if self.quantite == None: self.quantite = 0
+        self.montantCalcul = round(self.prixUnit * self.quantite, 2)
         self.montant = float(montant)
-        self.qte = float(self.qte)
-        if self.montant == round(self.qte * self.prixUnit, 2):
+        self.quantite = float(self.quantite)
+        if self.montant == round(self.quantite * self.prixUnit, 2):
             self.saisie = False
         self.montant = round(self.montant, 2)
         self.montantCalcul = round(self.montantCalcul, 2)
@@ -330,6 +328,10 @@ class Track(object):
             self.force = None
         self.isChecked = None
         self.oldValue = montant
+        if not hasattr(self,'oldLibelle'):
+            self.oldLibelle = "none"
+        print('Track', self.oldLibelle,track['libelle'])
+        self.oldLibelle = track['libelle']
         self.couleur = None
 
     # fin Track
@@ -481,7 +483,7 @@ class OLVtarification(ObjectListView):
                        isEditable=False),
             ColumnDefn("Libelle (libelles modifiables)", "left", 300, "libelle",
                        typeDonnee="texte", isSpaceFilling=True),
-            ColumnDefn("Qté", "right", 50, "qte", typeDonnee="montant",
+            ColumnDefn("Qté", "right", 50, "quantite", typeDonnee="montant",
                        stringConverter=FmtXd),
             ColumnDefn("PxUn", "right", 70, "prixUnit", typeDonnee="montant",
                        stringConverter=Fmt2d, isEditable=False),
@@ -502,7 +504,7 @@ class OLVtarification(ObjectListView):
         # Complete les articles simples en lignes-piece pour les champs liste2 liés à l'article, puis met en track
         DB = self.dictDonnees['db']
         donnees = []
-        liste2 = ["prix1", "prix2", "typeLigne", "condition", "modeCalcul"]
+        liste2 = ["prix1", "prix2", "typeLigne", "condition", "modeCalcul","libelleArticle"]
         # Transposition des données SQL avec les noms de champs utilisés en track
         if ldLignes:
             for dictLigne in ldLignes:
@@ -510,7 +512,7 @@ class OLVtarification(ObjectListView):
                 dicDonnees = {}
                 for champLigne in list(dictLigne.keys()):
                     dicDonnees[champLigne] = dictLigne[champLigne]
-                champs = ["codeArticle", "libelle", "prix1", "prix2", "typeLigne",
+                champs = ["codeArticle", "libelleArticle", "prix1", "prix2", "typeLigne",
                           "condition", "modeCalcul"]
 
                 req = """
@@ -572,10 +574,9 @@ class OLVtarification(ObjectListView):
         # check and uncheck consequences
         ix = event.GetIndex()
         obj = self.modelObjects[ix]
-        if check:
+        if check and obj.isChecked == False:
             obj.montant = obj.oldValue
-        else:
-            obj.montant = obj.montantCalcul
+            obj.libelle = obj.oldLibelle
         self.RefreshObject(obj)
         self.parent.CalculSolde()
 
@@ -709,10 +710,10 @@ class DlgTarification(wx.Dialog):
                     dictTemp = obj.donnees
                 dictTemp["codeArticle"] = obj.codeArticle
                 dictTemp["libelle"] = obj.libelle
-                if obj.qte == None: obj.qte = 1
-                dictTemp["quantite"] = obj.qte
-                if obj.qte != 0.0:
-                    dictTemp["prixUnit"] = round(obj.montantCalcul / obj.qte, 4)
+                if obj.quantite == None: obj.quantite = 1
+                dictTemp["quantite"] = obj.quantite
+                if obj.quantite != 0.0:
+                    dictTemp["prixUnit"] = round(obj.montantCalcul / obj.quantite, 4)
                 else:
                     dictTemp["prixUnit"] = 0.0
                 dictTemp["montant"] = obj.montant
@@ -739,10 +740,11 @@ class DlgTarification(wx.Dialog):
         self.obj = None
         self.lastObj = None
         self.resultsOlv.InitObjectListView()
+
         self.resultsOlvFact.InitObjectListView()
         self.dataorigine = [copy.deepcopy(x) for x in self.resultsOlv.listeOLV]
         self.DeduitDejaFacture()
-        self.PreCoche()
+        self.PreCoche() # provoque des recalculs par l'évènement Check de listbox
         self.CalculSolde()
         return
 
@@ -1051,6 +1053,7 @@ class DlgTarification(wx.Dialog):
         # fin ActionAjout
 
     def TestReprise(self):
+
         # Vérif du calcul réactualisé des articles
         dictDonnees = self.resultsOlv.dictDonnees
         # Recueil des données
@@ -1110,12 +1113,12 @@ class DlgTarification(wx.Dialog):
             for obj in objects:
                 if self.lastLigne == i:
                     # la quantité a été modifiée
-                    if (self.lastObj.qte != obj.qte) and (
+                    if (self.lastObj.quantite != obj.quantite) and (
                             self.lastObj.codeArticle == obj.codeArticle):
                         if obj.codeArticle:
                             self.modifJours = True
-                            self.qte = obj.qte
-                            self.nbreJours = self.qte
+                            self.quantite = obj.quantite
+                            self.nbreJours = self.quantite
                     # le zéro saisi en montant doit désactiver la ligne
                     if obj.montant == 0 and self.lastObj.montant != 0:
                         self.resultsOlv.SetCheckState(obj, False)
@@ -1133,16 +1136,14 @@ class DlgTarification(wx.Dialog):
         total, mtt = 0, 0
         for obj in sorted(objects, key=attrgetter('ordre')):
             if not obj.isChecked:
-                if obj.qte == 0: obj.qte = 1
-                obj.prixUnit = round(obj.montantCalcul / obj.qte, 4)
-                obj.montant = 0.0
+                if obj.quantite == 0: obj.quantite = 1
+                obj.prixUnit = round(obj.montantCalcul / obj.quantite, 4)
+                #obj.montant = 0.0
                 obj.saisie = False
                 obj.force = "NON"
             # les cochés sont recalculés
             if obj.isChecked:
-                obj.montantCalcul = round(obj.prixUnit * obj.qte, 2)
-                if not obj.saisie and 'lig' in obj.origine:
-                    obj.montant = obj.oldValue
+                obj.montantCalcul = round(obj.prixUnit * obj.quantite, 2)
                 if obj.saisie == False:
                     Calcul(self.resultsOlv.dictDonnees, obj, objects)
                 if obj.montantCalcul != 0.0:
@@ -1163,9 +1164,10 @@ class DlgTarification(wx.Dialog):
                 else:
                     total += (obj.montantCalcul)
             obj.montant = round(float(Nz(obj.montant)), 2)
-            obj.qte = float(Nz(obj.qte))
+            obj.quantite = float(Nz(obj.quantite))
             obj.prixUnit = round(float(Nz(obj.prixUnit)), 4)
             obj.montantCalcul = round(float(Nz(obj.montantCalcul)), 2)
+
         self.ctrl_solde.SetSolde(round(total, 2))
         self.total = round(total, 2)
         ColorLignes(objects, self.resultsOlv.dictDonnees)
@@ -1230,7 +1232,7 @@ class DlgTarification(wx.Dialog):
                     dictCorrige[obj.codeArticle] -= mttcorr
                     if obj.montant == 0.0 and obj.montantCalcul == 0.0:
                         obj.force = "NON"
-                        obj.qte = 0
+                        obj.quantite = 0
         # fin DeduitDejaFacture
 
     def RazUnchecked(self):

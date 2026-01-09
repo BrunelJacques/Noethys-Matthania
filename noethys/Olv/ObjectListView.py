@@ -3737,7 +3737,9 @@ class ColumnDefn(object):
         Return a string representation of the value for this column from the given modelObject
         """
         value = self.GetValue(modelObject)
-        return self._StringToValue(value, self.stringConverter)
+        if value:
+            return self._StringToValue(value, self.stringConverter)
+        else: return ""
 
     def _StringToValue(self, value, converter):
         """
