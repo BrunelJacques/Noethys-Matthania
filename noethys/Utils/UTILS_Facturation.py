@@ -1354,6 +1354,9 @@ class Facturation():
                 LEFT JOIN matPiecesLignes ON matPieces.pieIDnumPiece = matPiecesLignes.ligIDnumPiece) 
                 LEFT JOIN matArticles ON matPiecesLignes.ligCodeArticle = matArticles.artCodeArticle
                 %s
+                GROUP BY matPieces.pieIDnumPiece,matPiecesLignes.ligLibelle,matPiecesLignes.ligQuantite,
+                        matPiecesLignes.ligPrixUnit,matPiecesLignes.ligMontant,
+                        matArticles.artCodeBlocFacture,matPiecesLignes.ligIDnumLigne
                 ORDER BY matPieces.pieIDnumPiece, matPiecesLignes.ligIDnumLigne
                 ;""" % conditions
         retour = self.DB.ExecuterReq(req,MsgBox="ExecuterReq")

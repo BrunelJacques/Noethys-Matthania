@@ -1082,8 +1082,6 @@ class DlgTarification(wx.Dialog):
         ddLinesActual = getDdLines([x.__dict__ for x in tracks if x.isChecked])
         lstAnomalies = []
         for key, dic in ddLinesActual.items():
-            if dic['mtt'] == 0.0:
-                continue # sera visible mais non enregistrée ensuite
             ano = ""
             if not key in ddLinesOrigin:
                 ano = f"Manque {key}: {dic['libel']}, non appelé pour {dic['mtt']} ¤"

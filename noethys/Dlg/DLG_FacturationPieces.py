@@ -370,8 +370,10 @@ class Dialog(wx.Dialog):
         if droitModif:
             ret = self.olv_piecesFiltrees.Supprimer(None)
             if ret == wx.OK:
-                GestionDB.MessageBox(self, "Il vous faut retourner dans 'Famille' pour réinitialiser les réductions !",
-                                      titre="Après cette suppression")
+                objects = self.olv_piecesFiltrees.GetObjects()
+                if not self.VerifierFamille(objects):
+                    wx.MessageBox("Il vous faut retourner dans 'Famille' pour réinitialiser les réductions !",
+                                    titre="Après cette suppression")
             self.Refresh()
         else:
             GestionDB.MessageBox(self, "Vous ne disposez pas des droits 'individus_inscriptions' 'modifier' !", titre = "Utilisateur Noethys")

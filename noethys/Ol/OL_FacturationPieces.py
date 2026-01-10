@@ -122,13 +122,16 @@ class ListView(ObjectListView):
         self.imgOrange = self.AddNamedImages("orange", wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ventilation_orange.png"), wx.BITMAP_TYPE_PNG))
 
         def GetImageVentilation(track):
-            if track.montant == track.mttRegle :
-                return self.imgVert
-            if track.mttRegle == FloatToDecimal(0.0) or track.mttRegle == None :
-                return self.imgRouge
-            if track.mttRegle < track.montant :
-                return self.imgOrange
-            return self.imgRouge
+            color = self.imgRouge
+            try:
+                if track.montant == track.mttRegle :
+                    color = self.imgVert
+                if track.mttRegle == FloatToDecimal(0.0) or track.mttRegle == None :
+                    color = self.imgRouge
+                if track.mttRegle < track.montant :
+                    color = self.imgOrange
+            except: pass
+            return color
 
         def FormateDate(dateDD):
             return DateEngFr(str(dateDD))

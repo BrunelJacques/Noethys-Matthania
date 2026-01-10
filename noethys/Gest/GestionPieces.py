@@ -232,7 +232,7 @@ class Forfaits():
         newLettres = []
         if len(lstInscrKO) * len(lstLigneKO) >0:
             for IDinscription in lstInscrKO:
-                dteInscr, IDfamille, activite, nom, prenom,  mttInscr = dicInscriptions[IDinscription]
+                IDinscription,dteInscr, IDfamille, activite, nom, prenom,  mttInscr = dicInscriptions[IDinscription]
                 mots = prenom.split(' ')
                 stop = False
                 for mot in mots:

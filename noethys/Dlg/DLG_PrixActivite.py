@@ -168,16 +168,30 @@ class OLVtarification(FastObjectListView):
         DB = self.dictDonnees['db']
         #self.listeChampsTrack = ["codeArticle", "libelle", "montant", "prix1", "prix2",
         #                        "typeLigne","condition", "modeCalcul","force"]
-        req = """SELECT matArticles.artCodeArticle, matArticles.artLibelle, matArticles.artPrix1, matArticles.artPrix1,
-                        matArticles.artPrix2,matArticles.artCodeBlocFacture as lfaTypeLigne, matArticles.artConditions,
-                        matArticles.artModeCalcul, matTarifsLignes.trlPreCoche as foorce
-                FROM ((matTarifs
-                INNER JOIN matTarifsLignes ON matTarifs.trfCodeTarif = matTarifsLignes.trlCodeTarif)
-                INNER JOIN matArticles ON matTarifsLignes.trlCodeArticle = matArticles.artCodeArticle)
-                WHERE ((matTarifs.trfIDactivite=%s) AND (matTarifs.trfIDgroupe=%s) AND (matTarifs.trfIDcategorie_tarif=%s))
-                GROUP BY matArticles.artCodeArticle,matArticles.artLibelle, matArticles.artPrix1, matArticles.artPrix2, 
-                        lfaTypeLigne, matArticles.artConditions, matArticles.artModeCalcul, foorce;
-                """ % (str(self.dictDonnees["IDactivite"]),str(self.dictDonnees["IDgroupe"]),str(self.dictDonnees["IDcategorie_tarif"]))
+        req = """
+        SELECT  matArticles.artCodeArticle,
+                matArticles.artLibelle,
+                matArticles.artPrix1,matArticles.artPrix1,
+                matArticles.artPrix2,
+                matArticles.artCodeBlocFacture,
+                matArticles.artConditions,
+                matArticles.artModeCalcul,
+                matTarifsLignes.trlPreCoche
+            FROM ((matTarifs
+            INNER JOIN matTarifsLignes ON matTarifs.trfCodeTarif = matTarifsLignes.trlCodeTarif)
+            INNER JOIN matArticles ON matTarifsLignes.trlCodeArticle = matArticles.artCodeArticle)
+            WHERE ((matTarifs.trfIDactivite=%s) 
+                AND (matTarifs.trfIDgroupe=%s))
+                AND (matTarifs.trfIDcategorie_tarif=%s)
+            GROUP BY    matArticles.artCodeArticle,
+                        matArticles.artLibelle,
+                        matArticles.artPrix1,
+                        matArticles.artPrix2,
+                        matArticles.artCodeBlocFacture,
+                        matArticles.artConditions,
+                        matArticles.artModeCalcul,
+                        matTarifsLignes.trlPreCoche;
+            """ % (str(self.dictDonnees["IDactivite"]),str(self.dictDonnees["IDgroupe"]),str(self.dictDonnees["IDcategorie_tarif"]))
         mess = "DLG_PrixActivite.AppelDonneesTarifs"
         retour = DB.ExecuterReq(req,MsgBox=mess)
         if retour != "ok" : DB.AfficheErr(self,retour)
