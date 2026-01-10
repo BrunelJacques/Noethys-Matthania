@@ -22,8 +22,6 @@ def Nz(valeur):
         valeur = 0
     return valeur
 
-# Listes de parametres :
-
 def AvecCondition(obj):
     if obj.condition in ('Sans',None,'ZZZ',''):
         return False
@@ -34,6 +32,7 @@ def AvecCalcul(obj):
         return False
     return True
 
+# Listes de parametres :
 
 LISTEnaturesPieces = [
         ("DEV", "Devis", "Le devis n'enregistre pas de consommation, seulement l'inscription", ),
@@ -1154,9 +1153,7 @@ def ArticlePreExist(article, ligne, dictDonnees):
     article.force = "OUI"
     article.saisie = True
     article.oldValue = ligne.oldValue
-    #print('PreExist', article.oldLibelle,ligne.oldLibelle)
     article.oldLibelle = ligne.oldLibelle
-    #print('PreExist2',ligne.libelleArticle,article.libelle)
     ligne.libelleArticle = article.libelle
     if ligne.montant == article.montantCalcul or ligne.montant == 0.0:
             artPres = True
@@ -1167,7 +1164,6 @@ def ArticlePreExist(article, ligne, dictDonnees):
         ligne.origine += "_faux"
         if AvecCalcul(ligne):
             ligne.quantite = article.quantite
-            ligne.montant = article.montantCalcul
 
     ligne.montantCalcul = article.montantCalcul
 
@@ -1225,44 +1221,8 @@ class ActionsModeCalcul() :
             #fin ModeCalcul
 
 #--------------------------------------------
-class TestTrack(object):
-    # Cette classe ne sert que pour les tests et rappelle les attributs des tracks reçus
-    def __init__(self):
-        self.quantite = 1.0
-        self.prixUnit = 20.0
-        self.prix2 = 18.0
-        self.montant = 80.0
-        self.typeLigne = "Sejour"
-        self.conditions = "RedCumul"
-        self.modeCalcul = "Cumul"
-        self.force = "OUI"
-
-def main():
-    listeDonnees = [
-        ("origine", "modif"),
-        ("IDindividu", 13954),
-        ("IDfamille", 261),
-        ("IDinscription", 17825),
-        ("IDactivite", 627),
-        ("IDgroupe", None),
-        ]
-    dictDonnees = {}
-    for donnee in listeDonnees:
-        champ = donnee[0]
-        valeur = donnee[1]
-        dictDonnees[champ] = valeur
-    #action = ActionsModeCalcul(dictDonnees)
-    fn = ActionsConditions(dictDonnees)
-    print((fn.Condition("Cumul","$RED-CUMUL")))
-    print(dictDonnees)
-
-    track= TestTrack()
-    tracks = []
-    tracks.append(track)
 
 if __name__ == "__main__":
-    #app = wx.App()
-    #main()
     DB = GestionDB.DB()
     print(DebutFin_Activite(DB,740))
     NbreJoursActivite(DB,393,985, IDindividu= 1386)

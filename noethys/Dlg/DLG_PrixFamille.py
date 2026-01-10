@@ -31,6 +31,8 @@ from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
 
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 
+PURPLE = "#781E6E"
+
 def AvecCondition(obj):
     return GestionArticle.AvecCondition(obj)
 
@@ -109,7 +111,7 @@ def NormaliseLignes(lignes):
         lignesPieces.append(dic)
     return lignesPieces
 
-def GetLignes999(parent, DB):
+def GetLignes999(parent, annee, DB):
     # appel des lignes famille de la piece en cours non facturée ou des factures de l'exercice
     if not parent.facture:
         # vérif parrainages pour piece famille non facturée
@@ -118,7 +120,7 @@ def GetLignes999(parent, DB):
         del pGest
 
     fGest = GestionInscription.Forfaits(parent.parent, DB=DB)
-    listePieces = fGest.GetPieceModif999(parent, parent.IDpayeur, parent.parent.annee,
+    listePieces = fGest.GetPieceModif999(parent, parent.IDpayeur, annee,
                                          facture=parent.facture)
     presence999 = len(listePieces)
     # rassemble les lignes des pièces existantes pour l'exercice
@@ -232,8 +234,10 @@ def ColorLignes(listeOLV, dictDonnees):
             if AvecCondition(obj) and obj.montantCalcul == 0 and obj.montant != 0:
                 # condition non respectée
                 obj.couleur = wx.RED
-            if 'faux' in obj.origine:
-                obj.couleur = wx.GREEN
+            if 'faux' in obj.origine and not obj.isChecked:
+                # article recalculé et montant antérieur faux
+                obj.couleur = wx.Colour(PURPLE)
+
 
 def InserArticles(listeOLV=[], articles=[], dictDonnees={}):
     # ajout des articles manquant dans olv et retraitement de l'antérieur.
@@ -330,7 +334,6 @@ class Track(object):
         self.oldValue = montant
         if not hasattr(self,'oldLibelle'):
             self.oldLibelle = "none"
-        print('Track', self.oldLibelle,track['libelle'])
         self.oldLibelle = track['libelle']
         self.couleur = None
 
@@ -412,8 +415,6 @@ class OLVtarification(ObjectListView):
                             "periode": (periode)
                             }
 
-        self.InitModel()
-
         # Mise en place des checkboxes wx > 3.1 sur listbox
         if not self.facture:
             self.EnableCheckBoxes(enable=True)
@@ -423,55 +424,58 @@ class OLVtarification(ObjectListView):
         # fin init
 
     def InitModel(self):
+        annee = self.parent.annee
         # Charge la pièce famille existante et non encore facturée
-        lignes999 = GetLignes999(self, self.DB)
+        lignes999 = GetLignes999(self, annee,self.DB)
         lignesPieces = []
-
         if lignes999:
             self.dictDonnees["origine"] = "modif"
             lignesPieces = NormaliseLignes(lignes999)
         else:
             self.dictDonnees["origine"] = "ajout"
+
         self.dictDonnees["lignes_piece"] = lignesPieces
         self.dictDonnees["lignes_pieceOrigine"] = [x for x in lignesPieces]
         self.dictDonnees['lstIDprestationsOrigine'] = self.lstIDprestationsOrigine
 
-        if not self.facture:
-            if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("familles_factures",
-                                                                      "creer") == True:
-                self.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
-        return
-
-    def InitObjectListView(self, rappel=False):
-        annee = self.parent.annee
-        if rappel or self.facture:
-            self.InitModel()
         # composition du listView avec complémentation par les articles communs
         listeOLV = []
         # on insère d'abord la piece999 complétées des attributs de l'article original
         if (self.dictDonnees["origine"] == "modif"):
             listeOLV = self.EnrichirDonnees(self.dictDonnees["lignes_piece"])
 
-        # une reprise doit conserver l'existant
-        if rappel:
-            for obj in listeOLV:
-                obj.force = "OUI"
-                obj.couleur = wx.GREEN # pour repère débuggage
+        # une reprise conserve l'existant PROVISOIREMENT avant constat d'erreur
+        for obj in listeOLV:
+            obj.force = "OUI"
+            obj.couleur = wx.GREEN # pour repère débuggage
 
         # puis on ajoute les articles manquants
-        if not self.facture and not rappel:
+        if not self.facture:
             listeArticles = GetArticles(annee, self.dictDonnees)
             InserArticles(listeOLV, listeArticles, self.dictDonnees)
 
+        # Colorisation des lignes factures
+        if self.facture:
+            # Pour les devis c"est chaque calcul qui formate les lignes
+            ColorLignes(listeOLV, self.dictDonnees)
+
+        # le listeOLV a vocation pour SetObjects
+        self.listeOLV = sorted(listeOLV, key=attrgetter('ordre'))
+
+        self.SetObjects(self.listeOLV)
+
+    def InitObjectListView(self):
 
         def rowFormatter(listItem, track):
             if hasattr(track, 'couleur'):
                 listItem.SetTextColour(track.couleur)
 
-        self.listeOLV = sorted(listeOLV, key=attrgetter('ordre'))
-        if self.facture:
-            # Pour les devis c"est chaque calcul qui formate les lignes
-            ColorLignes(self.listeOLV, self.dictDonnees)
+        # ouvre les autorisations de modif devis
+        if not self.facture:
+            if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel(
+                    "familles_factures",
+                    "creer") == True:
+                self.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
 
         # Couleur en alternance des lignes
         self.oddRowsBackColor = "#F0FBED"
@@ -497,7 +501,8 @@ class OLVtarification(ObjectListView):
         self.SetColumns(liste_Colonnes)
         self.SetEmptyListMsg(_("Aucune ligne trouvée"))
         self.SetEmptyListMsgFont(wx.FFont(11, wx.DEFAULT, faceName="Tekton"))
-        self.SetObjects(self.listeOLV)
+
+        self.InitModel()
         # fin InitObjectListView
 
     def EnrichirDonnees(self, ldLignes, forcer=True):
@@ -574,12 +579,13 @@ class OLVtarification(ObjectListView):
         # check and uncheck consequences
         ix = event.GetIndex()
         obj = self.modelObjects[ix]
-        if check and obj.isChecked == False:
+        if not check:
             obj.montant = obj.oldValue
             obj.libelle = obj.oldLibelle
-        self.RefreshObject(obj)
         self.parent.CalculSolde()
+        self.RefreshObject(obj)
 
+    # Evènement coche soit par souris, soit par fonction SetCheckState
     def OnItemChecked(self, event):
         self.OnToggle(event,True)
 
@@ -710,7 +716,8 @@ class DlgTarification(wx.Dialog):
                     dictTemp = obj.donnees
                 dictTemp["codeArticle"] = obj.codeArticle
                 dictTemp["libelle"] = obj.libelle
-                if obj.quantite == None: obj.quantite = 1
+                if obj.quantite == None:
+                    obj.quantite = 1
                 dictTemp["quantite"] = obj.quantite
                 if obj.quantite != 0.0:
                     dictTemp["prixUnit"] = round(obj.montantCalcul / obj.quantite, 4)
@@ -731,7 +738,6 @@ class DlgTarification(wx.Dialog):
             self.resultsOlv.exerciceFin = self.exerciceFin
             self.resultsOlv.dictDonnees['annee'] = annee
             del self.resultsOlv.dictDonnees['dicCumul']
-            self.resultsOlv.InitModel()
 
             # mise à jour du bandeau et des factures
             self.SetBandeau(annee)
@@ -739,9 +745,10 @@ class DlgTarification(wx.Dialog):
 
         self.obj = None
         self.lastObj = None
-        self.resultsOlv.InitObjectListView()
 
+        self.resultsOlv.InitObjectListView()
         self.resultsOlvFact.InitObjectListView()
+
         self.dataorigine = [copy.deepcopy(x) for x in self.resultsOlv.listeOLV]
         self.DeduitDejaFacture()
         self.PreCoche() # provoque des recalculs par l'évènement Check de listbox
@@ -754,7 +761,7 @@ class DlgTarification(wx.Dialog):
         self.resultsOlvFact.exerciceFin = exerciceFin
         self.resultsOlvFact.annee = exerciceFin.year
         self.resultsOlvFact.periode = periode
-        self.resultsOlvFact.InitObjectListView(rappel=True)
+        self.resultsOlvFact.InitObjectListView()
 
     def SetBandeau(self,annee):
         texte = "Payeur : " + self.payeur + " - Période du " \
@@ -1053,7 +1060,6 @@ class DlgTarification(wx.Dialog):
         # fin ActionAjout
 
     def TestReprise(self):
-
         # Vérif du calcul réactualisé des articles
         dictDonnees = self.resultsOlv.dictDonnees
         # Recueil des données
@@ -1072,9 +1078,12 @@ class DlgTarification(wx.Dialog):
             return ddLines
         ddLinesOrigin = getDdLines(dictDonnees['lignes_pieceOrigine'])
         tracks = self.resultsOlv.GetObjects()
-        ddLinesActual = getDdLines([x.__dict__ for x in tracks])
+        # seules les lignes checkées seront retenues
+        ddLinesActual = getDdLines([x.__dict__ for x in tracks if x.isChecked])
         lstAnomalies = []
         for key, dic in ddLinesActual.items():
+            if dic['mtt'] == 0.0:
+                continue # sera visible mais non enregistrée ensuite
             ano = ""
             if not key in ddLinesOrigin:
                 ano = f"Manque {key}: {dic['libel']}, non appelé pour {dic['mtt']} ¤"
@@ -1086,12 +1095,8 @@ class DlgTarification(wx.Dialog):
         return lstAnomalies
 
     def Reinitialiser(self):
-        # le premier clic recalcule, le second réinitialise
-        self.rappel = not self.rappel
-        self.resultsOlv.InitObjectListView(rappel=self.rappel)
-        self.PreCoche()
-        self.CalculSolde()
-        self.resultsOlv.Refresh()
+        # Retrouve la situation de départ
+        self.SetExercice(self.annee)
 
     def OnKeyDown(self, event):
         pass

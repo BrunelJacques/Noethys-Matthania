@@ -332,12 +332,14 @@ class DlgChoixArticle(wx.Dialog):
         self.EndModal(wx.ID_OK)
 
     def GetOlv(self):
-        # Nouvelle instance olv pour récupérer les lignes selectionnées
+        # Nouvel accès après End pour récupérer les lignes selectionnées
         olv_selection = OLVchoixArticles(self)
         olv_selection.listeOLV=[]
         for obj in self.olv_article.GetObjects():
             if self.olv_article.IsChecked(obj):
                 olv_selection.listeOLV.append(obj)
+                # pour assurer l'équivalence selon les origines de demande
+                obj.quantite = obj.qte
         olv_selection.SetObjects(olv_selection.listeOLV)
         for obj in olv_selection:
             olv_selection.SetCheckState(obj,True)
