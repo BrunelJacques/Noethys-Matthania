@@ -238,7 +238,6 @@ def ColorLignes(listeOLV, dictDonnees):
                 # article recalculé et montant antérieur faux
                 obj.couleur = wx.Colour(PURPLE)
 
-
 def InserArticles(listeOLV=[], articles=[], dictDonnees={}):
     # ajout des articles manquant dans olv et retraitement de l'antérieur.
     lstSupprimer = []
@@ -1083,7 +1082,10 @@ class DlgTarification(wx.Dialog):
         lstAnomalies = []
         for key, dic in ddLinesActual.items():
             ano = ""
-            if not key in ddLinesOrigin:
+            if dic['mtt'] == 0.0 and not key in ddLinesOrigin:
+                continue # un mtt à zéro ne sera pas enregistré, si non présent avant:ok
+            elif not key in ddLinesOrigin:
+                # là ce montant manquait auparavant
                 ano = f"Manque {key}: {dic['libel']}, non appelé pour {dic['mtt']} ¤"
             elif ddLinesOrigin[key]['mtt'] != dic['mtt']:
                 montant = ddLinesOrigin[key]['mtt'] - dic['mtt']

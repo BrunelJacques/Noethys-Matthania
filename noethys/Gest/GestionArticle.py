@@ -1147,6 +1147,11 @@ def ArticlePreExist(article, ligne, dictDonnees):
     brk = False # provoquera un break dans 'for ligne in listeOLV'
     artPres = False
     supprimer = False
+
+    if article.codeArticle[:6] != ligne.codeArticle[:6]:
+        # ne traite que si ça matche
+        return artPres, supprimer, brk
+
     article.origine = "article_ligne"
     ligne.origine = "ligne_article"
     # C'est l'article qui sera retenu, il faut donc l'alimenter de parties de la ligne
