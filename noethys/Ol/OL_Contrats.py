@@ -100,18 +100,26 @@ class ListView(FastObjectListView):
             
         listeID = None
         DB = GestionDB.DB()
-        req = """SELECT contrats.IDcontrat, contrats.IDinscription, contrats.date_debut, contrats.date_fin,
-        inscriptions.IDindividu, inscriptions.IDfamille, activites.nom, 
-        SUM(prestations.montant) as total, 
-        individus.nom, individus.prenom,
-        contrats.type
-        FROM contrats 
-        LEFT JOIN inscriptions ON inscriptions.IDinscription=contrats.IDinscription
-        LEFT JOIN activites ON activites.IDactivite=inscriptions.IDactivite
-        LEFT JOIN prestations ON prestations.IDcontrat = contrats.IDcontrat
+        req = """
+        SELECT contrats.IDcontrat, contrats.IDinscription, contrats.date_debut, contrats.date_fin,
+            inscriptions.IDindividu, inscriptions.IDfamille, activites.nom, 
+            SUM(prestations.montant) as total, 
+            individus.nom, individus.prenom
+        FROM (((contrats 
+        LEFT JOIN inscriptions ON inscriptions.IDinscription=contrats.IDinscription)
+        LEFT JOIN activites ON activites.IDactivite=inscriptions.IDactivite)
+        LEFT JOIN prestations ON prestations.IDcontrat = contrats.IDcontrat)
         LEFT JOIN individus ON individus.IDindividu = contrats.IDindividu
         WHERE (NOT inscriptions.statut LIKE 'ko%%') %s
-        GROUP BY contrats.IDcontrat
+        GROUP BY    contrats.IDcontrat,
+                    contrats.IDinscription,
+                    contrats.date_debut,
+                    contrats.date_fin,
+                    inscriptions.IDindividu,
+                    inscriptions.IDfamille,
+                    activites.nom,
+                    individus.nom,
+                    individus.prenom
         ORDER BY contrats.date_debut; """ % conditions
         DB.ExecuterReq(req,MsgBox="ExecuterReq")
         listeDonnees = DB.ResultatReq()

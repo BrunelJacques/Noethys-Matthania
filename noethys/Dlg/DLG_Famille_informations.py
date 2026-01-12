@@ -10,19 +10,16 @@
 
 
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
-from Ctrl import CTRL_Bouton_image
-import time
 import sys
 from Ctrl import CTRL_Informations
 from Ol import OL_Etat_compte
+from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
 
 from Utils import UTILS_Config
-SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 
-from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
+SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 
 import GestionDB
 from Utils import UTILS_Utilisateurs
@@ -75,7 +72,7 @@ class Panel(wx.Panel):
         self.IDfamille = IDfamille
         
         # Informations
-        self.staticbox_infos = wx.StaticBox(self, -1, _("Messages"))
+        self.staticbox_infos = wx.StaticBox(self, -1, _("Messages pour toute la famille"))
         self.ctrl_infos = CTRL_Informations.CTRL(self, IDfamille=self.IDfamille)
         self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
         self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
@@ -99,7 +96,9 @@ class Panel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.OnBoutonSupprimer, self.bouton_supprimer)
         
         # Propriétés
-        self.bouton_ajouter.SetToolTip(wx.ToolTip(_("Cliquez ici pour saisir un mémo familial")))
+        mess ="Les observations concernant un individu se font dans sa fiche\n\n"
+        mess += "Cliquez ici seulement pour saisir un mémo familial"
+        self.bouton_ajouter.SetToolTip(wx.ToolTip(_(mess)))
         self.bouton_modifier.SetToolTip(wx.ToolTip(_("Cliquez ici pour modifier le mémo familial sélectionné")))
         self.bouton_supprimer.SetToolTip(wx.ToolTip(_("Cliquez ici pour supprimer le mémo familial sélectionné")))
 

@@ -8,131 +8,76 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
 import Chemins
-from Utils import UTILS_Adaptations
-from Utils.UTILS_Traduction import _
 import wx
-from Ctrl import CTRL_Bouton_image
-import datetime
-
-from Ctrl import CTRL_Informations
 import GestionDB
+from Utils.UTILS_Traduction import _
 from Utils import UTILS_Utilisateurs
-    
+from Ctrl import CTRL_Informations
+from Ol import OL_Contrats
 
 class Panel(wx.Panel):
     def __init__(self, parent, IDindividu=None, dictFamillesRattachees={}):
-        wx.Panel.__init__(self, parent, id=-1, name="panel_informations", style=wx.TAB_TRAVERSAL)
+        wx.Panel.__init__(self, parent, id=-1, name="panel_Contrats",
+                          style=wx.TAB_TRAVERSAL)
         self.parent = parent
+        self.module = "DLG_Individu_informations.Panel"
         self.IDindividu = IDindividu
         self.dictFamillesRattachees = dictFamillesRattachees
-        
-        self.staticbox_infos = wx.StaticBox(self, -1, _("Messages"))
-        
-        # HTL
-        self.ctrl_infos = CTRL_Informations.CTRL(self, IDfamille=None, IDindividu=self.IDindividu, dictFamillesRattachees=self.dictFamillesRattachees)
-        self.ctrl_infos.SetMinSize((20, 20)) 
-        
-        # Commandes boutons
-        self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+
+        # Contrats
+        self.staticbox_contrats = wx.StaticBox(self, -1, _("Contrats"))
+        self.ctrl_contrats = OL_Contrats.ListView(self, IDindividu=IDindividu,
+                                                  dictFamillesRattachees=self.dictFamillesRattachees,
+                                                  id=-1, name="OL_contrats",
+                                                  style=wx.LC_HRULES | wx.LC_VRULES | wx.LC_REPORT | wx.SUNKEN_BORDER | wx.LC_SINGLE_SEL)
+        self.ctrl_contrats.SetMinSize((150, 90))
+
+        self.bouton_ajouter_contrat = wx.BitmapButton(self, -1, wx.Bitmap(
+            Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier_contrat = wx.BitmapButton(self, -1, wx.Bitmap(
+            Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer_contrat = wx.BitmapButton(self, -1, wx.Bitmap(
+            Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
 
         # Binds
-        self.Bind(wx.EVT_BUTTON, self.OnBoutonAjouter, self.bouton_ajouter)
-        self.Bind(wx.EVT_BUTTON, self.OnBoutonModifier, self.bouton_modifier)
-        self.Bind(wx.EVT_BUTTON, self.OnBoutonSupprimer, self.bouton_supprimer)
-        
-        # Propriétés
-        self.bouton_ajouter.SetToolTip(wx.ToolTip(_("Cliquez ici pour saisir un mémo individuel")))
-        self.bouton_modifier.SetToolTip(wx.ToolTip(_("Cliquez ici pour modifier le mémo individuel sélectionné")))
-        self.bouton_supprimer.SetToolTip(wx.ToolTip(_("Cliquez ici pour supprimer le mémo individuel sélectionné")))
+        self.Bind(wx.EVT_BUTTON, self.ctrl_contrats.Ajouter, self.bouton_ajouter_contrat)
+        self.Bind(wx.EVT_BUTTON, self.ctrl_contrats.Modifier, self.bouton_modifier_contrat)
+        self.Bind(wx.EVT_BUTTON, self.ctrl_contrats.Supprimer, self.bouton_supprimer_contrat)
 
-        # Layout
+        # Propriétés
+        self.bouton_ajouter_contrat.SetToolTip(wx.ToolTip(_("Cliquez ici pour créer un contrat pour cet individu")))
+        self.bouton_modifier_contrat.SetToolTip(wx.ToolTip(_("Cliquez ici pour modifier le contrat sélectionné")))
+        self.bouton_supprimer_contrat.SetToolTip(wx.ToolTip(_("Cliquez ici pour supprimer le contrat sélectionné")))
+
+
+        # Contrats layout
         grid_sizer_base = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
-        staticbox_infos = wx.StaticBoxSizer(self.staticbox_infos, wx.VERTICAL)
-        grid_sizer_infos = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
-        
-        grid_sizer_infos.Add(self.ctrl_infos, 1, wx.EXPAND, 0)
-        
-        grid_sizer_boutons = wx.FlexGridSizer(rows=6, cols=1, vgap=5, hgap=5)
-        grid_sizer_boutons.Add(self.bouton_ajouter, 0, wx.ALL, 0)
-        grid_sizer_boutons.Add(self.bouton_modifier, 0, wx.ALL, 0)
-        grid_sizer_boutons.Add(self.bouton_supprimer, 0, wx.ALL, 0)
-        grid_sizer_infos.Add(grid_sizer_boutons, 1, wx.ALL, 0)
-        
-        grid_sizer_infos.AddGrowableCol(0)
-        grid_sizer_infos.AddGrowableRow(0)
-        staticbox_infos.Add(grid_sizer_infos, 1, wx.EXPAND|wx.ALL, 5)
-        
-        grid_sizer_base.Add(staticbox_infos, 1, wx.EXPAND|wx.ALL, 5)
-        
+        staticbox_contrats = wx.StaticBoxSizer(self.staticbox_contrats, wx.VERTICAL)
+        grid_sizer_contrats = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
+
+        grid_sizer_contrats.Add(self.ctrl_contrats, 1, wx.EXPAND, 0)
+
+        grid_sizer_boutons = wx.FlexGridSizer(rows=7, cols=1, vgap=5, hgap=5)
+        grid_sizer_boutons.Add(self.bouton_ajouter_contrat, 0, wx.ALL, 0)
+        grid_sizer_boutons.Add(self.bouton_modifier_contrat, 0, wx.ALL, 0)
+        grid_sizer_boutons.Add(self.bouton_supprimer_contrat, 0, wx.ALL, 0)
+        grid_sizer_contrats.Add(grid_sizer_boutons, 1, wx.ALL, 0)
+
+        grid_sizer_contrats.AddGrowableCol(0)
+        grid_sizer_contrats.AddGrowableRow(0)
+        staticbox_contrats.Add(grid_sizer_contrats, 1, wx.EXPAND | wx.ALL, 5)
+
+        grid_sizer_base.Add(staticbox_contrats, 1, wx.EXPAND | wx.ALL, 5)
+
         self.SetSizer(grid_sizer_base)
         grid_sizer_base.Fit(self)
         grid_sizer_base.AddGrowableCol(0)
         grid_sizer_base.AddGrowableRow(0)
-    
-    def OnBoutonAjouter(self, event):
-        if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_messages", "creer") == False : return
-        from Dlg import DLG_Saisie_message
-        dlg = DLG_Saisie_message.Dialog(self, IDmessage=None, IDindividu=self.IDindividu, mode="individu")
-        if dlg.ShowModal() == wx.ID_OK:
-            self.MAJ()
-        dlg.Destroy()
- 
-    def OnBoutonModifier(self, event):
-        if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_messages", "modifier") == False : return
-        item = self.ctrl_infos.GetSelection()
-        try :
-            dataItem = self.ctrl_infos.GetPyData(item) 
-        except :
-            dataItem = None
-        if dataItem == None or dataItem["type"] != "message":
-            dlg = wx.MessageDialog(self, _("Vous n'avez sélectionné aucun message à modifier dans la liste !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
-            dlg.ShowModal()
-            dlg.Destroy()
-            return
-        IDmessage = dataItem["IDmessage"]
-        from Dlg import DLG_Saisie_message
-        dlg = DLG_Saisie_message.Dialog(self, IDmessage=IDmessage, mode="individu")
-        if dlg.ShowModal() == wx.ID_OK:
-            self.MAJ()
-        dlg.Destroy()
-
-    def OnBoutonSupprimer(self, event):
-        if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_messages", "supprimer") == False : return
-        item = self.ctrl_infos.GetSelection()
-        try :
-            dataItem = self.ctrl_infos.GetPyData(item) 
-        except :
-            dataItem = None
-        if dataItem == None or dataItem["type"] != "message":
-            dlg = wx.MessageDialog(self, _("Vous n'avez sélectionné aucun message à supprimer dans la liste !"), _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
-            dlg.ShowModal()
-            dlg.Destroy()
-            return
-        dlg = wx.MessageDialog(self, _("Souhaitez-vous vraiment supprimer ce message ?"), _("Suppression"), wx.YES_NO|wx.NO_DEFAULT|wx.CANCEL|wx.ICON_INFORMATION)
-        if dlg.ShowModal() == wx.ID_YES :
-            IDmessage = dataItem["IDmessage"]
-            DB = GestionDB.DB()
-            DB.ReqDEL("messages", "IDmessage", IDmessage)
-            DB.Close() 
-            self.MAJ()
-        dlg.Destroy()
 
     def MAJ(self):
         """ MAJ integrale du controle avec MAJ des donnees """
-        self.ctrl_infos.MAJ() 
-                
-    def ValidationData(self):
-        """ Return True si les données sont valides et pretes à être sauvegardées """
-        return True
-    
-    def Sauvegarde(self):
-        pass
-
-
+        self.ctrl_contrats.MAJ()
 
 
 class MyFrame(wx.Frame):
@@ -143,7 +88,6 @@ class MyFrame(wx.Frame):
         sizer_1.Add(panel, 1, wx.ALL|wx.EXPAND)
         self.SetSizer(sizer_1)
         self.ctrl = Panel(panel, IDindividu=27)
-        self.ctrl.MAJ() 
         sizer_2 = wx.BoxSizer(wx.VERTICAL)
         sizer_2.Add(self.ctrl, 1, wx.ALL|wx.EXPAND, 4)
         panel.SetSizer(sizer_2)
@@ -152,7 +96,6 @@ class MyFrame(wx.Frame):
 
 if __name__ == '__main__':
     app = wx.App(0)
-    #wx.InitAllImageHandlers()
     frame_1 = MyFrame(None, -1, _("TEST"), size=(800, 400))
     app.SetTopWindow(frame_1)
     frame_1.Show()

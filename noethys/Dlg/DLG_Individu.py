@@ -66,7 +66,7 @@ class Notebook(wx.Notebook):
             ("identite", _("Identité"), "DLG_Individu_identite.Panel_identite(self, IDindividu=IDindividu)", "Identite.png"),
             ("coords", _("Coordonnées"), "DLG_Individu_coords.Panel_coords(self, IDindividu=IDindividu, IDfamille=self.IDfamille)", "Maison.png"),
             ("liens", _("Liens"), "DLG_Individu_liens.Panel_liens(self, IDindividu=IDindividu)", "Famille.png"),
-            ("informations", _("Informations"), "DLG_Individu_informations.Panel(self, IDindividu=IDindividu, dictFamillesRattachees=dictFamillesRattachees)", "Information.png"),
+            ("informations", _("Infos Contrats"), "DLG_Individu_informations.Panel(self, IDindividu=IDindividu, dictFamillesRattachees=dictFamillesRattachees)", "Information.png"),
             ("questionnaire", _("Questionnaire"), "DLG_Individu_questionnaire.Panel(self, IDindividu=IDindividu)", "Questionnaire.png"),
             ("scolarite", _("Scolarité"), "DLG_Individu_scolarite.Panel(self, IDindividu=IDindividu, dictFamillesRattachees=dictFamillesRattachees)", "Classe.png"),
             ("pieces", _("Pièces"), "DLG_Individu_pieces.Panel(self, IDindividu=IDindividu, dictFamillesRattachees=dictFamillesRattachees)", "Dupliquer.png"),
@@ -581,7 +581,7 @@ if __name__ == "__main__":
     #wx.InitAllImageHandlers()
     import time
     heure_debut = time.time()
-    fiche_individu = Dialog(None, IDindividu=22137)
+    fiche_individu = Dialog(None, IDindividu=21739)
     app.SetTopWindow(fiche_individu)
     print("Temps de chargement fiche individuelle =", time.time() - heure_debut)
     fiche_individu.ShowModal()

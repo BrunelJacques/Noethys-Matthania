@@ -224,7 +224,6 @@ class CTRL(wx.TreeCtrl):
                 else :
                     self.SetPyData(niveau1, {"type":"message", "IDmessage":track.IDmessage})
 
-
     def Branches_cotisations(self, niveauParent=None):
         # Création des branches
         dictCotisations, nbreCotisations, nbreFamilles = self.GetCotisations() 
@@ -277,8 +276,6 @@ class CTRL(wx.TreeCtrl):
                     if valide == "ok" : self.SetItemImage(niveau2, self.img_ok, which=wx.TreeItemIcon_Normal)
                     if valide == "attention" : self.SetItemImage(niveau2, self.img_attention, which=wx.TreeItemIcon_Normal)
                     if valide == "pasok" : self.SetItemImage(niveau2, self.img_pasok, which=wx.TreeItemIcon_Normal)
-
-
 
     def Branches_vaccinations(self, niveauParent=None):
         # Création des branches
@@ -357,8 +354,6 @@ class CTRL(wx.TreeCtrl):
                 else :
                     self.SetPyData(niveau1, data)
 
-
-
     def Branches_pieces(self, niveauParent=None):
         # Création des branches
         dictPieces, nbrePieces, nbreFamilles = self.GetPieces() 
@@ -418,9 +413,6 @@ class CTRL(wx.TreeCtrl):
                     if valide == "ok" : self.SetItemImage(niveau2, self.img_ok, which=wx.TreeItemIcon_Normal)
                     if valide == "attention" : self.SetItemImage(niveau2, self.img_attention, which=wx.TreeItemIcon_Normal)
                     if valide == "pasok" : self.SetItemImage(niveau2, self.img_pasok, which=wx.TreeItemIcon_Normal)
-            
-        
-        
         
     def GetMessages(self):
         # Récupération des données
@@ -458,8 +450,6 @@ class CTRL(wx.TreeCtrl):
             listeMessages.append(Track_message(donnees))
         
         return listeMessages
-
-
 
     def GetPieces(self):
         # Récupération des données
@@ -1039,7 +1029,7 @@ class MyFrame(wx.Frame):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_1.Add(panel, 1, wx.ALL|wx.EXPAND)
         self.SetSizer(sizer_1)
-        self.ctrl = CTRL(panel, IDindividu=None, IDfamille=46)
+        self.ctrl = CTRL(panel, IDindividu=21739, IDfamille=9919)
         self.ctrl.MAJ() 
         sizer_2 = wx.BoxSizer(wx.VERTICAL)
         sizer_2.Add(self.ctrl, 1, wx.ALL|wx.EXPAND, 4)
