@@ -83,6 +83,7 @@ class Track(object):
         self.nbreVentilation = 0
         self.compta = donnees[26]
         self.resteAVentiler = self.montant
+        self.utilisateur = donnees[28]
         #fin Track
     
 class ListView(FastObjectListView):
@@ -148,15 +149,16 @@ class ListView(FastObjectListView):
                 depots.verrouillage, reglements.date_saisie, reglements.IDutilisateur, 
                 SUM(ventilation.montant), reglements.IDprelevement, 
                 COUNT(ventilation.montant),reglements.compta, 
-                factures.numero
-        FROM ((((((reglements 
+                factures.numero,utilisateurs.prenom
+        FROM (((((((reglements 
                 LEFT JOIN ventilation ON reglements.IDreglement = ventilation.IDreglement) 
                 LEFT JOIN modes_reglements ON reglements.IDmode = modes_reglements.IDmode) 
                 LEFT JOIN emetteurs ON reglements.IDemetteur = emetteurs.IDemetteur) 
                 LEFT JOIN payeurs ON reglements.IDpayeur = payeurs.IDpayeur) 
                 LEFT JOIN depots ON reglements.IDdepot = depots.IDdepot) 
                 LEFT JOIN prestations ON ventilation.IDprestation = prestations.IDprestation) 
-                LEFT JOIN factures ON prestations.IDfacture = factures.IDfacture
+                LEFT JOIN factures ON prestations.IDfacture = factures.IDfacture)
+                LEFT JOIN utilisateurs on reglements.IDutilisateur = utilisateurs.IDutilisateur
         %s
         GROUP BY reglements.IDreglement, reglements.IDcompte_payeur, reglements.Date, reglements.IDmode, 
                 modes_reglements.label, reglements.IDemetteur, emetteurs.nom, reglements.numero_piece, 
@@ -164,7 +166,7 @@ class ListView(FastObjectListView):
                 reglements.numero_quittancier, reglements.IDprestation_frais, reglements.IDcompte, 
                 reglements.date_differe, reglements.encaissement_attente, reglements.IDdepot, 
                 depots.Date, depots.nom, depots.verrouillage, reglements.date_saisie, reglements.IDutilisateur, 
-                reglements.IDprelevement, reglements.compta, factures.numero
+                reglements.IDprelevement, reglements.compta, factures.numero, utilisateurs.prenom
         ORDER BY reglements.IDreglement
         ;""" % criteres
         db.ExecuterReq(req,MsgBox="OL_Reglements")
@@ -261,17 +263,19 @@ class ListView(FastObjectListView):
         liste_Colonnes = [
             ColumnDefn(_("ID"), "left", 0, "IDreglement", typeDonnee="entier"),
             ColumnDefn(_("Date"), 'left', 140, "date", typeDonnee="date", stringConverter=FormateDateLong),
-            ColumnDefn(_("Differé"), 'left', 70, "date_differe", typeDonnee="date", stringConverter=DateEngFr),
-            ColumnDefn(_("Mode"), 'left', 110, "nom_mode", typeDonnee="texte"),
-            ColumnDefn(_("Emetteur"), 'left', 120, "nom_emetteur", typeDonnee="texte"),
+            ColumnDefn(_("Differé"), 'left', 75, "date_differe", typeDonnee="date", stringConverter=DateEngFr),
+            ColumnDefn(_("Mode"), 'left', 120, "nom_mode", typeDonnee="texte"),
+            ColumnDefn(_("Emetteur"), 'left', 80, "nom_emetteur", typeDonnee="texte"),
             ColumnDefn(_("Numéro"), 'left', 60, "numero_piece", typeDonnee="texte"),
             ColumnDefn(_("Payeur"), 'left', 130, "nom_payeur", typeDonnee="texte"),
             ColumnDefn(_("Montant"), 'right', 60, "montant", typeDonnee="montant", stringConverter=FormateMontant),
             #ColumnDefn(_(u"Ventilé"), 'right', 80, "montant_ventilation", typeDonnee="montant", stringConverter=FormateMontant, imageGetter=GetImageVentilation),
             ColumnDefn(_("A Ventiler"), 'right', 80, "resteAVentiler", typeDonnee="montant", stringConverter=FormateMontant, imageGetter=GetImageVentilation),
             ColumnDefn(_("Dépôt"), 'left', 90, "date_depot", typeDonnee="date", stringConverter=FormateDateCourt, imageGetter=GetImageDepot),
-            ColumnDefn(_("VentilFactures no "), 'left', 140, "ventilation", typeDonnee="texte"),
-            ColumnDefn(_("compta"), "left", 60, "compta", typeDonnee="entier"),
+            ColumnDefn(_("IDDépôt"), "left", 40, "IDdepot", typeDonnee="entier"),
+            ColumnDefn(_("VentilFactures no "), 'left', 110, "ventilation", typeDonnee="texte"),
+            ColumnDefn(_("compta"), "left", 70, "compta", typeDonnee="entier"),
+            ColumnDefn(_("user"), 'left', 70, "utilisateur", typeDonnee="texte"),
             ]
         
         self.SetColumns(liste_Colonnes)
