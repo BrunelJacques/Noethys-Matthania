@@ -343,12 +343,6 @@ class ObjectListView(OLV.ObjectListView):
     
         
     def AjouteLigneTotal(self, listeNomsColonnes=[]):
-        return
-        for (iCol, col) in enumerate(self.columns):
-            colWidth = self.GetColumnWidth(iCol)
-            boundedWidth = col.CalcBoundedWidth(colWidth)
-
-
         # Récupération des totaux des colonnes souhaitées
         dictTotaux = {}
         nbreLignes = 0
@@ -362,7 +356,6 @@ class ObjectListView(OLV.ObjectListView):
             nbreLignes += 1
         
         track = Track(dictTotaux)
-##        self.modelObjects.append(track)
         self.AddObject(track)
     
     def SetFooter(self, ctrl=None, dictColonnes={}):

@@ -471,7 +471,7 @@ class ListView(FastObjectListView):
         else:
             self.SetEmptyListMsg(_("Aucun règlement disponible"))
         self.SetEmptyListMsgFont(wx.FFont(11, wx.DEFAULT, False, "Tekton"))
-        self.SortBy(self.numColonneTri, ascending=self.ordreAscendant)
+        #self.SortBy(self.numColonneTri, ascending=self.ordreAscendant)
         self.SetObjects(self.donnees)
        
     def MAJ(self, tracks=None, ID=None, selectionTrack=None, nextTrack=None, IDcompte=None,

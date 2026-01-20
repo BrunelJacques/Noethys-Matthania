@@ -1265,17 +1265,20 @@ class ObjectListView(wx.ListCtrl):
         self.sortAscending = ascending
         if column is None:
             self.sortColumnIndex = -1
-        elif isinstance(column, ColumnDefn):
-            try:
-                self.sortColumnIndex = self.columns.index(column)
-            except ValueError:
-                self.sortColumnIndex = -1
-        else:
+        elif column in self.columns:
+            self.sortColumnIndex = self.columns.index(column)
+        elif isinstance(column,int) and column < len(self.columns):
             self.sortColumnIndex = column
+        else: # conserve sortColumnIndex:
+            # cas des adresses de colonnes changées par initObjectiListView
+            pass
         if resortNow:
-            self.SortBy(self.sortColumnIndex,ascending=ascending)
+            self.SortNow()
         else:
             self._UpdateColumnSortIndicators()
+
+    def SortNow(self):
+        self.SortBy(self.sortColumnIndex, ascending=self.sortAscending)
 
     def YieldSelectedObjects(self):
         """

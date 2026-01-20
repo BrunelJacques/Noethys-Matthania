@@ -51,9 +51,18 @@ def NoPunctuation(txt = ''):
     regex = regex.sub(' ', txt)
     return regex.replace('  ',' ')
 
-def ChiffresSeuls(txt = ""):
+def GetDigit(key):
+    # pour chiffres, le code de la touche keyboard retourne le caractère en str. Linux ok
+    if 48 <= key <= 57:
+        digit = chr(key)
+    elif 324 <= key <= 333: # Keypad digits
+        digit = str(key - 324)
+    else:
+        digit = None
+    return digit
+
+def ChiffresSeuls(txt = "", permis = "0123456789+-.,"):
     if txt == None: txt = ""
-    permis = "0123456789+-.,"
     new = ""
     for a in txt:
         if a in permis:

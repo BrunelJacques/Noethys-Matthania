@@ -244,8 +244,7 @@ class Dialog(wx.Dialog):
     def Init(self):
         # Importation des règlements
         self.tracks = self.GetTracks(self.IDdepot)
-        self.ctrl_reglements.numColonneTri = 0
-        self.ctrl_reglements.MAJ(tracks=self.tracks) 
+        self.ctrl_reglements.MAJ(tracks=self.tracks)
         self.MAJinfos()
 
     def __set_properties(self):
@@ -263,7 +262,7 @@ class Dialog(wx.Dialog):
         self.bouton_ok.SetToolTip(wx.ToolTip(_("Cliquez ici pour valider")))
         self.bouton_annuler.SetToolTip(wx.ToolTip(_("Cliquez ici pour annuler")))
         self.ctrl_code_compta.SetMinSize((120,20))
-        self.SetMinSize((890, 720))
+        self.SetMinSize((1320, 720))
 
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)

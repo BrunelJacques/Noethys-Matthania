@@ -34,16 +34,15 @@ def DateEngFr(textDate):
     return text
 
 def DateComplete(dateDD):
-    try:
-        """ Transforme une date DD en date complète : Ex : lundi 15 janvier 2008 """
-        listeJours = (_("Lundi"), _("Mardi"), _("Mercredi"), _("Jeudi"), _("Vendredi"), _("Samedi"), _("Dimanche"))
-        listeMois = (_("janvier"), _("février"), _("mars"), _("avril"), _("mai"), _("juin"), _("juillet"), _("août"), _("septembre"), _("octobre"), _("novembre"), _("décembre"))
-        dateComplete = listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
-        return dateComplete
-    except:
-        return " "
+    """ Transforme une date DD en date complète : Ex : Lun 15 janv 2008 """
+    listeJours = ("Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim")
+    listeMois = ("janv", "fév", "mars", "avr", "mai", "juin", "juil", "août", "sept", "oct", "nov", "déc")
+    dateComplete = listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
+    return dateComplete
 
 def DateEngEnDateDD(dateEng):
+    if not dateEng:
+        return
     if dateEng and not isinstance(dateEng,str): dateEng = str(dateEng)
     return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
@@ -65,7 +64,7 @@ class Track(object):
         self.numero_quittancier = donnees[12]
         self.IDprestation_frais = donnees[13]
         self.IDcompte = donnees[14]
-        self.date_differe = donnees[15]
+        self.date_differe = DateEngEnDateDD(donnees[15])
         self.encaissement_attente = donnees[16]
         self.IDdepot = donnees[17]
         self.date_depot = donnees[18]
@@ -246,9 +245,6 @@ class ListView(FastObjectListView):
                     return self.imgNon
             else:
                 return self.imgOk
-            
-        def FormateDateLong(dateDD):
-            return DateComplete(dateDD)
 
         def FormateDateCourt(dateDD):
             if dateDD == None :
@@ -262,8 +258,10 @@ class ListView(FastObjectListView):
 
         liste_Colonnes = [
             ColumnDefn(_("ID"), "left", 0, "IDreglement", typeDonnee="entier"),
-            ColumnDefn(_("Date"), 'left', 140, "date", typeDonnee="date", stringConverter=FormateDateLong),
-            ColumnDefn(_("Differé"), 'left', 75, "date_differe", typeDonnee="date", stringConverter=DateEngFr),
+            ColumnDefn(_("Date"), 'left', 110, "date", typeDonnee="date",
+                       stringConverter=DateComplete),
+            ColumnDefn(_("Differé"), 'left', 110, "date_differe", typeDonnee="date",
+                       stringConverter=DateComplete),
             ColumnDefn(_("Mode"), 'left', 120, "nom_mode", typeDonnee="texte"),
             ColumnDefn(_("Emetteur"), 'left', 80, "nom_emetteur", typeDonnee="texte"),
             ColumnDefn(_("Numéro"), 'left', 60, "numero_piece", typeDonnee="texte"),

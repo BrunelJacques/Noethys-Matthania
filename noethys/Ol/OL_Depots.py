@@ -13,7 +13,6 @@ import Chemins
 from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
-from Ctrl import CTRL_Bouton_image
 import datetime
 import GestionDB
 from Dlg import DLG_Saisie_depot
@@ -23,7 +22,7 @@ SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 
 from Utils import UTILS_Gestion
 from Utils import UTILS_Interface
-from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, PanelAvecFooter, CTRL_Outils
+from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, PanelAvecFooter, CTRL_Outils # utilisé par parent
 import Olv.Filter as Filter
 from Utils import UTILS_Utilisateurs
 
@@ -36,9 +35,9 @@ def DateEngFr(textDate):
     return text
 
 def DateComplete(dateDD):
-    """ Transforme une date DD en date complète : Ex : lundi 15 janvier 2008 """
-    listeJours = (_("Lundi"), _("Mardi"), _("Mercredi"), _("Jeudi"), _("Vendredi"), _("Samedi"), _("Dimanche"))
-    listeMois = (_("janvier"), _("février"), _("mars"), _("avril"), _("mai"), _("juin"), _("juillet"), _("août"), _("septembre"), _("octobre"), _("novembre"), _("décembre"))
+    """ Transforme une date DD en date complète : Ex : Lun 15 janv 2008 """
+    listeJours = ("Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim")
+    listeMois = ("janv", "fév", "mars", "avr", "mai", "juin", "juil", "août", "sept", "oct", "nov", "déc")
     dateComplete = listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
     return dateComplete
 
@@ -93,6 +92,7 @@ class ListView(FastObjectListView):
         self.popupIndex = -1
         self.listeFiltres = []
         self.limit = ""
+        self.init = False
         # Initialisation du listCtrl
         self.nom_fichier_liste = __file__
         FastObjectListView.__init__(self, *args, **kwds)
@@ -175,54 +175,48 @@ class ListView(FastObjectListView):
                     self.selectionTrack = track
         return listeListeView
             
-    def InitObjectListView(self):            
-        # Couleur en alternance des lignes
-        self.oddRowsBackColor = UTILS_Interface.GetValeur("couleur_tres_claire", wx.Colour(240, 251, 237))
-        self.evenRowsBackColor = wx.Colour(255, 255, 255)
-        self.useExpansionColumn = True
-        
-        # Image list
-        self.imgVerrouillage = self.AddNamedImages("verrouillage", wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Cadenas_ferme.png"), wx.BITMAP_TYPE_PNG))
-        
-        def GetImageVerrouillage(track):
-            if track.verrouillage == 1 :
-                return self.imgVerrouillage
-            else:
-                return None
-                    
-        def FormateDateLong(dateDD):
-            if dateDD == datetime.date(1977, 1, 1) :
-                return ""
-            else:
-                return DateComplete(dateDD)
+    def InitObjectListView(self):
+        if not self.init:
+            # Couleur en alternance des lignes
+            self.oddRowsBackColor = UTILS_Interface.GetValeur("couleur_tres_claire", wx.Colour(240, 251, 237))
+            self.evenRowsBackColor = wx.Colour(255, 255, 255)
+            self.useExpansionColumn = True
 
-        def FormateDateCourt(dateDD):
-            if dateDD == None :
-                return ""
-            else:
-                return DateEngFr(str(dateDD))
+            # Image list
+            self.imgVerrouillage = self.AddNamedImages("verrouillage", wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Cadenas_ferme.png"), wx.BITMAP_TYPE_PNG))
 
-        def FormateMontant(montant):
-            if montant == None : return ""
-            return "%.2f %s" % (montant, SYMBOLE)
+            def GetImageVerrouillage(track):
+                if track.verrouillage == 1 :
+                    return self.imgVerrouillage
+                else:
+                    return None
 
-        liste_Colonnes = [
-            ColumnDefn(_("ID"), "left", 55, "IDdepot", typeDonnee="entier", imageGetter=GetImageVerrouillage),
-            ColumnDefn(_("Date"), 'left', 80, "date", typeDonnee="date", stringConverter=FormateDateCourt),
-            ColumnDefn(_("Nom"), 'left', 170, "nom", typeDonnee="texte"),
-            ColumnDefn(_("Compte"), 'left', 120, "nom_compte", typeDonnee="texte"),
-            ColumnDefn(_("Observations"), 'left', 100, "observations", typeDonnee="texte"),
-            ColumnDefn(_("Nbre"), 'centre', 40, "nbre", typeDonnee="entier"),
-            ColumnDefn(_("Total"), 'right', 75, "total", typeDonnee="montant", stringConverter=FormateMontant),
-            ColumnDefn(_("Détail"), 'left', 300, "detail", typeDonnee="texte"),
-            ]
-        
-        self.SetColumns(liste_Colonnes)
-        self.SetEmptyListMsg(_("Aucun dépôt"))
-        self.SetEmptyListMsgFont(wx.FFont(11, wx.DEFAULT, False, "Tekton"))
-        self.SetSortColumn(self.columns[0],ascending=False)
+            def FormateDateCourt(dateDD):
+                if dateDD == None :
+                    return ""
+                else:
+                    return DateEngFr(str(dateDD))
+
+            def FormateMontant(montant):
+                if montant == None : return ""
+                return "%.2f %s" % (montant, SYMBOLE)
+
+            liste_Colonnes = [
+                ColumnDefn(_("ID"), "left", 55, "IDdepot", typeDonnee="entier", imageGetter=GetImageVerrouillage),
+                ColumnDefn(_("Date"), 'left', 80, "date", typeDonnee="date", stringConverter=FormateDateCourt),
+                ColumnDefn(_("Nom"), 'left', 170, "nom", typeDonnee="texte"),
+                ColumnDefn(_("Compte"), 'left', 120, "nom_compte", typeDonnee="texte"),
+                ColumnDefn(_("Observations"), 'left', 100, "observations", typeDonnee="texte"),
+                ColumnDefn(_("Nbre"), 'centre', 40, "nbre", typeDonnee="entier"),
+                ColumnDefn(_("Total"), 'right', 75, "total", typeDonnee="montant", stringConverter=FormateMontant),
+                ColumnDefn(_("Détail"), 'left', 300, "detail", typeDonnee="texte"),
+                ]
+
+            self.SetColumns(liste_Colonnes)
+            self.SetEmptyListMsg(_("Aucun dépôt"))
+            self.SetEmptyListMsgFont(wx.FFont(11, wx.DEFAULT, False, "Tekton"))
         self.SetObjects(self.donnees)
-       
+
     def MAJ(self, ID=None):
         if ID != None :
             self.selectionID = ID
@@ -314,21 +308,21 @@ class ListView(FastObjectListView):
         self.PopupMenu(menuPop)
         menuPop.Destroy()
 
-    def Apercu(self, event):
+    def Apercu(self, event=None):
         from Utils import UTILS_Printer
         prt = UTILS_Printer.ObjectListViewPrinter(self, titre=_("Liste des dépôts"), format="A", orientation=wx.LANDSCAPE)
         prt.Preview()
 
-    def Imprimer(self, event):
+    def Imprimer(self, event=None):
         from Utils import UTILS_Printer
         prt = UTILS_Printer.ObjectListViewPrinter(self, titre=_("Liste des dépôts"), format="A", orientation=wx.LANDSCAPE)
         prt.Print()
 
-    def ExportTexte(self, event):
+    def ExportTexte(self, event=None):
         from Utils import UTILS_Export
         UTILS_Export.ExportTexte(self, titre=_("Liste des dépôts"))
         
-    def ExportExcel(self, event):
+    def ExportExcel(self, event=None):
         from Utils import UTILS_Export
         UTILS_Export.ExportExcel(self, titre=_("Liste des dépôts"))
 
@@ -336,10 +330,11 @@ class ListView(FastObjectListView):
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("reglements_depots", "creer") == False : return
         from Dlg import DLG_Saisie_depot
         dlg = DLG_Saisie_depot.Dialog(self, IDdepot=None) 
-        dlg.ShowModal()
-        IDdepot = dlg.GetIDdepot()
-        self.MAJ(IDdepot)
-        self.GetGrandParent().MAJreglements()
+        ret = dlg.ShowModal()
+        if ret == wx.ID_OK:
+            IDdepot = dlg.GetIDdepot()
+            self.MAJ(IDdepot)
+            self.GetGrandParent().MAJreglements()
         dlg.Destroy()
 
     def Modifier(self, event):
@@ -351,9 +346,10 @@ class ListView(FastObjectListView):
             return
         IDdepot = self.Selection()[0].IDdepot
         dlg = DLG_Saisie_depot.Dialog(self, IDdepot=IDdepot)
-        dlg.ShowModal()
-        self.MAJ(IDdepot)
-        self.GetGrandParent().MAJreglements()
+        ret = dlg.ShowModal()
+        if ret == wx.ID_OK:
+            self.MAJ(IDdepot)
+            self.GetGrandParent().MAJreglements()
         dlg.Destroy() 
 
     def Supprimer(self, event):
@@ -430,7 +426,8 @@ class BarreRecherche(wx.SearchCtrl):
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
 class ListviewAvecFooter(PanelAvecFooter):
-    def __init__(self, parent, kwargs={}):
+    def __init__(self, parent, kwargs=None):
+        if not kwargs: kwargs = {}
         dictColonnes = {
             "nom" : {"mode" : "nombre", "singulier" : _("dépôt"), "pluriel" : _("dépôts"), "alignement" : wx.ALIGN_CENTER},
             "nbre" : {"mode" : "total"},

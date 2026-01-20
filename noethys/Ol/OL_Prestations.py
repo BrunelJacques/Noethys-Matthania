@@ -33,10 +33,9 @@ def DateEngFr(textDate):
     return text
 
 def DateComplete(dateDD):
-    """ Transforme une date DD en date complète : Ex : lundi 15 janvier 2008 """
-    listeJours = (_("Lundi"), _("Mardi"), _("Mercredi"), _("Jeudi"), _("Vendredi"), _("Samedi"), _("Dimanche"))
-    listeMois = (_("janv"), _("fév"), _("mars"), _("avr"), _("mai"), _("juin"), _("juil"), _("août"), _("sept"), _("oct"), _("nov"), _("déc"))
-    #dateComplete = listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
+    """ Transforme une date DD en date complète : Ex : 15 janv 2008 """
+    listeMois = ("janv", "fév", "mars", "avr", "mai", "juin", "juil", "août", "sept",
+                 "oct", "nov", "déc")
     dateComplete = str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
     return dateComplete
 
@@ -306,7 +305,7 @@ class ListView(ObjectListView):
             "case" : ColumnDefn("", "left", 10, "case", typeDonnee="entier"),
             "IDprestation" : ColumnDefn("ID", "left", 50, "IDprestation", typeDonnee="entier"),
             "date" : ColumnDefn(_("Date"), "left", 80, "date", typeDonnee="date", stringConverter=FormateDate),
-            "categorie_prestation" : ColumnDefn(_("Catégorie"), "left", 80, "categorie", typeDonnee="texte"),
+            "categorie_prestation" : ColumnDefn(_("Catégorie"), "left", 100, "categorie", typeDonnee="texte"),
             "prenom_individu" : ColumnDefn(_("Individu"), "left", 100, "prenomIndividu", typeDonnee="texte"),
             "nom_complet_individu" : ColumnDefn(_("Individu"), "left", 100, "nomCompletIndividu", typeDonnee="texte"),
             "nom_activite" : ColumnDefn(_("Activité"), "left", 70, "nomAbregeActivite", typeDonnee="texte"),

@@ -15,6 +15,7 @@ import re
 import sys
 import datetime
 import calendar
+import FonctionsPerso as fp
 from Utils import UTILS_Config
 from dateutil.parser import parse, parserinfo
 from dateutil import relativedelta
@@ -160,7 +161,6 @@ class myparserinfo(parserinfo):
 
 class Date(wx.TextCtrl):
     """ Contrôle Date simple """
-
     def __init__(self, parent, date_min="01/01/1900", date_max="01/01/2999",
                  size=(-1, -1), pos=wx.DefaultPosition):
         self.mask_date = UTILS_Config.GetParametre("mask_date", "##/##/####").replace('#',' ')
@@ -169,56 +169,70 @@ class Date(wx.TextCtrl):
                              style=wx.TE_CENTRE | wx.TE_PROCESS_ENTER,
                              size=size, pos=pos)
         self.parent = parent
-        self.itWorks = False
         self.date_min = date_min
         self.date_max = date_max
-        self.dateDD = None
+        self.oldValue = ""
+        self.startEndSelect = (0,0)
         largeur = 95
         if "linux" in sys.platform:
             largeur = 110
         self.SetMinSize((largeur, -1))
-        self.Bind(wx.EVT_TEXT, self.OnModif)
+        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+        #self.Bind(wx.EVT_TEXT, self.OnModif) # remplacé par KEY_DOWN
         self.Bind(wx.EVT_TEXT_ENTER, self.OnKillFocus)
         self.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocus)
         self.Bind(wx.EVT_RIGHT_DOWN, self.OnContextMenu)
-        if self.GetValue() == self.mask_date:
-            self.Bind(wx.EVT_LEFT_DCLICK, self.OnDoubleClick)
+        self.Bind(wx.EVT_LEFT_DCLICK, self.OnDoubleClick)
 
-    def OnModif(self,event):
-        old = self.GetValue()
-        nbSaisie = 0
-        for a in old:
-            if a in '0123456789':
-                nbSaisie += 1
-        if self.itWorks:
+    # mode replace au lieu d'insert
+    def OnKeyDown(self,event):
+        key = event.GetKeyCode()
+        # Récupère le digit
+        digit = fp.GetDigit(key)
+        if not digit:
+            # seuls les saisies de chiffres sont traités
             event.Skip()
             return
-        # La date saisie est incomplète, on la formate
-        self.itWorks = True
-        position = self.GetInsertionPoint()
-        lstParties = []
-        lstNbChiffres = []
-        for partie in self.mask_date.split(self.separateur):
-            lstNbChiffres.append(len(partie))
-            lstParties.append("")
-        ixPartie = 0
-        for a in old:
-            if a in ('/','-'):
-                if ixPartie < len(lstParties)-1:
-                    ixPartie += 1
-            elif len(lstParties[ixPartie]) >= lstNbChiffres[ixPartie]:
-                if ixPartie < len(lstParties)-1:
-                    ixPartie += 1
-                position += 1
-            if a in '0123456789':
-                if len(lstParties[ixPartie]) < lstNbChiffres[ixPartie]:
-                    lstParties[ixPartie] += a
-                else: Beep()
-        new = self.separateur.join(lstParties)
-        self.SetValue(new)
-        self.SetInsertionPoint(position)
-        self.itWorks = False
-        event.Skip()
+
+        pos = self.GetInsertionPoint()
+        value = self.GetValue()
+
+        # Replace the character at cursor if it exists
+        if pos < len(value):
+            self.Replace(pos, pos + 1, digit)
+        else:
+            self.WriteText(digit)
+        new = self.GetValue()
+        # Move cursor forward
+        pas = 1
+        # on saute le séparateur existant
+        if len(new) > pos and new[pos+1:pos+2] == self.separateur :
+            pas = 2
+        # controle d'une saisie de l'année en deux digits
+        lstDate = new.split(self.separateur)
+        annee = lstDate[-1]
+        if len(annee) == 4 and annee[:2] not in ('19','20'):
+            # saisie courte
+            lstDate[-1] = f"20{annee[:2]}"
+            newDate = self.separateur.join(lstDate)
+            self.SetValue(newDate)
+            pas = len(newDate) - pos
+        self.SetInsertionPoint(pos + pas)
+
+    # exemple de fonctions wx.textCtrl
+    """
+    def OnText(self,event):
+        # récupérer la partie selectionnée avant
+        start, end = self.GetSelection()
+        full_value = self.GetValue()
+        selected_text = full_value[start:end]
+        print(selected_text)
+        # pour remplacer le texte
+        self.Replace(start, end, "YOUR_REPLACEMENT")tc.Replace(start, end, "YOUR_REPLACEMENT")
+        # alternative
+        new_value = full_value[:start] + "YOUR_REPLACEMENT" + full_value[end:]
+        self.SetValue(new_value)
+    """
 
     def OnDoubleClick(self, event):
         pass
@@ -245,6 +259,7 @@ class Date(wx.TextCtrl):
             # Transformation en date française
             dateFR = self.DateEngFr(str(dateDD))
             self.SetValue(dateFR)
+            self.oldValue = dateFR
         except:
             pass
 
