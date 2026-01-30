@@ -59,9 +59,9 @@ def ComposeLibelles(dictCompte,dictOptions):
     libMontant = "Montant :"
     # premier mot de la nature mis en minuscule
     motNature = dictCompte["{NATURE}"].split(" ")[0]
-    libSolde = "Solde sur %s"% motNature
-    libReports = "Autres impayés"
-    libSoldeDu = "Reste à payer"
+    libSolde = "Solde sur %s :"% motNature
+    libReports = "Autres impayés :"
+    libSoldeDu = "Reste à payer :"
 
     signe = +1 # en cas d'avoir les dus sont négatifs
     if nature == "AVO":
@@ -76,21 +76,22 @@ def ComposeLibelles(dictCompte,dictOptions):
 
     # solde pièce positif
     if round(dictCompte["solde"] ,1) <= 0.1 and nature != "AVO":
-        libSolde = "%s acquittée "% motNature
-
+        libSolde = "%s acquittée :"% motNature
+    elif round(dictCompte["solde"] + dictCompte["total_reports"],1) == 0.0:
+        libSolde = "%s acquittée :" % motNature
     #gestion des soldes globalement positifs
     if round(dictCompte["solde_du"],1) == FloatToDecimal(0.0) and nature != "AVO":
-        libSolde = "%s acquittée "% motNature
+        libSoldeDu = "%s acquittée :"% motNature
     elif round(dictCompte["solde_du"],1) * signe  < 0:
         libSoldeDu = "Reporté à votre crédit:"
         dictCompte["solde_du"] = abs(dictCompte["solde_du"])
 
     if round(dictCompte["total_reports"],1) * signe  < 0:
-        libReports = "Autres crédits"
+        libReports = "Règlements :"
 
     if nature in ["DEV", "RES"]:
         # total du : cas de devis
-        libReports = "Report anterieur"
+        libReports = "Report anterieur :"
 
     return {"{LIB_MONTANT}": libMontant,
             "{LIB_SOLDE}": libSolde,

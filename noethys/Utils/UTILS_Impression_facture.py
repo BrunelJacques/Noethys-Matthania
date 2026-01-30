@@ -720,7 +720,7 @@ class Impression():
                     dataTableau.append(("", dictValeur["{LIB_REPORTS}"],
                                         "%.02f %s" % (abs(dictValeur["total_reports"]), SYMBOLE) ))
                     #gestion du reste en cas de report
-                    dataTableau.append(("", _("%s :")%(dictValeur["{LIB_SOLDE_DU}"]),
+                    dataTableau.append(("", _("%s")%(dictValeur["{LIB_SOLDE_DU}"]),
                                         "%.02f %s" % (dictValeur["solde_du"], SYMBOLE) ))
                 style = [
                         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'), 
