@@ -369,7 +369,7 @@ class Dialog(wx.Dialog):
         resultat = self.Supprimer()
         if resultat == True : self.EndModal(ID_BOUTON_SUPPRIMER)
         if resultat == False : self.EndModal(wx.ID_CANCEL)
-        if resultat == "famille" : self.EndModal()
+        if resultat == "famille" : self.EndModal(ID_SUPPRIMER_FAMILLE)
 
     def Supprimer(self):
         """ Processus de suppression d'une fiche individuelle """

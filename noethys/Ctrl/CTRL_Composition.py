@@ -35,6 +35,7 @@ class GetValeurs():
         (self.lstIndividus,
          self.dictIndividus,
          self.listeLiens) = self.GetInfosIndividus()
+        self.dictInfosIndividus = self.dictIndividus # synonyme nécessaire/Getion Composition
 
     def GetLiensCadres(self):
         """ Retourne les liens de filiation ou de couple """
