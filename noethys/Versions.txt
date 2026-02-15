@@ -1,3 +1,6 @@
+version 1.3.3.43 (15/02/2026)
+- Bug saisie prix activité et liste des factures
+
 version 1.3.3.42 (03/02/2026)
 - Bug sur suppression individus corrigé.
 

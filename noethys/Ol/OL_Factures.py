@@ -186,24 +186,27 @@ class ListView(FastObjectListView):
 
         # Requête 1: Récupération des totaux des prestations pour chaque facture
         req = """
-        SELECT prestations.IDfacture,prestations.IDcompte_payeur,familles.adresse_intitule,
-                familles.adresse_individu,
-                factures.total, MAX(prestations.compta),SUM(ventilation.montant),
-                SUM(prestations.categorie = 'consoavoir')
-        FROM (((prestations
+        SELECT prestations.IDfacture,
+            prestations.IDcompte_payeur,
+            familles.adresse_intitule,
+            familles.adresse_individu,
+            MAX(prestations.compta),
+            SUM(prestations.montant),
+            SUM(ventilation.montant),
+            SUM(prestations.categorie = 'consoavoir')
+        FROM ((prestations
         LEFT JOIN familles ON prestations.IDfamille = familles.IDfamille)
-        LEFT JOIN factures ON factures.IDfacture = prestations.IDfacture)
         LEFT JOIN ventilation ON ventilation.IDprestation = prestations.IDprestation)
         %s
         GROUP BY prestations.IDfacture,prestations.IDcompte_payeur,
-            familles.adresse_intitule, familles.adresse_individu,factures.total
+            familles.adresse_individu, familles.adresse_intitule 
         ;""" %(conditions)
         DB.ExecuterReq(req,MsgBox="OL_Factures.prestations")
         listeDonnees = DB.ResultatReq()     
         dictPrestations = {}
         dictAdresses = {}
         dictVentilation = {}
-        for (IDfacture,IDfamille,nom_famille,IDadresse,totalPrestations,compta,
+        for (IDfacture,IDfamille,nom_famille,IDadresse,compta,totalPrestations,
              mttVentilation,avoir) in listeDonnees :
             if avoir == 0 and self.afficherAnnulations == True:
                 continue

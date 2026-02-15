@@ -58,7 +58,7 @@ class Track(object):
         self.ordre = track["ordre"]
         if track["origine"] == "articles":
             #ChampsTrack = ["codeArticle", "libelle", "prix1", "prix2", "typeLigne", "conditions", "modeCalcul", "force"]
-            self.qte = 1
+            self.quantite = 1
             montant = 0
             self.prixUnit = track["prix1"]
             self.saisie = False
@@ -66,16 +66,16 @@ class Track(object):
             #listeChamps=["codeArticle","libelle","quantite","prixUnit","montant"]
             #liste2=["prix2", "typeLigne", "condition", "modeCalcul", "force"]
             self.prixUnit = track["prixUnit"]
-            self.qte =  track["quantite"]
+            self.quantite =  track["quantite"]
             self.saisie = True
             montant =  track["montant"]
         if self.prixUnit == None: self.prixUnit = 0
-        if self.qte == None: self.qte = 0
-        self.montantCalcul = self.prixUnit * self.qte
+        if self.quantite == None: self.quantite = 0
+        self.montantCalcul = self.prixUnit * self.quantite
         if montant == None: montant = 0
         self.montant = float(montant)
-        self.qte = float(self.qte)
-        if self.montant == self.qte * self.prixUnit:
+        self.quantite = float(self.quantite)
+        if self.montant == self.quantite * self.prixUnit:
             self.montant = 0.00
             self.saisie = False
 
@@ -633,7 +633,7 @@ class DlgTarification(wx.Dialog):
                 dictTemp = {}
                 dictTemp["codeArticle"]= obj.codeArticle
                 dictTemp["libelle"]= obj.libelle
-                dictTemp["quantite"]= obj.qte
+                dictTemp["quantite"]= obj.quantite
                 dictTemp["prixUnit"]= obj.prixUnit
                 dictTemp["montant"]= obj.montant
                 listeLignesPiece.append(dictTemp)
@@ -736,11 +736,11 @@ class DlgTarification(wx.Dialog):
             for obj in objects :
                 if self.lastLigne == i:
                     # la quantité a été modifiée
-                    if (self.lastObj.qte != obj.qte) and (self.lastObj.codeArticle == obj.codeArticle) :
+                    if (self.lastObj.quantite != obj.quantite) and (self.lastObj.codeArticle == obj.codeArticle) :
                         if obj.codeArticle:
                             self.modifJours = True
-                            self.qte = obj.qte
-                            self.nbreJours=self.qte
+                            self.quantite = obj.quantite
+                            self.nbreJours=self.quantite
                     # le zéro saisi en montant doit désactiver la ligne
                     if obj.montant == 0 and self.lastObj.montant != 0:
                         self.resultsOlv.SetCheckState(obj, False)
@@ -753,14 +753,14 @@ class DlgTarification(wx.Dialog):
     def CalculSolde(self):
         if self.modifJours:
             self.modifJours = False
-            texte1 = "La quantité saisie " + str(self.qte) + " correspond à un nombre de jours de l'activité"
-            texte2 = "Avec " + str(self.qte) + " nuits, l'activité court sur " + str(self.qte +1 ) + " jours"
+            texte1 = "La quantité saisie " + str(self.quantite) + " correspond à un nombre de jours de l'activité"
+            texte2 = "Avec " + str(self.quantite) + " nuits, l'activité court sur " + str(self.quantite +1 ) + " jours"
             texte3 = "La quantité ne concerne pas la durée de l'activité"
-            retour = GestionDB.Messages().Choix(listeTuples=[(1,texte1),(2,texte2),(3,texte3),], titre = ("Quel est le sens de cette quantité modifiée "), intro = "Quantité de " + str(self.lastObj.qte)+" -> " + str(self.qte))
+            retour = GestionDB.Messages().Choix(listeTuples=[(1,texte1),(2,texte2),(3,texte3),], titre = ("Quel est le sens de cette quantité modifiée "), intro = "Quantité de " + str(self.lastObj.quantite)+" -> " + str(self.quantite))
             if retour[0] == 1 :
-                self.nbreJours = self.qte
+                self.nbreJours = self.quantite
             if retour[0] == 2 :
-                self.nbreJours = self.qte +1
+                self.nbreJours = self.quantite +1
             self.dictDonnees["nbreJours"] = self.nbreJours
         total = 0
         aCalc= GestionArticle.ActionsModeCalcul(self.dictDonnees)
@@ -777,21 +777,21 @@ class DlgTarification(wx.Dialog):
                 obj.montantCalcul = 0.0
             else:
                 # recalcul des arcticles selon leur mode de calcul.
-                obj.montantCalcul = obj.prixUnit * obj.qte
+                obj.montantCalcul = obj.prixUnit * obj.quantite
                 qte,mtt = aCalc.ModeCalcul(obj,objects)
                 if qte == None : qte = 1
                 if mtt != None:
                     if qte > 0:
                         obj.prixUnit = round(float(mtt) / float(qte),2)
                     if not obj.saisie :
-                        obj.qte = qte
-                    obj.montantCalcul = round(float(obj.prixUnit) * float(obj.qte),2)
+                        obj.quantite = qte
+                    obj.montantCalcul = round(float(obj.prixUnit) * float(obj.quantite),2)
                 # calcul du total avec lignes cochées et priorité au montants saisis
                 if obj.montant != 0:
                     total += obj.montant
                 else: total += (obj.montantCalcul)
             obj.montant = float(obj.montant)
-            obj.qte = float(obj.qte)
+            obj.quantite = float(obj.quantite)
             obj.montantCalcul = float(obj.montantCalcul)
 
         self.ctrl_solde.SetSolde(total)
