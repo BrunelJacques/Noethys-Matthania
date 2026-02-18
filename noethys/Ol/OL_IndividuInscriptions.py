@@ -92,10 +92,10 @@ class ListView(FastObjectListView):
         # Recherche si l'individu est rattaché à d'autres familles
         self.listeNoms = []
         self.listeFamille = []
-        self.IDfamille = 0
-        for self.IDfamille, dictFamille in self.dictFamillesRattachees.items() :
-            self.listeFamille.append(self.IDfamille)
+        for IDfamille, dictFamille in self.dictFamillesRattachees.items() :
+            self.listeFamille.append(IDfamille)
             self.listeNoms.append(dictFamille["nomsTitulaires"])
+        self.IDfamille = self.parent.parent.IDfamille
 
     def OnItemActivated(self,event):
         self.Modifier(None)

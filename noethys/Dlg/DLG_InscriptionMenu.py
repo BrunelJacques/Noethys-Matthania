@@ -45,10 +45,12 @@ class DlgMenu(wx.Dialog):
         self.listeNoms = []
         self.listeFamille = []
         self.inscriptionChoisie = False
-        self.IDfamille = None
-        for self.IDfamille, dictFamille in self.dictFamillesRattachees.items() :
-            self.listeFamille.append(self.IDfamille)
+        self.IDfamille = self.parent.IDfamille
+        for IDfamille, dictFamille in self.dictFamillesRattachees.items() :
+            self.listeFamille.append(IDfamille)
             self.listeNoms.append(dictFamille["nomsTitulaires"])
+        if not self.IDfamille:
+            self.IDfamille = IDfamille
 
         droitCreation = UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_inscriptions", "creer")
         if mode == "modifier":
@@ -308,7 +310,8 @@ class DlgMenu(wx.Dialog):
         select = self.selection[0]
         self.IDinscription = select.IDinscription
         fGest = GestionInscription.Forfaits(self,self.DB)
-        reqPiece = fGest.GetPieceModif(self,select.IDindividu,select.IDactivite,DB=self.DB)
+        reqPiece = fGest.GetPieceModif(self,select.IDindividu,select.IDactivite,
+                                       DB=self.DB, IDfamille=self.IDfamille)
         # GetPieceModif False pour abandon, None pour absence de piece, True pour self.dictPiece alimentée
         if reqPiece == None:
             GestionDB.MessageBox(self, _("Pas de pièce associée à cette inscription!\nLa modification est impossible"))
@@ -321,7 +324,9 @@ class DlgMenu(wx.Dialog):
         # présence d'une pièce pointée dans fGest
         self.dictDonneesOrigine = fGest.dictPiece
         fGest = GestionInscription.Forfaits(self,DB=self.DB)
-        if not fGest.GetFamille(self):
+        if not self.IDfamille:
+            fGest.GetFamille(self)
+        if not self.IDfamille:
             self.Destroy()
         dlg = DLG_Inscription.Dialog(self,IDindividu=self.IDindividu)
         dlg.SetFamille(self.listeNoms, self.listeFamille, self.IDfamille, False)

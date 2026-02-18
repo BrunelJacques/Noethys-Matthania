@@ -693,7 +693,11 @@ class DlgTarification(wx.Dialog):
             # la liste est alimentée par le ok du dlg
             dlg = DLG_ChoixLigne.DlgChoixArticle(self,niveau='activite')
             if dlg.ShowModal() == wx.ID_OK:
-                self.ActionAjout(self.listeLignes)
+                # incorpation des articles dans l'olv
+                olv_articles = dlg.GetOlv()
+                ldLignes = self.ListeDict(olv_articles)
+                self.ActionAjout(ldLignes)
+            del dlg
 
     def ActionAjout(self, listeLignes):
         # Ajout d'une ligne article

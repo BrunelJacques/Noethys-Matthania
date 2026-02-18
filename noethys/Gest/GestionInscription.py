@@ -769,7 +769,8 @@ class Forfaits():
         return IDprestation
         # fin AjoutPrestation
 
-    def GetPieceModif(self,parent,IDindividu,IDactivite,IDnumPiece = None,DB=None):
+    def GetPieceModif(self,parent,IDindividu,IDactivite,IDnumPiece = None,
+                      DB=None, IDfamille = None):
         try:
             DBfourni = (DB.connexion.open == 1) # ajout tardif, on gère aussi le DB non fourni en kwds
         except: DBfourni = False
@@ -781,10 +782,15 @@ class Forfaits():
             nomChamp = descr[0]
             #typeChamp = descr[1]
             listeChamps.append(nomChamp)
-        if IDnumPiece== None:
+        if IDnumPiece:
             #la recherche se fait prioritairement sur le IDnumPiece s'il est connu
-            conditions = "pieIDindividu= %d AND pieIDactivite = %d;" % (IDindividu,IDactivite)
-        else: conditions = "pieIDnumPiece= %d" % (IDnumPiece)
+            conditions = "pieIDnumPiece= %d" % (IDnumPiece)
+        elif IDfamille:
+            conditions = "pieIDfamille= %d AND pieIDindividu= %d AND pieIDactivite = %d"%(
+                IDfamille,IDindividu, IDactivite)
+        else:
+            conditions = "pieIDindividu= %d AND pieIDactivite = %d;" % (
+                IDindividu, IDactivite)
         req =  "SELECT * FROM matPieces WHERE " + conditions
         retour = DB.ExecuterReq(req,MsgBox="GestionInscription.GetPieceModift")
         if retour != "ok" :

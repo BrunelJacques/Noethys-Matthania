@@ -1651,7 +1651,7 @@ class Facturation():
         if len(lstNoFact) > 0:
             conditionWhere = "(matPieces.pieNoFacture In ( %s )) "%(str(lstNoFact)[1:-1])
         if len(lstNoAvo) > 0:
-            if not conditionWhere: conditionWhere += "OR "
+            if conditionWhere: conditionWhere += "OR "
             conditionWhere += "(((matPieces.pieNoAvoir) In ( %s )))"%(str(lstNoAvo)[1:-1])
         if len(conditionWhere) > 0:
             conditionWhere = f"WHERE {conditionWhere}"
