@@ -1,3 +1,6 @@
+version 1.3.3.45 (23/02/2026)
+- Correction de l'affichage des listes de factures
+
 version 1.3.3.44 (18/02/2026)
 - Suppression de question sur famille en modif de pièce
 - Ajout de lignes à nouveau possible dans PrixActivités

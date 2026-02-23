@@ -184,6 +184,22 @@ class ListView(FastObjectListView):
             # En l'absence de condition on ne lance pas la recherche sur l'ensemble des factures émises
             conditions = "WHERE TRUE "
 
+        # Requête 0 prélable pour déterminer les ventilations
+        req = """
+        SELECT
+            prestations.IDfacture, Sum(ventilation.montant)
+        FROM
+            prestations
+            LEFT JOIN ventilation ON prestations.IDprestation = ventilation.IDprestation
+        %s
+        GROUP BY prestations.IDfacture;
+        """%conditions
+        DB.ExecuterReq(req,MsgBox="OL_Factures.prestations_0")
+        listeDonnees = DB.ResultatReq()
+        dictVentilation = {}
+        for IDfacture, ventilation in listeDonnees:
+            dictVentilation[IDfacture] = ventilation
+
         # Requête 1: Récupération des totaux des prestations pour chaque facture
         req = """
         SELECT prestations.IDfacture,
@@ -192,11 +208,9 @@ class ListView(FastObjectListView):
             familles.adresse_individu,
             MAX(prestations.compta),
             SUM(prestations.montant),
-            SUM(ventilation.montant),
             SUM(prestations.categorie = 'consoavoir')
-        FROM ((prestations
+        FROM (prestations
         LEFT JOIN familles ON prestations.IDfamille = familles.IDfamille)
-        LEFT JOIN ventilation ON ventilation.IDprestation = prestations.IDprestation)
         %s
         GROUP BY prestations.IDfacture,prestations.IDcompte_payeur,
             familles.adresse_individu, familles.adresse_intitule 
@@ -205,15 +219,13 @@ class ListView(FastObjectListView):
         listeDonnees = DB.ResultatReq()     
         dictPrestations = {}
         dictAdresses = {}
-        dictVentilation = {}
-        for (IDfacture,IDfamille,nom_famille,IDadresse,compta,totalPrestations,
-             mttVentilation,avoir) in listeDonnees :
+        for (IDfacture,IDfamille,nom_famille,IDadresse,compta,totalPrestations, avoir
+             ) in listeDonnees :
             if avoir == 0 and self.afficherAnnulations == True:
                 continue
             if IDfacture:
                 dictPrestations[IDfacture] = [totalPrestations,compta,nom_famille,IDadresse]
                 dictAdresses[IDadresse] = {"nom":nom_famille,"IDfamille":IDfamille}
-                dictVentilation[IDfacture] = mttVentilation
 
         # Requête 2: Récupération des factures
         lstIDfactures= [ x for x in dictPrestations.keys()]
