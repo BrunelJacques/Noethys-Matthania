@@ -1935,28 +1935,34 @@ class Facturation():
             removeFile = True
 
         def DelFile(nomFichier):
+            import time
+            def remove(nomFichier):
+                err = None
+                try:
+                    os.remove(nomFichier)
+                except Exception as err:
+                    pass
+                return err
             if afficherDoc:
-                import time
                 time.sleep(2)  # Temporisation le temps d'ouvrir le fichier
-            try:
-                os.remove(nomFichier)
-                #print(nomFichier, "Supprimé")
-                return False
-            except Exception as err:
-                ok = False
-                if err.errno != 2:
-                    mess = f"Suppression PDF échouée !\n\n{err}\n\nVoulez vous réessayer après lecture."
-                    ret = wx.MessageBox(mess, "Erreur DelFile", style=(wx.YES_NO|wx.ICON_ERROR))
-                    if ret == wx.YES:
-                        ok = True
-                return ok
+            ok = False
+            i = 0
+            while not ok:
+                i += 1
+                err = remove(nomFichier)
+                if not err:
+                    ok = True
+                elif i <= 7:
+                    time.sleep(1) # le temps de finir le lancement du pdf nouvel essai
+                else:
+                    mess = f"Suppression PDF échouée !\n\n{err}"
+                    wx.MessageBox(mess, "Erreur DelFile", style=(wx.YES|wx.ICON_ERROR))
+                    remove(nomFichier) # last chance
+                    ok = True
 
         if removeFile:
             if os.path.isfile(nomFichier):
-                ok = True
-                while ok:
-                    ok = DelFile(nomFichier)
-
+                DelFile(nomFichier)
             else:
                 print(nomFichier, "fichier non trouvé")
 
