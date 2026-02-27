@@ -1941,6 +1941,7 @@ class Facturation():
                     os.remove(nomFichier)
                     return None
                 except Exception as e:
+                    print("Delfile:",e)
                     return e
             if afficherDoc:
                 time.sleep(2)  # Temporisation le temps d'ouvrir le fichier
@@ -1956,7 +1957,7 @@ class Facturation():
                 else: # après 7 tentatives
                     mess = f"Suppression PDF échouée !\n\n{err}"
                     wx.MessageBox(mess, "Erreur DelFile", style=(wx.YES|wx.ICON_ERROR))
-                    remove(nomFichier) # last chance
+                    err = remove(nomFichier) # last chance
                     ok = True
         if removeFile:
             if os.path.isfile(nomFichier):

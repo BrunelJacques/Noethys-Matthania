@@ -53,7 +53,7 @@ def IsPullNeeded(repo_path, withPull=True, mute=False):
         needed = local_branch != remote_branch
         if needed and withPull == True:
             if not mute:
-                mess = "Une mise à jour des programmes NOESTOCK-NOELITE est nécessaire\n\n"
+                mess = "Une mise à jour des programmes Noethys-Matthania est nécessaire\n\n"
                 mess += "Voulez-vous faire cette mise à jour maintenant?"
                 ret = wx.MessageBox(mess, "Nouvelle version",
                                 style=wx.YES_NO | wx.ICON_INFORMATION)
@@ -264,11 +264,13 @@ class DLG(wx.Dialog):
                     self.warning = True
                     ok = ok and self.checkForce.GetValue()
 
-        # vérif si la mise à jour est nécessaire
-        if isPull and ok and not IsPullNeeded(dir, mute=False):
-            mess = "Pas de mise à jour nécessaire\n\nforcer est possible"
-            wx.MessageBox(mess, "Versions identiques")
-            ok = ok and self.checkForce.GetValue()
+        if not self.checkForce.GetValue():
+            # vérif si la mise à jour est nécessaire
+            if isPull and ok and not IsPullNeeded(dir, mute=False):
+                mess = "Pas de mise à jour nécessaire\n\nforcer est possible"
+                wx.MessageBox(mess, "Versions identiques")
+                ok = ok and self.checkForce.GetValue()
+        else: ok = True
 
         # l'ensemble de tests est ok.
         return ok
@@ -336,6 +338,8 @@ class DLG(wx.Dialog):
 
 # Lancement
 if __name__ == "__main__":
+    path = os.getcwd()
+    os.chdir("..")
     os.chdir("..")
     app = wx.App(False)
     import datetime
@@ -344,7 +348,7 @@ if __name__ == "__main__":
     #path= "D:\\temp\\zztest\\NoeXpy"
 
     debut = datetime.datetime.now()
-    ret = IsPullNeeded(path)
+    ret = IsPullNeeded(path,withPull=True)
     fin = datetime.datetime.now()
     delta = (fin - debut).total_seconds()
     print(f"IsPullNeeded:{ret}, durée: {delta}")

@@ -4,12 +4,12 @@ rem -------------------------------------------------------------------------
 
 echo off
 c:
-cd "c:\Program Files\Noethys-Matthania"
+cd "c:\MatthProgram\Noethys-Matthania"
 if not exist .\Test.py (
 	dir
 	echo --------------------------------------------------------
 	echo Le programme Test.py semble absent de
-	echo "c:\Program Files\Noethys-Matthania"
+	echo "c:\MatthProgram\Noethys-Matthania"
 	echo probleme d'arborescence?
 	echo --------------------------------------------------------
 	pause
@@ -33,7 +33,7 @@ if %errorlevel% neq 0 (
 	echo L'environnement actif, le prompt affiche  venv
 	echo Les packages defilent lors de leur installation.
 	echo --------------------------------------------------------
-	echo cd  "c:\Program Files\Noethys-Matthania\Noethys"
+	echo cd  "c:\MatthProgram\Noethys-Matthania\Noethys"
 	echo call venv\Scripts\activate
 	echo pip install requirements
 	echo ---------------------------------------------------
