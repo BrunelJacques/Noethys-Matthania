@@ -1,3 +1,6 @@
+version 1.3.3.47 (28/02/2026)
+- Meilleure gestion de la suppression de fichier PDF restés ouverts (factures)
+
 version 1.3.3.46 (24/02/2026)
 - Augmentation du délai de suppression de fichier temporaire factures
 

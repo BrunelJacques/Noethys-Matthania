@@ -1815,7 +1815,10 @@ class Facturation():
 
             nom = fp.NoPunctuation(nom)
             nom = f"{nom} {today}"
-            path = f"{repertoire}{SEP}{nom}.pdf"
+            sep = ''
+            if repertoire[-1:] != SEP:
+                sep = SEP
+            path = f"{repertoire}{sep}{nom}.pdf"
             if os.path.isfile(path) and repertoire != UTILS_Fichiers.GetRepTemp():
                 mess = "Un fichier précédent existe. Voulez-vous le conserver ?"
                 ret = wx.MessageBox(mess, "Nom Fichier",
@@ -1941,10 +1944,9 @@ class Facturation():
                     os.remove(nomFichier)
                     return None
                 except Exception as e:
-                    print("Delfile:",e)
                     return e
             if afficherDoc:
-                time.sleep(2)  # Temporisation le temps d'ouvrir le fichier
+                time.sleep(3)  # Temporisation le temps d'ouvrir le fichier
             ok = False
             i = 0
             while not ok:
@@ -1953,11 +1955,15 @@ class Facturation():
                 if not err:
                     ok = True
                 elif i <= 7: # une erreur de suppression
-                    time.sleep(1) # le temps de finir le lancement du pdf > nouvel essai
-                else: # après 7 tentatives
-                    mess = f"Suppression PDF échouée !\n\n{err}"
-                    wx.MessageBox(mess, "Erreur DelFile", style=(wx.YES|wx.ICON_ERROR))
+                    time.sleep(2) # le temps de finir le lancement du pdf > nouvel essai
+                else: # après x tentatives
+                    mess = f"Fermez votre PDF, avant cette fenêtre  !\n\n"
+                    mess += f"La tentative de suppression du fichier est en attente\n"
+                    mess += f"Fichier: {nomFichier}\n{err}"
+                    wx.MessageBox(mess, "Attente libération PDF", style= wx.OK|wx.ICON_ERROR)
                     err = remove(nomFichier) # last chance
+                    if err:
+                        print("Facturation.Impression DelFile:", err)
                     ok = True
         if removeFile:
             if os.path.isfile(nomFichier):
