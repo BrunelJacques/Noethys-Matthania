@@ -1809,7 +1809,7 @@ class Facturation():
                 return nomCourt[:20]
             if len(lstNomFamilles) == 1:
                 # un seule famille: son nom sera dans le nom du fichier
-                nom += f" {compactNom(lstNomFamilles[0])}"
+                nom = f"{compactNom(lstNomFamilles[0])}"
             else:
                 nom = "Factures"
 
