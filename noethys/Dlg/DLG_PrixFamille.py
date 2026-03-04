@@ -255,7 +255,7 @@ def InserArticles(listeOLV=[], articles=[], dictDonnees={}):
             # test dans les lignes d'une pièce préexistante et non encore facturée
             if not article.codeArticle in lstArticlesLignes:
                 continue
-        present = False
+        forceArt = False
         # test de présence antérieure pour alimenter la liste à supprimer
         for ligne in listeOLV:
             if not 'ligne' in ligne.origine: continue
@@ -266,18 +266,20 @@ def InserArticles(listeOLV=[], articles=[], dictDonnees={}):
             if float(ligne.montant) == 0.0 and not 'lig' in ligne.origine:
                 ligne.montant = ligne.montantCalcul
             # match article déja présent et corrige les montants calculés dans ligne
-            pres, suppr, brk = GestionArticle.ArticlePreExist(article, ligne, dictDonnees)
-            if suppr:
+            forceArt, supprLigne, brkParr = GestionArticle.ArticlePreExist(article, ligne, dictDonnees)
+            if supprLigne:
                 lstSupprimer.append(ligne)
-            if pres:
-                present = True
+            if brkParr:
+                break
 
         if article.typeLigne in list(dicTypesLignes.keys()):
             article.ordre = dicTypesLignes[article.typeLigne]
         else:
             article.ordre = 99
-        if not present:
+        if forceArt:
             article.force = "OUI"
+            #article.isChecked = True
+            article.montant = article.montantCalcul
             listeOLV.append(article)
 
     # suppression des anciennes lignes
@@ -462,6 +464,12 @@ class OLVtarification(ObjectListView):
         self.listeOLV = sorted(listeOLV, key=attrgetter('ordre'))
 
         self.SetObjects(self.listeOLV)
+
+        if not self.facture:
+            selection = [x for x in self.modelObjects if x.force == 'OUI']
+            for obj in selection:
+                self.SetCheckState(obj,True)
+
 
     def InitObjectListView(self):
 
@@ -749,7 +757,7 @@ class DlgTarification(wx.Dialog):
         self.resultsOlvFact.InitObjectListView()
 
         self.dataorigine = [copy.deepcopy(x) for x in self.resultsOlv.listeOLV]
-        self.DeduitDejaFacture()
+        #self.DeduitDejaFacture()
         self.PreCoche() # provoque des recalculs par l'évènement Check de listbox
         self.CalculSolde()
         return
@@ -1033,7 +1041,7 @@ class DlgTarification(wx.Dialog):
                 self.resultsOlv.listeOLV.append(ligne)
 
                 lstCodeArt.append(ligne.codeArticle)
-                ligne.isChecked = True
+                #ligne.isChecked = True
             dictConditionsMulti = {}
             for ligne in self.resultsOlv.listeOLV:
                 for codeArt in lstCodeArt:
@@ -1151,7 +1159,7 @@ class DlgTarification(wx.Dialog):
                 obj.montantCalcul = round(obj.prixUnit * obj.quantite, 2)
                 if obj.saisie == False:
                     Calcul(self.resultsOlv.dictDonnees, obj, objects)
-                if obj.montantCalcul != 0.0:
+                if obj.montantCalcul != 0.0 and 'RED-CUMUL' not in obj.codeArticle:
                     # correctif pour ne pas refacturer deux fois le même article
                     for objfac in self.resultsOlvFact.GetObjects():
                         if objfac.codeArticle == obj.codeArticle:
@@ -1179,6 +1187,7 @@ class DlgTarification(wx.Dialog):
         self.resultsOlv.RefreshObjects(objects)
         # fin CalculSolde
 
+    """
     def DeduitDejaFacture(self):
         dictCorrige = {}
         dictInFact = {}
@@ -1239,6 +1248,7 @@ class DlgTarification(wx.Dialog):
                         obj.force = "NON"
                         obj.quantite = 0
         # fin DeduitDejaFacture
+    """
 
     def RazUnchecked(self):
         objects = self.resultsOlv.GetObjects()

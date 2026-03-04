@@ -1143,41 +1143,43 @@ def CalParrain(track, *args) :
     #fin CalParrain
 
 def ArticlePreExist(article, ligne, dictDonnees):
-    # test pour l'article candidat à l'insertion, pour chaque ligne présente.
-    brk = False # provoquera un break dans 'for ligne in listeOLV'
-    artPres = False
-    supprimer = False
+    # ATTENTION : modifs faites sur article et ligne en plus du return
+    # teste l'article candidat à l'insertion, pour chaque ligne présente.
+    # retourne forceArt, supprLigne, brkParr
+    forceArt = False
+    supprLign = False
+    brkParr = False  # provoquera un break dans 'for ligne in listeOLV' pour parrainages
 
     if article.codeArticle[:6] != ligne.codeArticle[:6]:
         # ne traite que si ça matche
-        return artPres, supprimer, brk
+        return forceArt, supprLign, brkParr
 
-    article.origine = "article_ligne"
+    article.origine = "article_nvxCalcul"
+    article.oldValue = article.montantCalcul
     ligne.origine = "ligne_article"
-    # C'est l'article qui sera retenu, il faut donc l'alimenter de parties de la ligne
+    # l'article qui sera retenu, il faut donc l'alimenter de parties de la ligne
+    forceArt = True
+    ligne.force = "NON"
+    ligne.saisie = False
     article.force = "OUI"
-    article.saisie = True
-    article.oldValue = ligne.oldValue
-    article.oldLibelle = ligne.oldLibelle
-    ligne.libelleArticle = article.libelle
-    if ligne.montant == article.montantCalcul or ligne.montant == 0.0:
-            artPres = True
-            ligne.force = "OUI"
+    if (ligne.montant == article.montantCalcul
+        or (ligne.montant == 0.0 and ligne.montantCalcul == article.montantCalcul)):
+        article.libelle = ligne.libelle
+        supprLign = True
     else:
-        # mais montant différent, le nouveau calcul sera présent
-        ligne.force = "NON"
+        # montants différents, l'article sera présent et coché et la ligne laissée
+        supprLign = False
         ligne.origine += "_faux"
-        if AvecCalcul(ligne):
-            ligne.quantite = article.quantite
+        if article.quantite :
+            article.prixUnit = article.montantCalcul / article.quantite
 
-    ligne.montantCalcul = article.montantCalcul
 
     # CAS PARRAINAGE: les articles ont pu être renumérotés
     if article.codeArticle[:6] == '$$PARR' and ligne.codeArticle[:6] == '$$PARR':
         # recherche dans le dicParr
         dicParrainage = dictDonnees['dicParrainages']
         for IDinscr, dicParr in list(dicParrainage.items()):
-            brk = True
+            brkParr = True # JB toujours pertinent? ignore les lignes suivantes'
             if ligne.IDnumLigne and article.IDinscription:
                 if ligne.IDnumLigne == dicParr[
                     'IDligneParrain'] and article.IDinscription == IDinscr:
@@ -1186,13 +1188,11 @@ def ArticlePreExist(article, ligne, dictDonnees):
                     article.IDnumPiece = ligne.IDnumPiece
                     if not 'ok' in dicParr["ligneChoix"]:
                         article.force = "NON"
-                    brk = False
+                    brkParr = False
 
-    # CAS réduction cumul
-    elif (ligne.codeArticle == "$RED-CUMUL") and '{' in article.libelle:
-            ligne.libelle = article.libelle
 
-    return artPres, supprimer, brk
+
+    return forceArt, supprLign, brkParr
 
 class ActionsModeCalcul() :
         def __init__(self, dictDonnees={}):
