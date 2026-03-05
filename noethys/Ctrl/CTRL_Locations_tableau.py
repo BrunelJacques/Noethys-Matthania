@@ -185,10 +185,7 @@ class Barre(object):
                     else :
                         dc.SetPen(wx.Pen(self.couleur_barre))
                     dc.SetBrush(wx.Brush(self.couleur_barre))
-                    if 'phoenix' not in wx.PlatformInfo:
-                        dc.DrawRectangleRect(rect)
-                    else :
-                        dc.DrawRectangle(rect)
+                    dc.DrawRectangleRect(rect)
 
                     # Affiche le nom de la barre
                     dc.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL))
@@ -1426,10 +1423,8 @@ class CTRL_Infos(wx.Panel):
         rect = wx.Rect(0, 0, self.GetSize()[0], self.GetSize()[1])
 
         # Clipping
-        if 'phoenix' in wx.PlatformInfo:
-            dc.SetClippingRegion(rect)
-        else:
-            dc.SetClippingRect(rect)
+        dc.SetClippingRegion(rect)
+
 
         # Affiche le titre
         x_texte = 4
@@ -1441,11 +1436,10 @@ class CTRL_Infos(wx.Panel):
             dc.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL))
             padding_titre = 2
             tmp, largTitre, hautTitre = GetTailleTexte(dc, self.titre, rect.width)
-            if 'phoenix' not in wx.PlatformInfo:
-                dc.DrawRectangleRect(wx.Rect(0, 0, largTitre + padding_titre*4, rect.height-padding_titre*2))
-            else :
-                dc.DrawRectangle(wx.Rect(0, 0, largTitre + padding_titre * 4, rect.height - padding_titre * 2))
-            y = rect.height / 2.0 - hautTitre / 2.0
+            largTitre = int(largTitre)
+            dc.DrawRectangleRect(wx.Rect(0, 0, largTitre + padding_titre*4, rect.height-padding_titre*2))
+
+            y = int(rect.height / 2.0 - hautTitre / 2.0)
             dc.DrawText(self.titre, padding_titre*2, y-2)
             x_texte = largTitre + 12
 
@@ -1453,7 +1447,7 @@ class CTRL_Infos(wx.Panel):
         dc.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL))
         dc.SetTextForeground((0, 0, 0))
         largTexte, hautTexte, descent, externalLeading = dc.GetFullTextExtent(self.texte)
-        y = rect.height / 2.0 - hautTexte / 2.0
+        y = int(rect.height / 2.0 - hautTexte / 2.0)
         dc.DrawText(self.texte, x_texte, y-2)
 
         dc.DestroyClippingRegion()

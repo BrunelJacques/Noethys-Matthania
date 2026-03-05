@@ -399,7 +399,7 @@ class Panel_identite(wx.Panel):
                 self.ficheIndividu = None
         except : 
             self.ficheIndividu = None
-        if self.ficheIndividu != None :
+        if self.ficheIndividu and hasattr(self.ficheIndividu,"Set_Header"):
             self.ficheIndividu.Set_Header(nomLigne, texte)
     
     def SetPhoto(self, IDphoto=None, nomFichier=None):

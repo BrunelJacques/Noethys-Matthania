@@ -267,6 +267,7 @@ def InserArticles(listeOLV=[], articles=[], dictDonnees={}):
                 ligne.montant = ligne.montantCalcul
             # match article déja présent et corrige les montants calculés dans ligne
             insertArt, supprLigne, brkParr = GestionArticle.ArticlePreExist(article, ligne, dictDonnees)
+            #print(article.codeArticle, ligne.codeArticle, insertArt)
             if supprLigne:
                 lstSupprimer.append(ligne)
             if brkParr:
@@ -278,7 +279,6 @@ def InserArticles(listeOLV=[], articles=[], dictDonnees={}):
             article.ordre = 99
         if insertArt:
             article.force = "OUI"
-            #article.isChecked = True
             article.montant = article.montantCalcul
             listeOLV.append(article)
 
@@ -460,15 +460,10 @@ class OLVtarification(ObjectListView):
             # Pour les devis c"est chaque calcul qui formate les lignes
             ColorLignes(listeOLV, self.dictDonnees)
 
-        # le listeOLV a vocation pour SetObjects
-        self.listeOLV = sorted(listeOLV, key=attrgetter('ordre'))
-
-        self.SetObjects(self.listeOLV)
-
-        if not self.facture:
-            selection = [x for x in self.modelObjects if x.force == 'OUI']
-            for obj in selection:
-                self.SetCheckState(obj,True)
+        # le listeOLV est voué à SetObjects dans l'olv
+        listeOLV.sort(key=attrgetter('ordre'))
+        self.listeOLV = listeOLV
+        self.SetObjects(listeOLV)
 
 
     def InitObjectListView(self):

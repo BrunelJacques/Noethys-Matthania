@@ -1146,7 +1146,7 @@ def ArticlePreExist(article, ligne, dictDonnees):
     # ATTENTION : modifs faites sur article et ligne en plus du return
     # teste l'article candidat à l'insertion, pour chaque ligne présente.
     # retourne forceArt, supprLigne, brkParr
-    insertArt = False
+    insertArt = True
     supprLign = False
     brkParr = False  # provoquera un break dans 'for ligne in listeOLV' pour parrainages
 

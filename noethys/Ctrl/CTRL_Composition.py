@@ -409,7 +409,7 @@ class VISU_Compo(GestCompo):
 
         # Initialisation du tooltip
         self.tip = STT.SuperToolTip("")
-        self.tip.SetEndDelay(10000)  # Fermeture auto du tooltip après 10 secs
+        self.tip.SetEndDelay(3000)  # Fermeture auto du tooltip après 3 secs
         self.tip.IDindividu = None
 
     def SetNewIndividu(self, dIndividu):
@@ -430,15 +430,20 @@ class VISU_Compo(GestCompo):
         if self.tip.IDindividu != None and self.tip.IDindividu != IDindividu:
             actif = False
 
+        #print("tooltip actif: ", actif)
         if actif == True:
             # Active le tooltip
             if hasattr(self.parent, "tipFrame") == False and hasattr(self.parent, "timerTip") == False:
                 self.timerTip = wx.PyTimer(self.AfficheTooltip)
                 self.timerTip.Start(1500)
                 self.tip.IDindividu = IDindividu
+            #else:
+                #print("no typeframe or timer")
         else:
             # Désactive le tooltip
+
             if hasattr(self, "timerTip"):
+                #print('timerTip running :', self.timerTip.IsRunning())
                 if self.timerTip.IsRunning():
                     self.timerTip.Stop()
                     del self.timerTip
