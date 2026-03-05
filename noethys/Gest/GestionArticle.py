@@ -1146,19 +1146,19 @@ def ArticlePreExist(article, ligne, dictDonnees):
     # ATTENTION : modifs faites sur article et ligne en plus du return
     # teste l'article candidat à l'insertion, pour chaque ligne présente.
     # retourne forceArt, supprLigne, brkParr
-    forceArt = False
+    insertArt = False
     supprLign = False
     brkParr = False  # provoquera un break dans 'for ligne in listeOLV' pour parrainages
 
     if article.codeArticle[:6] != ligne.codeArticle[:6]:
         # ne traite que si ça matche
-        return forceArt, supprLign, brkParr
+        return insertArt, supprLign, brkParr
 
     article.origine = "article_nvxCalcul"
     article.oldValue = article.montantCalcul
     ligne.origine = "ligne_article"
     # l'article qui sera retenu, il faut donc l'alimenter de parties de la ligne
-    forceArt = True
+    insertArt = True
     ligne.force = "NON"
     ligne.saisie = False
     article.force = "OUI"
@@ -1192,7 +1192,7 @@ def ArticlePreExist(article, ligne, dictDonnees):
 
 
 
-    return forceArt, supprLign, brkParr
+    return insertArt, supprLign, brkParr
 
 class ActionsModeCalcul() :
         def __init__(self, dictDonnees={}):

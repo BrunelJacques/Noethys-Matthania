@@ -255,7 +255,7 @@ def InserArticles(listeOLV=[], articles=[], dictDonnees={}):
             # test dans les lignes d'une pièce préexistante et non encore facturée
             if not article.codeArticle in lstArticlesLignes:
                 continue
-        forceArt = False
+        insertArt = True
         # test de présence antérieure pour alimenter la liste à supprimer
         for ligne in listeOLV:
             if not 'ligne' in ligne.origine: continue
@@ -266,7 +266,7 @@ def InserArticles(listeOLV=[], articles=[], dictDonnees={}):
             if float(ligne.montant) == 0.0 and not 'lig' in ligne.origine:
                 ligne.montant = ligne.montantCalcul
             # match article déja présent et corrige les montants calculés dans ligne
-            forceArt, supprLigne, brkParr = GestionArticle.ArticlePreExist(article, ligne, dictDonnees)
+            insertArt, supprLigne, brkParr = GestionArticle.ArticlePreExist(article, ligne, dictDonnees)
             if supprLigne:
                 lstSupprimer.append(ligne)
             if brkParr:
@@ -276,7 +276,7 @@ def InserArticles(listeOLV=[], articles=[], dictDonnees={}):
             article.ordre = dicTypesLignes[article.typeLigne]
         else:
             article.ordre = 99
-        if forceArt:
+        if insertArt:
             article.force = "OUI"
             #article.isChecked = True
             article.montant = article.montantCalcul

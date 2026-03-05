@@ -5,14 +5,21 @@ Installer Noethys-Matthania sur Windows (version accompagnée : cf TutoInstallat
 Sur Windows, vous devez aller sur les sites des auteurs pour 
 rechercher et installer les bibliothèques suivantes.
 - Python 3.11 avec l'option pip (http://www.python.org/)
-- créez un répertoire "c:/MatthProgram/Noethys-Matthania"
+- créez un répertoire "c:/MatthProgram"
 - Accordez le controle total à tous les utilisateurs via propriétés/sécurité
 
-# installer git  par https://git-scm.com/download/win
+# installer git  par https://git-scm.com/download/win  (ou équivalent standalone)
 ouvrir une fenêtre shell en mode administrateur (clic droit  sur la proposition windows)
 - cd c:/MatthProgram
+- aller sur https://github.com/BrunelJacques puis ouvrir Noethys-Matthania
+- aller à l'adresse : https://github.com/BrunelJacques/Noethys-Matthania pour copier/coller
 - git clone https://github.com/BrunelJacques/Noethys-Matthania
 - cd Noethys-Matthania
+# verifier si pip est installé, sinon version py et installer pip par py:  
+- pip -V
+  - py -V
+  - py -3.11 -m pip install package
+# installer les bibiliothèques
 - pip install -r requirements.txt
 
 # Installez un raccourci sur le bureau
@@ -21,6 +28,9 @@ ouvrir une fenêtre shell en mode administrateur (clic droit  sur la proposition
 - icone: C:/MatthProgram/Noethys-Matthania/noethys/Static/Images/Icone.ico
 
 # Compléments
+
+vérifier les versions python installées: py -0
+version active : py -V
 
 Liste des modules qui ont dû être chargés par pip install
 - dateutil (http://pypi.python.org/pypi/python-dateutil)
