@@ -171,14 +171,21 @@ class Forfaits():
                 dicLettrages[IDinscription].append((IDligne,solde))
                 lstLignes.append(IDligne)
         #-------------- fin de l'acquisition des données, début ctrl ----------
+
         def annuleLigne(IDligne,dLigne):
-            # Supprime une ligne de paramétrage indue
+            # Supprime une ligne de paramétrage indue si non facturée
             mess = "Suppression de ligne\n\n%s\nde la pièce '%d' client '%d'"%(
                 dLigne['libelle'],dLigne['IDpiece'],dLigne['IDparrain'])
-            ret = None
+            date = dLigne['dteInsc']
+            retDelLigne = None
             if dLigne['nature'] in ('DEV','RES','COM'):
-                ret = DB.ReqDEL('matPiecesLignes','ligIDnumLigne',IDligne,MsgBox=mess)
-            if ret != 'ok':
+                retDelLigne = DB.ReqDEL('matPiecesLignes','ligIDnumLigne',IDligne,MsgBox=mess)
+            if date < "2018":
+                del dicLignes[IDligne]
+                return
+
+            # alerte et break si pas de correction faite
+            if retDelLigne != 'ok':
                 date = dLigne['dteInsc']
                 if dLigne['date'] and len(dLigne['date']) > 0:
                     date = dLigne['date']
@@ -188,7 +195,8 @@ class Forfaits():
                 mess += "Pour supprimer ce message, refacturez et relettrez les parrainages."
                 wx.MessageBox(mess,'A Faire',style=wx.ICON_EXCLAMATION)
                 return
-            # modif de la prestation
+
+            # modif de la prestation et lettrage
             if dLigne['nature']== 'COM':
                 dPiece = DATA_Tables.GetDictRecord(DB,'matPieces',dLigne['IDpiece'],
                                           "CoherenceParrainages dpiece")
@@ -199,11 +207,12 @@ class Forfaits():
                                           "CoherenceParrainages dprestation")
                 mtt = dPrestation['montant'] - dLigne['montant']
                 lstDon = [('montant_initial',mtt),('montant',mtt)]
-                ret = DB.ReqMAJ('prestations',lstDon, 'IDprestation',dPiece['pieIDprestation'],
+                retDelLigne = DB.ReqMAJ('prestations',lstDon, 'IDprestation',dPiece['pieIDprestation'],
                           "CoherenceParrainages modifPrestation")
+                if 'pieIDinscription' in dPiece and dPiece['pieIDinscription'] in dicLettrages:
+                    del dicLettrages[dPiece['pieIDinscription']]
             del dicLignes[IDligne]
-            if 'pieIDinscription' in dPiece and dPiece['pieIDinscription'] in dicLettrages:
-                del dicLettrages[dPiece['pieIDinscription']]
+
         # Liste des parrainages correctement affectés
         lstInscrOK = []
         lstLigneOK = []
@@ -230,10 +239,10 @@ class Forfaits():
 
         # lettrages manquants rapprochement automatique par les radicaux des prenoms, complète matParrainages
         newLettres = []
-        if len(lstInscrKO) * len(lstLigneKO) >0:
-            for IDinscription in lstInscrKO:
-                IDinscription,dteInscr, IDfamille, activite, nom, prenom,  mttInscr = dicInscriptions[IDinscription]
-                mots = prenom.split(' ')
+        if len(lstInscrKO) + len(lstLigneKO) >0:
+            for IDinscription in dicInscriptions.keys():
+                dicInscr = dicInscriptions[IDinscription]
+                mots = dicInscr['prenom'].split(' ')
                 stop = False
                 for mot in mots:
                     mot = mot.strip().upper()
@@ -242,7 +251,7 @@ class Forfaits():
                         date = dLigne['dteInsc']
                         if dLigne['date'] and len(dLigne['date']) > 0:
                             date = dLigne['date']
-                        if mot in dLigne['libelle'].upper() and dteInscr <= date:
+                        if mot in dLigne['libelle'].upper() and dicInscr['date'] <= date:
                             # l'affectation est postérieure et contient le prénom
                             newLettres.append((IDinscription,IDnumLigne))
                             if not IDinscription in list(dicLettrages.keys()):
@@ -256,10 +265,13 @@ class Forfaits():
         mess1 = ""
         k = 0
         for IDinscription, IDnumLigne in newLettres:
-            lstLigneKO.remove(IDnumLigne)
-            lstLigneOK.append(IDnumLigne)
-            lstInscrKO.remove(IDinscription)
-            lstInscrOK.append(IDinscription)
+            try:
+                lstLigneKO.remove(IDnumLigne)
+                lstLigneOK.append(IDnumLigne)
+                lstInscrKO.remove(IDinscription)
+                lstInscrOK.append(IDinscription)
+            except:
+                pass
             ret = DB.ReqInsert('matParrainages', [('parIDligneParr', IDnumLigne),
                                             ('parIDinscription', IDinscription),
                                             ('parSolde', 999)],
