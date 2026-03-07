@@ -378,7 +378,8 @@ class CTRL(wx.Panel):
             self.ctrl_tableau.SetDelta(h=0)
             nbre_colonnes = (1 + len(self.ctrl_tableau.liste_colonnes))
             nbre_colonnes_visibles = 1 + largeur_reelle / self.dict_options["case_largeur"]
-            self.scrollbar_h.SetScrollbar(0, nbre_colonnes_visibles, nbre_colonnes, nbre_colonnes_visibles)
+            self.scrollbar_h.SetScrollbar(0, int(nbre_colonnes_visibles), int(nbre_colonnes),
+                                          int(nbre_colonnes_visibles))
 
         if v == True :
             self.ctrl_tableau.SetDelta(v=0)
@@ -392,7 +393,7 @@ class CTRL(wx.Panel):
                     nbre = 1
                 nbre_lignes_total += nbre
 
-            nbre_lignes_visibles = (hauteur_reelle / self.dict_options["case_hauteur"])
+            nbre_lignes_visibles = int((hauteur_reelle / self.dict_options["case_hauteur"]))
             self.scrollbar_v.SetScrollbar(0, nbre_lignes_visibles, nbre_lignes_total+1, nbre_lignes_visibles)
 
     def SetWheel(self, valeur=0):
@@ -462,7 +463,7 @@ class Colonne(object):
             index = 0
             for dt in listeGraduations :
                 x = self.HeureEnPos(dt)
-                posY = rect.height - 17
+                posY = int(rect.height - 17)
                 hautTraitHeures = 4
                 hautTexte = 12
                 if dt.minute == 0:
@@ -470,7 +471,7 @@ class Colonne(object):
                     texte = "%dh" % dt.hour
                     largTexte, hautTexte = dc.GetTextExtent(texte)
                     if ecartGraduations > 5 :
-                        x_texte = x - (largTexte / 2) + rect.x
+                        x_texte = int(x - int(largTexte / 2) + rect.x)
                         if x_texte - largTexte > rect.x and x_texte + largTexte < rect.right :
                             dc.DrawText(texte, x_texte, posY + 2)
                         hauteurGraduations = 10
@@ -481,7 +482,9 @@ class Colonne(object):
                 elif dt.minute == 30:
                     hauteurTrait = 2.5
                 if x > 2 and x < rect.width - 2 :
-                    dc.DrawLine(x + rect.x, posY + hautTexte + hautTraitHeures - hauteurTrait, x + rect.x, posY + hautTexte + hautTraitHeures)
+                    dc.DrawLine(int(x + rect.x), int(posY + hautTexte + hautTraitHeures - hauteurTrait),
+                                int(x + rect.x),
+                                int(posY + hautTexte + hautTraitHeures))
                 index += 1
 
         # Label
@@ -503,8 +506,8 @@ class Colonne(object):
 
         # Recherche taille du label
         texte, largTexte, hautTexte = GetTailleTexte(dc, texte, rect.width)
-        x = rect.width / 2.0 - largTexte / 2.0 + rect.x
-        y = rect.height / 2.0 - hautTexte / 2.0 - hauteurGraduations
+        x = int(rect.width / 2.0 - largTexte / 2.0 + rect.x)
+        y = int(rect.height / 2.0 - hautTexte / 2.0 - hauteurGraduations)
         dc.DrawText(texte, x, y)
 
 
@@ -1380,25 +1383,16 @@ class CTRL_Infos(wx.Panel):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
     def OnSize(self, event):
-        if 'phoenix' in wx.PlatformInfo:
-            width, height = self.GetSize()
-            self.bgbuf = wx.Bitmap(width, height)
-        else :
-            width, height = self.GetSizeTuple()
-            self.bgbuf = wx.EmptyBitmap(width, height)
-        self.MAJ_affichage()
+        width, height = self.GetSize()
+        self.bgbuf = wx.Bitmap(width, height)
+
 
     def OnEraseBackground(self, event):
         pass
 
     def OnPaint(self, event):
         dc = wx.AutoBufferedPaintDC(self)
-        if 'phoenix' in wx.PlatformInfo:
-            dc.DrawBitmap(self.bgbuf, 0, 0, True)
-        else :
-            dc.BeginDrawing()
-            dc.DrawBitmap(self.bgbuf, 0, 0, True)
-            dc.EndDrawing()
+        dc.DrawBitmap(self.bgbuf, 0, 0, True)
 
     def MAJ_affichage(self):
         memdc = wx.MemoryDC()
