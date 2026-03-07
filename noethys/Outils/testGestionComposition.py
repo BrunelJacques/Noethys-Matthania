@@ -9,6 +9,7 @@
 #-----------------------------------------------------------
 
 import Chemins
+import wx, sys
 import datetime
 import GestionDB
 
@@ -19,12 +20,8 @@ from Dlg import DLG_Individu
 from Data import DATA_Civilites as Civilites
 from Data import DATA_Liens as Liens
 from Ctrl import CTRL_Photo
-
-import wx
-from wx.lib.agw.supertooltip import SuperToolTip, ToolTipWindow
-
-import wx.lib.agw.hypertreelist as HTL
-from Utils.UTILS_Traduction import _
+from wx.lib.agw.supertooltip import SuperToolTip,ToolTipWindow
+from wx.lib.agw.hypertreelist import HyperTreeList,TR_COLUMN_LINES,TR_ROW_LINES
 
 
 DICT_TYPES_LIENS = Liens.DICT_TYPES_LIENS
@@ -34,6 +31,226 @@ def MAJ(self):
         self.MAJ()
     if hasattr(self, 'MAJnotebook'):
         self.MAJnotebook()
+
+
+
+class CadreIndividu():
+    # Spécifique pour affichage graphique
+    def __init__(self, parent, dc, IDindividu=None, listeTextes=[], genre="M", photo=None,
+                 xCentre=None, yCentre=None,
+                 largeur=None, hauteur=None, numCol=None, titulaire=0, correspondant=0,
+                 calendrierActif=False):
+        self.parent = parent
+        self.zoom = 1
+        self.zoomContenu = True
+
+        self.selectionCadre = False
+        self.survolCadre = False
+        self.calendrierActif = calendrierActif
+        self.survolCalendrier = False
+
+        self.IDindividu = IDindividu
+        self.dc = dc
+        self.IDobjet = wx.Window.NewControlId()
+        self.listeTextes = listeTextes
+        self.genre = genre
+        self.photo = photo
+        self.numCol = numCol
+        self.titulaire = titulaire
+        self.correspondant = correspondant
+        self.xCentre = xCentre
+        self.yCentre = yCentre
+        self.largeur = largeur
+        self.hauteur = hauteur
+
+        self.Draw()
+
+    def Draw(self):
+        largeur = self.largeur
+        hauteur = self.hauteur
+
+        # Création de l'ID pour le dictionnaire d'objets
+        if self.IDobjet in self.parent.dictIDs:
+            self.dc.RemoveId(self.IDobjet)
+        self.dc.SetId(self.IDobjet)
+
+        # Zoom Cadre
+        if self.zoom != 1:
+            largeur, hauteur = largeur * self.zoom, hauteur * self.zoom
+
+        # Zoom Contenu
+        if self.zoomContenu == True:
+            self.zoomContenuRatio = self.zoom
+        else:
+            self.zoomContenuRatio = 1
+
+        # Paramètres du cadre
+        x, y = int(self.xCentre - (largeur / 2)), int(self.yCentre - (hauteur / 2))
+        self.x, self.y = x, y
+        if self.genre == "M":
+            couleurFondHautCadre = (217, 212, 251)
+            couleurFondBasCadre = (196, 188, 252)
+        else:
+            couleurFondHautCadre = (251, 212, 239)
+            couleurFondBasCadre = (253, 193, 235)
+        couleurBordCadre = (0, 0, 0)
+        couleurSelectionCadre = (133, 236, 90)
+        paddingCadre = 8 * self.zoomContenuRatio
+        taillePhoto = (self.hauteur - (paddingCadre * 2)) * self.zoomContenuRatio
+
+        # Dessin du cadre de sélection
+        if self.selectionCadre == True:
+            ecart = 5
+            self.dc.SetBrush(wx.Brush((0, 0, 0), style=wx.TRANSPARENT))
+            self.dc.SetPen(wx.Pen(couleurSelectionCadre, 1, wx.DOT))
+            self.dc.DrawRoundedRectangle(
+                wx.Rect(int(x - ecart), int(y - ecart), int(largeur + (ecart * 2)),
+                        int(hauteur + (ecart * 2))), radius=int(5 * self.zoom))
+
+        # Dessin du cadre
+        self.dc.SetBrush(wx.Brush(couleurFondBasCadre))
+        self.dc.SetPen(wx.Pen(couleurBordCadre, 1))
+        if "linux" in sys.platform:
+            self.dc.DrawRectangle(wx.Rect(int(x), int(y), int(largeur), int(hauteur)))
+        else:
+            self.dc.DrawRoundedRectangle(
+                wx.Rect(int(x), int(y), int(largeur), int(hauteur)), radius=5 * self.zoom)
+
+        if "linux" not in sys.platform:
+            coordsSpline = [(int(x + 1), int(y + (hauteur / 3))),
+                            (int(x + (largeur / 2.5)), int(y + (hauteur / 4.1))),
+                            (int(x + largeur - 1), int(y + (hauteur / 1.8)))]
+            self.dc.DrawSpline(coordsSpline)
+
+            self.dc.SetBrush(wx.Brush(couleurFondHautCadre))
+            self.dc.FloodFill(int(x + 5), int(y + 5), couleurBordCadre,
+                              style=wx.FLOOD_BORDER)
+
+            self.dc.SetPen(wx.Pen(couleurFondBasCadre, 1))
+            self.dc.DrawSpline(coordsSpline)
+
+        # Intégration de la photo
+        if self.photo != None:
+            try:
+                img = self.photo.ConvertToImage()
+                img = img.Rescale(width=int(taillePhoto), height=int(taillePhoto),
+                                  quality=wx.IMAGE_QUALITY_HIGH)
+                self.bmp = img.ConvertToBitmap()
+                self.dc.DrawBitmap(self.bmp, int(x + paddingCadre), int(y + paddingCadre))
+            except:
+                pass
+
+        # Dessin du texte
+        largeurMaxiTexte = largeur - paddingCadre * 3 - taillePhoto
+        hauteurMaxiTexte = hauteur - paddingCadre
+        posXtexte = x + paddingCadre * 2 + taillePhoto - 2
+        posYtexte = y + paddingCadre - 2
+        for texte, tailleFont, styleFont in self.listeTextes:
+            # Font
+            font = self.parent.GetFont()
+            font.SetPointSize(int(tailleFont * self.zoomContenuRatio))
+            if styleFont == "normal": font.SetWeight(wx.FONTWEIGHT_NORMAL)
+            if styleFont == "light": font.SetWeight(wx.FONTWEIGHT_LIGHT)
+            if styleFont == "bold": font.SetWeight(wx.FONTWEIGHT_BOLD)
+            self.parent.SetFont(font)
+            self.dc.SetFont(font)
+            # Texte
+            largeurTexte, hauteurTexte = self.parent.GetTextExtent(texte)
+            if (posYtexte - y + hauteurTexte) < hauteurMaxiTexte:
+                if largeurTexte > largeurMaxiTexte:
+                    texte = self.AdapteLargeurTexte(self.dc, texte, largeurMaxiTexte)
+                if texte == "#SPACER#": texte = " "
+                self.dc.DrawText(texte, int(posXtexte), int(posYtexte))
+                posYtexte += hauteurTexte + 1
+
+        # Dessin du cadre Accès aux consommations
+        if self.calendrierActif == True and self.zoom > 1:
+            # Image de calendrier
+            if self.survolCalendrier == True:
+                bmpConso = wx.Bitmap(
+                    Chemins.GetStaticPath("Images/32x32/Calendrier_modifier.png"),
+                    wx.BITMAP_TYPE_ANY)
+            else:
+                bmpConso = wx.Bitmap(Chemins.GetStaticPath("Images/32x32/Calendrier.png"),
+                                     wx.BITMAP_TYPE_ANY)
+            xBmpConso, yBmpConso = x + largeur - 5 - 32, y + 5
+            self.dc.DrawBitmap(bmpConso, int(xBmpConso), int(yBmpConso))
+
+        # Symboles de l'individu
+        xSymbole = x + paddingCadre
+        ySymbole = y + paddingCadre + 2
+
+        # Dessin du symbole TITULAIRE
+        if self.titulaire == 1:
+            bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Titulaire.png"),
+                            wx.BITMAP_TYPE_ANY)
+            self.dc.DrawBitmap(bmp, int(xSymbole), int(ySymbole))
+            xSymbole += 42
+        if self.correspondant:
+            bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Titulaire.png"),
+                            wx.BITMAP_TYPE_ANY)
+            self.dc.DrawBitmap(bmp, int(xSymbole), int(ySymbole))
+            xSymbole += 16
+
+        # Mémorisation dans le dictionnaire d'objets
+        self.dc.SetIdBounds(self.IDobjet,
+                            wx.Rect(int(x), int(y), int(largeur), int(hauteur)))
+        self.parent.dictIDs[self.IDobjet] = ("individu", self.IDindividu)
+
+    def SurvolCalendrier(self, x, y):
+        largeurCadre, hauteurCadre = self.largeur * self.zoom, self.hauteur * self.zoom
+        xBmpConso, yBmpConso = self.x + largeurCadre - 5 - 32, self.y + 5
+        if (y >= self.y + 4 and y <= self.y + 6 + 32) and (
+                x >= xBmpConso - 1 and x <= xBmpConso + 32 + 1):
+            return True
+        else:
+            return False
+
+    def AdapteLargeurTexte(self, dc, texte, tailleMaxi):
+        """ Raccourcit le texte en fonction de la taille donnée """
+        tailleTexte = self.parent.GetTextExtent(texte)[0]
+        texteTemp, texteTemp2 = "", ""
+        for lettre in texte:
+            texteTemp += lettre
+            if self.parent.GetTextExtent(texteTemp + "...")[0] <= tailleMaxi:
+                texteTemp2 = texteTemp
+            else:
+                return texteTemp2 + "..."
+
+    def Selectionne(self, etat=True):
+        if etat == True:
+            self.selectionCadre = True
+        else:
+            self.selectionCadre = False
+        self.Draw()
+        self.parent.Refresh()
+        self.parent.Update()
+
+    def ActiveCalendrier(self, etat):
+        self.survolCalendrier = etat
+        self.Draw()
+        self.parent.Refresh()
+        self.parent.Update()
+
+    def ZoomAvant(self, coef=2, vitesse=1):
+        if self.zoom == 1:
+            for x in range(10, int(coef * 10)):
+                self.zoom = (x * 0.1) + 0.1
+                wx.MilliSleep(int(vitesse))
+                self.Draw()
+                self.parent.Refresh()
+                self.parent.Update()
+
+    def ZoomArriere(self, vitesse=0.5):
+        if self.zoom > 1:
+            for x in range(int(self.zoom * 10), 10 - 1, -1):
+                self.zoom = (x * 0.1)
+                wx.MilliSleep(int(vitesse))
+                self.Draw()
+                self.parent.Refresh()
+                self.parent.Update()
+
+# ------------- Superclass de la composition famille ----------------------------------
 
 class GetValeurs():
     def __init__(self, IDfamille=None):
@@ -1046,265 +1263,311 @@ class GestCompo:
         """ MAJ la page active du notebook de la fenêtre famille """
         self.parent.MAJpageActive()
 
-# ----------- test de super tooltip & HyperTreeList pour documentation --------------
+# ----------- Tutos de SuperToolTip sur Bouton, DCgraphique, HyperTreeList ------------
 
-class CTRL_Liste(HTL.HyperTreeList, GestCompo):
-    def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.DefaultSize,
-                 style=wx.TR_HIDE_ROOT | wx.TR_HAS_BUTTONS | wx.TR_HAS_VARIABLE_ROW_HEIGHT,
-                 IDfamille=None,
-                 ):
-        HTL.HyperTreeList.__init__(self, parent, id, pos, size, style,name='liste')
-        GestCompo.__init__(self, parent, IDfamille)
-        self.parent = parent
-        self.IDfamille = IDfamille
+class PanelDC(wx.Panel):
+    def __init__(self, parent,name="PanelDC"):
+        super().__init__(parent,name=name)
 
-        # Création de l'ImageList (Récupère les images attribuées aux civilités)
-        il = wx.ImageList(16, 16)
-        index = 0
-        self.dictImages = {}
-        for categorie, civilites in Civilites.LISTE_CIVILITES:
-            for IDcivilite, label, abrege, img, sexe in civilites:
-                setattr(self, "img%d" % index, il.Add(
-                    wx.Bitmap(Chemins.GetStaticPath('Images/16x16/%s') % img,
-                              wx.BITMAP_TYPE_PNG)))
-                self.dictImages[IDcivilite] = getattr(self, "img%d" % index)
-                index += 1
-        self.dictImages[100] = il.Add(
-            wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Titulaire.png"),
-                      wx.BITMAP_TYPE_PNG))
-        self.AssignImageList(il)
+        # Création du PseudoDC
+        self.pdc = wx.adv.PseudoDC()
 
-        # Creation des colonnes
-        self.AddColumn(_("Individu"))
-        self.SetColumnWidth(0, 260)
+        # Dessin de quelques objets graphiques
+        self.draw_objects()
 
-        self.AddColumn("", flag=wx.ALIGN_CENTRE, image=self.dictImages[100])
-        self.SetColumnWidth(1, 20)
+        # Événement de dessin
+        self.Bind(wx.EVT_PAINT, self.on_paint)
 
-        self.AddColumn(_("Date de naissance"))
-        self.SetColumnWidth(2, 155)
+        # Création d'un tooltip
+        self.tooltip = SuperToolTip(f"Message du SuperToolTip\n\n{name} Me voici!!!\n")
+        self.tooltip.SetTarget(self)
+        self.Bind(wx.EVT_ENTER_WINDOW, self.on_enter)
+        self.Bind(wx.EVT_LEAVE_WINDOW, self.on_leave)
 
-        self.AddColumn(_("Adresse"))
-        self.SetColumnWidth(3, 200)
-
-        self.AddColumn(_("Téléphones"))
-        self.SetColumnWidth(4, 180)
-
-        # Création des branches
-        self.SetMainColumn(0)
-        self.root = self.AddRoot(_("Composition"))
-
-        self.SetSpacing(10)
-
-        self.SetBackgroundColour(wx.WHITE)
-        TR_COLUMN_LINES = HTL.TR_COLUMN_LINES
-        self.SetAGWWindowStyleFlag(
-            wx.TR_HIDE_ROOT | wx.TR_HAS_BUTTONS | wx.TR_FULL_ROW_HIGHLIGHT | wx.TR_HAS_VARIABLE_ROW_HEIGHT | TR_COLUMN_LINES | wx.TR_ROW_LINES)  # HTL.TR_NO_HEADER
-        self.EnableSelectionVista(True)
-
-        # Binds
-        self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.Modifier)
-        self.GetMainWindow().Bind(wx.EVT_RIGHT_UP, self.OnContextMenu)
-        self.GetMainWindow().Bind(wx.EVT_MOTION, self.OnMotion)
-        self.GetMainWindow().Bind(wx.EVT_LEAVE_WINDOW, self.OnLeaveWindow)
-
-    def MAJ(self):
-        self.MAJ_common()
-
-        """ Met à jour (redessine) tout le contrôle """
-        nbreBranches = self.GetChildrenCount(self.root)
-        if nbreBranches > 1:
-            self.DeleteChildren(self.root)
-        self.CreationBranches()
-
-    def CreationBranches(self):
-        """ Création des branches """
-        dictCategories = {1: [], 2: [], 3: []}
-        for IDindividu, dictIndividu in self.getVal.dictIndividus.items():
-            dictCategories[dictIndividu["categorie"]].append((IDindividu, dictIndividu))
-
-        # Création des branche CATEGORIES
-        for IDcategorie in (1, 2, 3):
-            label = ""
-            if IDcategorie == 1: label = _("Représentants")
-            if IDcategorie == 2: label = _("Enfants")
-            if IDcategorie == 3: label = _("Contacts")
-            brancheCategorie = self.AppendItem(self.root, label)
-            self.SetPyData(brancheCategorie,
-                           {"type": "categorie", "IDcategorie": IDcategorie})
-            self.SetItemBold(brancheCategorie, True)
-            self.SetItemBackgroundColour(brancheCategorie, wx.Colour(227, 227, 227))
-
-            # Création des branche INDIVIDUS
-            for IDindividu, dictIndividu in dictCategories[IDcategorie]:
-
-                nom = dictIndividu["nom"]
-                prenom = dictIndividu["prenom"]
-                IDcivilite = dictIndividu["IDcivilite"]
-                categorieCivilite = Civilites.GetDictCivilites()[IDcivilite]["categorie"]
-                if categorieCivilite == "ENFANT":
-                    type = "E"
-                else:
-                    type = "A"
-                sexe = Civilites.GetDictCivilites()[IDcivilite]["sexe"]
-
-                brancheIndividu = self.AppendItem(brancheCategorie,
-                                                  u"%s %s" % (nom, prenom))
-                self.SetPyData(brancheIndividu,
-                               {"type": "individu", "IDindividu": IDindividu})
-                ##                if Civilites.GetDictCivilites()[dictIndividu["IDcivilite"]]["sexe"] == "M" :
-                ##                    self.SetItemBackgroundColour(brancheIndividu, wx.Colour(217, 212, 251))
-                ##                else :
-                ##                    self.SetItemBackgroundColour(brancheIndividu, wx.Colour(251, 212, 239))
-
-                # Images de l'individu
-                self.SetItemImage(brancheIndividu, self.dictImages[IDcivilite],
-                                  which=wx.TreeItemIcon_Normal)
-                self.SetItemImage(brancheIndividu, self.dictImages[IDcivilite],
-                                  which=wx.TreeItemIcon_Expanded)
-
-                # Titulaire
-                if dictIndividu["titulaire"] == 1:
-                    self.SetItemText(brancheIndividu, "T", 1)
-
-                # Date de naissance
-                texte = self.getVal.GetTxtDateNaiss(self.getVal.dictIndividus,
-                                                     IDindividu)
-                if _("inconnue") in texte: texte = ""
-                self.SetItemText(brancheIndividu, texte, 2)
-
-                # Adresse
-                ligne1 = dictIndividu["adresse_ligne1"]
-                ligne2 = dictIndividu["adresse_ligne2"]
-                self.SetItemText(brancheIndividu, "%s\n%s" % (ligne1, ligne2), 3)
-
-                # Téléphones
-                lstTelephones = []
-                if dictIndividu["tel_domicile_complet"] != None: lstTelephones.append(
-                    dictIndividu["tel_domicile_complet"])
-                if dictIndividu["tel_mobile_complet"] != None: lstTelephones.append(
-                    dictIndividu["tel_mobile_complet"])
-                if dictIndividu["travail_tel_complet"] != None: lstTelephones.append(
-                    dictIndividu["travail_tel_complet"])
-                self.SetItemText(brancheIndividu, "\n".join(lstTelephones), 4)
-
-            self.Expand(brancheCategorie)
-
-    def GetSelectionIndividu(self, event):
-        pt = event.GetPosition()
-        item = self.HitTest(pt)[0]
-        if item:
-            self.SelectItem(item)
-            dictItem = self.GetMainWindow().GetItemPyData(item)
-            if dictItem["type"] == "individu":
-                return dictItem["IDindividu"]
-        self.UnselectAll()
-        return None
-
-    def OnContextMenu(self, event):
-        """Ouverture du menu contextuel """
-        IDindividu = self.GetSelectionIndividu(event)
-        self.IDindividu_menu = IDindividu
-        self.CreateMenu(self)
-
-    def Calendrier_selection(self):
-        self.OuvrirCalendrier()
-
-    def Changer_categorie(self, event):
-        if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_fiche",
-                                                                  "modifier") == False: return
-        item = self.GetSelection()
-        dictItem = self.GetMainWindow().GetItemPyData(item)
-        type = dictItem["type"]
-        if type != "individu":
-            return
-        IDindividu = dictItem["IDindividu"]
-
-        IDcategorie = event.GetId() - 600
-        IDrattachement = self.getVal.dictIndividus[IDindividu]["IDrattachement"]
-        if IDcategorie != self.getVal.dictIndividus[IDindividu]["categorie"]:
-            dlg = wx.MessageDialog(None,
-                                   _("Souhaitez-vous vraiment modifier la catégorie de rattachement de cet individu ?"),
-                                   _("Changement de catégorie"),
-                                   wx.YES_NO | wx.NO_DEFAULT | wx.CANCEL | wx.ICON_QUESTION)
-            if dlg.ShowModal() == wx.ID_YES:
-                DB = GestionDB.DB()
-                DB.ReqMAJ("rattachements", [("IDcategorie", IDcategorie), ],
-                          "IDrattachement", IDrattachement)
-                DB.Close()
-                self.MAJ()
-                self.MAJnotebook()
-            dlg.Destroy()
-
-    def OnSetTitulaire(self, event):
-        item = self.GetSelection()
-        dictItem = self.GetMainWindow().GetItemPyData(item)
-        type = dictItem["type"]
-        if type != "individu":
-            return
-        IDindividu = dictItem["IDindividu"]
-
-        if self.getVal.dictIndividus[IDindividu]["titulaire"] == 1:
-            # Recherche s'il restera au moins un titulaire dans cette famille
-            nbreTitulaires = 0
-            for IDindividu, dictIndividu in self.getVal.dictIndividus.items():
-                if dictIndividu["titulaire"] == 1:
-                    nbreTitulaires += 1
-            if nbreTitulaires == 1:
-                dlg = wx.MessageDialog(self,
-                                       _("Vous devez avoir un titulaire de dossier dans une famille !"),
-                                       _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
-                dlg.ShowModal()
-                dlg.Destroy()
-                return
-            etat = 0
-        else:
-            etat = 1
-        DB = GestionDB.DB()
-        req = "UPDATE rattachements SET titulaire=%d WHERE IDindividu=%d AND IDfamille=%d;" % (
-        etat, IDindividu, self.IDfamille)
-        DB.ExecuterReq(req, MsgBox="ExecuterReq")
-        DB.Commit()
-        DB.Close()
-        self.MAJ()
-
-    def OnMotion(self, event):
-        item = self.HitTest(event.GetPosition())[0]
-        IDindividu = None
-        if item:
-            dictItem = self.GetMainWindow().GetItemPyData(item)
-            if dictItem["type"] == "individu":
-                IDindividu = dictItem["IDindividu"]
-        if IDindividu != None:
-            # On met le tooltip
-            self.ActiveTooltip(actif=True, IDindividu=IDindividu)
-        else:
-            # Désactivation du toolTip
-            self.ActiveTooltip(actif=False)
+    def on_enter(self, event):
+        self.tooltip.Show()
         event.Skip()
 
-    def OnLeaveWindow(self, event):
-        self.ActiveTooltip(False)
+    def on_leave(self, event):
+        if self.tooltip:
+            self.tooltip.DoHideNow()
+        event.Skip()
+
+    def draw_objects(self):
+        # Rectangle
+        self.pdc.SetId(1)
+        self.pdc.SetPen(wx.Pen("black", 2))
+        self.pdc.SetBrush(wx.Brush("light blue"))
+        self.pdc.DrawRectangle(50, 50, 120, 80)
+
+        # Cercle
+        self.pdc.SetId(2)
+        self.pdc.SetPen(wx.Pen("red", 2))
+        self.pdc.SetBrush(wx.Brush("pink"))
+        self.pdc.DrawCircle(250, 100, 40)
+
+        # Ligne
+        self.pdc.SetId(3)
+        self.pdc.SetPen(wx.Pen("green", 3))
+        self.pdc.DrawLine(50, 200, 300, 250)
+
+        # Texte
+        self.pdc.SetId(4)
+        font = wx.Font(12, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+        self.pdc.SetFont(font)
+        self.pdc.DrawText("Bonjour PseudoDC", 180, 50)
+
+    def on_paint(self, event):
+        dc = wx.PaintDC(self)
+        self.pdc.DrawToDC(dc)
 
 
-class MyFrame(wx.Frame, GestCompo):
+class Button(wx.Button):
+    def __init__(self,parent,name="bouton",label="Approchez la souris sur les objets",
+                 size=(150,40)):
+        wx.Button.__init__(self, parent, id=1, label=label,size=size)
+
+        self.tooltip = SuperToolTip(f"Message du SuperToolTip\n\n{name} Me voici!!!\n")
+        self.tooltip.SetTarget(self)
+        self.Bind(wx.EVT_ENTER_WINDOW, self.on_enter)
+        self.Bind(wx.EVT_LEAVE_WINDOW, self.on_leave)
+
+    def on_enter(self, event):
+        self.tooltip.Show()
+        event.Skip()
+
+    def on_leave(self, event):
+        if self.tooltip:
+            self.tooltip.DoHideNow()
+        event.Skip()
+
+
+class PanelHyperTree(wx.Panel):
+
+    def __init__(self,parent):
+        super().__init__(parent, name="HyperTreeList", size=(200,150))
+
+        self.tree = self.ComposeHyperTree()
+        self.tree.ExpandAll()
+
+        # Tooltip
+        self.tipHTL = SuperToolTip(" supertooltip")
+        self.tipHTL.SetTarget(self.tree)
+        self.tipHTL.SetEndDelay(3000)
+
+        self.lastItem = None
+
+        self.tree.Bind(wx.EVT_MOTION, self.OnMotionTree)
+        self.tree.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeaveTree)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.tree, 1, wx.EXPAND)
+        self.SetSizer(sizer)
+
+    # ----Fonctions de l'HyperTree ----------------------------------------
+
+    def ComposeHyperTree(self):
+        style = (
+                wx.TR_HAS_BUTTONS |
+                wx.TR_FULL_ROW_HIGHLIGHT |
+                TR_COLUMN_LINES |
+                TR_ROW_LINES
+        )
+
+        tree = HyperTreeList(self, style=style)
+
+        tree.AddColumn("Nom")
+        tree.SetMainColumn(0)
+
+        # Construction de l'arbre
+        root = tree.AddRoot("Familles")
+
+        fam1 = tree.AppendItem(root, "Famille Dupont")
+        bob = tree.AppendItem(fam1, "Bob")
+        tree.AppendItem(bob, "Adresse")
+        tree.AppendItem(bob, "Téléphone")
+
+        fam2 = tree.AppendItem(root, "Famille Martin")
+        paul = tree.AppendItem(fam2, "Paul")
+        tree.AppendItem(paul, "Adresse")
+        return tree
+
+    def GetRoot(self, item):
+
+        parent = self.tree.GetItemParent(item)
+
+        while parent and parent.IsOk():
+            item = parent
+            parent = self.tree.GetItemParent(item)
+
+        return item
+
+    def GetItemPath(self, item):
+        """Construit le chemin complet d'un item"""
+
+        path = []
+
+        while item and item.IsOk():
+
+            text = self.tree.GetItemText(item)
+
+            if text:
+                path.append(text)
+
+            item = self.tree.GetItemParent(item)
+
+        path.reverse()
+
+        return " → ".join(path)
+
+    def OnMotionTree(self, event):
+
+        pos = event.GetPosition()
+
+        item, flags, col = self.tree.HitTest(pos)
+        # Problème réponse GPT
+        """Comportement connu: HitTest() ne renvoie un item que si la position de la souris 
+        tombe exactement sur la zone de l’item, pas forcément sur toute la ligne. 
+        Avec FULL_ROW_HIGHLIGHT, la ligne est visuellement sélectionnée, 
+        mais la zone sensible reste petite."""
+
+        if item:
+            mess = f"item {item.IsOk}"
+        else:
+            mess = "no item"
+        print('OnMotionTree', mess, pos, flags, col)
+        if not item:
+            print("Noitem")
+
+        if item:
+
+            self.lastItem = item
+
+            if item and item.IsOk():
+
+                root = self.GetRoot(item)
+
+                root_text = self.tree.GetItemText(root)
+
+                path = self.GetItemPath(item)
+
+                message = f"{root_text} \n {path}"
+                self.tipHTL.SetMessage(message)
+                self.tipHTL.Show()
+
+            else:
+                self.tipHTL.DoHideNow()
+
+        event.Skip()
+
+    def OnLeaveTree(self, event):
+        print('OnLeaveTree')
+        self.lastItem = None
+        self.tipHTL.DoHideNow()
+
+        event.Skip()
+
+    # ---- Fonctions pour boutons -----------------------------------------
+    def GetBouton(self,name):
+        btn = wx.Button(self.panel, label= f"Passe la souris / {name}")
+        btn.name = name
+        self.tipBTN = SuperToolTip(f"tipBTN message de {name}\n\n")
+        self.tipBTN.SetTarget(btn)
+
+        btn.Bind(wx.EVT_ENTER_WINDOW, self.on_enterBTN)
+        btn.Bind(wx.EVT_LEAVE_WINDOW, self.on_leaveBTN)
+        return btn
+
+    def on_enterBTN(self, event):
+        print('OnEnterBtn')
+        self.tipBTN.Show()
+        event.Skip()
+
+    def on_leaveBTN(self, event):
+        print('OnLeaveBtn')
+        if self.tipBTN:
+            self.tipBTN.DoHideNow()
+        event.Skip()
+
+# -------------- Lanceur des tutos ---------------------------------------------------
+
+class FrameTutos(wx.Frame):
     def __init__(self):
-        super().__init__(None, title="SuperToolTip Composition")
+        super().__init__(None, title="GestionComposition.FrameTest",size=(500,800))
 
         panel = wx.Panel(self)
-        btn = wx.Button(panel, label="Passe la souris")
 
-        self.tooltip = SuperToolTip("Message SuperToolTip")
-        self.tooltip.SetTarget(btn)
+        messBtn1 = ("\nMessage du superClass 'GestionComposition'\n\n"
+                "Pour voir l'effet SuperTipTool, par survol de la souris\n\n"
+                "Si je suis lancé en tant que super class...\n"
+                "la suite viendra après fermeture\n\n")
+        self.btn1 = Button(panel,"Bouton1",messBtn1,size = (110,150))
+        self.btn2 = Button(panel,"Bouton2",)
 
-        btn.Bind(wx.EVT_ENTER_WINDOW, self.on_enter)
-        btn.Bind(wx.EVT_LEAVE_WINDOW, self.on_leave)
+        self.panelDC = PanelDC(panel)
 
-        s = wx.BoxSizer()
-        s.Add(btn, 0, wx.ALL, 50)
-        panel.SetSizer(s)
+        self.panelHTL = PanelHyperTree(panel)
 
-app = wx.App()
-frame = MyFrame()
-frame.Show()
-app.MainLoop()
+        box = wx.BoxSizer(wx.VERTICAL)
+        box.Add(self.btn1, 0, wx.ALL|wx.EXPAND, 10)
+        box.Add(self.btn2, 0, wx.ALL|wx.EXPAND, 10)
+        box.Add(self.panelHTL, 2, wx.ALL|wx.EXPAND, 10)
+        box.Add(self.panelDC, 1, wx.ALL|wx.EXPAND, 10)
+        panel.SetSizer(box)
+
+# -------------- Lanceur test cadre  -------------------------------------
+
+
+KWCADRE = {'IDindividu': 18912,
+           'listeTextes': [ ('AFOCAL ALSACE LORRAINE -', 8, 'bold'),
+                            ('#SPACER#', 1, 'normal'),
+                            ('37 RUE DU GÉNÉRAL LE BOCQ', 7, 'light'),
+                            ('67270 HOCHFELDEN\n', 7, 'light'),
+                            ('#SPACER#', 1, 'normal'),
+                            ('Tél. domicile : 03 88 91 70 04', 7, 'light')],
+           'genre': '', 'photo': None,
+           'xCentre': -260.0, 'yCentre': -4.728624535315987,
+           'largeur': 210, 'hauteur': 28,
+           'numCol': 1, 'titulaire': 1, 'correspondant': False, 'calendrierActif': True} # paramètres pour un cadre individu
+
+class FrameTest(wx.Frame):
+    def __init__(self):
+        super().__init__(None, title="GestionComposition.FrameTest",size=(500,800))
+
+        panel_test = wx.Panel(self, -1, name='panel_test')
+
+        self.dictIDs = {}
+        #self.panelDC = PanelDC(panel) # pour test de mise au point
+        self.pdc = wx.adv.PseudoDC()
+        self.panelDC = CadreIndividu(self, self.pdc, **KWCADRE)
+        self.dc = self.pdc
+
+        self.btnOk = Button(panel_test,"OK le test")
+
+
+        self.tooltip = SuperToolTip(f"Message du SuperToolTip\n\n Me voici!!!\n")
+        self.tooltip.SetTarget(self)
+        self.Bind(wx.EVT_ENTER_WINDOW, self.on_enter)
+        self.Bind(wx.EVT_LEAVE_WINDOW, self.on_leave)
+
+
+        box = wx.BoxSizer(wx.VERTICAL)
+        box.Add(self.panelDC, 0, wx.ALL | wx.EXPAND, 10)
+        box.Add(self.btnOk, 0, wx.ALL|wx.EXPAND, 10)
+        panel_test.SetSizer(box)
+
+    def on_enter(self, event):
+        self.tooltip.Show()
+        event.Skip()
+
+    def on_leave(self, event):
+        if self.tooltip:
+            self.tooltip.DoHideNow()
+        event.Skip()
+
+if __name__ == "__main__":
+    app = wx.App()
+    frame = FrameTest()
+    #frame = FrameTutos()
+    frame.Show()
+    app.MainLoop()

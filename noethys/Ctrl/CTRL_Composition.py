@@ -19,8 +19,8 @@ import wx.lib.agw.hypertreelist as HTL
 from Data import DATA_Civilites as Civilites
 
 from Utils import UTILS_Interface
-#from Gest.GestionComposition import GestCompo
-from Outils.testGestionComposition import GestCompo
+from Gest.GestionComposition import GestCompo
+#from Outils.testGestionComposition import GestCompo
 from Utils import UTILS_Utilisateurs
 
 class CadreIndividu():
@@ -29,6 +29,16 @@ class CadreIndividu():
                  xCentre=None, yCentre=None,
                  largeur=None, hauteur=None, numCol=None, titulaire=0, correspondant=0,
                  calendrierActif=False):
+
+        dicTest = {
+        "IDindividu":IDindividu, "listeTextes":listeTextes, "genre":genre, "photo":photo,
+        "xCentre":xCentre, "yCentre":yCentre,
+        "largeur":largeur, "hauteur":hauteur, "numCol":numCol,
+        "titulaire":titulaire,
+        "correspondant":correspondant,
+        "calendrierActif":calendrierActif
+        }
+
         self.parent = parent
         self.zoom = 1
         self.zoomContenu = True
@@ -584,7 +594,7 @@ class CTRL_Graphique(wx.ScrolledWindow, GestCompo):
         """ Sélection d'un cadre """
         x, y = event.GetPosition()
         IDindividu = self.RechercheCadre(x, y)
-        self.ActiveTooltip(False)
+        #self.ActiveTooltip(False)
         if IDindividu != None:
             cadre = self.dictCadres[IDindividu]["ctrl"]
             # Si le calendrier est pointé, on l'ouvre
@@ -608,7 +618,7 @@ class CTRL_Graphique(wx.ScrolledWindow, GestCompo):
         """ Un double-clic ouvre la fiche pointée """
         x, y = event.GetPosition()
         IDindividu = self.RechercheCadre(x, y)
-        self.ActiveTooltip(False)
+        #self.ActiveTooltip(False)
         if IDindividu != None:
             self.Modifier(IDindividu)
 
@@ -618,7 +628,7 @@ class CTRL_Graphique(wx.ScrolledWindow, GestCompo):
         if IDindividu != None:
             cadre = self.dictCadres[IDindividu]["ctrl"]
             # On met le tooltip
-            self.ActiveTooltip(actif=True, IDindividu=IDindividu)
+            #self.ActiveTooltip(actif=True, IDindividu=IDindividu)
 
             # Modification de la taille du cadre
             if self.zoomActif == True:
@@ -639,7 +649,7 @@ class CTRL_Graphique(wx.ScrolledWindow, GestCompo):
                     self.SetCursor(wx.Cursor(wx.CURSOR_HAND))
         else:
             # Désactivation du toolTip
-            self.ActiveTooltip(actif=False)
+            #self.ActiveTooltip(actif=False)
 
             # Change le curseur de la souris
             self.SetCursor(wx.Cursor(wx.CURSOR_DEFAULT))
@@ -650,7 +660,7 @@ class CTRL_Graphique(wx.ScrolledWindow, GestCompo):
         """ Rétablit le zoom normal pour tous les cadres si le focus quitte la fenêtre """
         self.SetCursor(wx.Cursor(wx.CURSOR_DEFAULT))
         self.DezoomTout()
-        self.ActiveTooltip(False)
+        #self.ActiveTooltip(False)
 
     def Calendrier_selection(self):
         IDindividu = self.selectionCadre
@@ -675,7 +685,7 @@ class CTRL_Graphique(wx.ScrolledWindow, GestCompo):
 
     def OnContextMenu(self, event):
         x, y = event.GetPosition()
-        self.ActiveTooltip(False)
+        #self.ActiveTooltip(False)
 
         # Recherche si un cadre est survolé
         IDindividu = self.RechercheCadre(x, y)
@@ -915,12 +925,14 @@ class CTRL_Liste(HTL.HyperTreeList, GestCompo):
             dictItem = self.GetMainWindow().GetItemPyData(item)
             if dictItem["type"] == "individu":
                 IDindividu = dictItem["IDindividu"]
+
         if IDindividu != None:
             # On met le tooltip
             self.ActiveTooltip(actif=True, IDindividu=IDindividu)
         else:
             # Désactivation du toolTip
             self.ActiveTooltip(actif=False)
+
         event.Skip()
 
     def OnLeaveWindow(self, event):
@@ -1054,14 +1066,13 @@ class MyFrameTest(wx.Frame):
     def __init__(self, *args, **kwds):
         wx.Frame.__init__(self, *args, **kwds)
         panel_test = wx.Panel(self, -1, name='panel_test')
-        sizer_1 = wx.BoxSizer(wx.VERTICAL)
-        sizer_1.Add(panel_test, 1, wx.ALL | wx.EXPAND)
-        self.SetSizer(sizer_1)
+
         self.myOlv = Notebook(panel_test, IDfamille=8578)
         self.myOlv.MAJ()
         sizer_2 = wx.BoxSizer(wx.VERTICAL)
         sizer_2.Add(self.myOlv, 1, wx.ALL | wx.EXPAND, 4)
         panel_test.SetSizer(sizer_2)
+
         self.Layout()
         self.CentreOnScreen()
         def sauvegarde():

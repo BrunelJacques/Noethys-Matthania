@@ -219,15 +219,6 @@ def ModifieFichiers():
             
     print("Fini !!!!!!!!!!!!!!!!!")
 
-
-
-
-
-
-
-
-
-
 if __name__ == "__main__":
 ##    ModifieFichiers() 
     
