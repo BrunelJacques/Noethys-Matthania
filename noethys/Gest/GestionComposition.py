@@ -32,9 +32,8 @@ def MAJ(self):
     if hasattr(self, 'MAJnotebook'):
         self.MAJnotebook()
 
-
-
-class CadreIndividu():
+# Simplification du CTRL_Composition.CadreIndividu pour tests
+class CadreGraphique():
     # Spécifique pour affichage graphique
     def __init__(self, parent, dc, IDindividu=None, listeTextes=[], genre="M", photo=None,
                  xCentre=None, yCentre=None,
@@ -650,40 +649,27 @@ class GestCompo:
         # Pour éviter que l'utilisateur bouge la souris trop vite
         if self.tip.IDindividu != None and self.tip.IDindividu != IDindividu:
             actif = False
-            print("--active",actif)
 
-        print("1 tooltip actif: ", actif)
         if actif == True:
             # Active le tooltip
             if hasattr(self.parent, "tipFrame") == False and hasattr(self.parent, "timerTip") == False:
                 self.timerTip = wx.PyTimer(self.AfficheTooltip)
                 self.timerTip.Start(1500)
                 self.tip.IDindividu = IDindividu
-                print("active")
 
-            else: print("2 no typeframe or timer")
         else:
             # Désactive le tooltip
             self.decompteToolTip += 1
-            print("---- desactive",self.decompteToolTip)
-            if self.decompteToolTip > 30:
-                print("timer is running ---- action del ---------------------")
-                #self.parent.DelToolTip(self)
+
             if hasattr(self, "timerTip"):
-                print('3 timerTip running ? :', self.timerTip.IsRunning())
                 if self.timerTip.IsRunning():
                     self.timerTip.Stop()
                     del self.timerTip
                     self.tip.IDindividu = None
-                else:
-                    print("timer not running")
-
             else:
-                print('4 no timerTip')
-            self.CacheTooltip()
+                self.CacheTooltip()
 
     def AfficheTooltip(self):
-        print("affiche")
         taillePhoto = 30
         font = self.GetFont()
 
@@ -817,7 +803,6 @@ class GestCompo:
         # Arrêt du timer
         self.timerTip.Stop()
         del self.timerTip
-        print("arret du timer")
 
     def on_enter(self, event):
         self.tooltip.Show()
@@ -1435,9 +1420,6 @@ class PanelHyperTree(wx.Panel):
             mess = f"item {item.IsOk}"
         else:
             mess = "no item"
-        print('OnMotionTree', mess, pos, flags, col)
-        if not item:
-            print("Noitem")
 
         if item:
 
@@ -1539,7 +1521,7 @@ class FrameTest(wx.Frame):
         self.dictIDs = {}
         #self.panelDC = PanelDC(panel) # pour test de mise au point
         self.pdc = wx.adv.PseudoDC()
-        self.panelDC = CadreIndividu(self, self.pdc, **KWCADRE)
+        self.panelDC = CadreGraphique(self, self.pdc, **KWCADRE)
         self.dc = self.pdc
 
         self.btnOk = Button(panel_test,"OK le test")

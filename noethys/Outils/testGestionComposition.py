@@ -27,12 +27,11 @@ from wx.lib.agw.hypertreelist import HyperTreeList,TR_COLUMN_LINES,TR_ROW_LINES
 DICT_TYPES_LIENS = Liens.DICT_TYPES_LIENS
 
 def MAJ(self):
+    # appellée par GestCompo
     if hasattr(self, 'MAJ'):
         self.MAJ()
     if hasattr(self, 'MAJnotebook'):
         self.MAJnotebook()
-
-
 
 class CadreIndividu():
     # Spécifique pour affichage graphique
@@ -40,6 +39,17 @@ class CadreIndividu():
                  xCentre=None, yCentre=None,
                  largeur=None, hauteur=None, numCol=None, titulaire=0, correspondant=0,
                  calendrierActif=False):
+
+        # pour récupérer un exemple de kwd
+        dicTest = {
+        "IDindividu":IDindividu, "listeTextes":listeTextes, "genre":genre, "photo":photo,
+        "xCentre":xCentre, "yCentre":yCentre,
+        "largeur":largeur, "hauteur":hauteur, "numCol":numCol,
+        "titulaire":titulaire,
+        "correspondant":correspondant,
+        "calendrierActif":calendrierActif
+        }
+
         self.parent = parent
         self.zoom = 1
         self.zoomContenu = True
@@ -1263,11 +1273,34 @@ class GestCompo:
         """ MAJ la page active du notebook de la fenêtre famille """
         self.parent.MAJpageActive()
 
+class ToolTipGC():
+    # SuperClass ajoutant un SuperToolTip
+    def __init__(self, name="tiptool",message=""):
+        if not message:
+            message = f"Message de {name}-Extension\n\n Me voici, je suis {name}!!!\n"
+        self.tooltip = SuperToolTip(message)
+        self.tooltip.SetTarget(self)
+        self.Bind(wx.EVT_ENTER_WINDOW, self.on_enter)
+        self.Bind(wx.EVT_LEAVE_WINDOW, self.on_leave)
+
+
+
+    def on_enter(self, event):
+        self.tooltip.Show()
+        event.Skip()
+
+    def on_leave(self, event):
+        if self.tooltip:
+            self.tooltip.DoHideNow()
+        event.Skip()
+
 # ----------- Tutos de SuperToolTip sur Bouton, DCgraphique, HyperTreeList ------------
 
-class PanelDC(wx.Panel):
-    def __init__(self, parent,name="PanelDC"):
-        super().__init__(parent,name=name)
+class PanelCadre(wx.Panel,ToolTipGC):
+    def __init__(self, parent,name="PanelCadre"):
+        wx.Panel.__init__(self,parent,name=name,size=(200,80))
+        ToolTipGC.__init__(self,name=name)
+        self.parent = parent
 
         # Création du PseudoDC
         self.pdc = wx.adv.PseudoDC()
@@ -1278,72 +1311,46 @@ class PanelDC(wx.Panel):
         # Événement de dessin
         self.Bind(wx.EVT_PAINT, self.on_paint)
 
-        # Création d'un tooltip
-        self.tooltip = SuperToolTip(f"Message du SuperToolTip\n\n{name} Me voici!!!\n")
-        self.tooltip.SetTarget(self)
-        self.Bind(wx.EVT_ENTER_WINDOW, self.on_enter)
-        self.Bind(wx.EVT_LEAVE_WINDOW, self.on_leave)
-
-    def on_enter(self, event):
-        self.tooltip.Show()
-        event.Skip()
-
-    def on_leave(self, event):
-        if self.tooltip:
-            self.tooltip.DoHideNow()
-        event.Skip()
-
+    # Création du graphique
     def draw_objects(self):
-        # Rectangle
-        self.pdc.SetId(1)
-        self.pdc.SetPen(wx.Pen("black", 2))
-        self.pdc.SetBrush(wx.Brush("light blue"))
-        self.pdc.DrawRectangle(50, 50, 120, 80)
 
         # Cercle
         self.pdc.SetId(2)
         self.pdc.SetPen(wx.Pen("red", 2))
         self.pdc.SetBrush(wx.Brush("pink"))
-        self.pdc.DrawCircle(250, 100, 40)
+        self.pdc.DrawCircle(100, 70, 40)
+
+        # Texte
+        self.pdc.SetId(4)
+        font = wx.Font(12, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL,
+                       wx.FONTWEIGHT_BOLD)
+        self.pdc.SetFont(font)
+        self.pdc.DrawText("Venez dans le cadre", 10, 10)
+
+        # Rectangle
+        self.pdc.SetId(1)
+        self.pdc.SetPen(wx.Pen("black", 2))
+        self.pdc.SetBrush(wx.Brush("light blue"))
+        self.pdc.DrawRectangle(50, 50, 120, 10)
 
         # Ligne
         self.pdc.SetId(3)
         self.pdc.SetPen(wx.Pen("green", 3))
-        self.pdc.DrawLine(50, 200, 300, 250)
+        self.pdc.DrawLine(190, 30, 100, 70)
 
-        # Texte
-        self.pdc.SetId(4)
-        font = wx.Font(12, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
-        self.pdc.SetFont(font)
-        self.pdc.DrawText("Bonjour PseudoDC", 180, 50)
 
+    # dépose le graphique dans home fenêtre
     def on_paint(self, event):
         dc = wx.PaintDC(self)
         self.pdc.DrawToDC(dc)
 
-
-class Button(wx.Button):
+class Button(wx.Button, ToolTipGC):
     def __init__(self,parent,name="bouton",label="Approchez la souris sur les objets",
                  size=(150,40)):
-        wx.Button.__init__(self, parent, id=1, label=label,size=size)
-
-        self.tooltip = SuperToolTip(f"Message du SuperToolTip\n\n{name} Me voici!!!\n")
-        self.tooltip.SetTarget(self)
-        self.Bind(wx.EVT_ENTER_WINDOW, self.on_enter)
-        self.Bind(wx.EVT_LEAVE_WINDOW, self.on_leave)
-
-    def on_enter(self, event):
-        self.tooltip.Show()
-        event.Skip()
-
-    def on_leave(self, event):
-        if self.tooltip:
-            self.tooltip.DoHideNow()
-        event.Skip()
-
+        wx.Button.__init__(self,parent,id=1,label=label,size=size)
+        ToolTipGC.__init__(self,name=name)
 
 class PanelHyperTree(wx.Panel):
-
     def __init__(self,parent):
         super().__init__(parent, name="HyperTreeList", size=(200,150))
 
@@ -1351,7 +1358,7 @@ class PanelHyperTree(wx.Panel):
         self.tree.ExpandAll()
 
         # Tooltip
-        self.tipHTL = SuperToolTip(" supertooltip")
+        self.tipHTL = SuperToolTip(" supertooltip de PanelHyperTree")
         self.tipHTL.SetTarget(self.tree)
         self.tipHTL.SetEndDelay(3000)
 
@@ -1489,34 +1496,7 @@ class PanelHyperTree(wx.Panel):
             self.tipBTN.DoHideNow()
         event.Skip()
 
-# -------------- Lanceur des tutos ---------------------------------------------------
-
-class FrameTutos(wx.Frame):
-    def __init__(self):
-        super().__init__(None, title="GestionComposition.FrameTest",size=(500,800))
-
-        panel = wx.Panel(self)
-
-        messBtn1 = ("\nMessage du superClass 'GestionComposition'\n\n"
-                "Pour voir l'effet SuperTipTool, par survol de la souris\n\n"
-                "Si je suis lancé en tant que super class...\n"
-                "la suite viendra après fermeture\n\n")
-        self.btn1 = Button(panel,"Bouton1",messBtn1,size = (110,150))
-        self.btn2 = Button(panel,"Bouton2",)
-
-        self.panelDC = PanelDC(panel)
-
-        self.panelHTL = PanelHyperTree(panel)
-
-        box = wx.BoxSizer(wx.VERTICAL)
-        box.Add(self.btn1, 0, wx.ALL|wx.EXPAND, 10)
-        box.Add(self.btn2, 0, wx.ALL|wx.EXPAND, 10)
-        box.Add(self.panelHTL, 2, wx.ALL|wx.EXPAND, 10)
-        box.Add(self.panelDC, 1, wx.ALL|wx.EXPAND, 10)
-        panel.SetSizer(box)
-
-# -------------- Lanceur test cadre  -------------------------------------
-
+# -------------- Lanceur test et tutos  -------------------------------------
 
 KWCADRE = {'IDindividu': 18912,
            'listeTextes': [ ('AFOCAL ALSACE LORRAINE -', 8, 'bold'),
@@ -1528,42 +1508,27 @@ KWCADRE = {'IDindividu': 18912,
            'genre': '', 'photo': None,
            'xCentre': -260.0, 'yCentre': -4.728624535315987,
            'largeur': 210, 'hauteur': 28,
-           'numCol': 1, 'titulaire': 1, 'correspondant': False, 'calendrierActif': True} # paramètres pour un cadre individu
+           'numCol': 1, 'titulaire': 1, 'correspondant': False, 'calendrierActif': True} # paramètres pour un cadre individu dans CTRLComposition
 
 class FrameTest(wx.Frame):
     def __init__(self):
         super().__init__(None, title="GestionComposition.FrameTest",size=(500,800))
+        panel = wx.Panel(self, -1, name='panel_test')
 
-        panel_test = wx.Panel(self, -1, name='panel_test')
+        panelCadre = PanelCadre(panel)
+        panelCadre.SetBackgroundColour((235, 255, 235))
 
-        self.dictIDs = {}
-        #self.panelDC = PanelDC(panel) # pour test de mise au point
-        self.pdc = wx.adv.PseudoDC()
-        self.panelDC = CadreIndividu(self, self.pdc, **KWCADRE)
-        self.dc = self.pdc
+        panelHTL = PanelHyperTree(panel)
 
-        self.btnOk = Button(panel_test,"OK le test")
+        btn = Button(panel,name="btn_panel",size=(200,50))
 
-
-        self.tooltip = SuperToolTip(f"Message du SuperToolTip\n\n Me voici!!!\n")
-        self.tooltip.SetTarget(self)
-        self.Bind(wx.EVT_ENTER_WINDOW, self.on_enter)
-        self.Bind(wx.EVT_LEAVE_WINDOW, self.on_leave)
-
-
-        box = wx.BoxSizer(wx.VERTICAL)
-        box.Add(self.panelDC, 0, wx.ALL | wx.EXPAND, 10)
-        box.Add(self.btnOk, 0, wx.ALL|wx.EXPAND, 10)
-        panel_test.SetSizer(box)
-
-    def on_enter(self, event):
-        self.tooltip.Show()
-        event.Skip()
-
-    def on_leave(self, event):
-        if self.tooltip:
-            self.tooltip.DoHideNow()
-        event.Skip()
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(panelCadre, 1, wx.ALL|wx.ALIGN_CENTER, 20)
+        sizer.Add(panelHTL, 0, wx.ALL, 10)
+        sizer.Add(btn, 0, wx.ALL|wx.ALIGN_CENTER, 40)
+        sizer.Add((10,10),1,wx.EXPAND)
+        panel.SetSizer(sizer)
+        self.CentreOnScreen()
 
 if __name__ == "__main__":
     app = wx.App()

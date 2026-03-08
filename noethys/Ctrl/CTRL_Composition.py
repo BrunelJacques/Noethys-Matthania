@@ -24,20 +24,11 @@ from Gest.GestionComposition import GestCompo
 from Utils import UTILS_Utilisateurs
 
 class CadreIndividu():
-    # Spécifique pou raffichage graphique
+    # Spécifique pour affichage graphique
     def __init__(self, parent, dc, IDindividu=None, listeTextes=[], genre="M", photo=None,
                  xCentre=None, yCentre=None,
                  largeur=None, hauteur=None, numCol=None, titulaire=0, correspondant=0,
                  calendrierActif=False):
-
-        dicTest = {
-        "IDindividu":IDindividu, "listeTextes":listeTextes, "genre":genre, "photo":photo,
-        "xCentre":xCentre, "yCentre":yCentre,
-        "largeur":largeur, "hauteur":hauteur, "numCol":numCol,
-        "titulaire":titulaire,
-        "correspondant":correspondant,
-        "calendrierActif":calendrierActif
-        }
 
         self.parent = parent
         self.zoom = 1
