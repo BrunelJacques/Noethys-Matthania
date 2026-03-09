@@ -9,7 +9,7 @@
 #-----------------------------------------------------------
 
 import Chemins
-import wx, sys
+import wx
 import datetime
 import GestionDB
 
@@ -23,7 +23,6 @@ from Ctrl import CTRL_Photo
 from wx.lib.agw.supertooltip import SuperToolTip,ToolTipWindow
 from wx.lib.agw.hypertreelist import HyperTreeList,TR_COLUMN_LINES,TR_ROW_LINES
 
-
 DICT_TYPES_LIENS = Liens.DICT_TYPES_LIENS
 
 def MAJ(self):
@@ -33,234 +32,7 @@ def MAJ(self):
     if hasattr(self, 'MAJnotebook'):
         self.MAJnotebook()
 
-class CadreIndividu():
-    # Spécifique pour affichage graphique
-    def __init__(self, parent, dc, IDindividu=None, listeTextes=[], genre="M", photo=None,
-                 xCentre=None, yCentre=None,
-                 largeur=None, hauteur=None, numCol=None, titulaire=0, correspondant=0,
-                 calendrierActif=False):
-
-        # pour récupérer un exemple de kwd
-        dicTest = {
-        "IDindividu":IDindividu, "listeTextes":listeTextes, "genre":genre, "photo":photo,
-        "xCentre":xCentre, "yCentre":yCentre,
-        "largeur":largeur, "hauteur":hauteur, "numCol":numCol,
-        "titulaire":titulaire,
-        "correspondant":correspondant,
-        "calendrierActif":calendrierActif
-        }
-
-        self.parent = parent
-        self.zoom = 1
-        self.zoomContenu = True
-
-        self.selectionCadre = False
-        self.survolCadre = False
-        self.calendrierActif = calendrierActif
-        self.survolCalendrier = False
-
-        self.IDindividu = IDindividu
-        self.dc = dc
-        self.IDobjet = wx.Window.NewControlId()
-        self.listeTextes = listeTextes
-        self.genre = genre
-        self.photo = photo
-        self.numCol = numCol
-        self.titulaire = titulaire
-        self.correspondant = correspondant
-        self.xCentre = xCentre
-        self.yCentre = yCentre
-        self.largeur = largeur
-        self.hauteur = hauteur
-
-        self.Draw()
-
-    def Draw(self):
-        largeur = self.largeur
-        hauteur = self.hauteur
-
-        # Création de l'ID pour le dictionnaire d'objets
-        if self.IDobjet in self.parent.dictIDs:
-            self.dc.RemoveId(self.IDobjet)
-        self.dc.SetId(self.IDobjet)
-
-        # Zoom Cadre
-        if self.zoom != 1:
-            largeur, hauteur = largeur * self.zoom, hauteur * self.zoom
-
-        # Zoom Contenu
-        if self.zoomContenu == True:
-            self.zoomContenuRatio = self.zoom
-        else:
-            self.zoomContenuRatio = 1
-
-        # Paramètres du cadre
-        x, y = int(self.xCentre - (largeur / 2)), int(self.yCentre - (hauteur / 2))
-        self.x, self.y = x, y
-        if self.genre == "M":
-            couleurFondHautCadre = (217, 212, 251)
-            couleurFondBasCadre = (196, 188, 252)
-        else:
-            couleurFondHautCadre = (251, 212, 239)
-            couleurFondBasCadre = (253, 193, 235)
-        couleurBordCadre = (0, 0, 0)
-        couleurSelectionCadre = (133, 236, 90)
-        paddingCadre = 8 * self.zoomContenuRatio
-        taillePhoto = (self.hauteur - (paddingCadre * 2)) * self.zoomContenuRatio
-
-        # Dessin du cadre de sélection
-        if self.selectionCadre == True:
-            ecart = 5
-            self.dc.SetBrush(wx.Brush((0, 0, 0), style=wx.TRANSPARENT))
-            self.dc.SetPen(wx.Pen(couleurSelectionCadre, 1, wx.DOT))
-            self.dc.DrawRoundedRectangle(
-                wx.Rect(int(x - ecart), int(y - ecart), int(largeur + (ecart * 2)),
-                        int(hauteur + (ecart * 2))), radius=int(5 * self.zoom))
-
-        # Dessin du cadre
-        self.dc.SetBrush(wx.Brush(couleurFondBasCadre))
-        self.dc.SetPen(wx.Pen(couleurBordCadre, 1))
-        if "linux" in sys.platform:
-            self.dc.DrawRectangle(wx.Rect(int(x), int(y), int(largeur), int(hauteur)))
-        else:
-            self.dc.DrawRoundedRectangle(
-                wx.Rect(int(x), int(y), int(largeur), int(hauteur)), radius=5 * self.zoom)
-
-        if "linux" not in sys.platform:
-            coordsSpline = [(int(x + 1), int(y + (hauteur / 3))),
-                            (int(x + (largeur / 2.5)), int(y + (hauteur / 4.1))),
-                            (int(x + largeur - 1), int(y + (hauteur / 1.8)))]
-            self.dc.DrawSpline(coordsSpline)
-
-            self.dc.SetBrush(wx.Brush(couleurFondHautCadre))
-            self.dc.FloodFill(int(x + 5), int(y + 5), couleurBordCadre,
-                              style=wx.FLOOD_BORDER)
-
-            self.dc.SetPen(wx.Pen(couleurFondBasCadre, 1))
-            self.dc.DrawSpline(coordsSpline)
-
-        # Intégration de la photo
-        if self.photo != None:
-            try:
-                img = self.photo.ConvertToImage()
-                img = img.Rescale(width=int(taillePhoto), height=int(taillePhoto),
-                                  quality=wx.IMAGE_QUALITY_HIGH)
-                self.bmp = img.ConvertToBitmap()
-                self.dc.DrawBitmap(self.bmp, int(x + paddingCadre), int(y + paddingCadre))
-            except:
-                pass
-
-        # Dessin du texte
-        largeurMaxiTexte = largeur - paddingCadre * 3 - taillePhoto
-        hauteurMaxiTexte = hauteur - paddingCadre
-        posXtexte = x + paddingCadre * 2 + taillePhoto - 2
-        posYtexte = y + paddingCadre - 2
-        for texte, tailleFont, styleFont in self.listeTextes:
-            # Font
-            font = self.parent.GetFont()
-            font.SetPointSize(int(tailleFont * self.zoomContenuRatio))
-            if styleFont == "normal": font.SetWeight(wx.FONTWEIGHT_NORMAL)
-            if styleFont == "light": font.SetWeight(wx.FONTWEIGHT_LIGHT)
-            if styleFont == "bold": font.SetWeight(wx.FONTWEIGHT_BOLD)
-            self.parent.SetFont(font)
-            self.dc.SetFont(font)
-            # Texte
-            largeurTexte, hauteurTexte = self.parent.GetTextExtent(texte)
-            if (posYtexte - y + hauteurTexte) < hauteurMaxiTexte:
-                if largeurTexte > largeurMaxiTexte:
-                    texte = self.AdapteLargeurTexte(self.dc, texte, largeurMaxiTexte)
-                if texte == "#SPACER#": texte = " "
-                self.dc.DrawText(texte, int(posXtexte), int(posYtexte))
-                posYtexte += hauteurTexte + 1
-
-        # Dessin du cadre Accès aux consommations
-        if self.calendrierActif == True and self.zoom > 1:
-            # Image de calendrier
-            if self.survolCalendrier == True:
-                bmpConso = wx.Bitmap(
-                    Chemins.GetStaticPath("Images/32x32/Calendrier_modifier.png"),
-                    wx.BITMAP_TYPE_ANY)
-            else:
-                bmpConso = wx.Bitmap(Chemins.GetStaticPath("Images/32x32/Calendrier.png"),
-                                     wx.BITMAP_TYPE_ANY)
-            xBmpConso, yBmpConso = x + largeur - 5 - 32, y + 5
-            self.dc.DrawBitmap(bmpConso, int(xBmpConso), int(yBmpConso))
-
-        # Symboles de l'individu
-        xSymbole = x + paddingCadre
-        ySymbole = y + paddingCadre + 2
-
-        # Dessin du symbole TITULAIRE
-        if self.titulaire == 1:
-            bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Titulaire.png"),
-                            wx.BITMAP_TYPE_ANY)
-            self.dc.DrawBitmap(bmp, int(xSymbole), int(ySymbole))
-            xSymbole += 42
-        if self.correspondant:
-            bmp = wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Titulaire.png"),
-                            wx.BITMAP_TYPE_ANY)
-            self.dc.DrawBitmap(bmp, int(xSymbole), int(ySymbole))
-            xSymbole += 16
-
-        # Mémorisation dans le dictionnaire d'objets
-        self.dc.SetIdBounds(self.IDobjet,
-                            wx.Rect(int(x), int(y), int(largeur), int(hauteur)))
-        self.parent.dictIDs[self.IDobjet] = ("individu", self.IDindividu)
-
-    def SurvolCalendrier(self, x, y):
-        largeurCadre, hauteurCadre = self.largeur * self.zoom, self.hauteur * self.zoom
-        xBmpConso, yBmpConso = self.x + largeurCadre - 5 - 32, self.y + 5
-        if (y >= self.y + 4 and y <= self.y + 6 + 32) and (
-                x >= xBmpConso - 1 and x <= xBmpConso + 32 + 1):
-            return True
-        else:
-            return False
-
-    def AdapteLargeurTexte(self, dc, texte, tailleMaxi):
-        """ Raccourcit le texte en fonction de la taille donnée """
-        tailleTexte = self.parent.GetTextExtent(texte)[0]
-        texteTemp, texteTemp2 = "", ""
-        for lettre in texte:
-            texteTemp += lettre
-            if self.parent.GetTextExtent(texteTemp + "...")[0] <= tailleMaxi:
-                texteTemp2 = texteTemp
-            else:
-                return texteTemp2 + "..."
-
-    def Selectionne(self, etat=True):
-        if etat == True:
-            self.selectionCadre = True
-        else:
-            self.selectionCadre = False
-        self.Draw()
-        self.parent.Refresh()
-        self.parent.Update()
-
-    def ActiveCalendrier(self, etat):
-        self.survolCalendrier = etat
-        self.Draw()
-        self.parent.Refresh()
-        self.parent.Update()
-
-    def ZoomAvant(self, coef=2, vitesse=1):
-        if self.zoom == 1:
-            for x in range(10, int(coef * 10)):
-                self.zoom = (x * 0.1) + 0.1
-                wx.MilliSleep(int(vitesse))
-                self.Draw()
-                self.parent.Refresh()
-                self.parent.Update()
-
-    def ZoomArriere(self, vitesse=0.5):
-        if self.zoom > 1:
-            for x in range(int(self.zoom * 10), 10 - 1, -1):
-                self.zoom = (x * 0.1)
-                wx.MilliSleep(int(vitesse))
-                self.Draw()
-                self.parent.Refresh()
-                self.parent.Update()
-
-# ------------- Superclass de la composition famille ----------------------------------
+# ---------- Superclasses de la composition famille ----------------------------------
 
 class GetValeurs():
     def __init__(self, IDfamille=None):
@@ -636,64 +408,41 @@ class GestCompo:
         self.dIndividus = {}
         self.dictRattach = {}
 
-        # Initialisation du tooltip
-        self.tip = SuperToolTip("Message super_tool_tip")
-        self.tip.SetEndDelay(3000)  # Fermeture auto du tooltip après 3 secs
+        self.tip = SuperToolTip("ici le Supertooltip")
+        self.tip.SetTarget(self)
+        #self.tip.DoHideNow()
         self.tip.IDindividu = None
-        self.decompteToolTip = 0
-        self.tip.SetTarget(parent)
 
-    def SetNewIndividu(self, dIndividu):
-        self.parent.dIndividu = dIndividu
+        # Bind possible, car GestCompo toujours associée à une window acceptant Bind
+        self.Bind(wx.EVT_ENTER_WINDOW, self.OnEnterWindow)
+        self.Bind(wx.EVT_MOTION, self.OnMotion)
+        self.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeaveWindow)
 
-    def CacheTooltip(self):
-        # Fermeture du tooltip
-        if hasattr(self.parent, "tipFrame"):
-            try:
-                self.parent.tipFrame.Destroy()
-            except:
-                pass
-            del self.parent.tipFrame
-            self.parent.tip.IDindividu = None
 
-    def ActiveTooltip(self, actif=True, IDindividu=None):
-        # Pour éviter que l'utilisateur bouge la souris trop vite
-        if self.tip.IDindividu != None and self.tip.IDindividu != IDindividu:
-            actif = False
-            print("--active",actif)
+    # ----------- Fonctions tooltip --------------
 
-        print("1 tooltip actif: ", actif)
-        if actif == True:
-            # Active le tooltip
-            if hasattr(self.parent, "tipFrame") == False and hasattr(self.parent, "timerTip") == False:
-                self.timerTip = wx.PyTimer(self.AfficheTooltip)
-                self.timerTip.Start(1500)
-                self.tip.IDindividu = IDindividu
-                print("active")
+    def ActiveTooltip(self,IDindividu=None):
+        # Si on ne pointe pas un cadre individu
+        if not IDindividu:
+            return
+        # Si l'individu pointé est celui du tip
+        if IDindividu == self.tip.IDindividu and self.parent.ToolTip:
+            return
 
-            else: print("2 no typeframe or timer")
-        else:
-            # Désactive le tooltip
-            self.decompteToolTip += 1
-            print("---- desactive",self.decompteToolTip)
-            if self.decompteToolTip > 30:
-                print("timer is running ---- action del ---------------------")
-                #self.parent.DelToolTip(self)
-            if hasattr(self, "timerTip"):
-                print('3 timerTip running ? :', self.timerTip.IsRunning())
-                if self.timerTip.IsRunning():
-                    self.timerTip.Stop()
-                    del self.timerTip
-                    self.tip.IDindividu = None
-                else:
-                    print("timer not running")
+        # Active le tooltip
+        tipFrame = hasattr(self.parent, "tipFrame")
+        timer = hasattr(self.parent, "timerTip")
+        if not (tipFrame or timer):
+            print(f"1 ACT activation du timer: typeframe:{tipFrame}, timer: {timer}")
+            self.timerTip = wx.PyTimer(self.SetIntoTooltip)
+            self.timerTip.Start(1000)
+            self.tip.IDindividu = IDindividu
 
-            else:
-                print('4 no timerTip')
-            self.CacheTooltip()
+        else: print(f"1 ACT no typeframe:{tipFrame},and no timer: {timer}")
 
-    def AfficheTooltip(self):
-        print("affiche")
+    def SetIntoTooltip(self):
+        #print("Compose le contenu du tip")
+
         taillePhoto = 30
         font = self.GetFont()
 
@@ -816,27 +565,56 @@ class GestCompo:
         self.tip.SetFooter("Cliquez pour fermer")
 
         # Affichage du Frame tooltip
-        self.tipFrame = ToolTipWindow(self, self.tip)
-        # self.tipFrame.CalculateBestSize() # calcule incorrectement
-        self.tipFrame.SetSize((350, 300))
+        self.parent.tipFrame = ToolTipWindow(self, self.tip)
+        # self.parent.tipFrame.CalculateBestSize() # calcule incorrectement
+        self.parent.tipFrame.SetSize((350, 300))
         x, y = wx.GetMousePosition()
-        self.tipFrame.SetPosition((x + 15, y + 17))
-        self.tipFrame.DropShadow(True)
-        self.tipFrame.Show()
+        self.parent.tipFrame.SetPosition((x + 15, y + 17))
+        self.parent.tipFrame.DropShadow(True)
+        self.parent.tipFrame.Show()
 
         # Arrêt du timer
         self.timerTip.Stop()
         del self.timerTip
-        print("arret du timer")
+        #print("AFF arret du timer")
 
-    def on_enter(self, event):
-        self.tooltip.Show()
-        event.Skip()
+    def DesactiveTooltip(self):
+        # Désactive le tooltip
+        #print("1 DESACT is no actif")
+        if hasattr(self, "timerTip"):
+            if self.timerTip.IsRunning():
+                #print("1 DESACT stoppe timer, raz tip.IDindividu")
+                self.timerTip.Stop()
+                del self.timerTip
+                self.tip.IDindividu = None
+        else:
+            pass
+            #print('1 DESACT no timer')
+        self.CacheTooltip()
 
-    def on_leave(self, event):
-        if self.tooltip:
-            self.tooltip.DoHideNow()
-        event.Skip()
+    def CacheTooltip(self):
+        # Fermeture du tooltip
+        #print("CACHE-----------------")
+        if hasattr(self.parent, "tipFrame"):
+            try:
+                #print("CACHE tente destroy")
+                self.parent.tipFrame.Destroy()
+            except:
+                #print('echec')
+                pass
+            del self.parent.tipFrame
+            #print("CACHE del.parent.tipFrame")
+
+    def OnLeaveWindow(self, event):
+        self.CacheTooltip()
+        #event.Skip()
+
+    def OnEnterWindow(self, event):
+        print("OnEnterWindow")
+        self.tip.DoHideNow()
+        pass
+
+    # ------------- Autres fonctions ----------------------
 
     def OuvrirCalendrier(self, IDindividu=None):
         """ Ouverture du calendrier de l'individu """
@@ -1085,6 +863,9 @@ class GestCompo:
         DB.Close()
         return self.IDindividu
 
+    def SetNewIndividu(self, dIndividu):
+        self.parent.dIndividu = dIndividu
+
     def Rattacher_composition(self, event=None):
         if not UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_fiche",
                                                                   "creer"):
@@ -1208,7 +989,7 @@ class GestCompo:
         self.Supprimer(IDindividu)
         self.IDindividu_menu = None
 
-    def Modifier_selection(self, event=None):
+    def zzzModifier_selection(self, event=None):
         """ Modifier une fiche à partir du bouton Modifier """
         IDindividu = self.selectionCadre
         self.selectionCadre = None
@@ -1222,7 +1003,7 @@ class GestCompo:
         else:
             self.Modifier(IDindividu)
 
-    def Supprimer_selection(self, event=None):
+    def zzzSupprimer_selection(self, event=None):
         """ Supprimer ou detacher """
         IDindividu = self.selectionCadre
         self.selectionCadre = None
@@ -1236,7 +1017,7 @@ class GestCompo:
         else:
             self.Supprimer(IDindividu)
 
-    def Modifier(self, IDindividu=None, maj=True):
+    def Modifier(self, IDindividu=None):
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_fiche",
                                                                   "modifier") == False: return
         dlg = DLG_Individu.Dialog(None, IDindividu=IDindividu, IDfamille=self.IDfamille)
@@ -1280,19 +1061,18 @@ class ToolTipGC():
             message = f"Message de {name}-Extension\n\n Me voici, je suis {name}!!!\n"
         self.tooltip = SuperToolTip(message)
         self.tooltip.SetTarget(self)
-        self.Bind(wx.EVT_ENTER_WINDOW, self.on_enter)
-        self.Bind(wx.EVT_LEAVE_WINDOW, self.on_leave)
+        self.Bind(wx.EVT_ENTER_WINDOW, self.OnEnterWindow)
+        self.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeaveWindow)
 
-
-
-    def on_enter(self, event):
+    def OnEnterWindow(self, event):
         self.tooltip.Show()
         event.Skip()
 
-    def on_leave(self, event):
+    def OnLeaveWindow(self, event):
         if self.tooltip:
             self.tooltip.DoHideNow()
         event.Skip()
+
 
 # ----------- Tutos de SuperToolTip sur Bouton, DCgraphique, HyperTreeList ------------
 
@@ -1360,7 +1140,7 @@ class PanelHyperTree(wx.Panel):
         # Tooltip
         self.tipHTL = SuperToolTip(" supertooltip de PanelHyperTree")
         self.tipHTL.SetTarget(self.tree)
-        self.tipHTL.SetEndDelay(3000)
+        self.tipHTL.SetEndDelay(5)
 
         self.lastItem = None
 
@@ -1442,12 +1222,12 @@ class PanelHyperTree(wx.Panel):
             mess = f"item {item.IsOk}"
         else:
             mess = "no item"
-        print('OnMotionTree', mess, pos, flags, col)
+        #print('OnMotionTree', mess, pos, flags, col)
         if not item:
-            print("Noitem")
+            # OnMotionTree print("Noitem")
+            pass
 
         if item:
-
             self.lastItem = item
 
             if item and item.IsOk():
@@ -1468,7 +1248,7 @@ class PanelHyperTree(wx.Panel):
         event.Skip()
 
     def OnLeaveTree(self, event):
-        print('OnLeaveTree')
+        #print('OnLeaveTree')
         self.lastItem = None
         self.tipHTL.DoHideNow()
 
@@ -1486,12 +1266,12 @@ class PanelHyperTree(wx.Panel):
         return btn
 
     def on_enterBTN(self, event):
-        print('OnEnterBtn')
+        #print('OnEnterBtn')
         self.tipBTN.Show()
         event.Skip()
 
     def on_leaveBTN(self, event):
-        print('OnLeaveBtn')
+        #print('OnLeaveBtn')
         if self.tipBTN:
             self.tipBTN.DoHideNow()
         event.Skip()

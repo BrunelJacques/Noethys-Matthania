@@ -15,13 +15,17 @@ import GestionDB
 import sys
 
 import wx.lib.agw.hypertreelist as HTL
+from wx.lib.agw.supertooltip import SuperToolTip
 
 from Data import DATA_Civilites as Civilites
 
 from Utils import UTILS_Interface
 from Gest.GestionComposition import GestCompo
 #from Outils.testGestionComposition import GestCompo
+
 from Utils import UTILS_Utilisateurs
+
+# ----------Classes d'affichage des compositions -----------------------------------------
 
 class CadreIndividu():
     # Spécifique pour affichage graphique
@@ -29,6 +33,16 @@ class CadreIndividu():
                  xCentre=None, yCentre=None,
                  largeur=None, hauteur=None, numCol=None, titulaire=0, correspondant=0,
                  calendrierActif=False):
+
+        # pour récupérer un exemple de kwd
+        dicTest = {
+        "IDindividu":IDindividu, "listeTextes":listeTextes, "genre":genre, "photo":photo,
+        "xCentre":xCentre, "yCentre":yCentre,
+        "largeur":largeur, "hauteur":hauteur, "numCol":numCol,
+        "titulaire":titulaire,
+        "correspondant":correspondant,
+        "calendrierActif":calendrierActif
+        }
 
         self.parent = parent
         self.zoom = 1
@@ -240,7 +254,6 @@ class CadreIndividu():
                 self.parent.Refresh()
                 self.parent.Update()
 
-# ----------Classes d'affichage des compositions -----------------------------------------
 
 class CTRL_Graphique(wx.ScrolledWindow, GestCompo):
     def __init__(self, parent, IDfamille=None):
@@ -280,8 +293,9 @@ class CTRL_Graphique(wx.ScrolledWindow, GestCompo):
 
         self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
         self.Bind(wx.EVT_LEFT_DCLICK, self.OnDLeftDown)
-        self.Bind(wx.EVT_MOTION, self.OnMotion)
+
         self.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeaveWindow)
+        self.Bind(wx.EVT_ENTER_WINDOW, self.OnEnterWindow)
         self.Bind(wx.EVT_RIGHT_DOWN, self.OnContextMenu)
 
         # create a PseudoDC to record our drawing
@@ -362,6 +376,7 @@ class CTRL_Graphique(wx.ScrolledWindow, GestCompo):
 
         xCentre = xBloc1
 
+        # Trois colonnes: parents, enfants, contacts
         for numCol in [1, 2, 3]:
             nbreCases = len(dictColonnes[numCol])
             espaceVertical = self.espaceVerticalDefaut
@@ -409,7 +424,6 @@ class CTRL_Graphique(wx.ScrolledWindow, GestCompo):
             for IDindividu in dictColonnes[numCol]:
                 listeTextes = self.dictCadres[IDindividu]["textes"]
                 genre = self.dictCadres[IDindividu]["genre"]
-                nomImage = self.dictCadres[IDindividu]["nomImage"]
                 titulaire = self.dictCadres[IDindividu]["titulaire"]
                 correspondant = self.dictCadres[IDindividu]["correspondant"]
                 calendrierActif = self.dictCadres[IDindividu]["inscriptions"]
@@ -585,7 +599,7 @@ class CTRL_Graphique(wx.ScrolledWindow, GestCompo):
         """ Sélection d'un cadre """
         x, y = event.GetPosition()
         IDindividu = self.RechercheCadre(x, y)
-        #self.ActiveTooltip(False)
+        self.ActiveTooltip(False)
         if IDindividu != None:
             cadre = self.dictCadres[IDindividu]["ctrl"]
             # Si le calendrier est pointé, on l'ouvre
@@ -609,17 +623,18 @@ class CTRL_Graphique(wx.ScrolledWindow, GestCompo):
         """ Un double-clic ouvre la fiche pointée """
         x, y = event.GetPosition()
         IDindividu = self.RechercheCadre(x, y)
-        #self.ActiveTooltip(False)
+        self.ActiveTooltip(False)
         if IDindividu != None:
             self.Modifier(IDindividu)
 
     def OnMotion(self, event):
         x, y = event.GetPosition()
         IDindividu = self.RechercheCadre(x, y)
-        if IDindividu != None:
+        #print("On Motion: pointé cadre: ",IDindividu)
+        if IDindividu:
             cadre = self.dictCadres[IDindividu]["ctrl"]
             # On met le tooltip
-            #self.ActiveTooltip(actif=True, IDindividu=IDindividu)
+            self.ActiveTooltip(IDindividu=IDindividu)
 
             # Modification de la taille du cadre
             if self.zoomActif == True:
@@ -639,8 +654,8 @@ class CTRL_Graphique(wx.ScrolledWindow, GestCompo):
                     # Change le curseur de la souris
                     self.SetCursor(wx.Cursor(wx.CURSOR_HAND))
         else:
-            # Désactivation du toolTip
-            #self.ActiveTooltip(actif=False)
+            # Désactivation du toolTip précédent
+            self.DesactiveTooltip()
 
             # Change le curseur de la souris
             self.SetCursor(wx.Cursor(wx.CURSOR_DEFAULT))
@@ -651,7 +666,7 @@ class CTRL_Graphique(wx.ScrolledWindow, GestCompo):
         """ Rétablit le zoom normal pour tous les cadres si le focus quitte la fenêtre """
         self.SetCursor(wx.Cursor(wx.CURSOR_DEFAULT))
         self.DezoomTout()
-        #self.ActiveTooltip(False)
+        self.DesactiveTooltip()
 
     def Calendrier_selection(self):
         IDindividu = self.selectionCadre
@@ -696,8 +711,11 @@ class CTRL_Liste(HTL.HyperTreeList, GestCompo):
                  ):
         HTL.HyperTreeList.__init__(self, parent, id, pos, size, style,name='liste')
         GestCompo.__init__(self, parent, IDfamille)
+
         self.parent = parent
         self.IDfamille = IDfamille
+        self.tip = SuperToolTip("ici HyperTreeList")
+        self.tip.SetTarget(self)
 
         # Création de l'ImageList (Récupère les images attribuées aux civilités)
         il = wx.ImageList(16, 16)
@@ -744,10 +762,12 @@ class CTRL_Liste(HTL.HyperTreeList, GestCompo):
         self.EnableSelectionVista(True)
 
         # Binds
-        self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.Modifier)
+        self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnModifier)
         self.GetMainWindow().Bind(wx.EVT_RIGHT_UP, self.OnContextMenu)
         self.GetMainWindow().Bind(wx.EVT_MOTION, self.OnMotion)
         self.GetMainWindow().Bind(wx.EVT_LEAVE_WINDOW, self.OnLeaveWindow)
+
+
 
     def MAJ(self):
         self.MAJ_common()
@@ -917,17 +937,40 @@ class CTRL_Liste(HTL.HyperTreeList, GestCompo):
             if dictItem["type"] == "individu":
                 IDindividu = dictItem["IDindividu"]
 
-        if IDindividu != None:
+        #if IDindividu and IDindividu != self.tip.IDindividu:
+        if IDindividu:
             # On met le tooltip
-            self.ActiveTooltip(actif=True, IDindividu=IDindividu)
+            self.tip.IDindividu = IDindividu
+            self.ActiveTooltip(IDindividu=IDindividu)
         else:
             # Désactivation du toolTip
-            self.ActiveTooltip(actif=False)
-
+            self.DesactiveTooltip()
         event.Skip()
 
-    def OnLeaveWindow(self, event):
-        self.ActiveTooltip(False)
+    def OnModifier(self,event):
+        if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_fiche",
+                                                                  "modifier") == False: return
+        item = self.GetSelection()
+        dictItem = self.GetMainWindow().GetItemPyData(item)
+        if dictItem == None:
+            dlg = wx.MessageDialog(self,
+                                   _("Vous devez d'abord sélectionner un individu dans la liste !"),
+                                   _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
+        type = dictItem["type"]
+        if type != "individu":
+            return
+        IDindividu = dictItem["IDindividu"]
+        if IDindividu == None:
+            dlg = wx.MessageDialog(self,
+                                   _("Vous devez d'abord sélectionner un individu dans la liste !"),
+                                   _("Erreur de saisie"), wx.OK | wx.ICON_EXCLAMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
+        self.Modifier(IDindividu)
 
 # -------- Aiguillage vers les deux classes d'affichage ----------------------------------
 
@@ -973,8 +1016,6 @@ class Notebook(wx.Notebook):
             index += 1
 
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnPageChanged)
-
-
 
     def GetPageAvecCode(self, codePage=""):
         return self.dictPages[codePage]["ctrl"]
@@ -1043,12 +1084,6 @@ class Notebook(wx.Notebook):
     def MAJ(self, event=None):
         page = self.GetPage(self.GetSelection())
         page.MAJ()
-
-    def DelToolTip(self,child):
-        # Detruit le suraffichage sur les cadres individus
-        child.tip.DoHideNow()
-        #destroy the SuperToolTip.
-        print("delChild")
 
 
 # ---------- Pour Test -------------------------------------------------------------------

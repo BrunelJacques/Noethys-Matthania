@@ -1,3 +1,6 @@
+version 1.3.3.54 (09/03/2026)
+- Le nouveau tiptool est arrivé
+
 version 1.3.3.53 (07/03/2026)
 - Suppression du tiptool en composition famille
 
