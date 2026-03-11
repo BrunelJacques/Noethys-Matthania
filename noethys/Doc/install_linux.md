@@ -42,6 +42,7 @@ pour un lien dans la barre 'activités'
 ```
 sudo mkdir /usr/local/share/applications
 sudo cp /home/noegest/Noethys-Matthania/noethys/Doc/lancer_noethys.desktop  /usr/local/share/applications/
+sudo chmod +x /home/noegest/Noethys-Matthania/lancer_noethys.sh
 sudo chmod +x /usr/local/share/applications/lancer_noethys.desktop
 sudo chgrp noegest /usr/local/share/applications/lancer_noethys.desktop
 ```
