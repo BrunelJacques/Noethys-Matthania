@@ -463,7 +463,7 @@ class Dialog(wx.Dialog):
             if not track.IDactivite:
                 dte = datetime.date(track.IDinscription,1,1)
             else:
-                (debut, dte) = GestionArticle.DebutFin_Activite(track.IDactivite)
+                (debut, dte) = GestionArticle.DebutFin_Activite(self.DB,track.IDactivite)
             (periodeDeb, periodeFin) = GestionArticle.GetDebFinAnnAcad(dte)
             if not periodeFin.year in lstAnnees:
                 lstAnnees.append(periodeFin.year)

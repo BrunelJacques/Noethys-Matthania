@@ -441,28 +441,29 @@ def GetAnAcad(date):
         annee +=1
     return annee
 
+# annnée académique = exercice comptable
 def GetDebFinAnnAcad(date):
     annee = GetAnAcad(date)
     debut = datetime.date(annee-1,10,1)
     fin = datetime.date(annee,9,30)
     return debut,fin
 
-# détermine l'année fin de l'année académique de la ligne pièce
+# détermine l'année fin de l'année académique de la ligne pièce /dateFinActivité ou année
 def RechercheAnneeAcad(DB,dictDonnees):
     annee  = None
-    # cas forcé par l'appelant
+    # cas forcé par l'appelant (prix famille)
     if "annee" in dictDonnees and int(dictDonnees["annee"]) > 0:
         annee = int(dictDonnees["annee"])
     # l'activité est fournie dans la ligne (prix activité...)
     elif "IDactivite" in dictDonnees and dictDonnees["IDactivite"] >0:
         IDactivite = dictDonnees["IDactivite"]
         deb, fin = DebutFin_Activite(DB, IDactivite)
-        annee = GetAnAcad(deb)
-    # cas d'une pièce famille reprise ancien système
-    elif "IDindividu" in dictDonnees and  dictDonnees["IDindividu"] == 0:
-        millesime = dictDonnees["IDinscription"]
-        if millesime > 2016 and millesime < 2099:
-             annee= millesime
+        annee = GetAnAcad(fin)
+    # pièce famille, année récupérée sur la ligne, activité et individu à zéro
+    elif ("IDindividu" in dictDonnees
+          and  dictDonnees["IDindividu"] == 0
+          and dictDonnees["IDinscription"] < 2099):
+        annee = dictDonnees["IDinscription"]
     return annee
 
 # Une seule fois par Annee académique
