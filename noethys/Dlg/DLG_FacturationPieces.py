@@ -462,11 +462,11 @@ class Dialog(wx.Dialog):
             # Les pieces niveau familles n'ont pas IDactivite, mais IDinscription est l'année
             if not track.IDactivite:
                 dte = datetime.date(track.IDinscription,1,1)
-            else: dte = None
-            (exerciceDeb, exerciceFin) = GestionArticle.AnneeAcad(self.DB,track.IDactivite,
-                                                                  dte)
-            if not exerciceFin.year in lstAnnees:
-                lstAnnees.append(exerciceFin.year)
+            else:
+                (debut, dte) = GestionArticle.DebutFin_Activite(track.IDactivite)
+            (periodeDeb, periodeFin) = GestionArticle.GetDebFinAnnAcad(dte)
+            if not periodeFin.year in lstAnnees:
+                lstAnnees.append(periodeFin.year)
                 lstActivites.append(track.IDactivite)
 
         dlg = None

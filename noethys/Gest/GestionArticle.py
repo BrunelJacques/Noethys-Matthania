@@ -16,6 +16,7 @@ import wx
 import copy
 import datetime
 from Data import DATA_Tables
+from Utils import UTILS_Dates
 
 def Nz(valeur):
     if not valeur:
@@ -62,10 +63,8 @@ LISTEconditions = [
         ("AG0-2", "Enfant jusqu'à 3 ans\nAge >=0 et <3", "CondAg0_2", ),
         ("AG3-5", "Enfant de 3 à 5 ans\nAge >=3 et <6", "CondAg3_5", ),
         ("AG6-11", "Enfant de 6  à 11 ans\nAge >=6 et <12", "CondAg6_11", ),
-        ("Annuelle", "N'apparaît qu'une fois dans l'année académique pour individu\nCf mode de calcul",  "CondAnnuelle",),
+        ("Annuelle", "N'apparaît qu'une fois dans l'année académique \nCf mode de calcul",  "CondAnnuelle",),
         ("Civile", "N'apparaît qu'une fois dans l'année civile pour individu\nCf mode de calcul",  "CondCivile",),
-        ("AnnuelleFam", "N'apparaît qu'une fois dans l'année académique pour famille\nCf mode de calcul",  "CondAnnuFam",),
-        ("CivileFam", "N'apparaît qu'une fois dans l'année civile pour la famille\nCf mode de calcul",  "CondCivilFam",),
         ("Cumul", "Famille à partir de deux inscriptions,\ncompte sur année civile: non NOCUMUL, age>6ans, nuits >= 6", "CondCumul", ),
         ("Parrain", "Parrain d'une inscription\nTeste les commandes et facture où un membre de la famille est parrain", "CondParrain", ),
         ("Ministere", "Présence d'un radical PASTEUR ou MISSION dans un nom de liste de diffusion\nTeste l'appartenance à une de ces listes de diffusion, d'un titulaire de la famille", "CondMinistere", ),
@@ -85,7 +84,7 @@ LISTEmodeCalcul = [
         ("Reduction", "Déduction du produit : prix unitaire par quantité saisie\nParam1 est le montant en ¤", "CalReduction",),
         ("RedSejour", "La réduction est faite en % du prix du séjour,\nParam1 est la réduction en %", "CalRedSejour",),
         ("RedCumul", "La réduction en ¤ selon le nombre d'inscriptions\nNiveau famille ou niveau activité mais pas les deux", "CalRedCumul",),
-        ("Annuelle", "Force 0 si déja présent dans l'année civile et par individu dans une inscription\pas de param nécessaire", "CalAnnuelle",),
+        ("Annuelle", "Force 0 si déja présent dans l'année académique et par individu dans une inscription\pas de param nécessaire", "CalAnnuelle",),
         ]
 
 # code, libelllé, ordre sur la pièce
@@ -103,22 +102,6 @@ LISTEtypeLigne = [
         ]
 
 # Fonctions paramétrables
-
-def AnneeAcad(DB,IDactivite=None, date= None, **kwargs):
-    # Retourne les dates début et fin annee académique sur date debut d'activité
-    if IDactivite:
-        dictDonnees = {"IDactivite" : IDactivite,}
-        annee = RechercheAnneeAcad(DB,dictDonnees)
-    elif isinstance(date, datetime.date):
-        annee = date.year
-        if date.month >=9: annee +=1
-    else:
-        annee = datetime.date.today().year
-        if datetime.date.today().month >=9: annee +=1
-    deb = datetime.date(annee-1,9,1)
-    fin = datetime.date(annee,8,31)
-    return deb, fin
-    #fin AnneeAcad
 
 def DateEngEnDateDD(dateEng):
     if dateEng == None : return datetime.date(1900, 1, 1)
@@ -452,25 +435,34 @@ def CondAg6_11(dictDonnees,codeArticle) :
         return True
     else: return False
 
+def GetAnAcad(date):
+    annee = date.year
+    if date.month >=10:
+        annee +=1
+    return annee
+
+def GetDebFinAnnAcad(date):
+    annee = GetAnAcad(date)
+    debut = datetime.date(annee-1,10,1)
+    fin = datetime.date(annee,9,30)
+    return debut,fin
+
+# détermine l'année fin de l'année académique de la ligne pièce
 def RechercheAnneeAcad(DB,dictDonnees):
-    # selon les cas d'entrée détermine la date fin de l'année académique en cours
-    IDactivite = None
-    if "IDactivite" in dictDonnees:
-        IDactivite = dictDonnees["IDactivite"]
     annee  = None
-    # cas d'une pièce famille reprise
-    if "IDindividu" in dictDonnees and  dictDonnees["IDindividu"] == 0:
+    # cas forcé par l'appelant
+    if "annee" in dictDonnees and int(dictDonnees["annee"]) > 0:
+        annee = int(dictDonnees["annee"])
+    # l'activité est fournie dans la ligne (prix activité...)
+    elif "IDactivite" in dictDonnees and dictDonnees["IDactivite"] >0:
+        IDactivite = dictDonnees["IDactivite"]
+        deb, fin = DebutFin_Activite(DB, IDactivite)
+        annee = GetAnAcad(deb)
+    # cas d'une pièce famille reprise ancien système
+    elif "IDindividu" in dictDonnees and  dictDonnees["IDindividu"] == 0:
         millesime = dictDonnees["IDinscription"]
         if millesime > 2016 and millesime < 2099:
              annee= millesime
-    elif IDactivite > 0:
-        deb,fin = DebutFin_Activite(DB,IDactivite)
-        annee = fin.year
-    # cas d'une pièce activité ou famille en suite
-    if "annee" in dictDonnees:
-        annee = int(dictDonnees["annee"])
-    if not annee:
-        annee = datetime.date.today().year
     return annee
 
 # Une seule fois par Annee académique
@@ -478,8 +470,8 @@ def CondAnnuelle(dictDonnees,codeArticle) :
     DB = dictDonnees['db']
     annee = RechercheAnneeAcad(DB,dictDonnees)
     IDindividu = dictDonnees["IDindividu"]
-    listeIDnumPiece = PiecesAnneeAcademique(DB,annee,None,IDindividu)
-
+    IDfamille = dictDonnees["IDfamille"]
+    listeIDnumPiece = PiecesAnneeAcademique(DB,annee,IDfamille,IDindividu)
     if "IDnumPiece" in dictDonnees:
         ID = dictDonnees["IDnumPiece"]
         if ID in listeIDnumPiece:
@@ -507,45 +499,17 @@ def CondCivile(dictDonnees,codeArticle) :
     return ret
 
 # Une seule fois par année académique
-def CondAnnuFam(dictDonnees,codeArticle) :
-    ret = True
-    DB = dictDonnees['db']
-    annee = RechercheAnneeAcad(DB,dictDonnees)
-    IDfamille = dictDonnees["IDfamille"]
-    listeIDnumPiece = PiecesAnneeAcademique(DB,annee,IDfamille,None)
-    if "IDnumPiece" in dictDonnees:
-        ID = dictDonnees["IDnumPiece"]
-        if ID in listeIDnumPiece:
-            listeIDnumPiece.remove(ID)
-    present=ArticlePresent(DB,codeArticle,listeIDnumPiece)
-    if present:
-        ret = False
-    return ret
-
-# Une seule fois par année civile
-def CondCivilFam(dictDonnees,codeArticle) :
-    ret = False
-    DB = dictDonnees['db']
-    annee = RechercheAnneeAcad(DB,dictDonnees)
-    IDfamille = dictDonnees["IDfamille"]
-    listeIDnumPiece = PiecesAnneeCivile(DB, annee, IDfamille, None)
-    if "IDnumPiece" in dictDonnees:
-        ID = dictDonnees["IDnumPiece"]
-        if ID in listeIDnumPiece:
-            listeIDnumPiece.remove(ID)
-    present=ArticlePresent(DB,codeArticle,listeIDnumPiece)
-    if present: ret = False
-    return ret
-
 def CondCumul(dictDonnees,codeArticle):
     # teste la présence des inscriptions à cumul et alimente un dic 'Cumul' dans dictDonnees
     DB = dictDonnees['db']
 
-    # calcul de l'année civile concernée, année du début de l'exercice où débute l'activité ou année du niveau famille
+    # calcul de l'année académique du début de l'activité ou année du niveau famille
     annee = RechercheAnneeAcad(DB,dictDonnees)
     dictDonnees['annee'] = annee
-    condAnnee = """
-                    AND (activites.date_debut Like '%d%%')""" % annee
+
+    (debut,fin) = GetDebFinAnnAcad(datetime.date(annee,1,1))
+    condAnnee = """(activites.date_debut >= '%s')
+                        AND (activites.date_fin <= '%s')""" %(str(debut),str(fin))
 
     # recherche le nombre d'inscriptions de la famille y compris celles en cours
     req = """
@@ -560,7 +524,7 @@ def CondCumul(dictDonnees,codeArticle):
                 LEFT JOIN individus ON matPieces.pieIDindividu = individus.IDindividu)
                 LEFT JOIN categories_tarifs ON matPieces.pieIDcategorie_tarif = categories_tarifs.IDcategorie_tarif
         WHERE ((matPieces.pieIDfamille=%d)
-                %s)
+                AND %s)
         GROUP BY matPieces.pieIDnumPiece, matPieces.pieIDactivite, matPieces.pieIDgroupe, ouvertures.IDunite, 
                 individus.date_naiss, matPieces.pieIDindividu, matPieces.pieNature,categories_tarifs.campeur
         ;"""%(dictDonnees['IDfamille'],condAnnee)
@@ -648,12 +612,13 @@ def CondCumul(dictDonnees,codeArticle):
                     LEFT JOIN matPiecesLignes ON matPieces.pieIDnumPiece = matPiecesLignes.ligIDnumPiece
             WHERE   (matPieces.pieIDfamille = %d) 
                     AND (matPiecesLignes.ligCodeArticle = '%s') 
-                    AND ((activites.date_debut Like '%d%%')             
+                    AND (
+                        (%s)             
                         OR (matPieces.pieIDinscription = %d)
                         )
                     AND matPieces.pieNature = 'FAC'
                     %s
-            ;""" % (dictDonnees['IDfamille'], codeArticle, annee, annee, condPieEnCours)
+            ;""" % (dictDonnees['IDfamille'], codeArticle, condAnnee, annee, condPieEnCours)
     DB.ExecuterReq(req, MsgBox="CondCumul3")
     retour = DB.ResultatReq()
     if len(retour) > 0:
@@ -776,7 +741,6 @@ def PiecesAnneeAcademique(DB,annee,IDfamille,IDindividu):
         # retourne la liste des pièces de l'année pour l'individu ou la famille
         if IDindividu == None or IDindividu == 0:
             # cas de recherche niveau famille l'IDindividu est 0, l'année dans l'IDinscription
-
             req = """SELECT matPieces.pieIDnumPiece
                     FROM matPieces
                     WHERE matPieces.pieIDinscription = %d AND pieIDfamille =  %d
@@ -793,7 +757,9 @@ def PiecesAnneeAcademique(DB,annee,IDfamille,IDindividu):
         recordset = DB.ResultatReq()
         for record in recordset:
             listeIDnumPieces.append(record[0])
-    except: pass
+    except Exception as err:
+        print(err)
+        pass
     return listeIDnumPieces
 
 def MultiParrain(codeArticle,dictDonnees,listeOLV):
@@ -1071,7 +1037,6 @@ def CalRedSejour(track, tracks, dictDonnees):
     return 1,calcul
 
 def CalRedCumul(track, tracks, dictDonnees) :
-
     if not 'dicCumul' in list(dictDonnees.keys()):
         CondCumul(dictDonnees,track.codeArticle)
     # réduction selon le nombre de camps >=6 nuits et enfants >=6 ans
@@ -1079,6 +1044,13 @@ def CalRedCumul(track, tracks, dictDonnees) :
     qte = qteElig
     # mot clé '{nbInscr}' dans le libellé (nbre de réduc / nbre éligibles)
     ante = dictDonnees['dicCumul']['nbReduc']
+    if ante == 0 and dictDonnees['dicCumul']['mtReduc']>0:
+        # incohérence à rectifier
+        mttreduc = dictDonnees['dicCumul']['mtReduc']
+        for mtgrille in LISTEredCumul:
+            ante += 1
+            if mttreduc <= mtgrille:
+                break
     txt = "%d"%int(max(qteElig,ante))
     if ante != 0:
         qte = qteElig - ante
@@ -1157,7 +1129,7 @@ def ArticlePreExist(article, ligne, dictDonnees):
     article.origine = "article_nvxCalcul"
     article.oldValue = article.montantCalcul
     ligne.origine = "ligne_article"
-    # l'article qui sera retenu, il faut donc l'alimenter de parties de la ligne
+    # l'article sera retenu, il faut donc l'alimenter de parties de la ligne
     insertArt = True
     ligne.force = "NON"
     ligne.saisie = False
@@ -1229,7 +1201,7 @@ class ActionsModeCalcul() :
 
 if __name__ == "__main__":
     DB = GestionDB.DB()
-    print(DebutFin_Activite(DB,740))
-    NbreJoursActivite(DB,393,985, IDindividu= 1386)
-    print(AnneeAcad(DB,None,None))
+    print(DebutFin_Activite(DB,869))
+    print(NbreJoursActivite(DB,393,985, IDindividu= 1386))
+    print(RechercheAnneeAcad(DB,{"IDactivite":869}))
 

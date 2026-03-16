@@ -616,15 +616,15 @@ class DlgTarification(wx.Dialog):
         if 'annee' in dictDonneesParent:
             dateAnnee = datetime.date(dictDonneesParent['annee'], 1, 1)
         else:
-            dateAnnee = None
+            dateAnnee = datetime.date.today()
 
-        if not 'IDactivite' in self.dictDonneesParent:
+        if (not 'IDactivite' in self.dictDonneesParent
+                or not self.dictDonneesParent['IDactivite'] >0):
             self.dictDonneesParent['IDactivite'] = None
+        else:
+            dateAnnee = GestionArticle.DebutFin_Activite(self.dictDonneesParent['IDactivite'])
 
-        periode = GestionArticle.AnneeAcad(self.DB,
-                                                IDactivite=dictDonneesParent[
-                                                    "IDactivite"],
-                                                date=dateAnnee)
+        periode = GestionArticle.GetDebFinAnnAcad(dateAnnee)
         (self.exerciceDeb, self.exerciceFin) = periode
         self.annee = self.exerciceFin.year
         self.IDcompte_payeur = dictDonneesParent["IDcompte_payeur"]
@@ -733,7 +733,7 @@ class DlgTarification(wx.Dialog):
         # cas d'un deuxième passage après init, l'année a changé
         if annee != self.exerciceFin.year:
             dte = datetime.date(annee, self.exerciceFin.month, self.exerciceFin.day)
-            periode = GestionArticle.AnneeAcad(self.DB, IDactivite=None, date=dte)
+            periode = GestionArticle.GetDebFinAnnAcad(dte)
             self.exerciceDeb, self.exerciceFin = periode
 
             # mise à jour de l'olv modifiable
