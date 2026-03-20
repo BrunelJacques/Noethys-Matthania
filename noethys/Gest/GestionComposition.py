@@ -1030,7 +1030,7 @@ class GestCompo:
     def Supprimer(self, IDindividu=None):
         """ Supprimer un individu """
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_fiche",
-                                                                  "supprimer") == False: return
+                                                                  "modifier") == False: return
         from Dlg import DLG_Supprimer_fiche
         dlg = DLG_Supprimer_fiche.Dialog(self, IDindividu=IDindividu,
                                          IDfamille=self.IDfamille)

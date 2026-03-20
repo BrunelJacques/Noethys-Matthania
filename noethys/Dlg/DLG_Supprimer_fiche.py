@@ -17,6 +17,7 @@ import datetime
 import GestionDB
 from Utils import UTILS_Historique
 from Utils import UTILS_Titulaires
+from Utils import UTILS_Utilisateurs
 
 ID_BOUTON_DETACHER = 1
 ID_BOUTON_SUPPRIMER = 2
@@ -365,7 +366,9 @@ class Dialog(wx.Dialog):
                 },])
         return True
 
-    def OnBoutonSupprimer(self, event): 
+    def OnBoutonSupprimer(self, event):
+        if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_fiche",
+                                                                  "supprimer") == False: return
         resultat = self.Supprimer()
         if resultat == True : self.EndModal(ID_BOUTON_SUPPRIMER)
         if resultat == False : self.EndModal(wx.ID_CANCEL)
