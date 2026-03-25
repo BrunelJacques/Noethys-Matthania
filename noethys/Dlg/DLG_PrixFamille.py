@@ -622,7 +622,8 @@ class DlgTarification(wx.Dialog):
                 or not self.dictDonneesParent['IDactivite'] >0):
             self.dictDonneesParent['IDactivite'] = None
         else:
-            dateAnnee = GestionArticle.DebutFin_Activite(self.dictDonneesParent['IDactivite'])
+            dateAnnee = GestionArticle.DebutFin_Activite(self.DB,
+                                                         self.dictDonneesParent['IDactivite'])
 
         periode = GestionArticle.GetDebFinAnnAcad(dateAnnee)
         (self.exerciceDeb, self.exerciceFin) = periode
