@@ -433,15 +433,12 @@ class GestCompo:
         tipFrame = hasattr(self.parent, "tipFrame")
         timer = hasattr(self.parent, "timerTip")
         if not (tipFrame or timer):
-            print(f"1 ACT activation du timer: typeframe:{tipFrame}, timer: {timer}")
             self.timerTip = wx.PyTimer(self.SetIntoTooltip)
             self.timerTip.Start(1000)
             self.tip.IDindividu = IDindividu
 
-        else: print(f"1 ACT no typeframe:{tipFrame},and no timer: {timer}")
 
     def SetIntoTooltip(self):
-        #print("Compose le contenu du tip")
 
         taillePhoto = 30
         font = self.GetFont()
@@ -576,41 +573,32 @@ class GestCompo:
         # Arrêt du timer
         self.timerTip.Stop()
         del self.timerTip
-        #print("AFF arret du timer")
 
     def DesactiveTooltip(self):
         # Désactive le tooltip
-        #print("1 DESACT is no actif")
         if hasattr(self, "timerTip"):
             if self.timerTip.IsRunning():
-                #print("1 DESACT stoppe timer, raz tip.IDindividu")
                 self.timerTip.Stop()
                 del self.timerTip
                 self.tip.IDindividu = None
         else:
             pass
-            #print('1 DESACT no timer')
         self.CacheTooltip()
 
     def CacheTooltip(self):
         # Fermeture du tooltip
-        #print("CACHE-----------------")
         if hasattr(self.parent, "tipFrame"):
             try:
-                #print("CACHE tente destroy")
                 self.parent.tipFrame.Destroy()
             except:
-                #print('echec')
                 pass
             del self.parent.tipFrame
-            #print("CACHE del.parent.tipFrame")
 
     def OnLeaveWindow(self, event):
         self.CacheTooltip()
         #event.Skip()
 
     def OnEnterWindow(self, event):
-        print("OnEnterWindow")
         self.tip.DoHideNow()
         pass
 
@@ -1222,9 +1210,7 @@ class PanelHyperTree(wx.Panel):
             mess = f"item {item.IsOk}"
         else:
             mess = "no item"
-        #print('OnMotionTree', mess, pos, flags, col)
         if not item:
-            # OnMotionTree print("Noitem")
             pass
 
         if item:
@@ -1248,7 +1234,6 @@ class PanelHyperTree(wx.Panel):
         event.Skip()
 
     def OnLeaveTree(self, event):
-        #print('OnLeaveTree')
         self.lastItem = None
         self.tipHTL.DoHideNow()
 
@@ -1266,12 +1251,10 @@ class PanelHyperTree(wx.Panel):
         return btn
 
     def on_enterBTN(self, event):
-        #print('OnEnterBtn')
         self.tipBTN.Show()
         event.Skip()
 
     def on_leaveBTN(self, event):
-        #print('OnLeaveBtn')
         if self.tipBTN:
             self.tipBTN.DoHideNow()
         event.Skip()

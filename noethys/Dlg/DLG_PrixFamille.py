@@ -602,7 +602,6 @@ class OLVtarification(ObjectListView):
         objects = self.GetObjects()
         return[ x for x in objects if x.isChecked]
 
-
 class DlgTarification(wx.Dialog):
     def __init__(self, parent, dictDonneesParent):
         self.parent = parent
@@ -622,15 +621,15 @@ class DlgTarification(wx.Dialog):
                 or not self.dictDonneesParent['IDactivite'] >0):
             self.dictDonneesParent['IDactivite'] = None
         else:
-            dateAnnee = GestionArticle.DebutFin_Activite(self.DB,
+            periode = GestionArticle.DebutFin_Activite(self.DB,
                                                          self.dictDonneesParent['IDactivite'])
-
-        periode = GestionArticle.GetDebFinAnnAcad(dateAnnee)
-        (self.exerciceDeb, self.exerciceFin) = periode
-        self.annee = self.exerciceFin.year
+            dateAnnee = periode[1] # fin de l'activité détermine l'année exercice
+        (self.exerciceDeb, self.exerciceFin) = GestionArticle.GetDebFinAnnAcad(dateAnnee)
+        self.annee = self.exerciceDeb.year
         self.IDcompte_payeur = dictDonneesParent["IDcompte_payeur"]
 
-        # Verrouillage utilisateurs
+
+       # Verrouillage utilisateurs
         self.rw = True
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel(
                 "individus_inscriptions",
@@ -653,6 +652,7 @@ class DlgTarification(wx.Dialog):
         self.staticbox_facture = wx.StaticBox(self, -1, _("Déjà facturé..."))
         self.staticbox_nonFacture = wx.StaticBox(self, -1,
                                                  _("Non facturé modifiable ..."))
+        periode = (self.exerciceDeb, self.exerciceFin)
         self.resultsOlv = OLVtarification(self, self.DB, self.IDcompte_payeur,
                                           periode,
                                           facture=False, id=1,
@@ -740,7 +740,8 @@ class DlgTarification(wx.Dialog):
             # mise à jour de l'olv modifiable
             self.resultsOlv.exerciceFin = self.exerciceFin
             self.resultsOlv.dictDonnees['annee'] = annee
-            del self.resultsOlv.dictDonnees['dicCumul']
+            if 'dicCumul' in self.resultsOlv.dictDonnees:
+                del self.resultsOlv.dictDonnees['dicCumul']
 
             # mise à jour du bandeau et des factures
             self.SetBandeau(annee)
