@@ -625,7 +625,7 @@ class DlgTarification(wx.Dialog):
                                                          self.dictDonneesParent['IDactivite'])
             dateAnnee = periode[1] # fin de l'activité détermine l'année exercice
         (self.exerciceDeb, self.exerciceFin) = GestionArticle.GetDebFinAnnAcad(dateAnnee)
-        self.annee = self.exerciceDeb.year
+        self.annee = self.exerciceFin.year
         self.IDcompte_payeur = dictDonneesParent["IDcompte_payeur"]
 
 
