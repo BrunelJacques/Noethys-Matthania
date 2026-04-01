@@ -1205,4 +1205,5 @@ if __name__ == "__main__":
     print(DebutFin_Activite(DB,869))
     print(NbreJoursActivite(DB,393,985, IDindividu= 1386))
     print(RechercheAnneeAcad(DB,{"IDactivite":869}))
+    print(GetDebFinAnnAcad(datetime.date(2027, 12, 31)))
 

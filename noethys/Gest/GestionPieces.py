@@ -219,6 +219,8 @@ class Forfaits():
         # vérif si des inscriptions ont été annulées
         for IDinscription, lstParr in dicLettrages.items():
             for IDligne, user in lstParr:
+                if IDinscription == 0 and user >= 70000: # entèrieurement forcé par agent
+                    continue
                 if not IDinscription in dicInscriptions:
                     annuleLigne(IDligne,dicLignes[IDligne])
         # Vérif des inscriptions parrainées

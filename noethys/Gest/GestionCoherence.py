@@ -846,7 +846,9 @@ class Diagnostic():
                     # la pièce ne doit pas avoir de prestation, non transférée compta elle doit disparaître
                     ret = self.fGest.DelPrestations(self,{"IDprestation":dLigne["ID"],'IDnumPiece': None})
                     dLigne["mess"] += "\nReqDEL('prestations'.%d"%(dLigne["ID"])
-                    if ret == "ok": return True
+                    if ret == "ok":
+                        return True
+                return False
 
             # la piece pointe une prestation et la prestation une piece
             if IDprestTrouvee == IDprestation:
@@ -864,7 +866,7 @@ class Diagnostic():
                     return self.ReqMAJ(dLigne,'prestations',lstDonnees,'IDprestation',dLigne["ID"])
                 elif dPiece["pieNature"] in ("FAC","COM"):
                     altPrest = ddPrestations[IDprestTrouvee]
-                    if altPrest["IDcontrat"] == IDnumPiece:
+                    if "IDcontrat" in altPrest and altPrest["IDcontrat"] == IDnumPiece:
                         if dPrestation["compta"] != None:
                             # on ne pourra pas modifier un prestation transférée en compta
                             return False

@@ -1,3 +1,7 @@
+version 1.3.3.61 (01/04/2026)
+- modification sur les cohérences lors de changement de nature
+- prise en compte des forçages sur parrainages passés indus
+
 version 1.3.3.60 (30/03/2026)
 - année = fin de l'exeercice contenant la fin de l'activité
 

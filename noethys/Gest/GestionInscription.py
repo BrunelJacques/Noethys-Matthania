@@ -396,7 +396,7 @@ class Forfaits():
                 if  niveau == "individu":
                     ajout = self.AjoutConsommations(parent,dictNewPiece)
                 IDprestation = self.AjoutPrestation(parent,dictNewPiece,modif=True)
-                if IDprestation > 0:
+                if IDprestation and IDprestation > 0:
                     dictNewPiece["IDprestation"] = IDprestation
                 self.ModifieConsoCree(parent,dictNewPiece)
                 self.ModifiePieceCree(parent,dictNewPiece)
@@ -996,7 +996,7 @@ class Forfaits():
             recordset = self.DB.ResultatReq()
             nbre = 0
             if len(recordset) >0:
-                if len(recordset[0]) >0:
+                if recordset[0] and len(recordset[0]) >0:
                     nbre = recordset[0][0]
             if nbre <=1:
                 retour = self.DB.ReqDEL("transports","IDtransport",IDtransport,MsgBox = "SupprimeTransport")
