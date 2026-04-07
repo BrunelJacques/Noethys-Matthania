@@ -495,7 +495,10 @@ class Dialog(wx.Dialog):
             messagerie.Connecter()
         except Exception as err:
             dlg_progress.Destroy()
-            txtErr = err.args[0]
+            txtErr = "Erreur DLG_Mailer.Envoyer"
+            if hasattr(err,"smtp_error"):
+                txtErr += f"\n{err.smtp_error}"
+                txtErr += "\nerreur: %d"%err.args[0]
             intro = _("La connexion au serveur de messagerie est impossible :")
             conclusion = _("Vérifiez votre connexion internet ou les paramètres de votre adresse d'expédition.")
             dlgErreur = DLG_Messagebox.Dialog(self, titre=_("Erreur"), introduction=intro, detail=txtErr, conclusion=conclusion, icone=wx.ICON_ERROR, boutons=[_("Ok"),])
