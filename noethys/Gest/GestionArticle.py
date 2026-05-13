@@ -801,10 +801,10 @@ def MultiParrain(codeArticle,dictDonnees,listeOLV):
                 i-=1
 
     # constitution des lignes de parrainage
-    # teste la presence de pièces pointant la famille comme parrain sans avoir abandonné son droit et non imputé
     IDpiece = 0
     if "pieceEnCours" in dictDonnees:
         IDpiece = dictDonnees["pieceEnCours"]
+    # teste la presence de pièces pointant la famille comme parrain sans avoir abandonné son droit et non imputé
     if "IDfamille" in dictDonnees:
         IDfamille = dictDonnees["IDfamille"]
         req =   """
@@ -817,8 +817,11 @@ def MultiParrain(codeArticle,dictDonnees,listeOLV):
                         LEFT JOIN matPiecesLignes ON matParrainages.parIDligneParr = matPiecesLignes.ligIDnumLigne
                 WHERE 	(matPieces.pieParrainAbandon = 0) 
                         AND (matPieces.pieIDparrain = %d)
-                        AND (matParrainages.parIDligneParr Is Null)
-                ; """ % (IDfamille)
+                        AND (
+                            (matParrainages.parIDligneParr Is Null)
+                            OR (matPiecesLignes.ligIDnumPiece = %d)
+                        )
+                ; """ % (IDfamille, IDpiece)
 
         DB.ExecuterReq(req,MsgBox = "GestionArticle.MultiParrain")
         retPieces = DB.ResultatReq()
@@ -1135,9 +1138,12 @@ def ArticlePreExist(article, ligne, dictDonnees):
     ligne.force = "NON"
     ligne.saisie = False
     article.force = "OUI"
+
     if (ligne.montant == article.montantCalcul
         or (ligne.montant == 0.0 and ligne.montantCalcul == article.montantCalcul)):
-        article.libelle = ligne.libelle
+        if article.codeArticle == ligne.codeArticle:
+            # notamment les parrainages ne seront conservés qu'avec le même non article
+            article.libelle = ligne.libelle
         supprLign = True
     else:
         # montants différents, l'article sera présent et coché et la ligne laissée
