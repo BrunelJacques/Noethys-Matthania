@@ -11,15 +11,15 @@ rechercher et installer les bibliothèques suivantes.
 # installer git  par https://git-scm.com/download/win  (ou équivalent standalone)
 ouvrir une fenêtre shell en mode administrateur (clic droit  sur la proposition windows)
 - cd c:/MatthProgram
-- aller sur https://github.com/BrunelJacques puis ouvrir Noethys-Matthania
-- aller à l'adresse : https://github.com/BrunelJacques/Noethys-Matthania pour copier/coller
 - git clone https://github.com/BrunelJacques/Noethys-Matthania
 - cd Noethys-Matthania
+
 # verifier si pip est installé, sinon version py et installer pip par py:  
 - pip -V
   - py -V
   - py -3.11 -m pip install package
-# installer les bibiliothèques
+  
+# installer les bibiliothèques à partir du fichier requirements
 - pip install -r requirements.txt
 
 # Installez un raccourci sur le bureau
@@ -27,10 +27,15 @@ ouvrir une fenêtre shell en mode administrateur (clic droit  sur la proposition
 - démarrer: "C:/MatthProgram/Noethys-Matthania/noethys/"
 - icone: C:/MatthProgram/Noethys-Matthania/noethys/Static/Images/Icone.ico
 
-# Compléments
+# Dans Noethys lancé, il faudra paramétrer les accès à une base de données ou la créer
 
+# Compléments
 vérifier les versions python installées: py -0
 version active : py -V
+
+Pour installation en copier coller:
+- aller à l'adresse : https://github.com/BrunelJacques/Noethys-Matthania pour copier/coller
+
 
 Liste des modules qui ont dû être chargés par pip install
 - dateutil (http://pypi.python.org/pypi/python-dateutil)
@@ -50,10 +55,7 @@ Liste des modules qui ont dû être chargés par pip install
 - Paramiko (https://pypi.python.org/pypi/paramiko)
 - Lxml (https://pypi.python.org/pypi/lxml)
 - pystrich (https://pypi.org/project/pyStrich/)
+- etc...
 
-
-En installant PyCharm Community Edition on peut facilement créer un environnement 
-et vérifier les modules qui ont été chargés 
-
-Pour install personnalisée:
-sources présentes sur  https://github.com/BrunelJacques/Noethys-Matthania
+Avec PyCharm Community Edition, on peut facilement créer un environnement particulier
+et vérifier les modules qui ont été chargés ou manquant en mode débug.
