@@ -107,8 +107,9 @@ class Interface(wx.Panel):
 class Interface_mysql(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
-        self.listeLabels = [u"MySQLdb (par défaut)", "mysql.connector"]
-        self.listeCodes = ["mysqldb", "mysql.connector"]
+        self.listeLabels = [u"MySQLdb de mysqlclient (par défaut)",
+                            "PyMySQL de mysql-connector-python"]
+        self.listeCodes = ["mysqldb", "pymysql"]
         
         self.staticbox_staticbox = wx.StaticBox(self, -1, _("MySQL"))
         self.label_interface = wx.StaticText(self, -1, _("Interface :"))
@@ -124,8 +125,8 @@ class Interface_mysql(wx.Panel):
         self.Importation() 
 
     def __set_properties(self):
-        self.ctrl_interface.SetToolTip(wx.ToolTip(_("Sélectionnez l'interface MySQL à utiliser pour les fichiers réseau. 'Mysqldb' est conseillé mais il est possible que 'mysql.connector' soit parfois plus rapide pour certaines connexions distantes (par internet). Vous pouvez tester les deux pour choisir le plus rapide.")))
-        self.ctrl_pool_mysql.SetToolTip(wx.ToolTip(_("Sélectionnez une valeur de pool pour l'interface mysql.connector (0 par défaut)")))
+        self.ctrl_interface.SetToolTip(wx.ToolTip(_("Sélectionnez l'interface MySQL à utiliser pour les fichiers réseau. 'MySQLdb' est conseillé mais il est possible que 'pymysql' soit parfois plus rapide pour certaines connexions distantes (par internet). Vous pouvez tester les deux pour choisir le plus rapide.")))
+        self.ctrl_pool_mysql.SetToolTip(wx.ToolTip(_("Sélectionnez une valeur de pool pour l'interface PyMySQL (0 par défaut)")))
 
     def __do_layout(self):
         staticbox = wx.StaticBoxSizer(self.staticbox_staticbox, wx.VERTICAL)
@@ -825,7 +826,7 @@ class Dialog(wx.Dialog):
         wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE)
         self.parent = parent
         self.isAdmin = UTILS_Utilisateurs.IsAdmin(False)
-        intro = _("Vous pouvez modifier ici les paramètres de base du logiciel. Certains ne s'appliquent qu'à otre station<BR>(1) nécessite un redémarrage du logiciel (2) s'applique à toute station et tout utilisateur.")
+        intro = _("Vous pouvez modifier ici les paramètres de base du logiciel. Certains ne s'appliquent qu'à votre station<BR>(1) nécessite un redémarrage du logiciel (2) s'applique à toute station et tout utilisateur.")
         titre = _("Préférences")
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Configuration2.png")
         self.userConfig = {}

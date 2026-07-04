@@ -30,7 +30,7 @@ git clone https://github.com/BrunelJacques/Noethys-Matthania
 chgrp -R noegest Noethys-Matthania
 cd Noethys-Matthania
 pip3 install -r requirements.txt
-pip3 install mysql-connector
+pip3 install mysql-connector-python
 cp noethys/Doc/lanceur_linux.sh ./lancer_noethys.sh
 chmod +x ./lancer_noethys.sh
 deactivate
@@ -69,12 +69,15 @@ pour wxpython existe aussi la version ubuntu-20
 extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04 wxPython
 
 'mysqlclient' peut être enlevé de requirements.txt pour installer le reste.
-sous linux il faut remplacer 'mysql-connector-python' par 'mysql-connector'
+sous linux si problème on peut remplacer 'mysql-connector-python' par 'mysql-connector'
+mais attention mysql-connector est obsolette, 
+ne pas laisser les deux paquets car à 'import PyMySQL' les deux peuvent répondre. 
 
+préférer pymysql ou mysqlclient
 Si echec 'pip3 install mysqlclient'
 ```
 sudo apt-get install python-mysqldb
-pip3 install mysql-connector
+pip3 install mysql-connector-python
 ```
 
 préconisations Noethys original master:

@@ -10,7 +10,7 @@ import Chemins
 import sqlite3
 import datetime
 import wx
-import os
+import os, sys
 import base64
 from Data import DATA_Tables
 from Ctrl import CTRL_ChoixListe
@@ -23,16 +23,11 @@ MODE_TEAMWORKS = False
 DICT_CONNEXIONS = {}
 IX_CONNEXION = {"ix":0,"pointeurs":{}}
 
-# Import MySQLdb
+IMPORT_PYMYSQL_OK = False
+IMPORT_MYSQLCONNECTOR_OK = False
+
 try :
-    # sqlite
-    """
-        import pymysql as MySQLdb
-    MySQLdb.install_as_MySQLdb()
-    from pymysql.constants import FIELD_TYPE
-    from pymysql.converters import conversions
-    """
-    import MySQLdb
+    import MySQLdb # paquet officiel en C, install mysqlclient
     from MySQLdb.constants import FIELD_TYPE
     from MySQLdb.converters import conversions
     IMPORT_MYSQLDB_OK = True
@@ -40,20 +35,36 @@ try :
 except Exception as err :
     IMPORT_MYSQLDB_OK = False
 
-# import mysql.connector
-try :
-    import mysql.connector
-    IMPORT_MYSQLCONNECTOR_OK = True
-    if IMPORT_MYSQLDB_OK == False:
-        INTERFACE_MYSQL = "mysql.connector"
-except Exception as err :
-    IMPORT_MYSQLCONNECTOR_OK = False
+# Interface pour Mysql = "mysqldb" en C ou "mysql.connector" en python
+""" Pour windows seven, seul python 8 peut être chargé, d'où la nécessité de remplacer 
+    mysql-connector-python  par pymysql, (éviter le mysql-connector obsolète )
+"""
+v = sys.version_info
+print(f"{v.major}.{v.minor}.v.micro")
 
-# Interface pour Mysql = "mysql.connector" ou "mysqldb"
-# Est modifié automatiquement lors du lancement de Noethys selon les préférences (Menu Paramétrage > Préférences)
-# Peut être également modifié manuellement ici dans le cadre de tests sur des fichiers indépendamment de l'interface principale
-INTERFACE_MYSQL = "mysqldb"
+if v >= (3,9):
+    try :
+        import mysql.connector # paquet récent en python, install mysql-connector-python
+        from mysql.connector.connection import MySQLConnection
+        IMPORT_MYSQLCONNECTOR_OK = True
+        INTERFACE_MYSQL = "mysql.connector"
+    except Exception as err :
+        IMPORT_MYSQLCONNECTOR_OK = False
+else:
+    # import pymysql ok sous windows seven et python 8
+    try:
+        import pymysql
+        IMPORT_PYMYSQL_OK = True
+        INTERFACE_MYSQL = "pymysql"
+    except Exception as err:
+        IMPORT_PYMYSQL_OK = False
+
+# INTERFACE_MYSQL usage
+""" L'interface est modifiée au lancement de Noethys par les préférences (Menu Paramétrage > Préférences)
+Peut être également modifié manuellement ici dans le cadre de tests sur des fichiers
+"""
 POOL_MYSQL = 5
+
 
 
 def SetInterfaceMySQL(nom="mysqldb", pool_mysql=5):
@@ -63,12 +74,14 @@ def SetInterfaceMySQL(nom="mysqldb", pool_mysql=5):
         INTERFACE_MYSQL = "mysqldb"
     elif nom == "mysql.connector" and IMPORT_MYSQLCONNECTOR_OK == True :
         INTERFACE_MYSQL = "mysql.connector"
+    elif IMPORT_PYMYSQL_OK == True:
+        INTERFACE_MYSQL = "pymysql"
     elif IMPORT_MYSQLDB_OK == True:
         INTERFACE_MYSQL = "mysqldb"
-    elif IMPORT_MYSQLCONNECTOR_OK == True :
+    elif IMPORT_MYSQLCONNECTOR_OK == True:
         INTERFACE_MYSQL = "mysql.connector"
     else:
-        mess = "Ni 'mysqldb' ni 'mysql.connector' ne sont opérationnels!!\n\n"
+        mess = "Ni 'mysqldb' ni 'mysql.connector'  ni pymysql ne sont opérationnels!!\n\n"
         mess += "refaire pip install xxxx"
         ret = wx.MessageBox(mess,"CONNEXION RESEAU IMPOSSIBLE",style= wx.ICON_ERROR)
         INTERFACE_MYSQL = None
@@ -196,8 +209,8 @@ class DB():
             self.connexion, nomFichier = GetConnexionReseau(nomFichier)
             self.cursor = self.connexion.cursor()
         except Exception as err:
-            print("La connexion a MYSQL a echouee. Erreur :")
-            print((err,))
+            print(f"La connexion a MYSQL {INTERFACE_MYSQL} a échouée.")
+            print(" Erreur : ",(err,))
             self.erreur = err
             self.echec = 1
             return
@@ -332,7 +345,7 @@ class DB():
                 blob = MySQLdb.escape_string(blobPhoto)
                 sql = "INSERT INTO photos (IDindividu, photo) VALUES (%d, '%s')" % (IDindividu, blob)
                 self.cursor.execute(sql)
-            if INTERFACE_MYSQL == "mysql.connector" :
+            if INTERFACE_MYSQL in ("mysql.connector", "pymysql" ):
                 self.cursor.execute("INSERT INTO photos (IDindividu, photo) VALUES (%s, %s)", (IDindividu, blobPhoto))
             self.connexion.commit()
             self.cursor.execute("SELECT LAST_INSERT_ID();")
@@ -546,7 +559,8 @@ class DB():
                 return
         return self.retourReq
 
-    def ExecuterReq(self, req, commit=True, MsgBox = None):
+    def ExecuterReq(self, req, commit=False, MsgBox = None):
+        print(req, self.echec)
         if self.echec >= 1:
             if not MsgBox: origine = "GestionDB.ExecuterReq"
             else: origine = MsgBox
@@ -1273,8 +1287,9 @@ def GetConnexionReseau(nomFichier=""):
         params = {
             "host": host,
             "user": user,
-            "passwd": passwd,
+            "password": passwd,
             "port": int(port),
+            "database": nomFichier,
             "use_unicode": True,
         }
 
@@ -1289,6 +1304,26 @@ def GetConnexionReseau(nomFichier=""):
 
         connexion = mysql.connector.connect(**params)
 
+    if INTERFACE_MYSQL == "pymysql":
+        connexion = pymysql.connect(host=host,
+                                    user=user,
+                                    password=passwd,
+                                    port=int(port),
+                                    # DictCursor pour des résultats en dictionnaires
+                                    # (ex: ligne['nom']) plutôt que tuples (ex: ligne[1])
+                                    #cursorclass=pymysql.cursors.DictCursor
+                                  )
+        etape = 'Création du curseur, après connexion'
+        try:
+            cursor = connexion.cursor()
+            # Tentative d'Utilisation de la base
+            etape = " Tentative d'accès à '%s'" %nomFichier
+            ret = cursor.execute("USE %s;" % nomFichier)
+            echec = 0
+            erreur = str(ret)
+        except Exception as err:
+            erreur = "%s\n\nEtape: %s"%(err,etape)
+            echec = 1
     return connexion, nomFichier
 
 def ConvertConditionChaine(liste=[]):
@@ -1522,22 +1557,41 @@ class Messages(wx.Frame):
 class TestBase():
     def __init__(self):
         # Module Imports
-        password = input("Mot de passe")
+        host = input("adresse IP de la base:")
+        if not host:
+            host = "192.168.1.43"
+        password = input("Mot de passe:")
         kwd = {
         'user':"operateur",
         'password':password,
-        'host':"192.168.1.43",
+        'host':host,
         'port':3306,
         'database':"matthania_data"
         }
-        cur = self.GetCurMaria(**kwd)
-        if cur:
-            self.GetDonnees(cur)
+        nomFichier = f"3306;{host};operateur;{password}[RESEAU]matthania"
+
+        for interface in ("mysqldb","mysql.connector","pymysql"):
+            SetInterfaceMySQL(interface)
+            mess = f"{INTERFACE_MYSQL}: "
+            try:
+                db = DB(nomFichier=nomFichier)
+                req = """SELECT * FROM activites LIMIT 10;"""
+                ret = db.ExecuterReq(req, commit=False)
+                mess += ret
+                resultats = db.ResultatReq()
+                mess += f" {len(resultats)}"
+                print(mess)
+            except Exception as err:
+                print(mess, err)
+    """
+            cur = self.GetCurMaria(**kwd)
+            if cur:
+                self.GetDonnees(cur)
+    """
 
 
     def GetCurMaria(self,**kwd):
         import mariadb
-        import sys
         # Connect to MariaDB Platform
         try:
             conn = mariadb.connect(**kwd)
@@ -1553,8 +1607,6 @@ class TestBase():
         cur.execute("SELECT * FROM activites LIMIT 10")
         for activite in cur:
             print(activite[:5])
-
-
 
 if __name__ == "__main__":
     app = wx.App()
