@@ -320,8 +320,12 @@ class DB():
         #if self.IDconnexion == 30:# 'debug connexions ouvertes' etape off
         #    print("debug Close")
         try :
-            if self.isNetwork and self.connexion.open != 0:
-                self.connexion.close()
+            if self.isNetwork and hasattr(self.connexion,"open"):
+                if self.connexion.open != 0:
+                    self.connexion.close()
+            elif hasattr(self.connexion,"is_connected"):
+                if self.connexion.is_connected():
+                    self.connexion.close()
             if self.IDconnexion in DICT_CONNEXIONS:
                 del DICT_CONNEXIONS[self.IDconnexion]
                 del IX_CONNEXION["pointeurs"][self.IDconnexion]
@@ -560,7 +564,6 @@ class DB():
         return self.retourReq
 
     def ExecuterReq(self, req, commit=False, MsgBox = None):
-        print(req, self.echec)
         if self.echec >= 1:
             if not MsgBox: origine = "GestionDB.ExecuterReq"
             else: origine = MsgBox
@@ -1405,7 +1408,6 @@ class GestionBase(wx.Frame):
             ORDER BY TailleMo DESC;
             """
         ret = self.db.ExecuterReq(req,MsgBox="GestionDB.GestionBase.GetOccupation")
-        print(('Execute:',ret))
         lstOccupations = self.db.ResultatReq()
         return lstOccupations
 
