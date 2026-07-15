@@ -1226,7 +1226,7 @@ class CaseStandard(Case):
             DB = GestionDB.DB()
             self.IDutilisateur = DB.IDutilisateurActuel()
             self.forfait = 2
-            DB.Close
+            DB.Close()
 
         if (self.IDindividu in self.grid.dictConsoIndividus) == False :
             self.grid.dictConsoIndividus[self.IDindividu] = {}

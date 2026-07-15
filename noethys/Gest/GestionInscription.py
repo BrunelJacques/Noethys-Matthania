@@ -73,7 +73,7 @@ def GetNoFactureSuivant():
     req = "SELECT MAX(pieNoFacture),MAX(pieNoAvoir) FROM matPieces;"
     retour = DB.ExecuterReq(req,MsgBox="GestionInscription.GetNoFactureSuivant")
     if retour != "ok" :
-        DB.Close
+        DB.Close()
         return
     retour = DB.ResultatReq()
     if (retour[0][0]== None) or (len(retour) == 0) : noFacture = 1
@@ -104,7 +104,7 @@ def GetNoFactureSuivant():
             dlg.ShowModal()
             dlg.Destroy()
             break
-    DB.Close
+    DB.Close()
     return noFacture
 
 def GetNoFactureMin():
@@ -116,7 +116,7 @@ def GetNoFactureMin():
     req = "SELECT MIN(prmInteger) FROM matParams WHERE prmUser = 'NoLibre';"
     retour = DB.ExecuterReq(req,MsgBox="GestionInscription.GetNoFactureMin")
     if retour != "ok" :
-        DB.Close
+        DB.Close()
         return
     recordset = DB.ResultatReq()
     if len(recordset)>0 :
@@ -140,7 +140,7 @@ def GetNoFactureMin():
                     req = "SELECT prmInteger,prmDate FROM matParams WHERE prmUser = 'NoLibre' AND prmInteger = %d ;" % value
                     retour = DB.ExecuterReq(req,MsgBox="GestionInscription.GetNoFactureMin")
                     if retour != "ok" :
-                        DB.Close
+                        DB.Close()
                         return
                     recordset = DB.ResultatReq()
                     noFacture = recordset[0][0]
@@ -148,7 +148,7 @@ def GetNoFactureMin():
                     req = "DELETE FROM matParams WHERE prmUser = 'NoLibre' AND prmInteger = %d ;" % value
                     retour = DB.ExecuterReq(req,commit = True,MsgBox="GestionInscription.GetNoFactureMin")
                     if retour != "ok" :
-                        DB.Close
+                        DB.Close()
                         return
                 # condition année civile en cours
                 if dateRet != None:
@@ -160,7 +160,7 @@ def GetNoFactureMin():
         date = datetime.date.today()
     if noFacture== None:
         noFacture = GetNoFactureSuivant()
-    DB.Close
+    DB.Close()
     return noFacture,date
 
 def RecordsToListeDict(listeChamps,records):

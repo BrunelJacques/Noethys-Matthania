@@ -605,10 +605,15 @@ class DB():
             # Version Sqlite
             req = req.replace("%s", "?")
         # Executemany
+        """
+        if self.connexion:
+            try:
+                if INTERFACE_MYSQL == "pymysql":
+                    self.connexion.ping(reconnect=True)
+            except Exception as err:
+                wx.MessageBox(f"Erreur ExecuteMany Ping-reconnect: {err}", "Erreur", wx.OK | wx.ICON_ERROR)
+        """
         try:
-            if self.connexion:
-                self.connexion.ping(reconnect=True)
-            print("--------------------------Executemany: commit,req,liste",commit,req,listeDonnees)
             self.cursor.executemany(req, listeDonnees)
             if commit == True and POOL_MYSQL == 0:
                 self.connexion.commit()

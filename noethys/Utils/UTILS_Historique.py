@@ -119,10 +119,10 @@ def InsertActions(listeActions=[], DB=None):
         if DB == None :
             DB = GestionDB.DB()
             try:
-                DB.Executermany(req, listeAjouts, commit=False)
+                DB.Executermany(req, listeAjouts, commit=True)
             except:
                 req = "INSERT INTO historique (date, heure, IDutilisateur, IDfamille, IDindividu, IDcategorie, action) VALUES (?, ?, ?, ?, ?, ?, ?)"
-                DB.Executermany(req, listeAjouts[:-1], commit=False)
+                DB.Executermany(req, listeAjouts[:-1], commit=True)
             DB.Commit()
             DB.Close()
         else :
