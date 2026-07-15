@@ -12,7 +12,6 @@
 import wx
 import Chemins
 import copy
-import datetime
 import GestionDB
 
 from Utils.UTILS_Traduction import _
@@ -44,10 +43,6 @@ def DateComplete(dateDD):
     listeMois = (_("janvier"), _("février"), _("mars"), _("avril"), _("mai"), _("juin"), _("juillet"), _("août"), _("septembre"), _("octobre"), _("novembre"), _("décembre"))
     dateComplete = listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
     return dateComplete
-
-def DateEngEnDateDD(dateEng):
-    if dateEng and not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 def ContractNom(individu,longueur):
     if len(individu) > longueur :

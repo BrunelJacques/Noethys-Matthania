@@ -417,14 +417,16 @@ class Dialog(wx.Dialog):
         for obj in objects:
             listeChamps = GestionInscription.StandardiseNomsChamps(self.olv_piecesFiltrees.listeChamps)
             dictDonnees = OL_FacturationPieces.OlvToDict(self,listeChamps,obj)
+            if dictDonnees["nature"] != "COM":
+                self.fGest.ChangeNaturePiece(self, dictDonnees, "COM")
             lstIDpieces.append(dictDonnees['IDnumPiece'])
         if len(lstIDpieces) > 0:
             pGest = GestionPieces.Forfaits(self)
-            ret = pGest.CreeFacture(IDpayeur,lstIDpieces,self.IDuser)
+            ret = pGest.CreeFacture(IDpayeur,lstIDpieces,self.IDuser,DB=self.DB)
             if not ret:
                 wx.MessageBox("Abandon de la facturation","Echec")
 
-    def OnBoutonOK(self,event):
+    def OnBoutonOK(self,event): # Facturation des pièces
         objects = self.olv_piecesFiltrees.GetCheckedObjects()
         if len(objects) == 0:
             GestionDB.MessageBox(self,"Vous n'avez coché aucune ligne ! ",titre="Continuation impossible")
@@ -432,6 +434,7 @@ class Dialog(wx.Dialog):
         if not self.VerifierFamille(objects):
             return
         self.Facturer(self.IDpayeur,objects)
+
         self.MAJ()
         #fin OnBoutonOK
 

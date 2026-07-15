@@ -57,10 +57,17 @@ def DateSQLenFR(dateSQL):
 class Forfaits():
     def __init__(self,parent,DB=None):
         self.parent = parent
+        dblocal = False
+        if not DB and hasattr(self.parent,"DB"):
+            DB = self.parent.DB
+        self.DB = DB
+
         if not DB:
+            dblocal = True
             DB = GestionDB.DB()
         self.fGest = GestionInscription.Forfaits(self.parent,DB=DB)
         self.IDuser = DB.IDutilisateurActuel()
+        if dblocal: DB.Close()
 
     def GetListePiecesEnCours(self,db,IDfamille):
         # récup des pieces non facturées ou avoirs
@@ -81,7 +88,11 @@ class Forfaits():
         # Récupération des inscriptions à créer
         listeInscriptions = []
         # Sauvegarde des inscriptions
-        DB = GestionDB.DB()
+        DB = self.DB
+        dblocal = False
+        if not DB:
+            DB = GestionDB.DB()
+            dblocal = True
         listeDonnees = [
             ("IDindividu",  dictDonnees["IDindividu"]),
             ("IDfamille",  dictDonnees["IDfamille"]),
@@ -95,7 +106,7 @@ class Forfaits():
         # Insertion des données
         DB.ReqInsert("inscriptions", listeDonnees,retourID=True, MsgBox="AjoutInscription")
         IDinscription = DB.newID
-        DB.Close()
+        if dblocal: DB.Close()
         return IDinscription
         #fin AjoutInscription
 
@@ -401,7 +412,11 @@ class Forfaits():
             return chaine
         numero = GestionInscription.GetNoFactureSuivant()
 
-        DB = GestionDB.DB()
+        DB = self.DB
+        dblocal = False
+        if not DB:
+            DB = GestionDB.DB()
+            dblocal = True
         transports = Nz(dictDonnees["prixTranspAller"])+Nz(dictDonnees["prixTranspRetour"])
         montant = 0.00
         listeLignes = dictDonnees["lignes_piece"]
@@ -511,14 +526,18 @@ class Forfaits():
             if  ixChoix != None:
                 if ixChoix == 1:
                     self.fGest.RazTransport(self,dictDonnees,sens)
-        DB.Close()
+        if dblocal: DB.Close()
         return end
         #fin GenereAvoir
 
     def ReduitAvoir(self,numero,montant,IDprestation):
         # Modification dela valeur  d'une facture d'avoir existante, cas d'un correctif famille
         # Calcul des champs de la table facture
-        DB = GestionDB.DB()
+        DB = self.DB
+        dblocal = False
+        if not DB:
+            DB = GestionDB.DB()
+            dblocal = True
         req = """SELECT total, regle, solde
             FROM factures
             WHERE numero = %s;
@@ -545,10 +564,15 @@ class Forfaits():
                     nvRegle = Nz(mtRegle)
                     nvSolde = nvTotal- Nz(mtRegle)
             DB.ReqMAJ('factures',[('total',nvTotal),('regle',nvRegle),('solde',nvSolde)],'numero',numero,MsgBox="GestionPieces.ReduitFactAvoir")
+        if dblocal: DB.Close()
         #fin ReduitAvoir
 
     def FactureMonoPiece(self,numero,IDnumPiece):
-        DB = GestionDB.DB()
+        DB = self.DB
+        dblocal = False
+        if not DB:
+            DB = GestionDB.DB()
+            dblocal = True
         # ctrl de présence d'autre pieces pointant la même facture
         req = """SELECT Count(pieIDnumPiece)
             FROM matPieces
@@ -561,13 +585,17 @@ class Forfaits():
             retFin = True
         else:
             retFin = False
-        DB.Close()
+        if dblocal: DB.Close()
         return retFin
         #fin FactureMonoPiece
 
     def ReduitFacture(self,numero,montant,IDprestation):
         # diminue le montant de la facture et supprime la ventilation de la prestation (contexte mono piece dans la facture)
-        DB = GestionDB.DB()
+        DB = self.DB
+        dblocal = False
+        if not DB:
+            DB = GestionDB.DB()
+            dblocal = True
         req = """SELECT total, regle, solde
             FROM factures
             WHERE numero = %s;
@@ -607,7 +635,7 @@ class Forfaits():
                 texte =  " n'est pas trouvé \nUne analyse est nécessaire \n"
             mess = GestionDB.Messages()
             mess.Box(titre = "Problème de cohérence", message= "\n La facture de numéro " + str(numero) + texte)
-        DB.Close()
+        if dblocal: DB.Close()
         return
         #fin ReduitFacture
 
@@ -615,7 +643,11 @@ class Forfaits():
         lstIDprestations = []
         lstIDprestations.append(IDprestation)
         # Augmente le montant de la facture (contexte famille ajouté à un avoir sur activité dans la facture)
-        DB = GestionDB.DB()
+        DB = self.DB
+        dblocal = False
+        if not DB:
+            DB = GestionDB.DB()
+            dblocal = True
         req = """SELECT IDfacture, total, regle, solde
             FROM factures
             WHERE numero = %s;
@@ -665,12 +697,16 @@ class Forfaits():
                 texte =  " n'est pas trouvé \nUne analyse est nécessaire \n"
             mess = GestionDB.Messages()
             mess.Box(titre = "Problème de cohérence", message= "\n La facture de numéro " + str(numero) + texte)
-        DB.Close()
+        if dblocal: DB.Close()
         return
         #fin Augmente Facture
 
     def DestroyFacture(self,numero,IDcomptePayeur):
-        DB = GestionDB.DB()
+        DB = self.DB
+        dblocal = False
+        if not DB:
+            DB = GestionDB.DB()
+            dblocal = True
         retFin = False
         # ctrl d'unicité du numero facture entre tiers différents
         req = """SELECT Count(factures.IDfacture)
@@ -686,14 +722,17 @@ class Forfaits():
             retour = DB.ReqDEL("factures","numero",numero,MsgBox = "GestionPieces.DestroyFacture")
             if retour == "ok":
                 retFin = True
-        DB.Close()
+        if dblocal: DB.Close()
         return retFin
         #fin DestroyFacture
 
-    def CreeFacture(self,IDcomptePayeur,lstIDpieces,IDuser,preExiste = False, retourID = False):
+    def CreeFacture(self,IDcomptePayeur,lstIDpieces,IDuser,DB=None,preExiste=False, retourID=False):
         # Création d'une facture avec toutes les pièces de la liste
-
-        DB = GestionDB.DB()
+        DB = self.DB
+        dblocal = False
+        if not DB:
+            dblocal = True
+            DB = GestionDB.DB()
         listDictDon = []
         datesFacture = []
         # Champs de la table facture
@@ -712,7 +751,7 @@ class Forfaits():
 
         # analyse préalable
         for IDpiece in lstIDpieces:
-            self.fGest.GetPieceModif(self,None,None,IDnumPiece=IDpiece)
+            self.fGest.GetPieceModif(self,None,None,IDnumPiece=IDpiece,DB=DB)
             dictDonnees = self.fGest.dictPiece
             # constitution de la liste des données sous forme dictionnaire
             listDictDon.append(dictDonnees)
@@ -792,7 +831,7 @@ class Forfaits():
 
         # sortie sur echec
         if not retour or not dateFacturation:
-            DB.Close()
+            if dblocal: DB.Close()
             return False
 
         # début des modifs
@@ -848,7 +887,7 @@ class Forfaits():
             ("regle",regle),
             ("solde",(total-regle)),
             ]
-        retour = DB.ReqInsert("factures", listeDonnees, retourID=False)
+        retour = DB.ReqInsert("factures", listeDonnees, retourID=False,commit=True)
         if retour != "ok" :
             GestionDB.MessageBox(self.parent,retour)
             retour = False
@@ -859,7 +898,7 @@ class Forfaits():
             # Ecriture du numéro de facture dans les pieces, ecrire l'IDfacture dans les prestations.
             for dictDonnees in listDictDon:
                 retour = self.MajNoFact(self.parent,dictDonnees,listeDonnees,IDfacture)
-        DB.Close()
+        if dblocal: DB.Close()
         if not retour:
             return False
         elif retourID:
@@ -870,7 +909,11 @@ class Forfaits():
 
     def ReparAvoir(self,IDcomptePayeur,lstIDpieces,IDuser):
         # création automatique d'un avoir pour corriger incohérence
-        DB = GestionDB.DB()
+        DB = self.DB
+        dblocal = False
+        if not DB:
+            DB = GestionDB.DB()
+            dblocal = True
         # Création d'un avoir avec toutes les pièces de la liste
         listDictDon = []
         for IDpiece in lstIDpieces:
@@ -934,12 +977,17 @@ class Forfaits():
             dictDonnees["IDnumAvoir"] = DB.newID
             # Ecriture du numéro de facture dans les pieces, ecrire l'IDfacture dans les prestations.
             retour = self.MajNoAvoir(self.parent,dictDonnees,prest=True)
-        DB.Close()
+        if dblocal: DB.Close()
         return True
         #fin ReparAvoir
 
     def CompleteAvoir(self,IDcomptePayeur,dictDonnees, montant, numero):
-        DB = GestionDB.DB()
+        DB = self.DB
+        dblocal = False
+        if not DB:
+            DB = GestionDB.DB()
+            dblocal = True
+
         # Cromplete un avoir au numero existant avec la pièce (cas d'un correctif niveau famille)
         #table factures
         req = """
@@ -983,12 +1031,16 @@ class Forfaits():
         if retour != "ok" :
             GestionDB.MessageBox(self.parent,retour)
             return None
-        DB.Close()
+        if dblocal: DB.Close()
         return True
         #fin CompleteAvoir
 
     def MajNoFact(self,parent, dictPiece, listeDonneesFacture, IDnumFacture):
-        DB = GestionDB.DB()
+        DB = self.DB
+        dblocal = False
+        if not DB:
+            DB = GestionDB.DB()
+            dblocal = True
         #Après la création d'une facture mise à niveau des correspondances prestation piece
         listeChampsFacture = []
         listeValeursFacture = []
@@ -1034,12 +1086,17 @@ class Forfaits():
             GestionDB.MessageBox(parent,retour)
             DB.Close()
             return None
-        DB.Close()
+        if dblocal:
+            DB.Close()
         return True
         #fin MajNoFact
 
     def MajNoAvoir(self,parent, dictDonnees,prest=False):
-        DB = GestionDB.DB()
+        DB = self.DB
+        dblocal = False
+        if not DB:
+            DB = GestionDB.DB()
+            dblocal = True
         #Après la création d'un avoir mise à niveau des correspondances prestation piece
         etat = dictDonnees['etat'][:4]+"1" + dictDonnees['etat'][5:]
         ajout = " Facturé %s " % dictDonnees['nature']
@@ -1075,7 +1132,7 @@ class Forfaits():
                 GestionDB.MessageBox(parent,retour)
                 DB.Close()
                 return None
-        DB.Close()
+        if dblocal: DB.Close()
         return True
         #fin MajNoAvoir
 
@@ -1087,13 +1144,17 @@ class Forfaits():
             idx = lstChampsMatPieces.index(champ)
             donnee = champsDonnees[idx]
             listeDonnees.append((champ,dictPiece[donnee]))
-        DB = GestionDB.DB()
+        DB = self.DB
+        dblocal = False
+        if not DB:
+            DB = GestionDB.DB()
+            dblocal = True
         retour = DB.ReqMAJ("matPieces", listeDonnees,"pieIDnumPiece",dictPiece["IDnumPiece"],MsgBox="ReWritePiece")
         if retour != "ok":
             GestionDB.MessageBox(self.parent,retour)
             DB.Close()
             return None
-        DB.Close()
+        if dblocal: DB.Close()
 
 # --------------------Lancement de test ----------------------
 if __name__ == "__main__":

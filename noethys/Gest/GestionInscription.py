@@ -230,7 +230,9 @@ def RecordsetToDict(lstCles,recordset):
 class Forfaits():
     def __init__(self,parent,DB=None):
         self.parent = parent
+        self.dblocal = False
         if not DB:
+            self.dblocal = True
             self.DB = GestionDB.DB()
         else:
             self.DB = DB
@@ -1635,7 +1637,7 @@ class Forfaits():
         #Rétrogradation d'une piece de type facture en commande
         if dictDonnees["noFacture"] == None:
             GestionDB.MessageBox(self.parent,"Cette facture n'a pas de no de facture !\nProblème logique", titre="Cas Anormal à vérifier")
-        DB = GestionDB.DB()
+
         pGest = GestionPieces.Forfaits(parent)
         #recharge la pièce pour avoir tous les champs
         ok = self.GetPieceModif(self.parent,None,None,IDnumPiece=dictDonnees['IDnumPiece'])
@@ -1651,7 +1653,7 @@ class Forfaits():
         elif pGest.FactureMonoPiece(dictDonnees["noFacture"],dictDonnees["IDnumPiece"]):
             # suppression de la facture et stockage du numéro
             if pGest.DestroyFacture(dictDonnees["noFacture"],dictDonnees["IDcompte_payeur"]):
-                DB.SetParam(param = str(dictDonnees["noFacture"]),value= dictDonnees["noFacture"],user = "NoLibre",
+                self.DB.SetParam(param = str(dictDonnees["noFacture"]),value= dictDonnees["noFacture"],user = "NoLibre",
                             type = "integer",unique=False)
                 ligneComm = " Suppression Facture %s " % dictDonnees['noFacture']
                 action = "SuppressionFacturation"
@@ -1663,9 +1665,9 @@ class Forfaits():
             action = "ModificationFacturation"
         commentaire = datetime.date.today().strftime("%d/%m/%y : ") + ligneComm + "\n" + commentaire
         #force à None l'IDfacture dans la prestation
-        DB.ReqMAJ('prestations',[('IDfacture',None),],'IDprestation',dictDonnees['IDprestation'],MsgBox = 'RAZ IDfacture en prestation')
+        self.DB.ReqMAJ('prestations',[('IDfacture',None),],'IDprestation',dictDonnees['IDprestation'],MsgBox = 'RAZ IDfacture en prestation')
         #on traite la pièce
-        DB.ReqMAJ('matPieces',[('pieNoFacture',None),('pieNoAvoir',None),('pieNature','COM'),
+        self.DB.ReqMAJ('matPieces',[('pieNoFacture',None),('pieNoAvoir',None),('pieNature','COM'),
                                ('pieDateFacturation',None),('pieDateAvoir',None),
                                ('pieCommentaire',commentaire)],
                   'pieIDnumPiece',dictDonnees["IDnumPiece"],MsgBox = 'qGestionInscription.Retrofac')
@@ -1682,7 +1684,6 @@ class Forfaits():
         if dictDonnees["noAvoir"] == None:
             GestionDB.MessageBox(self,"Cette pièce n'est pas un avoir !", titre="Traitement impossible")
         else:
-            DB = GestionDB.DB()
             pGest = GestionPieces.Forfaits(parent)
             #recharge la pièce pour avoir tous les champs
             ok = self.GetPieceModif(self.parent,None,None,IDnumPiece=dictDonnees['IDnumPiece'])
@@ -1698,19 +1699,18 @@ class Forfaits():
                     FROM factures
                     WHERE numero = %d;
                       """ % (dictDonnees["noAvoir"])
-            ret = DB.ExecuterReq(req,MsgBox="GestionInscription.RestoAvo")
+            ret = self.DB.ExecuterReq(req,MsgBox="GestionInscription.RestoAvo")
             if ret != "ok" :
                 GestionDB.MessageBox(self,ret)
-                DB.Close()
                 return None
-            recordset = DB.ResultatReq()
+            recordset = self.DB.ResultatReq()
             if len(recordset)>0:
                 IDfacture = recordset[0][0]
 
             if pGest.FactureMonoPiece(dictDonnees["noAvoir"],dictDonnees["IDnumPiece"]):
                 # suppression de l'avoir et stockage du numéro
                 if pGest.DestroyFacture(dictDonnees["noAvoir"],dictDonnees["IDcompte_payeur"]):
-                    DB.SetParam(param = str(dictDonnees["noFacture"]),value= dictDonnees["noAvoir"],
+                    self.DB.SetParam(param = str(dictDonnees["noFacture"]),value= dictDonnees["noAvoir"],
                                 user = "NoLibre",type = "integer",unique=False)
                     ligneComm = " Suppression Avoir %s " % dictDonnees['noAvoir']
                     action = "SuppressionFacturation"
@@ -1726,16 +1726,15 @@ class Forfaits():
                     FROM prestations INNER JOIN matPieces ON (prestations.IDactivite = matPieces.pieIDactivite) AND (prestations.IDindividu = matPieces.pieIDindividu)
                     WHERE prestations.IDfacture = %d;
                       """ % (IDfacture)
-            retout = DB.ExecuterReq(req,MsgBox="GestionInscription.RestoAvo")
+            retout = self.DB.ExecuterReq(req,MsgBox="GestionInscription.RestoAvo")
             if retout != "ok" :
                 GestionDB.MessageBox(self,retout)
-                DB.Close()
                 return None
-            recordset = DB.ResultatReq()
+            recordset = self.DB.ResultatReq()
             for record in recordset :
                 IDprestAvoir = record[0]
-                DB.ReqDEL('prestations','IDprestation',IDprestAvoir,True,MsgBox = 'GestionInscription.RetroFact prestation Avoir')
-            DB.ReqMAJ('matPieces',[('pieNoAvoir',None),('pieDateAvoir',None),('pieNature','FAC'),
+                self.DB.ReqDEL('prestations','IDprestation',IDprestAvoir,True,MsgBox = 'GestionInscription.RetroFact prestation Avoir')
+            self.DB.ReqMAJ('matPieces',[('pieNoAvoir',None),('pieDateAvoir',None),('pieNature','FAC'),
                                    ('pieCommentaire',commentaire)],
                       'pieIDnumPiece',dictDonnees["IDnumPiece"],MsgBox = 'qGestionInscription.RetroAvoir')
             dictDonnees["nature"]='FAC'
@@ -1743,7 +1742,6 @@ class Forfaits():
             #remet les consos
             if dictDonnees["IDindividu"] != 0:
                 self.AjoutConsommations(self,dictDonnees)
-            DB.Close()
         #fin RetroAvo
 
     def NeutraliseReport(self,IDcomptePayeur,IDindividu,IDactivite):

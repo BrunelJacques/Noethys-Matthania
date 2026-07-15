@@ -126,5 +126,4 @@ def InsertActions(listeActions=[], DB=None):
             DB.Commit()
             DB.Close()
         else :
-            DB.Executermany(req, listeAjouts, commit=False)
-            DB.Commit()
+            DB.Executermany(req, listeAjouts, commit=True)

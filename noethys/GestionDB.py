@@ -63,17 +63,19 @@ else:
 """ L'interface est modifiée au lancement de Noethys par les préférences (Menu Paramétrage > Préférences)
 Peut être également modifié manuellement ici dans le cadre de tests sur des fichiers
 """
-POOL_MYSQL = 5
-
-
+POOL_MYSQL = 12
+print("Connexion direct: ", INTERFACE_MYSQL, POOL_MYSQL)
 
 def SetInterfaceMySQL(nom="mysqldb", pool_mysql=5):
     """ Permet de sélectionner une interface MySQL """
     global INTERFACE_MYSQL, POOL_MYSQL
+
+    # cas ou un choix à été fait
     if nom == "mysqldb" and IMPORT_MYSQLDB_OK == True :
         INTERFACE_MYSQL = "mysqldb"
     elif nom == "mysql.connector" and IMPORT_MYSQLCONNECTOR_OK == True :
         INTERFACE_MYSQL = "mysql.connector"
+    # cas automatiques
     elif IMPORT_PYMYSQL_OK == True:
         INTERFACE_MYSQL = "pymysql"
     elif IMPORT_MYSQLDB_OK == True:
@@ -85,8 +87,9 @@ def SetInterfaceMySQL(nom="mysqldb", pool_mysql=5):
         mess += "refaire pip install xxxx"
         ret = wx.MessageBox(mess,"CONNEXION RESEAU IMPOSSIBLE",style= wx.ICON_ERROR)
         INTERFACE_MYSQL = None
-
-    POOL_MYSQL = pool_mysql
+    if pool_mysql > 0:
+        POOL_MYSQL = pool_mysql
+    print("Connexion Noethys: ", INTERFACE_MYSQL, "/ pooling: ",POOL_MYSQL)
 
 # Vérifie si les certificats SSL sont présents dans le répertoire utilisateur
 def GetCertificatsSSL():
@@ -128,7 +131,7 @@ class DB():
         if self.nomFichier == "":
             self.nomFichier = self.GetNomFichierDefaut()
 
-        self.echec = 1
+        self.echec = 1 # le nom de fichier a été obtenu
         self.erreur = "NomFichier DB: %s"%self.nomFichier
         if self.nomFichier != "":
             # Mémorisation de l'ouverture de la connexion et des requêtes
@@ -338,7 +341,6 @@ class DB():
                 for id in lstID:
                     IX_CONNEXION["pointeurs"][id].Close()
             except Exception as err:
-                print("GestionDB.CloseALL ID %s: "%str(self.IDconnexion),err)
                 pass
         del self
 
@@ -568,7 +570,7 @@ class DB():
             if not MsgBox: origine = "GestionDB.ExecuterReq"
             else: origine = MsgBox
             if self.erreur != "ErreurPubliee":
-                mess = "Echec d'accès à la base de donnée\n\n%s"%origine
+                mess = f"Echec d'accès à la base de donnée\n{origine}\n{self.erreur}"
                 wx.MessageBox(mess,"Ouverture DB",style = wx.ICON_ERROR)
             self.erreur = "ErreurPubliee"
             return False # lié au lancement sans connexion précédente
@@ -593,7 +595,6 @@ class DB():
         return self.retourReq
 
     def Executermany(self, req="", listeDonnees=[], commit=True):
-        """ Executemany pour local ou réseau """
         """ Exemple de req : "INSERT INTO table (IDtable, nom) VALUES (?, ?)" """
         """ Exemple de listeDonnees : [(1, 2), (3, 4), (5, 6)] """
         # Adaptation réseau/local
@@ -604,9 +605,17 @@ class DB():
             # Version Sqlite
             req = req.replace("%s", "?")
         # Executemany
-        self.cursor.executemany(req, listeDonnees)
-        if commit == True:
-            self.connexion.commit()
+        try:
+            if self.connexion:
+                self.connexion.ping(reconnect=True)
+            print("--------------------------Executemany: commit,req,liste",commit,req,listeDonnees)
+            self.cursor.executemany(req, listeDonnees)
+            if commit == True and POOL_MYSQL == 0:
+                self.connexion.commit()
+        except Exception as err:
+            print("erreur:",err)
+            wx.MessageBox(f"Erreur ExecuteMany : {err}", "Erreur", wx.OK | wx.ICON_ERROR)
+            return
 
     def ResultatReq(self):
         if self.echec and self.echec >= 1 : return []
@@ -642,7 +651,7 @@ class DB():
         req = "UPDATE %s SET %s WHERE %s=%d" % (table, detail, nomID, ID)
         self.cursor.execute(req)
         if commit == True:
-            self.connexion.commit()
+            self.Commit()
 
     def Dupliquer(self, nomTable="", nomChampCle="", conditions="", dictModifications={}, renvoieCorrespondances=False,
                   IDmanuel=False):
@@ -1284,8 +1293,7 @@ def GetConnexionReseau(nomFichier=""):
     if INTERFACE_MYSQL == "mysql.connector":
         if "_" in nomFichier :
             suffixe = nomFichier.split("_")[-1]
-        else :
-            suffixe = ""
+        else : suffixe = ""
 
         params = {
             "host": host,
@@ -1306,7 +1314,6 @@ def GetConnexionReseau(nomFichier=""):
             params["pool_size"] = POOL_MYSQL
 
         connexion = mysql.connector.connect(**params)
-
     if INTERFACE_MYSQL == "pymysql":
         connexion = pymysql.connect(host=host,
                                     user=user,
@@ -1322,6 +1329,7 @@ def GetConnexionReseau(nomFichier=""):
             # Tentative d'Utilisation de la base
             etape = " Tentative d'accès à '%s'" %nomFichier
             ret = cursor.execute("USE %s;" % nomFichier)
+            connexion.commit()
             echec = 0
             erreur = str(ret)
         except Exception as err:
@@ -1391,6 +1399,7 @@ class GestionBase(wx.Frame):
             pos = nomFichier("[RESEAU]")
             nomFichier = nomFichier[:pos]+"[RESEAU]"+nomBase
             self.db = DB(suffixe=suffixe,nomFichier=nomFichier)
+        self.db.Close()
 
     def GetOccupations(self):
         # pointer base: 'information_schema' valeurs plus hautes
@@ -1556,41 +1565,57 @@ class Messages(wx.Frame):
         else:
             return None,None
 
-class TestBase():
+class TestConnecteurs():
     def __init__(self):
-        # Module Imports
-        host = input("adresse IP de la base:")
-        if not host:
-            host = "192.168.1.43"
-        password = input("Mot de passe:")
-        kwd = {
-        'user':"operateur",
-        'password':password,
-        'host':host,
-        'port':3306,
-        'database':"matthania_data"
-        }
+        try:
+            from Outils import test_prov as test
+        except Exception as err:
+            print("tentative import kwd échouée:", err)
+            # Module Imports
+            host = input("adresse IP de la base:")
+            if not host:
+                host = "192.168.1.43"
+            password = input("Mot de passe:")
+            kwd = {
+            'user':"operateur",
+            'password':password,
+            'host':host,
+            'port':3306,
+            'database':"matthania_data"
+            }
+        self.req = test.req
+        self.listeDonnees = test.listeDonnees
+
+        host = test.kwd.pop("host","")
+        password = test.kwd.pop("password","")
         nomFichier = f"3306;{host};operateur;{password}[RESEAU]matthania"
 
         for interface in ("mysqldb","mysql.connector","pymysql"):
             SetInterfaceMySQL(interface)
-            mess = f"{INTERFACE_MYSQL}: "
+            mess = f"appel {INTERFACE_MYSQL}: Pooling {POOL_MYSQL} "
             try:
                 db = DB(nomFichier=nomFichier)
                 req = """SELECT * FROM activites LIMIT 10;"""
                 ret = db.ExecuterReq(req, commit=False)
                 mess += ret
+                mess += f" IDconnexion: {db.IDconnexion}"
                 resultats = db.ResultatReq()
-                mess += f" {len(resultats)}"
+                mess += f"------select ok ---Lignes lues: {len(resultats)}"
+                self.ExecMany(db)
+                db.Close()
                 print(mess)
             except Exception as err:
                 print(mess, err)
+            if INTERFACE_MYSQL != interface:
+                print(f"!!! call {interface} but used {INTERFACE_MYSQL},ID db: {db.IDconnexion}")
+
+        AfficheConnexionsOuvertes("pour vérif")
+        print("\nFin du test connecteurs\n")
+
     """
             cur = self.GetCurMaria(**kwd)
             if cur:
                 self.GetDonnees(cur)
-    """
-
 
     def GetCurMaria(self,**kwd):
         import mariadb
@@ -1604,14 +1629,20 @@ class TestBase():
         cur = conn.cursor()
         print(cur)
         return cur
+    """
 
     def GetDonnees(self,cur):
         cur.execute("SELECT * FROM activites LIMIT 10")
         for activite in cur:
             print(activite[:5])
 
+    def ExecMany(self,DB):
+        DB.Executermany(self.req,self.listeDonnees,commit=True)
+
+
+
 if __name__ == "__main__":
     app = wx.App()
-    gdb = GestionBase()#nomFichier=u'3306;192.168.1.43;root;motdepasse[RESEAU]information_schema',suffixe=None
+    #gdb = GestionBase()#nomFichier=u'3306;192.168.1.43;root;motdepasse[RESEAU]information_schema',suffixe=None
     #print(gdb.db.GetDateFacture(0,738,datetime.date.today()))
-    TestBase()
+    TestConnecteurs()

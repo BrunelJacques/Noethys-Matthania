@@ -22,16 +22,12 @@ import decimal
 from Utils import UTILS_Config
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 from Utils import UTILS_Utilisateurs
+from Utils.UTILS_Dates import DateEngEnDateDD
 
 from Utils import UTILS_Interface
 from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, CTRL_Outils
 
 
-
-
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 
         
@@ -109,7 +105,7 @@ class ListView(FastObjectListView):
         DB.ExecuterReq(req,MsgBox="ExecuterReq")
         listePrestations = DB.ResultatReq()
         for IDprestation, IDcompte_payeur, date, montant, IDfacture in listePrestations :
-            date = DateEngEnDateDD(date) 
+            date = DateEngEnDateDD(date)
             if IDprestation in dictVentilations :
                 montant_ventilation = decimal.Decimal(str(dictVentilations[IDprestation]))
             else :
@@ -134,7 +130,7 @@ class ListView(FastObjectListView):
         DB.ExecuterReq(req,MsgBox="ExecuterReq")
         listeReglements = DB.ResultatReq()
         for IDreglement, date, montant in listeReglements :
-            date = DateEngEnDateDD(date) 
+            date = DateEngEnDateDD(date)
             self.dictDonnees["nbreReglements"]["valeur"] += 1
             self.dictDonnees["totalReglements"]["valeur"] += decimal.Decimal(str(montant))
         
