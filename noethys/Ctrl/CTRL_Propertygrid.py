@@ -23,7 +23,6 @@ from Utils import UTILS_Dates
 from Utils import UTILS_Parametres
 import copy
 
-#from wx.propgrid import PG_LABEL as NAME
 from wx.propgrid import PGChoiceEditor as ChoiceEditor
 from wx.propgrid import PGEditor as Editor
 from wx.propgrid import PGProperty as Property
@@ -312,12 +311,12 @@ class Propriete_choix(Property):
 
 class Propriete_multichoix(ArrayStringProperty):
     """ Propriété Multichoix """
-    def __init__(self, label, ², liste_choix=[], liste_selections=[]):
+    def __init__(self, label, liste_choix=[], liste_selections=[]):
         self.liste_choix = liste_choix
         self.liste_selections = liste_selections
 
         # Initialisation
-        ArrayStringProperty.__init__(self, label, name)
+        ArrayStringProperty.__init__(self, label, "")
 
         # Set default delimiter
         self.SetAttribute("Delimiter", ',')
