@@ -23,7 +23,7 @@ from Utils import UTILS_Dates
 from Utils import UTILS_Parametres
 import copy
 
-from wx.propgrid import PG_LABEL as NAME
+#from wx.propgrid import PG_LABEL as NAME
 from wx.propgrid import PGChoiceEditor as ChoiceEditor
 from wx.propgrid import PGEditor as Editor
 from wx.propgrid import PGProperty as Property
@@ -214,7 +214,7 @@ class EditeurDate(Editor):
 class Propriete_liste(ArrayStringProperty):
     """ Propriété Multichoix """
 
-    def __init__(self, label, name=NAME, type_donnees=int, liste_selections=[]):
+    def __init__(self, label, name="", type_donnees=int, liste_selections=[]):
         self.type_donnees = type_donnees
         self.liste_selections = liste_selections
 
@@ -282,7 +282,7 @@ class Propriete_liste(ArrayStringProperty):
 
 class Propriete_choix(Property):
     """ Simple liste de choix """
-    def __init__(self, label, name=NAME, liste_choix=[], valeur=None):
+    def __init__(self, label, name="", liste_choix=[], valeur=None):
         self.liste_choix = liste_choix
         Property.__init__(self, label, name)
         choix = wxpg.PGChoices([x[1] for x in self.liste_choix])
@@ -312,7 +312,7 @@ class Propriete_choix(Property):
 
 class Propriete_multichoix(ArrayStringProperty):
     """ Propriété Multichoix """
-    def __init__(self, label, name = NAME, liste_choix=[], liste_selections=[]):
+    def __init__(self, label, ², liste_choix=[], liste_selections=[]):
         self.liste_choix = liste_choix
         self.liste_selections = liste_selections
 
