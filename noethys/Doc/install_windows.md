@@ -59,3 +59,7 @@ Liste des modules qui ont dû être chargés par pip install
 
 Avec PyCharm Community Edition, on peut facilement créer un environnement particulier
 et vérifier les modules qui ont été chargés ou manquant en mode débug.
+
+pour connaître la version de wxPython:
+>>> import wx
+>>> print(wx.__version__)
