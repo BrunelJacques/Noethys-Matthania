@@ -29,7 +29,7 @@ class Panel(wx.Panel):
         
         # Questionnaire
         self.staticbox_inscriptions = wx.StaticBox(self, -1, _("Questionnaire"))
-        self.ctrl_questionnaire = CTRL_Questionnaire.CTRL(self, type="individu", IDdonnee=IDindividu)
+        self.ctrl_questionnaire = CTRL_Questionnaire.CTRL(self.staticbox_inscriptions, type="individu", IDdonnee=IDindividu)
         self.ctrl_questionnaire.SetMinSize((20, 20)) 
         
         # Layout

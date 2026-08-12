@@ -126,18 +126,18 @@ class Panel(wx.Panel):
         
         # Caisse
         self.staticbox_caisse_staticbox = wx.StaticBox(self, -1, _("Caisse"))
-        self.label_caisse = wx.StaticText(self, -1, _("Caisse d'allocation :"))
-        self.ctrl_caisse = CTRL_Caisse(self)
+        self.label_caisse = wx.StaticText(self.staticbox_caisse_staticbox, -1, _("Caisse d'allocation :"))
+        self.ctrl_caisse = CTRL_Caisse(self.staticbox_caisse_staticbox)
         self.ctrl_caisse.SetMinSize((120, -1))
         self.bouton_caisses = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_ANY))
         self.label_numero = wx.StaticText(self, -1, _("N° allocataire :"))
         self.ctrl_numero = wx.TextCtrl(self, -1, "")
-        self.label_allocataire = wx.StaticText(self, -1, _("Bénéficiaire AVE :"))
-        self.ctrl_allocataire = CTRL_Allocataire(self)
+        self.label_allocataire = wx.StaticText(self.staticbox_caisse_staticbox, -1, _("Bénéficiaire AVE :"))
+        self.ctrl_allocataire = CTRL_Allocataire(self.staticbox_caisse_staticbox)
 
         # Aides
         self.staticbox_aides_staticbox = wx.StaticBox(self, -1, _("Aides journalières"))
-        self.ctrl_aides = OL_Aides.ListView(self, id=-1, IDfamille=self.IDfamille, name="OL_aides", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
+        self.ctrl_aides = OL_Aides.ListView(self.staticbox_aides_staticbox, id=-1, IDfamille=self.IDfamille, name="OL_aides", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         self.ctrl_aides.SetMinSize((20, 20)) 
         self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
         self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))

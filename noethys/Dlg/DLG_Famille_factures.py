@@ -106,7 +106,7 @@ class Panel(wx.Panel):
         self.listviewAvecFooter = OL_Factures.ListviewAvecFooter(self, kwargs={"codesColonnes" : codesColonnes, "checkColonne" : checkColonne, "triColonne" : triColonne})
         self.ctrl_listview = self.listviewAvecFooter.GetListview()
 
-        self.ctrl_recherche = CTRL_Outils(self, listview=self.ctrl_listview, afficherCocher=True)
+        self.ctrl_recherche = CTRL_Outils(self.staticbox_factures, listview=self.ctrl_listview, afficherCocher=True)
         self.ctrl_recherche.SetBackgroundColour((255, 255, 255))
         
         # Commandes boutons
@@ -116,7 +116,7 @@ class Panel(wx.Panel):
         self.bouton_email = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Emails_exp.png"), wx.BITMAP_TYPE_ANY))
         
         # Prélèvement
-        self.ctrl_email = CTRL_Email(self, IDfamille)
+        self.ctrl_email = CTRL_Email(self.staticbox_factures, IDfamille)
 
         # Binds
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAjouter, self.bouton_ajouter)

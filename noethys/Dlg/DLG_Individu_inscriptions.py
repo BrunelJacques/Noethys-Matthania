@@ -30,17 +30,17 @@ class PanelMessages(wx.Panel):
         self.staticbox_infos = wx.StaticBox(self, -1, _("Messages individu à diffuser"))
 
         # HTL
-        self.ctrl_infos = CTRL_Informations.CTRL(self, IDfamille=None,
+        self.ctrl_infos = CTRL_Informations.CTRL(self.staticbox_infos, IDfamille=None,
                                                  IDindividu=self.IDindividu,
                                                  dictFamillesRattachees=self.dictFamillesRattachees)
         self.ctrl_infos.SetMinSize((20, 20))
 
         # Commandes boutons
-        self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(
+        self.bouton_ajouter = wx.BitmapButton(self.staticbox_infos, -1, wx.Bitmap(
             Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(
+        self.bouton_modifier = wx.BitmapButton(self.staticbox_infos, -1, wx.Bitmap(
             Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(
+        self.bouton_supprimer = wx.BitmapButton(self.staticbox_infos, -1, wx.Bitmap(
             Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
 
         # Binds
@@ -169,7 +169,7 @@ class Panel(wx.Panel):
         self.bouton_imprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
         self.bouton_forfait = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Forfait.png"), wx.BITMAP_TYPE_ANY))
 
-        self.panelMessages = PanelMessages(self,self.IDindividu,self.dictFamillesRattachees)
+        self.panelMessages = PanelMessages(self.staticbox_inscriptions,self.IDindividu,self.dictFamillesRattachees)
 
         # Binds
         self.Bind(wx.EVT_BUTTON, self.ctrl_inscriptions.Ajouter, self.bouton_ajouter_inscription)

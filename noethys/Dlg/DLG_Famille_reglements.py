@@ -188,7 +188,7 @@ class Panel(wx.Panel):
         # OL Prestations
         self.listviewAvecFooter = OL_Reglements.ListviewAvecFooter(self, kwargs={}) 
         self.ctrl_reglements = self.listviewAvecFooter.GetListview()
-        self.ctrl_recherche = OL_Reglements.CTRL_Outils(self, listview=self.ctrl_reglements)
+        self.ctrl_recherche = OL_Reglements.CTRL_Outils(self.staticbox_reglements, listview=self.ctrl_reglements)
         self.ctrl_recherche.SetBackgroundColour((255, 255, 255))
         
         # Commandes boutons
@@ -201,9 +201,9 @@ class Panel(wx.Panel):
         self.bouton_email = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Emails_exp.png"), wx.BITMAP_TYPE_ANY))
 
         # Abonnements
-        self.ctrl_prelevement = CTRL_Prelevement(self, IDfamille)
-        self.ctrl_recu = CTRL_Recu(self, IDfamille)
-        self.ctrl_depot = CTRL_Depot(self, IDfamille)
+        self.ctrl_prelevement = CTRL_Prelevement(self.staticbox_reglements, IDfamille)
+        self.ctrl_recu = CTRL_Recu(self.staticbox_reglements, IDfamille)
+        self.ctrl_depot = CTRL_Depot(self.staticbox_reglements, IDfamille)
         
         # Binds
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAjouter, self.bouton_ajouter)

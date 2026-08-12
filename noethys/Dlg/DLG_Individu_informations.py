@@ -27,17 +27,17 @@ class Panel(wx.Panel):
 
         # Contrats
         self.staticbox_contrats = wx.StaticBox(self, -1, _("Contrats"))
-        self.ctrl_contrats = OL_Contrats.ListView(self, IDindividu=IDindividu,
+        self.ctrl_contrats = OL_Contrats.ListView(self.staticbox_contrats, IDindividu=IDindividu,
                                                   dictFamillesRattachees=self.dictFamillesRattachees,
                                                   id=-1, name="OL_contrats",
                                                   style=wx.LC_HRULES | wx.LC_VRULES | wx.LC_REPORT | wx.SUNKEN_BORDER | wx.LC_SINGLE_SEL)
         self.ctrl_contrats.SetMinSize((150, 90))
 
-        self.bouton_ajouter_contrat = wx.BitmapButton(self, -1, wx.Bitmap(
+        self.bouton_ajouter_contrat = wx.BitmapButton(self.staticbox_contrats, -1, wx.Bitmap(
             Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier_contrat = wx.BitmapButton(self, -1, wx.Bitmap(
+        self.bouton_modifier_contrat = wx.BitmapButton(self.staticbox_contrats, -1, wx.Bitmap(
             Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer_contrat = wx.BitmapButton(self, -1, wx.Bitmap(
+        self.bouton_supprimer_contrat = wx.BitmapButton(self.staticbox_contrats, -1, wx.Bitmap(
             Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
 
         # Binds

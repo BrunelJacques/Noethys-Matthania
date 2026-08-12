@@ -28,14 +28,14 @@ class Panel(wx.Panel):
 
         # Pièces à fournir
         self.staticbox_pieces_obligatoires = wx.StaticBox(self, -1, _("Pièces à fournir"))
-        self.ctrl_pieces_obligatoires = CTRL_Pieces_obligatoires.CTRL(self, IDfamille=IDfamille, size=(-1, 200))
+        self.ctrl_pieces_obligatoires = CTRL_Pieces_obligatoires.CTRL(self.staticbox_pieces_obligatoires, IDfamille=IDfamille, size=(-1, 200))
         self.ctrl_pieces_obligatoires.SetMinSize((280, 100))
         couleur_fond = UTILS_Interface.GetValeur("couleur_tres_claire", wx.Colour(240, 251, 237))
         self.ctrl_pieces_obligatoires.SetBackgroundColour(couleur_fond)
         
         # Pièces fournies
         self.staticbox_pieces = wx.StaticBox(self, -1, _("Pièces fournies"))
-        self.ctrl_pieces = OL_Pieces.ListView(self, IDfamille=IDfamille, id=-1, name="OL_pieces", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
+        self.ctrl_pieces = OL_Pieces.ListView(self.staticbox_pieces, IDfamille=IDfamille, id=-1, name="OL_pieces", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
         
         self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
         self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))

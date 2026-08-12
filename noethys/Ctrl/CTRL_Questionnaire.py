@@ -1163,7 +1163,7 @@ class CTRL(HTL.HyperTreeList):
                     dictValeurs[track.IDquestion] = track.GetValeurStr()
         return dictValeurs
 
-    def SetValeurs(self, dictValeurs={}):
+    def SetValeurs(self, IDcategorie=None, dictValeurs={}):
         # Remplit le ctrl avec les valeurs données. Ex : {IDquestion : valeur} """
         for track in self.dictCategories[IDcategorie]["questions"] :
             if track.IDquestion in dictValeurs :

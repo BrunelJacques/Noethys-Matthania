@@ -79,9 +79,9 @@ GG : Clé
         
     def TestValidite(self, avecMessagesErreur=True):
         texte = self.ctrl_numsecu.GetValue()
-        sexe = self.parent.ctrl_civilite.GetSexe()
-        datenaiss = self.parent.ctrl_datenaiss.GetValue()
-        cp_naiss = self.parent.ctrl_adressenaiss.GetValueCP()
+        sexe = self.GrandParent.ctrl_civilite.GetSexe()
+        datenaiss = self.GrandParent.ctrl_datenaiss.GetValue()
+        cp_naiss = self.GrandParent.ctrl_adressenaiss.GetValueCP()
         validation, message = self.ValideNumSecu(texte, sexe, datenaiss, cp_naiss)
         
         # Message si numéro de sécu erroné

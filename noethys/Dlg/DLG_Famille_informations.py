@@ -30,7 +30,6 @@ class CTRL_Solde(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=-1, name="panel_solde", style=wx.SUNKEN_BORDER | wx.TAB_TRAVERSAL)
         self.parent = parent
-        
         # Solde du compte
         self.ctrl_solde = wx.StaticText(self, -1, "0.00 %s" % SYMBOLE)
         font = wx.Font(18, wx.SWISS, wx.NORMAL, wx.BOLD)
@@ -73,22 +72,22 @@ class Panel(wx.Panel):
         
         # Informations
         self.staticbox_infos = wx.StaticBox(self, -1, _("Messages pour toute la famille"))
-        self.ctrl_infos = CTRL_Informations.CTRL(self, IDfamille=self.IDfamille)
-        self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.ctrl_infos = CTRL_Informations.CTRL(self.staticbox_infos, IDfamille=self.IDfamille)
+        self.bouton_ajouter = wx.BitmapButton(self.staticbox_infos, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier = wx.BitmapButton(self.staticbox_infos, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer = wx.BitmapButton(self.staticbox_infos, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
         
         # Etat de la facturation
         self.staticbox_facturation = wx.StaticBox(self, -1, _("Etat du compte"))
-        self.ctrl_facturation = OL_Etat_compte.ListView(self, id=-1, IDfamille=self.IDfamille, name="OL_Etat_compte", style=wx.LC_REPORT|wx.LC_NO_HEADER|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
+        self.ctrl_facturation = OL_Etat_compte.ListView(self.staticbox_facturation, id=-1, IDfamille=self.IDfamille, name="OL_Etat_compte", style=wx.LC_REPORT|wx.LC_NO_HEADER|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         self.ctrl_facturation.SetMinSize((220, 20))
         
         if "linux" in sys.platform :
             UTILS_Linux.AdaptePolice(self.ctrl_facturation)
         
         # Solde du compte
-        self.staticbox_solde = wx.StaticBox(self, -1, _("Solde du compte"))
-        self.ctrl_solde = CTRL_Solde(self)
+        self.staticbox_solde = wx.StaticBox(self, -1, "Solde du compte")
+        self.ctrl_solde = CTRL_Solde(self.staticbox_solde)
         
         # Binds
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAjouter, self.bouton_ajouter)

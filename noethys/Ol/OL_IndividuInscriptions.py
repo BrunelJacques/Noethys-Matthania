@@ -95,7 +95,9 @@ class ListView(FastObjectListView):
         for IDfamille, dictFamille in self.dictFamillesRattachees.items() :
             self.listeFamille.append(IDfamille)
             self.listeNoms.append(dictFamille["nomsTitulaires"])
-        self.IDfamille = self.parent.parent.IDfamille
+        self.IDfamille = None
+        if hasattr(self.Parent, "IDfamille"):
+            self.IDfamille = self.Parent.IDfamille
 
     def OnItemActivated(self,event):
         self.Modifier(None)

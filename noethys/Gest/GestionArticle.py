@@ -84,7 +84,7 @@ LISTEmodeCalcul = [
         ("Reduction", "Déduction du produit : prix unitaire par quantité saisie\nParam1 est le montant en ¤", "CalReduction",),
         ("RedSejour", "La réduction est faite en % du prix du séjour,\nParam1 est la réduction en %", "CalRedSejour",),
         ("RedCumul", "La réduction en ¤ selon le nombre d'inscriptions\nNiveau famille ou niveau activité mais pas les deux", "CalRedCumul",),
-        ("Annuelle", "Force 0 si déja présent dans l'année académique et par individu dans une inscription\pas de param nécessaire", "CalAnnuelle",),
+        ("Annuelle", "Force 0 si déja présent dans l'année académique et par individu dans une inscription\npas de param nécessaire", "CalAnnuelle",),
         ]
 
 # code, libelllé, ordre sur la pièce

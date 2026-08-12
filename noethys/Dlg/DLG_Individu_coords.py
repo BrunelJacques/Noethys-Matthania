@@ -390,29 +390,29 @@ class Panel_contact(wx.Panel):
         # Adresse
         self.staticbox_adresse = wx.StaticBox(self, -1, titre)
         self.staticbox_contacts = wx.StaticBox(self, -1, "Gestion des contacts %s"%cat)
-        self.bouton_adresse = wx.Button(self, -1, "...", size=(20, 20))
-        self.ctrl_adresse = wx.TextCtrl(self, -1, "",size=(60,100), style=wx.TE_MULTILINE|wx.TE_READONLY)
+        self.bouton_adresse = wx.Button(self.staticbox_adresse, -1, "...", size=(20, 20))
+        self.ctrl_adresse = wx.TextCtrl(self.staticbox_adresse, -1, "",size=(60,100), style=wx.TE_MULTILINE|wx.TE_READONLY)
         # Contacts
-        self.label_tel_domicile = wx.StaticText(self, -1, _("Tel fixe :"))
-        self.ctrl_tel_domicile = CTRL_Saisie_tel.Tel(self, intitule=_("tel fixe"))
-        self.label_tel_mobile = wx.StaticText(self, -1, _("Mobile :"))
-        self.ctrl_tel_mobile = CTRL_Saisie_tel.Tel(self, intitule=_("mobile"))
-        self.label_tel_mob2 = wx.StaticText(self, -1, _("Mob 2 :"))
-        self.ctrl_tel_mob2 = CTRL_Saisie_tel.Tel(self, intitule=_("mobile2"))
-        self.label_mail = wx.StaticText(self, -1, _("Mail1 :"))
-        self.ctrl_mail = CTRL_Saisie_mail.Mail(self)
-        self.bouton_mail_perso = wx.BitmapButton(self, 900, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Emails_exp.png"), wx.BITMAP_TYPE_ANY))
+        self.label_tel_domicile = wx.StaticText(self.staticbox_contacts, -1, _("Tel fixe :"))
+        self.ctrl_tel_domicile = CTRL_Saisie_tel.Tel(self.staticbox_contacts, intitule=_("tel fixe"))
+        self.label_tel_mobile = wx.StaticText(self.staticbox_contacts, -1, _("Mobile :"))
+        self.ctrl_tel_mobile = CTRL_Saisie_tel.Tel(self.staticbox_contacts, intitule=_("mobile"))
+        self.label_tel_mob2 = wx.StaticText(self.staticbox_contacts, -1, _("Mob 2 :"))
+        self.ctrl_tel_mob2 = CTRL_Saisie_tel.Tel(self.staticbox_contacts, intitule=_("mobile2"))
+        self.label_mail = wx.StaticText(self.staticbox_contacts, -1, _("Mail1 :"))
+        self.ctrl_mail = CTRL_Saisie_mail.Mail(self.staticbox_contacts)
+        self.bouton_mail_perso = wx.BitmapButton(self.staticbox_contacts, 900, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Emails_exp.png"), wx.BITMAP_TYPE_ANY))
 
         # Activité professionnelle
-        self.label_categorie = wx.StaticText(self, -1, _("CSP :"))
-        self.ctrl_categorie = Categorie(self)
-        self.label_travail_tel = wx.StaticText(self, -1, _("TélProf:"))
-        self.ctrl_travail_tel = CTRL_Saisie_tel.Tel(self, intitule=_("travail"))
-        self.label_profession = wx.StaticText(self, -1, _("Métier :"))
-        self.ctrl_profession = wx.TextCtrl(self, -1, "")
+        self.label_categorie = wx.StaticText(self.staticbox_contacts, -1, _("CSP :"))
+        self.ctrl_categorie = Categorie(self.staticbox_contacts)
+        self.label_travail_tel = wx.StaticText(self.staticbox_contacts, -1, _("TélProf:"))
+        self.ctrl_travail_tel = CTRL_Saisie_tel.Tel(self.staticbox_contacts, intitule=_("travail"))
+        self.label_profession = wx.StaticText(self.staticbox_contacts, -1, _("Métier :"))
+        self.ctrl_profession = wx.TextCtrl(self.staticbox_contacts, -1, "")
 
-        self.label_travail_mail = wx.StaticText(self, -1, _("Mail2 :"))
-        self.ctrl_travail_mail = CTRL_Saisie_mail.Mail(self)
+        self.label_travail_mail = wx.StaticText(self.staticbox_contacts, -1, _("Mail2 :"))
+        self.ctrl_travail_mail = CTRL_Saisie_mail.Mail(self.staticbox_contacts)
         self.bouton_mail_travail = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Emails_exp.png"), wx.BITMAP_TYPE_ANY))
                 
 
@@ -603,11 +603,11 @@ class Panel_contact(wx.Panel):
                 else:
                     self.lstAdresse = usa.ChampsToLstAdresse(rue,cp,ville)
                     self.strAdresse = usa.CompacteAdresse(self.lstAdresse)
-            self.designationB.SetLabel("")
+            self.designationB.SetValue("")
         if self.radio_adresse_manuelle.Value == True:
             # Adresse manuelle
             self.strAdresse = usa.CompacteAdresse(self.lstAdresse)
-            self.designationB.SetLabel(self.nomPrenom)
+            self.designationB.SetValue(self.nomPrenom)
             self.bouton_adresse.Enable(True)
             self.ctrl_adresse.Enable(True)
         self.ctrl_adresse.SetValue(self.strAdresse)
@@ -636,7 +636,7 @@ class Panel_contact(wx.Panel):
                 self.intitule = "%s"%self.parent.lstContacts[0].nomPrenom
         if not self.intitule:
             self.intitule="%s"%self.nomPrenom
-        self.designationB.SetLabel(self.intitule)
+        self.designationB.SetValue(self.intitule)
         self.ctrl_adresse.SetValue(self.strAdresse)
         if self.IDcorrespondant == self.parent.IDindividu:
             # c'est le même individu des deux côtés, il faut éviter les conflits de champs modifiés
@@ -674,7 +674,7 @@ class Panel_contact(wx.Panel):
     def OnKillDesignationB(self,event):
         # controle des caractères spéciaux
         ret = fp.NoPunctuation(self.designationB.GetValue())
-        self.designationB.SetLabel(ret)
+        self.designationB.SetValue(ret)
         event.Skip()
 
     def OnRefusMel(self,event):
@@ -825,7 +825,7 @@ class Panel_contact(wx.Panel):
                 self.bouton_adresse.Enable(True)
                 self.ctrl_adresse.Enable(True)
                 self.ctrl_adresse_auto.Enable(False)
-                #self.designationB.SetLabel(self.nomPrenom)
+                #self.designationB.SetValue(self.nomPrenom)
             self.OnTextAdresse(None)
             self.designationB.Enable(False)
 
@@ -959,7 +959,7 @@ class Panel_contact(wx.Panel):
                 self.ctrl_mail.SetMail(mail)
 
         if self.intitule:
-            self.designationB.SetLabel(self.intitule)
+            self.designationB.SetValue(self.intitule)
 
         if self.IDcorrespondant in self.ctrl_adresse_auto.lstIndividus:
             self.bouton_adresse.Enable(True)

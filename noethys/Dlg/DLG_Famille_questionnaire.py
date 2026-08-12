@@ -29,12 +29,12 @@ class Panel(wx.Panel):
         
         # Questionnaire
         self.staticbox_questionnaire = wx.StaticBox(self, -1, _("Questionnaire"))
-        self.ctrl_questionnaire = CTRL_Questionnaire.CTRL(self, type="famille", IDdonnee=IDfamille)
+        self.ctrl_questionnaire = CTRL_Questionnaire.CTRL(self.staticbox_questionnaire, type="famille", IDdonnee=IDfamille)
         self.ctrl_questionnaire.SetMinSize((620, -1))
 
         # Mémo
         self.staticbox_memo = wx.StaticBox(self, -1, _("Mémo"))
-        self.ctrl_memo = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE)
+        self.ctrl_memo = wx.TextCtrl(self.staticbox_memo, -1, "", style=wx.TE_MULTILINE)
         
         # Layout
         grid_sizer_base = wx.FlexGridSizer(rows=1, cols=2, vgap=0, hgap=0)
