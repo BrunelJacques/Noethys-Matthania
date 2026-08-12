@@ -615,7 +615,7 @@ class DB():
         """
         try:
             self.cursor.executemany(req, listeDonnees)
-            if commit == True and POOL_MYSQL == 0:
+            if commit == True:
                 self.connexion.commit()
         except Exception as err:
             print("erreur:",err)
