@@ -27,19 +27,19 @@ class Panel(wx.Panel):
         self.IDfamille = IDfamille
 
         # Pièces à fournir
-        self.staticbox_pieces_obligatoires = wx.StaticBox(self, -1, _("Pièces à fournir"))
-        self.ctrl_pieces_obligatoires = CTRL_Pieces_obligatoires.CTRL(self.staticbox_pieces_obligatoires, IDfamille=IDfamille, size=(-1, 200))
+        self.stbPieces_obligatoires = wx.StaticBox(self, -1, _("Pièces à fournir"))
+        self.ctrl_pieces_obligatoires = CTRL_Pieces_obligatoires.CTRL(self.stbPieces_obligatoires, IDfamille=IDfamille, size=(-1, 200))
         self.ctrl_pieces_obligatoires.SetMinSize((280, 100))
         couleur_fond = UTILS_Interface.GetValeur("couleur_tres_claire", wx.Colour(240, 251, 237))
         self.ctrl_pieces_obligatoires.SetBackgroundColour(couleur_fond)
         
         # Pièces fournies
-        self.staticbox_pieces = wx.StaticBox(self, -1, _("Pièces fournies"))
-        self.ctrl_pieces = OL_Pieces.ListView(self.staticbox_pieces, IDfamille=IDfamille, id=-1, name="OL_pieces", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
+        self.stbPieces = wx.StaticBox(self, -1, _("Pièces fournies"))
+        self.ctrl_pieces = OL_Pieces.ListView(self.stbPieces, IDfamille=IDfamille, id=-1, name="OL_pieces", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
         
-        self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter = wx.BitmapButton(self.stbPieces, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier = wx.BitmapButton(self.stbPieces, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer = wx.BitmapButton(self.stbPieces, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
         
         # Binds
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAjouter, self.bouton_ajouter)
@@ -55,7 +55,7 @@ class Panel(wx.Panel):
         grid_sizer_base = wx.FlexGridSizer(rows=1, cols=2, vgap=0, hgap=0)
         
         # Pièces à fournir
-        staticbox_pieces_obligatoires = wx.StaticBoxSizer(self.staticbox_pieces_obligatoires, wx.VERTICAL)
+        staticbox_pieces_obligatoires = wx.StaticBoxSizer(self.stbPieces_obligatoires, wx.VERTICAL)
         grid_sizer_pieces_obligatoires = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_pieces_obligatoires.Add(self.ctrl_pieces_obligatoires, 1, wx.EXPAND, 0)
         grid_sizer_pieces_obligatoires.AddGrowableCol(0)
@@ -64,7 +64,7 @@ class Panel(wx.Panel):
         grid_sizer_base.Add(staticbox_pieces_obligatoires, 0, wx.EXPAND|wx.ALL, 5)
         
         # Pièces à fournir
-        staticbox_pieces = wx.StaticBoxSizer(self.staticbox_pieces, wx.VERTICAL)
+        staticbox_pieces = wx.StaticBoxSizer(self.stbPieces, wx.VERTICAL)
         grid_sizer_pieces = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_pieces.Add(self.ctrl_pieces, 1, wx.EXPAND, 0)
         grid_sizer_boutons = wx.FlexGridSizer(rows=3, cols=1, vgap=5, hgap=5)

@@ -399,27 +399,27 @@ class DlgTarification(wx.Dialog):
         self.data = self.resultsOlv.listeOLV
         self.dataorigine = copy.deepcopy(self.data)
         # gestion du parrainage
-        self.parrain_staticbox = wx.StaticBox(self, -1, "Parrainage")
-        self.label_parrain = wx.StaticText(self, -1,  "Parrain :")
-        self.ctrl_nom_parrain = wx.TextCtrl(self, -1, "",size=(80, 20))
-        self.bouton_parrain = wx.Button(self, -1, "...", size=(20, 20))
-        self.label_abandon = wx.StaticText(self, -1, "Abandon à filleul :")
-        self.ctrl_abandon = wx.CheckBox(self)
+        self.stbParrain = wx.StaticBox(self, -1, "Parrainage")
+        self.label_parrain = wx.StaticText(self.stbParrain, -1,  "Parrain :")
+        self.ctrl_nom_parrain = wx.TextCtrl(self.stbParrain, -1, "",size=(80, 20))
+        self.bouton_parrain = wx.Button(self.stbParrain, -1, "...", size=(20, 20))
+        self.label_abandon = wx.StaticText(self.stbParrain, -1, "Abandon à filleul :")
+        self.ctrl_abandon = wx.CheckBox(self.stbParrain)
         # pour conteneur des actions en pied d'écran
-        self.pied_staticbox = wx.StaticBox(self, -1, "Actions")
-        self.hyper_tout = Hyperlien(self, label="Tout cocher", infobulle="Cliquez ici pour tout cocher",
+        self.stbPied = wx.StaticBox(self, -1, "Actions")
+        self.hyper_tout = Hyperlien(self.stbPied, label="Tout cocher", infobulle="Cliquez ici pour tout cocher",
                                     URL="tout")
-        self.hyper_rien = Hyperlien(self, label="Tout décocher", infobulle="Cliquez ici pour tout décocher",
+        self.hyper_rien = Hyperlien(self.stbPied, label="Tout décocher", infobulle="Cliquez ici pour tout décocher",
                                     URL="rien")
-        self.hyper_ajoutArticle = Hyperlien(self, label="| Ajouter Ligne", infobulle="Ajouter un article", URL="article")
-        self.hyper_ajoutCommentaire = Hyperlien(self, label="| Commentaire", infobulle="En Projet : ajouter un commentaire Libre", URL="commentaire")
-        self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte="Choix Piece", cheminImage="Images/32x32/Valider.png")
-        self.bouton_oj = CTRL_Bouton_image.CTRL(self, texte="Piece idem", cheminImage="Images/BoutonsImages/Retour_L72.png")
+        self.hyper_ajoutArticle = Hyperlien(self.stbPied, label="| Ajouter Ligne", infobulle="Ajouter un article", URL="article")
+        self.hyper_ajoutCommentaire = Hyperlien(self.stbPied, label="| Commentaire", infobulle="En Projet : ajouter un commentaire Libre", URL="commentaire")
+        self.bouton_ok = CTRL_Bouton_image.CTRL(self.stbPied, texte="Choix Piece", cheminImage="Images/32x32/Valider.png")
+        self.bouton_oj = CTRL_Bouton_image.CTRL(self.stbPied, texte="Piece idem", cheminImage="Images/BoutonsImages/Retour_L72.png")
         if self.rw :
-            self.bouton_annuler = wx.BitmapButton(self, wx.ID_CANCEL,wx.Bitmap(Chemins.GetStaticPath("Images/BoutonsImages/Annuler_L72.png"), wx.BITMAP_TYPE_ANY))
+            self.bouton_annuler = wx.BitmapButton(self.stbPied, wx.ID_CANCEL,wx.Bitmap(Chemins.GetStaticPath("Images/BoutonsImages/Annuler_L72.png"), wx.BITMAP_TYPE_ANY))
         else:
-            self.bouton_annuler = wx.BitmapButton(self, wx.ID_CANCEL,wx.Bitmap(Chemins.GetStaticPath("Images/BoutonsImages/Retour_L72.png"), wx.BITMAP_TYPE_ANY))
-        self.ctrl_solde = CTRL_Solde(self)
+            self.bouton_annuler = wx.BitmapButton(self.stbPied, wx.ID_CANCEL,wx.Bitmap(Chemins.GetStaticPath("Images/BoutonsImages/Retour_L72.png"), wx.BITMAP_TYPE_ANY))
+        self.ctrl_solde = CTRL_Solde(self.stbPied)
         self.ctrl_solde.SetSolde(1000)
         self.ctrl_abandon.SetValue(self.parrainAbandon)
         self.ctrl_nom_parrain.SetValue(self.GetParrain(self.IDparrain))
@@ -496,7 +496,7 @@ class DlgTarification(wx.Dialog):
         grid_sizer_base.Add(self.resultsOlv, 0, wx.EXPAND, 0)
         grid_sizer_base.Add(self.ctrl_recherche, 0, wx.EXPAND, 0)
 
-        parrain_staticboxSizer = wx.StaticBoxSizer(self.parrain_staticbox, wx.VERTICAL)
+        parrain_staticboxSizer = wx.StaticBoxSizer(self.stbParrain, wx.VERTICAL)
         grid_sizer_parrain = wx.FlexGridSizer(rows=1, cols=5, vgap=3, hgap=3)
         grid_sizer_parrain.Add(self.label_parrain, 0, wx.LEFT, 30)
         grid_sizer_parrain.Add(self.ctrl_nom_parrain, 1, wx.EXPAND, 0)
@@ -507,7 +507,7 @@ class DlgTarification(wx.Dialog):
         parrain_staticboxSizer.Add(grid_sizer_parrain, 1, wx.EXPAND, 5)
         grid_sizer_base.Add(parrain_staticboxSizer, 1, wx.EXPAND, 5)
 
-        pied_staticboxSizer = wx.StaticBoxSizer(self.pied_staticbox, wx.VERTICAL)
+        pied_staticboxSizer = wx.StaticBoxSizer(self.stbPied, wx.VERTICAL)
         grid_sizer_pied = wx.FlexGridSizer(rows=1, cols=6, vgap=3, hgap=3)
 
         grid_sizer_cocher = wx.FlexGridSizer(rows=2, cols=1, vgap=1, hgap=10)
@@ -935,10 +935,10 @@ class Hyperlien(Hyperlink.HyperLinkCtrl):
         self.Bind(Hyperlink.EVT_HYPERLINK_LEFT, self.OnLeftLink)
 
     def OnLeftLink(self, event):
-        if self.URL == "tout": self.parent.CocheTout(True)
-        if self.URL == "rien": self.parent.CocheTout(False)
-        if self.URL == "article": self.parent.AjouteLigne("article")
-        if self.URL == "commentaire": self.parent.AjouteLigne("commentaire")
+        if self.URL == "tout": self.GrandParent.CocheTout(True)
+        if self.URL == "rien": self.GrandParent.CocheTout(False)
+        if self.URL == "article": self.GrandParent.AjouteLigne("article")
+        if self.URL == "commentaire": self.GrandParent.AjouteLigne("commentaire")
         self.UpdateLink()
 
 # --------------------Lancement de test ----------------------

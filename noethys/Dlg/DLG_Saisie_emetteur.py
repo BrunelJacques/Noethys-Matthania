@@ -148,7 +148,7 @@ class Dialog(wx.Dialog):
         nom, IDmode = emetteur
         
         # label
-        self.ctrl_nom.SetLabel(nom)
+        self.ctrl_nom.SetValue(nom)
         
 
 

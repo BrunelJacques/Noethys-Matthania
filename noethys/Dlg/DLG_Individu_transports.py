@@ -27,24 +27,24 @@ class Panel(wx.Panel):
         
         # Transports programmés
         self.staticbox_prog = wx.StaticBox(self, -1, _("Programmation de transports"))
-        self.ctrl_prog_transports = OL_Transports_prog.ListView(self, IDindividu=IDindividu, id=-1, name="OL_prog_transports", style=wx.LC_HRULES|wx.LC_VRULES|wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
+        self.ctrl_prog_transports = OL_Transports_prog.ListView(self.staticbox_prog, IDindividu=IDindividu, id=-1, name="OL_prog_transports", style=wx.LC_HRULES|wx.LC_VRULES|wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
         self.ctrl_prog_transports.SetMinSize((150, 20))
         
-        self.bouton_prog_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_prog_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_prog_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_prog_ajouter = wx.BitmapButton(self.staticbox_prog, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_prog_modifier = wx.BitmapButton(self.staticbox_prog, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_prog_supprimer = wx.BitmapButton(self.staticbox_prog, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
 
         # Liste des transports
         self.staticbox_liste = wx.StaticBox(self, -1, _("Transports"))
-        self.ctrl_liste_transports = OL_Transports.ListView(self, IDindividu=IDindividu, id=-1, name="OL_liste_transports", style=wx.LC_HRULES|wx.LC_VRULES|wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
+        self.ctrl_liste_transports = OL_Transports.ListView(self.staticbox_liste, IDindividu=IDindividu, id=-1, name="OL_liste_transports", style=wx.LC_HRULES|wx.LC_VRULES|wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
         self.ctrl_liste_transports.SetMinSize((150, 20))
         
-        self.bouton_liste_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_liste_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_liste_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_liste_calendrier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Calendrier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_liste_ajouter = wx.BitmapButton(self.staticbox_liste, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_liste_modifier = wx.BitmapButton(self.staticbox_liste, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_liste_supprimer = wx.BitmapButton(self.staticbox_liste, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_liste_calendrier = wx.BitmapButton(self.staticbox_liste, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Calendrier.png"), wx.BITMAP_TYPE_ANY))
         
-        self.ctrl_recherche = OL_Transports.CTRL_Outils(self, listview=self.ctrl_liste_transports, afficherCocher=True)
+        self.ctrl_recherche = OL_Transports.CTRL_Outils(self.staticbox_liste, listview=self.ctrl_liste_transports, afficherCocher=True)
         self.ctrl_recherche.SetBackgroundColour((255, 255, 255)) 
         
         # Binds

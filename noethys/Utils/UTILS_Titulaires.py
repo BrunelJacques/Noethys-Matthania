@@ -758,6 +758,7 @@ def GetCorrespondants(listeIDfamille=[]):
             dRepres["nom_complet"] = dRepres["nom"]
         dictFamilles[dRepres["IDfamille"]] = dRepres
     # Reprise pour détermination des adresses pricipales et secondaires
+    DB.Close()
     return dictFamilles
 
 def GetCorrespondant(IDfamille=None, IDindividu=None):

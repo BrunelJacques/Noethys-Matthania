@@ -355,6 +355,14 @@ class Panel_contact(wx.Panel):
         self.oldIntitule = ""
         if cat == "individu":
             titre = "Coordonnées individu"
+        else:
+            titre = "Coordonnées de la famille %d"%self.IDfamille
+
+        self.stbAdresse = wx.StaticBox(self, -1, titre)
+        self.stbContacts = wx.StaticBox(self, -1, "Gestion des contacts %s"%cat)
+
+
+        if cat == "individu":
             self.radio_adresse_auto = wx.RadioButton(self, -1, "adresse de :", style=wx.RB_GROUP)
             self.ctrl_adresse_auto = Adresse_auto(self,IDindividu=IDindividu)
             self.radio_adresse_manuelle = wx.RadioButton(self, -1, "adresse propre à l'individu")
@@ -362,12 +370,11 @@ class Panel_contact(wx.Panel):
             self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioAdresseManu, self.radio_adresse_manuelle)
             self.designationB = wx.TextCtrl(self, -1,"")
             # Listes de diffusion
-            self.label_listesdiff = wx.StaticText(self, -1, _("Listes de diffusion :"))
-            self.ctrl_listesdiff = CTRL_diff(self)
-            self.ctrl_refus_pub = wx.CheckBox(self, -1, "refus pub papier")
-            self.ctrl_refus_mel = wx.CheckBox(self, -1, "refus mails de com")
+            self.label_listesdiff = wx.StaticText(self.stbContacts, -1, _("Listes de diffusion :"))
+            self.ctrl_listesdiff = CTRL_diff(self.stbContacts)
+            self.ctrl_refus_pub = wx.CheckBox(self.stbContacts, -1, "refus pub papier")
+            self.ctrl_refus_mel = wx.CheckBox(self.stbContacts, -1, "refus mails de com")
         elif cat == "famille":
-            titre = "Coordonnées de la famille %d"%self.IDfamille
             self.radio_adresse_auto = wx.StaticText(self, -1, "utiliser l'adresse de :", style=wx.RB_GROUP)
             self.ctrl_adresse_auto = Adresse_auto(self,IDindividu=IDindividu,IDfamille = IDfamille)
             self.radio_adresse_manuelle = wx.StaticText(self, -1, "Correspondance à : ")
@@ -375,11 +382,11 @@ class Panel_contact(wx.Panel):
             self.designationB.SetMaxLength(38)
             self.designationB.Bind(wx.EVT_KILL_FOCUS, self.OnKillDesignationB)
             # Listes de diffusion
-            self.label_listesdiff = wx.StaticText(self, -1, _("Diffusions à tous les membres:"))
-            self.ctrl_listesdiff = Panel_3StateCheckBoxes(self)
-            self.ctrl_refus_pub = wx.CheckBox(self, -1, "refus pub famille",style=wx.CHK_3STATE)
+            self.label_listesdiff = wx.StaticText(self.stbContacts, -1, _("Diffusions à tous les membres:"))
+            self.ctrl_listesdiff = Panel_3StateCheckBoxes(self.stbContacts)
+            self.ctrl_refus_pub = wx.CheckBox(self.stbContacts, -1, "refus pub famille",style=wx.CHK_3STATE)
             self.ctrl_refus_pub.Set3StateValue(wx.CHK_UNCHECKED)
-            self.ctrl_refus_mel = wx.CheckBox(self, -1, "refus mails famille",style=wx.CHK_3STATE)
+            self.ctrl_refus_mel = wx.CheckBox(self.stbContacts, -1, "refus mails famille",style=wx.CHK_3STATE)
             self.ctrl_refus_mel.Set3StateValue(wx.CHK_UNCHECKED)
             self.Bind(wx.EVT_CHECKBOX, self.OnRefusPub, self.ctrl_refus_pub)
             self.Bind(wx.EVT_CHECKBOX, self.OnRefusMel, self.ctrl_refus_mel)
@@ -388,31 +395,29 @@ class Panel_contact(wx.Panel):
         self.majEffectuee = False
                 
         # Adresse
-        self.staticbox_adresse = wx.StaticBox(self, -1, titre)
-        self.staticbox_contacts = wx.StaticBox(self, -1, "Gestion des contacts %s"%cat)
-        self.bouton_adresse = wx.Button(self.staticbox_adresse, -1, "...", size=(20, 20))
-        self.ctrl_adresse = wx.TextCtrl(self.staticbox_adresse, -1, "",size=(60,100), style=wx.TE_MULTILINE|wx.TE_READONLY)
+        self.bouton_adresse = wx.Button(self.stbAdresse, -1, "...", size=(20, 20))
+        self.ctrl_adresse = wx.TextCtrl(self.stbAdresse, -1, "",size=(60,100), style=wx.TE_MULTILINE|wx.TE_READONLY)
         # Contacts
-        self.label_tel_domicile = wx.StaticText(self.staticbox_contacts, -1, _("Tel fixe :"))
-        self.ctrl_tel_domicile = CTRL_Saisie_tel.Tel(self.staticbox_contacts, intitule=_("tel fixe"))
-        self.label_tel_mobile = wx.StaticText(self.staticbox_contacts, -1, _("Mobile :"))
-        self.ctrl_tel_mobile = CTRL_Saisie_tel.Tel(self.staticbox_contacts, intitule=_("mobile"))
-        self.label_tel_mob2 = wx.StaticText(self.staticbox_contacts, -1, _("Mob 2 :"))
-        self.ctrl_tel_mob2 = CTRL_Saisie_tel.Tel(self.staticbox_contacts, intitule=_("mobile2"))
-        self.label_mail = wx.StaticText(self.staticbox_contacts, -1, _("Mail1 :"))
-        self.ctrl_mail = CTRL_Saisie_mail.Mail(self.staticbox_contacts)
-        self.bouton_mail_perso = wx.BitmapButton(self.staticbox_contacts, 900, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Emails_exp.png"), wx.BITMAP_TYPE_ANY))
+        self.label_tel_domicile = wx.StaticText(self.stbContacts, -1, _("Tel fixe :"))
+        self.ctrl_tel_domicile = CTRL_Saisie_tel.Tel(self.stbContacts, intitule=_("tel fixe"))
+        self.label_tel_mobile = wx.StaticText(self.stbContacts, -1, _("Mobile :"))
+        self.ctrl_tel_mobile = CTRL_Saisie_tel.Tel(self.stbContacts, intitule=_("mobile"))
+        self.label_tel_mob2 = wx.StaticText(self.stbContacts, -1, _("Mob 2 :"))
+        self.ctrl_tel_mob2 = CTRL_Saisie_tel.Tel(self.stbContacts, intitule=_("mobile2"))
+        self.label_mail = wx.StaticText(self.stbContacts, -1, _("Mail1 :"))
+        self.ctrl_mail = CTRL_Saisie_mail.Mail(self.stbContacts)
+        self.bouton_mail_perso = wx.BitmapButton(self.stbContacts, 900, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Emails_exp.png"), wx.BITMAP_TYPE_ANY))
 
         # Activité professionnelle
-        self.label_categorie = wx.StaticText(self.staticbox_contacts, -1, _("CSP :"))
-        self.ctrl_categorie = Categorie(self.staticbox_contacts)
-        self.label_travail_tel = wx.StaticText(self.staticbox_contacts, -1, _("TélProf:"))
-        self.ctrl_travail_tel = CTRL_Saisie_tel.Tel(self.staticbox_contacts, intitule=_("travail"))
-        self.label_profession = wx.StaticText(self.staticbox_contacts, -1, _("Métier :"))
-        self.ctrl_profession = wx.TextCtrl(self.staticbox_contacts, -1, "")
+        self.label_categorie = wx.StaticText(self.stbContacts, -1, _("CSP :"))
+        self.ctrl_categorie = Categorie(self.stbContacts)
+        self.label_travail_tel = wx.StaticText(self.stbContacts, -1, _("TélProf:"))
+        self.ctrl_travail_tel = CTRL_Saisie_tel.Tel(self.stbContacts, intitule=_("travail"))
+        self.label_profession = wx.StaticText(self.stbContacts, -1, _("Métier :"))
+        self.ctrl_profession = wx.TextCtrl(self.stbContacts, -1, "")
 
-        self.label_travail_mail = wx.StaticText(self.staticbox_contacts, -1, _("Mail2 :"))
-        self.ctrl_travail_mail = CTRL_Saisie_mail.Mail(self.staticbox_contacts)
+        self.label_travail_mail = wx.StaticText(self.stbContacts, -1, _("Mail2 :"))
+        self.ctrl_travail_mail = CTRL_Saisie_mail.Mail(self.stbContacts)
         self.bouton_mail_travail = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Emails_exp.png"), wx.BITMAP_TYPE_ANY))
                 
 
@@ -442,7 +447,7 @@ class Panel_contact(wx.Panel):
 
     def __do_layout(self):
         grid_sizer_base0 = wx.FlexGridSizer(rows=2, cols=1, vgap=5, hgap=5)
-        staticbox_adresse = wx.StaticBoxSizer(self.staticbox_adresse, wx.VERTICAL)
+        staticbox_adresse = wx.StaticBoxSizer(self.stbAdresse, wx.VERTICAL)
         grid_sizer_haut = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
 
         grid_sizer_auto = wx.FlexGridSizer(rows=1, cols=2, vgap=0, hgap=5)
@@ -473,7 +478,7 @@ class Panel_contact(wx.Panel):
         grid_sizer_bas = wx.FlexGridSizer(rows=1, cols=2, vgap=2, hgap=10)
         grid_sizer_gauche = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
 
-        staticbox_contacts = wx.StaticBoxSizer(self.staticbox_contacts, wx.VERTICAL)
+        staticbox_contacts = wx.StaticBoxSizer(self.stbContacts, wx.VERTICAL)
 
         grid_sizer_contact = wx.FlexGridSizer(rows=12, cols=2, vgap=5, hgap=5)
         grid_sizer_contact.Add((20,20), 0, 0, 0)

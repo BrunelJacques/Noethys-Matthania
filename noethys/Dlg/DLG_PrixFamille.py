@@ -425,7 +425,7 @@ class OLVtarification(ObjectListView):
         # fin init
 
     def InitModel(self):
-        annee = self.parent.annee
+        annee = self.GrandParent.annee
         # Charge la pièce famille existante et non encore facturée
         lignes999 = GetLignes999(self, annee,self.DB)
         lignesPieces = []
@@ -584,7 +584,7 @@ class OLVtarification(ObjectListView):
         if not check:
             obj.montant = obj.oldValue
             obj.libelle = obj.oldLibelle
-        self.parent.CalculSolde()
+        self.GrandParent.CalculSolde()
         self.RefreshObject(obj)
 
     # Evènement coche soit par souris, soit par fonction SetCheckState
@@ -649,50 +649,50 @@ class DlgTarification(wx.Dialog):
         self.SetBandeau(annee=self.annee)
 
         # conteneur des données
-        self.staticbox_facture = wx.StaticBox(self, -1, _("Déjà facturé..."))
-        self.staticbox_nonFacture = wx.StaticBox(self, -1,
-                                                 _("Non facturé modifiable ..."))
+        self.stbFacture = wx.StaticBox(self, -1, "Déjà facturé...")
+        self.stbNoFact = wx.StaticBox(self, -1,"Non facturé modifiable ...")
         periode = (self.exerciceDeb, self.exerciceFin)
-        self.resultsOlv = OLVtarification(self, self.DB, self.IDcompte_payeur,
+        self.resultsOlv = OLVtarification(self.stbNoFact, self.DB, self.IDcompte_payeur,
                                           periode,
                                           facture=False, id=1,
                                           name="OLV_Saisie",
                                           style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.LC_HRULES | wx.LC_VRULES)
-        self.ctrl_recherche = CTRL_Outils(self, listview=self.resultsOlv)
-        self.resultsOlvFact = OLVtarification(self, self.DB, self.IDcompte_payeur,
+        self.ctrl_recherche = CTRL_Outils(self.stbNoFact, listview=self.resultsOlv)
+        self.resultsOlvFact = OLVtarification(self.stbFacture, self.DB, self.IDcompte_payeur,
                                               periode,
                                               facture=True, id=2,
                                               name="OLV_Facture",
                                               style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.LC_HRULES | wx.LC_VRULES)
-        self.ctrl_solde = CTRL_Solde(self)
-        self.ctrl_solde.SetSolde(1000)
 
         # pour conteneur des actions en pied d'écran
-        self.pied_staticbox = wx.StaticBox(self, -1, _("Actions"))
-        self.hyper_tout = Hyperlien(self, label=_("Tout cocher"),
+        self.stbPied = wx.StaticBox(self, -1, _("Actions"))
+        self.ctrl_solde = CTRL_Solde(self.stbPied)
+        self.ctrl_solde.SetSolde(1000)
+
+        self.hyper_tout = Hyperlien(self.stbPied, label=_("Tout cocher"),
                                     infobulle=_("Cliquez ici pour tout cocher"),
                                     URL="tout")
-        self.hyper_rien = Hyperlien(self, label=_("Tout décocher"),
+        self.hyper_rien = Hyperlien(self.stbPied, label=_("Tout décocher"),
                                     infobulle=_("Cliquez ici pour tout décocher"),
                                     URL="rien")
-        self.hyper_anneeprec = Hyperlien(self, label=_("Année Précédente"), infobulle=_(
+        self.hyper_anneeprec = Hyperlien(self.stbPied, label=_("Année Précédente"), infobulle=_(
             "Cliquez ici pour choisir un autre exercice"),
                                          URL="anneeprec")
-        self.hyper_anneesuiv = Hyperlien(self, label=_("| Année Suivante"), infobulle=_(
+        self.hyper_anneesuiv = Hyperlien(self.stbPied, label=_("| Année Suivante"), infobulle=_(
             "Cliquez ici pour choisir un autre exercice"),
                                          URL="anneesuiv")
-        self.hyper_ajoutArticle = Hyperlien(self, label=_("| Ajouter Ligne"),
+        self.hyper_ajoutArticle = Hyperlien(self.stbPied, label=_("| Ajouter Ligne"),
                                             infobulle=_("Ajouter un article"),
                                             URL="article")
-        self.hyper_ajoutReinitialiser = Hyperlien(self, label=_("| Réinitialiser"),
+        self.hyper_ajoutReinitialiser = Hyperlien(self.stbPied, label=_("| Réinitialiser"),
                                                   infobulle=_(
                                                       "Pour oublier une saisie antérieure"),
                                                   URL="reinitialiser")
-        self.bouton_oj = CTRL_Bouton_image.CTRL(self, texte=_("Autre\nInscription"),
+        self.bouton_oj = CTRL_Bouton_image.CTRL(self.stbPied, texte=_("Autre\nInscription"),
                                                 cheminImage="Images/32x32/Fleche_gauche.png")
-        self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("OK pour\nFacturation"),
+        self.bouton_ok = CTRL_Bouton_image.CTRL(self.stbPied, texte=_("OK pour\nFacturation"),
                                                 cheminImage="Images/32x32/Fleche_droite.png")
-        self.bouton_annuler = CTRL_Bouton_image.CTRL(self, texte=_("Abandon\nFamille"),
+        self.bouton_annuler = CTRL_Bouton_image.CTRL(self.stbPied, texte=_("Abandon\nFamille"),
                                                      cheminImage="Images/32x32/Annuler.png")
         if not 'individu' in self.dictDonneesParent['lanceur']:
             self.bouton_oj.Enable(False)
@@ -797,7 +797,7 @@ class DlgTarification(wx.Dialog):
     def Sizer(self):
         self.grid_sizer = wx.FlexGridSizer(rows=5, cols=1, vgap=5, hgap=5)
         self.grid_sizer.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
-        staticsizer_facture = wx.StaticBoxSizer(self.staticbox_facture, wx.VERTICAL)
+        staticsizer_facture = wx.StaticBoxSizer(self.stbFacture, wx.VERTICAL)
         grid_sizer_facture = wx.FlexGridSizer(rows=2, cols=1, vgap=1, hgap=10)
 
         grid_sizer_facture.Add(self.resultsOlvFact, 1, wx.EXPAND, 0)
@@ -806,7 +806,7 @@ class DlgTarification(wx.Dialog):
         staticsizer_facture.Add(grid_sizer_facture, 1, wx.RIGHT | wx.EXPAND, 5)
         self.grid_sizer.Add(staticsizer_facture, 1, wx.EXPAND, 0)
 
-        staticsizer_nonFacture = wx.StaticBoxSizer(self.staticbox_nonFacture, wx.VERTICAL)
+        staticsizer_nonFacture = wx.StaticBoxSizer(self.stbNoFact, wx.VERTICAL)
         grid_sizer_nonFacture = wx.FlexGridSizer(rows=2, cols=1, vgap=1, hgap=10)
 
         grid_sizer_nonFacture.Add(self.resultsOlv, 0, wx.EXPAND, 0)
@@ -816,7 +816,7 @@ class DlgTarification(wx.Dialog):
         staticsizer_nonFacture.Add(grid_sizer_nonFacture, 1, wx.RIGHT | wx.EXPAND, 5)
         self.grid_sizer.Add(staticsizer_nonFacture, 1, wx.EXPAND, 0)
 
-        pied_staticboxSizer = wx.StaticBoxSizer(self.pied_staticbox, wx.VERTICAL)
+        pied_staticboxSizer = wx.StaticBoxSizer(self.stbPied, wx.VERTICAL)
         grid_sizer_pied = wx.FlexGridSizer(rows=1, cols=7, vgap=3, hgap=3)
 
         grid_sizer_cocher = wx.FlexGridSizer(rows=3, cols=1, vgap=1, hgap=10)
@@ -1336,12 +1336,12 @@ class Hyperlien(Hyperlink.HyperLinkCtrl):
         self.Bind(Hyperlink.EVT_HYPERLINK_LEFT, self.OnLeftLink)
 
     def OnLeftLink(self, event):
-        if self.URL == "tout": self.parent.CocheTout(True)
-        if self.URL == "rien": self.parent.CocheTout(False)
-        if self.URL == "anneesuiv": self.parent.ChangeAnnee(1)
-        if self.URL == "anneeprec": self.parent.ChangeAnnee(-1)
-        if self.URL == "article": self.parent.AjouteLigne("article")
-        if self.URL == "reinitialiser": self.parent.Reinitialiser()
+        if self.URL == "tout": self.GrandParent.CocheTout(True)
+        if self.URL == "rien": self.GrandParent.CocheTout(False)
+        if self.URL == "anneesuiv": self.GrandParent.ChangeAnnee(1)
+        if self.URL == "anneeprec": self.GrandParent.ChangeAnnee(-1)
+        if self.URL == "article": self.GrandParent.AjouteLigne("article")
+        if self.URL == "reinitialiser": self.GrandParent.Reinitialiser()
         self.UpdateLink()
 
 

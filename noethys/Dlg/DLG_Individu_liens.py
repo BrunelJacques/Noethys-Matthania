@@ -751,15 +751,15 @@ class Panel_liens(wx.Panel):
 ##        self.donnees = GetValeurs(self.IDindividu, self.IDfamille)
 ##        self.donnees.InitValeurs()
         
-        self.staticbox_liens = wx.StaticBox(self, -1, _("Liens"))
-        self.ctrl_liens = CTRL_Saisie_Liens(self, IDindividu=self.IDindividu, IDfamille=self.IDfamille)#, donnees=self.donnees)
+        self.stbLiens = wx.StaticBox(self, -1, _("Liens"))
+        self.ctrl_liens = CTRL_Saisie_Liens(self.stbLiens, IDindividu=self.IDindividu, IDfamille=self.IDfamille)#, donnees=self.donnees)
         self.ctrl_liens.SetMinSize((20, 20))
         
-        self.hyperlien_liensFamille = Hyperlien_LiensFamille(self, label=_("Afficher tous les liens de la famille"), IDindividu=self.IDindividu, IDfamille=self.IDfamille, URL="", infobulle=_("Cliquez sur ce lien pour afficher tous les liens de la famille"))
+        self.hyperlien_liensFamille = Hyperlien_LiensFamille(self.stbLiens, label=_("Afficher tous les liens de la famille"), IDindividu=self.IDindividu, IDfamille=self.IDfamille, URL="", infobulle=_("Cliquez sur ce lien pour afficher tous les liens de la famille"))
         
         # Layout
         grid_sizer_base = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
-        staticbox_liens = wx.StaticBoxSizer(self.staticbox_liens, wx.VERTICAL)
+        staticbox_liens = wx.StaticBoxSizer(self.stbLiens, wx.VERTICAL)
         grid_sizer_liens = wx.FlexGridSizer(rows=2, cols=1, vgap=5, hgap=5)
         grid_sizer_liens.Add(self.ctrl_liens, 1, wx.EXPAND, 0)
         grid_sizer_liens.Add(self.hyperlien_liensFamille, 0, wx.EXPAND, 0) 

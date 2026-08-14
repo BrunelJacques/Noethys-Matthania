@@ -137,32 +137,32 @@ class Panel(wx.Panel):
         self.majEffectuee = False
         
         # Vaccinations
-        self.staticbox_vaccinations_staticbox = wx.StaticBox(self, -1, _("Vaccinations"))
-        self.ctrl_maladies = OL_Vaccins_obligatoires.ListView(self, IDindividu=IDindividu, id=-1, name="OL_maladies", style=wx.LC_NO_HEADER|wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
+        self.stbVaccin = wx.StaticBox(self, -1, _("Vaccinations"))
+        self.ctrl_maladies = OL_Vaccins_obligatoires.ListView(self.stbVaccin, IDindividu=IDindividu, id=-1, name="OL_maladies", style=wx.LC_NO_HEADER|wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
         self.ctrl_maladies.SetMinSize((150, 20))
         couleur_fond = UTILS_Interface.GetValeur("couleur_tres_claire", wx.Colour(240, 251, 237))
         self.ctrl_maladies.SetBackgroundColour(couleur_fond)
 
-        self.ctrl_vaccins = OL_Vaccins.ListView(self, IDindividu=IDindividu, id=-1, name="OL_vaccins", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
+        self.ctrl_vaccins = OL_Vaccins.ListView(self.stbVaccin, IDindividu=IDindividu, id=-1, name="OL_vaccins", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         self.ctrl_vaccins.SetMinSize((150, 20))
         self.bouton_ajouter_vaccin = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
         self.bouton_modifier_vaccin = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
         self.bouton_supprimer_vaccin = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
         
         # Problemes de santé
-        self.staticbox_problemes_staticbox = wx.StaticBox(self, -1, _("Informations médicales"))
-        self.ctrl_problemes = OL_Pb_sante.ListView(self, IDindividu=IDindividu, id=-1, name="OL_problemes", style=wx.LC_NO_HEADER|wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
+        self.stbPb = wx.StaticBox(self, -1, _("Informations médicales"))
+        self.ctrl_problemes = OL_Pb_sante.ListView(self.stbPb, IDindividu=IDindividu, id=-1, name="OL_problemes", style=wx.LC_NO_HEADER|wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
         self.ctrl_problemes.SetMinSize((150, 20))
-        self.bouton_ajouter_probleme = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier_probleme = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer_probleme = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter_probleme = wx.BitmapButton(self.stbPb, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier_probleme = wx.BitmapButton(self.stbPb, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer_probleme = wx.BitmapButton(self.stbPb, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
        
         # Médecin traitant
-        self.staticbox_medecin_staticbox = wx.StaticBox(self, -1, _("Médecin traitant"))
-        self.bouton_medecin = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY)) #wx.BitmapButton(self, -1, wx.Bitmap(u"Images/32x32/Medecin.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_detacher_medecin = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.stbMedecin = wx.StaticBox(self, -1, _("Médecin traitant"))
+        self.bouton_medecin = wx.BitmapButton(self.stbMedecin, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY)) #wx.BitmapButton(self, -1, wx.Bitmap(u"Images/32x32/Medecin.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_detacher_medecin = wx.BitmapButton(self.stbMedecin, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
         
-        self.ctrl_medecin = CTRL_Medecin(self, IDindividu=self.IDindividu)
+        self.ctrl_medecin = CTRL_Medecin(self.stbMedecin, IDindividu=self.IDindividu)
         
         self.__set_properties()
         self.__do_layout()
@@ -201,7 +201,7 @@ class Panel(wx.Panel):
         grid_sizer_problemes = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         
         # Vaccinations
-        staticbox_vaccinations = wx.StaticBoxSizer(self.staticbox_vaccinations_staticbox, wx.VERTICAL)
+        staticbox_vaccinations = wx.StaticBoxSizer(self.stbVaccin, wx.VERTICAL)
         grid_sizer_vaccinations = wx.FlexGridSizer(rows=1, cols=3, vgap=5, hgap=5)
         grid_sizer_com_vaccins = wx.FlexGridSizer(rows=4, cols=1, vgap=5, hgap=5)
         grid_sizer_vaccinations.Add(self.ctrl_maladies, 1, wx.RIGHT|wx.EXPAND, 5)
@@ -217,7 +217,7 @@ class Panel(wx.Panel):
         grid_sizer_base.Add(staticbox_vaccinations, 1, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 5)
         
         # Problèmes
-        staticbox_problemes = wx.StaticBoxSizer(self.staticbox_problemes_staticbox, wx.VERTICAL)
+        staticbox_problemes = wx.StaticBoxSizer(self.stbPb, wx.VERTICAL)
         grid_sizer_problemes.Add(self.ctrl_problemes, 1, wx.EXPAND, 0)
         grid_sizer_com_problemes.Add(self.bouton_ajouter_probleme, 0, 0, 0)
         grid_sizer_com_problemes.Add(self.bouton_modifier_probleme, 0, 0, 0)
@@ -229,7 +229,7 @@ class Panel(wx.Panel):
         grid_sizer_bas.Add(staticbox_problemes, 1, wx.EXPAND, 0)
         
         # Médecin
-        staticbox_medecin = wx.StaticBoxSizer(self.staticbox_medecin_staticbox, wx.VERTICAL)
+        staticbox_medecin = wx.StaticBoxSizer(self.stbMedecin, wx.VERTICAL)
         grid_sizer_medecin = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_medecin.Add(self.ctrl_medecin, 1, wx.EXPAND, 0)
         grid_sizer_medecin_boutons = wx.FlexGridSizer(rows=3, cols=1, vgap=5, hgap=5)

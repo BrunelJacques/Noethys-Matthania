@@ -13,7 +13,7 @@ from Utils.UTILS_Traduction import _
 import GestionDB
 import datetime
 from Utils import UTILS_Dates
-from Ctrl.CTRL_Questionnaire import LISTE_CONTROLES
+from Ctrl import CTRL_Questionnaire
 from Ctrl.CTRL_ObjectListView import ColumnDefn
 
 def DateEngEnDateDD(date):
@@ -81,7 +81,7 @@ class Questionnaires():
     
     def GetControles(self):
         dictControles = {}
-        for dictControle in LISTE_CONTROLES :
+        for dictControle in CTRL_Questionnaire.LISTE_CONTROLES :
             dictControles[dictControle["code"]] = dictControle
         return dictControles
     

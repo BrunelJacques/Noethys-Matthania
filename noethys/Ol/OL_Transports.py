@@ -19,6 +19,8 @@ import GestionDB
 from Utils import UTILS_Titulaires
 from Utils import UTILS_Transports
 from Utils import UTILS_Utilisateurs
+from Utils.UTILS_Dates import DateEngEnDateDDT, DateEngFr,DateComplete
+
 from Ctrl.CTRL_Saisie_transport import DICT_CATEGORIES
 from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, CTRL_Outils
 
@@ -31,23 +33,6 @@ def Nz(valeur, type = "int"):
         valeur = int(valeur)
     return valeur
 
-def DateEngFr(textDate):
-    if textDate == None: return ""
-    textDate = str(textDate)
-    text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
-    return text
-
-def DateComplete(dateDD):
-    """ Transforme une date DD en date complète : Ex : lundi 15 janvier 2008 """
-    listeJours = (_("Lundi"), _("Mardi"), _("Mercredi"), _("Jeudi"), _("Vendredi"), _("Samedi"), _("Dimanche"))
-    listeMois = (_("janvier"), _("février"), _("mars"), _("avril"), _("mai"), _("juin"), _("juillet"), _("août"), _("septembre"), _("octobre"), _("novembre"), _("décembre"))
-    dateComplete = listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
-    return dateComplete
-
-def DateEngEnDateDD(dateEng):
-    if dateEng == None : return None
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-
 class Track(object):
     def __init__(self, donnees, modLocalisation,dictCorrespondants={}):
         self.IDtransport = donnees[0]
@@ -59,7 +44,7 @@ class Track(object):
         #JB
         if self.depart_date== None:
             self.depart_date = "2000-01-01"
-        self.depart_dateDD = DateEngEnDateDD(self.depart_date)
+        self.depart_dateDD = DateEngEnDateDDT(self.depart_date)
         self.depart_heure = donnees[4]
         if self.depart_heure != None :
             hr, mn = self.depart_heure.split(":")
@@ -73,7 +58,7 @@ class Track(object):
         self.arrivee_date = donnees[8]
         if self.arrivee_date== None:
             self.arrivee_date = "2000-01-01"
-        self.arrivee_dateDD = DateEngEnDateDD(self.arrivee_date)
+        self.arrivee_dateDD = DateEngEnDateDDT(self.arrivee_date)
         self.arrivee_heure = donnees[9]
         if self.arrivee_heure != None :
             hr, mn = self.arrivee_heure.split(":")
@@ -104,7 +89,7 @@ class Track(object):
                 if naissance.year > 1900 and date != None :
                     age = (date.year - naissance.year) - int((date.month, date.day) < (naissance.month, naissance.day))
             return age
-        self.individu_naiss = DateEngEnDateDD(donnees[15])
+        self.individu_naiss = DateEngEnDateDDT(donnees[15])
         self.individu_age = (Age(self.individu_naiss, self.depart_dateDD))
 
         #transport et affectation

@@ -114,20 +114,20 @@ class Dialog(wx.Dialog):
         self.SetTitle("DLG_ChoixTypePiece")
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=self.titre, texte=intro,  hauteurHtml=15, nomImage="Images/22x22/Smiley_nul.png")
         self.liste_naturePiece = copy.deepcopy(GestionArticle.LISTEnaturesPieces)
-        self.staticbox_CARACTER = wx.StaticBox(self, -1, _("Choix de l'état de la pièce"))
-        self.staticbox_BOUTONS= wx.StaticBox(self, -1, )
+        self.stbCaracter = wx.StaticBox(self, -1, _("Choix de l'état de la pièce"))
+        self.stbBoutons= wx.StaticBox(self, -1, )
 
         #Elements gérés
         self.liste_codesNaturesPiece = [str((a)) for a,b,c in self.liste_naturePiece]
         self.liste_commentNaturesPiece = [c for a,b,c in self.liste_naturePiece]
-        self.resultsOlv = FastObjectListView(self)
-        self.txt_naturesPiece = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE)
+        self.resultsOlv = FastObjectListView(self.stbCaracter)
+        self.txt_naturesPiece = wx.TextCtrl(self.stbCaracter, -1, "", style=wx.TE_MULTILINE)
 
-        self.ctrl_nature = wx.TextCtrl(self, -1, "",size=(100, 20))
-        self.ctrl_nature.Label = "Choisir"
+        self.ctrl_nature = wx.TextCtrl(self.stbBoutons, -1, "",size=(100, 20))
+        self.ctrl_nature.SetValue("Choisir")
         self.codeNature = " "
-        self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Valider"), cheminImage=Chemins.GetStaticPath("Images/32x32/Valider.png"))
-        self.bouton_annuler = CTRL_Bouton_image.CTRL(self, id=wx.ID_CANCEL, texte=_("Annuler"), cheminImage=Chemins.GetStaticPath("Images/32x32/Annuler.png"))
+        self.bouton_ok = CTRL_Bouton_image.CTRL(self.stbBoutons, texte=_("Valider"), cheminImage=Chemins.GetStaticPath("Images/32x32/Valider.png"))
+        self.bouton_annuler = CTRL_Bouton_image.CTRL(self.stbBoutons, id=wx.ID_CANCEL, texte=_("Annuler"), cheminImage=Chemins.GetStaticPath("Images/32x32/Annuler.png"))
 
         self.__set_properties()
         self.__do_layout()
@@ -154,7 +154,7 @@ class Dialog(wx.Dialog):
         gridsizer_BASE = wx.FlexGridSizer(rows=3, cols=1, vgap=0, hgap=0)
         gridsizer_BASE.Add(self.ctrl_bandeau, 1, wx.EXPAND, 0)
 
-        staticsizer_CARACTER = wx.StaticBoxSizer(self.staticbox_CARACTER, wx.VERTICAL)
+        staticsizer_CARACTER = wx.StaticBoxSizer(self.stbCaracter, wx.VERTICAL)
         gridsizer_CARACTER = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         gridsizer_CARACTER.Add(self.resultsOlv, 1, wx.LEFT, 10)
         gridsizer_CARACTER.Add(self.txt_naturesPiece, 1, wx.LEFT|wx.EXPAND, 0)
@@ -163,7 +163,7 @@ class Dialog(wx.Dialog):
         gridsizer_BASE.Add(staticsizer_CARACTER, 1,wx.TOP|wx.EXPAND, 10)
 
         gridsizer_BOUTONS = wx.FlexGridSizer(rows=1, cols=5, vgap=10, hgap=10)
-        staticsizer_BOUTONS = wx.StaticBoxSizer(self.staticbox_BOUTONS, wx.VERTICAL)
+        staticsizer_BOUTONS = wx.StaticBoxSizer(self.stbBoutons, wx.VERTICAL)
         gridsizer_BOUTONS.Add(self.ctrl_nature, 0, 0, 0)
         gridsizer_BOUTONS.Add((15, 15), 0, 0, 0)
         gridsizer_BOUTONS.Add(self.bouton_ok, 0, 0, 0)

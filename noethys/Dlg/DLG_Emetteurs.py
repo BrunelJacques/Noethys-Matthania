@@ -18,7 +18,6 @@ import GestionDB
 import six
 from Ctrl import CTRL_Bandeau
 from Ol import OL_Emetteurs
-from PIL import Image
 import os
 if 'phoenix' in wx.PlatformInfo:
     from wx.adv import BitmapComboBox
@@ -165,16 +164,16 @@ class Dialog(wx.Dialog):
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Mode_reglement.png")
         
         # Mode
-        self.staticbox_mode_staticbox = wx.StaticBox(self, -1, _("Mode de règlement"))
-        self.label_mode = wx.StaticText(self, -1, _("Mode de règlement :"))
-        self.ctrl_mode = CTRL_Mode(self)
+        self.stbMode = wx.StaticBox(self, -1, _("Mode de règlement"))
+        self.label_mode = wx.StaticText(self.stbMode, -1, _("Mode de règlement :"))
+        self.ctrl_mode = CTRL_Mode(self.stbMode)
         
         # Emetteurs
-        self.staticbox_emetteurs_staticbox = wx.StaticBox(self, -1, _("Emetteurs"))
-        self.ctrl_emetteurs = OL_Emetteurs.ListView(self, id=-1, name="OL_Emetteurs", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
-        self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.stbEmetteur = wx.StaticBox(self, -1, _("Emetteurs"))
+        self.ctrl_emetteurs = OL_Emetteurs.ListView(self.stbEmetteur, id=-1, name="OL_Emetteurs", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
+        self.bouton_ajouter = wx.BitmapButton(self.stbEmetteur, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier = wx.BitmapButton(self.stbEmetteur, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer = wx.BitmapButton(self.stbEmetteur, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
         
         self.boutons_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
         self.bouton_fermer = CTRL_Bouton_image.CTRL(self, id=wx.ID_CANCEL, texte=_("Fermer"), cheminImage="Images/32x32/Fermer.png")
@@ -204,10 +203,10 @@ class Dialog(wx.Dialog):
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
         grid_sizer_boutons = wx.FlexGridSizer(rows=1, cols=4, vgap=10, hgap=10)
-        staticbox_emetteurs = wx.StaticBoxSizer(self.staticbox_emetteurs_staticbox, wx.VERTICAL)
+        staticbox_emetteurs = wx.StaticBoxSizer(self.stbEmetteur, wx.VERTICAL)
         grid_sizer_emetteurs = wx.FlexGridSizer(rows=1, cols=2, vgap=10, hgap=10)
         grid_sizer_boutons_emetteurs = wx.FlexGridSizer(rows=4, cols=1, vgap=5, hgap=5)
-        staticbox_mode = wx.StaticBoxSizer(self.staticbox_mode_staticbox, wx.VERTICAL)
+        staticbox_mode = wx.StaticBoxSizer(self.stbMode, wx.VERTICAL)
         grid_sizer_mode = wx.FlexGridSizer(rows=1, cols=3, vgap=10, hgap=10)
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
         grid_sizer_mode.Add(self.label_mode, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)

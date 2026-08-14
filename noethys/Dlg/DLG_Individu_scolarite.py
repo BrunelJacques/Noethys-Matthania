@@ -26,10 +26,10 @@ class Panel(wx.Panel):
         self.dictFamillesRattachees = dictFamillesRattachees
         
         # scolarite
-        self.staticbox_scolarite = wx.StaticBox(self, -1, _("Scolarité"))
-        self.ctrl_scolarite = OL_Scolarite.ListView(self, IDindividu=IDindividu, id=-1, name="OL_scolarite", style=wx.LC_HRULES|wx.LC_VRULES|wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
+        self.stbScolarite = wx.StaticBox(self, -1, _("Scolarité"))
+        self.ctrl_scolarite = OL_Scolarite.ListView(self.stbScolarite, IDindividu=IDindividu, id=-1, name="OL_scolarite", style=wx.LC_HRULES|wx.LC_VRULES|wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
         self.ctrl_scolarite.SetMinSize((20, 20)) 
-        self.ctrl_recherche = OL_Scolarite.CTRL_Outils(self, listview=self.ctrl_scolarite)
+        self.ctrl_recherche = OL_Scolarite.CTRL_Outils(self.stbScolarite, listview=self.ctrl_scolarite)
         self.ctrl_recherche.SetBackgroundColour((255, 255, 255))
 
         self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
@@ -51,7 +51,7 @@ class Panel(wx.Panel):
         grid_sizer_base = wx.FlexGridSizer(rows=2, cols=1, vgap=0, hgap=0)
         
         # scolarite
-        staticbox_scolarite = wx.StaticBoxSizer(self.staticbox_scolarite, wx.VERTICAL)
+        staticbox_scolarite = wx.StaticBoxSizer(self.stbScolarite, wx.VERTICAL)
         grid_sizer_scolarite = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         
         grid_sizer_scolarite.Add(self.ctrl_scolarite, 1, wx.EXPAND, 0)

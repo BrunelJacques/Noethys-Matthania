@@ -110,9 +110,12 @@ def ConvertDateDTenWX(date=None):
     return datewx
 
 def DateEngEnDateDDT(dateEng):
-    if not dateEng: return None
-    if type(dateEng) == datetime.datetime : return dateEng
-    if not isinstance(dateEng,str): return dateEng
+    if not dateEng:
+        return None
+    if type(dateEng) == datetime.datetime :
+        return dateEng
+    if not isinstance(dateEng,str):
+        return dateEng
 
     # Parse the string into a datetime object
     if "-" in dateEng:

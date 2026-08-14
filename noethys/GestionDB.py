@@ -291,6 +291,8 @@ class DB():
         return champs,valeurs
 
     def AfficheErr(self,parent,retour):
+        if not retour:
+            retour = "Erreur non gérée"
         dlgErr = wx.MessageDialog(parent, retour, "Retour SQL !", wx.OK | wx.ICON_EXCLAMATION)
         dlgErr.ShowModal()
         dlgErr.Destroy()

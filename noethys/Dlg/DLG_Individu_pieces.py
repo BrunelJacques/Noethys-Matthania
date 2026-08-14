@@ -28,31 +28,31 @@ class Panel(wx.Panel):
         self.dictFamillesRattachees = dictFamillesRattachees
 
         # Pièces à fournir
-        self.staticbox_pieces_obligatoires = wx.StaticBox(self, -1, _("Pièces à fournir"))
-        self.ctrl_pieces_obligatoires = CTRL_Pieces_obligatoires.CTRL(self, IDindividu=IDindividu, dictFamillesRattachees=dictFamillesRattachees, largeurColonne=140)
+        self.stbPiecOblig = wx.StaticBox(self, -1, _("Pièces à fournir"))
+        self.ctrl_pieces_obligatoires = CTRL_Pieces_obligatoires.CTRL(self.stbPiecOblig, IDindividu=IDindividu, dictFamillesRattachees=dictFamillesRattachees, largeurColonne=140)
         couleur_fond = UTILS_Interface.GetValeur("couleur_tres_claire", wx.Colour(240, 251, 237))
         self.ctrl_pieces_obligatoires.SetBackgroundColour(couleur_fond)
         self.ctrl_pieces_obligatoires.SetMinSize((150, 50))
         
         # Pièces fournies
-        self.staticbox_pieces = wx.StaticBox(self, -1, _("Pièces fournies"))
-        self.ctrl_pieces = OL_Pieces.ListView(self, IDindividu=IDindividu, dictFamillesRattachees=self.dictFamillesRattachees, id=-1, name="OL_pieces", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
+        self.stbPieces = wx.StaticBox(self, -1, _("Pièces fournies"))
+        self.ctrl_pieces = OL_Pieces.ListView(self.stbPieces, IDindividu=IDindividu, dictFamillesRattachees=self.dictFamillesRattachees, id=-1, name="OL_pieces", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
         self.ctrl_pieces.SetMinSize((150, 50))
         
-        self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter = wx.BitmapButton(self.stbPieces, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier = wx.BitmapButton(self.stbPieces, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer = wx.BitmapButton(self.stbPieces, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
         
         # Cotisations individuelles
-        self.staticbox_cotisations = wx.StaticBox(self, -1, _("Cotisations familiales et individuelles"))
+        self.stbCotisations = wx.StaticBox(self, -1, _("Cotisations familiales et individuelles"))
         codesColonnes = ["IDcotisation", "date_debut", "date_fin", "beneficiaires", "nom", "numero", "date_creation_carte", "depot_nom", "activites", "observations"]
         checkColonne = True
         triColonne = "date_debut"
-        self.ctrl_cotisations = OL_Liste_cotisations.ListView(self, IDindividu=IDindividu, dictFamillesRattachees=self.dictFamillesRattachees, mode="individu", codesColonnes=codesColonnes, checkColonne=checkColonne, triColonne=triColonne, id=-1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
+        self.ctrl_cotisations = OL_Liste_cotisations.ListView(self.stbCotisations, IDindividu=IDindividu, dictFamillesRattachees=self.dictFamillesRattachees, mode="individu", codesColonnes=codesColonnes, checkColonne=checkColonne, triColonne=triColonne, id=-1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
         
-        self.bouton_ajouter_cotisation = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier_cotisation = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer_cotisation = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter_cotisation = wx.BitmapButton(self.stbCotisations, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier_cotisation = wx.BitmapButton(self.stbCotisations, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer_cotisation = wx.BitmapButton(self.stbCotisations, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
 
         # Binds
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAjouter, self.bouton_ajouter)
@@ -76,7 +76,7 @@ class Panel(wx.Panel):
         grid_sizer_haut = wx.FlexGridSizer(rows=1, cols=2, vgap=10, hgap=10)
         
         # Pièces à fournir
-        staticbox_pieces_obligatoires = wx.StaticBoxSizer(self.staticbox_pieces_obligatoires, wx.VERTICAL)
+        staticbox_pieces_obligatoires = wx.StaticBoxSizer(self.stbPiecOblig, wx.VERTICAL)
         grid_sizer_pieces_obligatoires = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_pieces_obligatoires.Add(self.ctrl_pieces_obligatoires, 1, wx.EXPAND, 0)
         grid_sizer_pieces_obligatoires.AddGrowableCol(0)
@@ -85,7 +85,7 @@ class Panel(wx.Panel):
         grid_sizer_haut.Add(staticbox_pieces_obligatoires, 0, wx.EXPAND, 0)
         
         # Pièces à fournir
-        staticbox_pieces = wx.StaticBoxSizer(self.staticbox_pieces, wx.VERTICAL)
+        staticbox_pieces = wx.StaticBoxSizer(self.stbPieces, wx.VERTICAL)
         grid_sizer_pieces = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_pieces.Add(self.ctrl_pieces, 1, wx.EXPAND, 0)
         grid_sizer_boutons = wx.FlexGridSizer(rows=3, cols=1, vgap=5, hgap=5)
@@ -103,7 +103,7 @@ class Panel(wx.Panel):
         grid_sizer_haut.AddGrowableRow(0)
 
         # Cotisations
-        staticbox_cotisations = wx.StaticBoxSizer(self.staticbox_cotisations, wx.VERTICAL)
+        staticbox_cotisations = wx.StaticBoxSizer(self.stbCotisations, wx.VERTICAL)
         grid_sizer_cotisations = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         
         grid_sizer_cotisations.Add(self.ctrl_cotisations, 1, wx.EXPAND, 0)
