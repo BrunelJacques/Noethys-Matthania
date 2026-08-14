@@ -370,8 +370,11 @@ class DlgTarification(wx.Dialog):
         self.IDindividu = dictDonnees["IDindividu"]
         self.IDactivite = dictDonnees["IDactivite"]
         self.IDgroupe = dictDonnees["IDgroupe"]
-        self.IDparrain = dictDonnees["IDparrain"]
-        if  dictDonnees["parrainAbandon"] in (0,None, False):
+        if "IDparrain" in dictDonnees:
+            self.IDparrain = dictDonnees["IDparrain"]
+        else:
+            self.IDparrain = None
+        if "parrainAbandon" in dictDonnees and dictDonnees["parrainAbandon"] in (0,None, False):
             self.parrainAbandon = False
         else: self.parrainAbandon = True
 

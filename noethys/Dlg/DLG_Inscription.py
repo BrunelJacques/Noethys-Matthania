@@ -60,7 +60,7 @@ class Choix_famille(wx.Choice):
 class ListBox(wx.ListBox):
     def __init__(self, parent, type="activites", IDindividu=None, IDcondition=None):
         wx.ListBox.__init__(self, parent, id=-1, choices=[])
-        self.parent = parent
+        self.parent = parent.Parent
         self.IDindividu = IDindividu
         self.listeDonnees = []
         self.campeur = None
@@ -80,11 +80,11 @@ class ListBox(wx.ListBox):
             self.age = GestionArticle.AgeIndividu(DB,self.IDindividu,self.parent.IDactivite,mute=True)
             DB.Close()
             if self.age>110:
-                self.GetParent().ctrl_groupes_valides.SetValue(False)
-                self.GetParent().SetAgeInconnu(True)
+                self.GrandParent.ctrl_groupes_valides.SetValue(False)
+                self.GrandParent.SetAgeInconnu(True)
             elif self.age > 0:
-                self.GetParent().SetAgeInconnu(False)
-                self.GetParent().ageConnu = True
+                self.GrandParent.SetAgeInconnu(False)
+                self.GrandParent.ageConnu = True
             self.Importation_groupes()
 
         if self.type == "categories" :
@@ -120,7 +120,7 @@ class ListBox(wx.ListBox):
         return
 
     def Importation_activites(self):
-        if self.GetParent().ctrl_activites_valides.GetValue() == True :
+        if self.GrandParent.ctrl_activites_valides.GetValue() == True :
             dateDuJour = str(datetime.date.today())
             conditionDate = "WHERE date_fin >= '%s' " % dateDuJour
         else:
@@ -142,7 +142,7 @@ class ListBox(wx.ListBox):
 
     def Importation_groupes(self):
         if self.IDcondition == None : return
-        if self.GetParent().ctrl_groupes_valides.GetValue() == True :
+        if self.GrandParent.ctrl_groupes_valides.GetValue() == True :
             self.filtreAge = True
         else:
             self.filtreAge = False
@@ -270,30 +270,30 @@ class Dialog(wx.Dialog):
         
         self.ctrl_famille = Choix_famille(self)
         
-        self.staticbox_activite_staticbox = wx.StaticBox(self, -1, _("1. Sélectionnez une activité"))
-        self.ctrl_activites = ListBox(self, type="activites")
+        self.stbActivite = wx.StaticBox(self, -1, _("1. Sélectionnez une activité"))
+        self.ctrl_activites = ListBox(self.stbActivite, type="activites")
         self.ctrl_activites.SetMinSize((-1, 80))
 
         self.ctrl_ageInconnu = wx.StaticText(self,label="Date naissance inconnue")
         self.SetAgeInconnu(False)
         self.ageConnu = False
 
-        self.ctrl_activites_valides = wx.CheckBox(self, -1, _("Afficher uniquement les activités ouvertes"))
+        self.ctrl_activites_valides = wx.CheckBox(self.stbActivite, -1, _("Afficher uniquement les activités ouvertes"))
         self.ctrl_activites_valides.SetFont(wx.Font(7, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.NORMAL))
         self.ctrl_activites_valides.SetValue(True)
         self.IDactivite = self.ctrl_activites.GetID()
 
-        self.staticbox_groupe_staticbox = wx.StaticBox(self, -1, _("2. Sélectionnez un groupe"))
-        self.ctrl_groupes = ListBox(self, type="groupes", IDindividu = self.IDindividu)
+        self.stbGroupe = wx.StaticBox(self, -1, _("2. Sélectionnez un groupe"))
+        self.ctrl_groupes = ListBox(self.stbGroupe, type="groupes", IDindividu = self.IDindividu)
         self.ctrl_groupes.SetMinSize((-1, 80))
         
-        self.ctrl_groupes_valides = wx.CheckBox(self, -1, _("Filtrer les groupes selon l'âge de l'individu"))
+        self.ctrl_groupes_valides = wx.CheckBox(self.stbGroupe, -1, _("Filtrer les groupes selon l'âge de l'individu"))
         self.ctrl_groupes_valides.SetFont(wx.Font(7, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.NORMAL))
         self.ctrl_groupes_valides.SetValue(True) 
         
         
-        self.staticbox_categorie_staticbox = wx.StaticBox(self, -1, _("3. Catégorie de tarif et type d'effectif"))
-        self.ctrl_categories = ListBox(self, type="categories")
+        self.stbCategorie = wx.StaticBox(self, -1, _("3. Catégorie de tarif et type d'effectif"))
+        self.ctrl_categories = ListBox(self.stbCategorie, type="categories")
         self.ctrl_categories.SetMinSize((-1, 50))
         
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage=Chemins.GetStaticPath("Images/32x32/Aide.png"))
@@ -334,7 +334,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(self.ctrl_famille, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         
         # Activités
-        staticbox_activite = wx.StaticBoxSizer(self.staticbox_activite_staticbox, wx.VERTICAL)
+        staticbox_activite = wx.StaticBoxSizer(self.stbActivite, wx.VERTICAL)
         grid_sizer_activite = wx.FlexGridSizer(rows=2, cols=1, vgap=2, hgap=2)
         grid_sizer_activite.Add(self.ctrl_activites, 1, wx.EXPAND, 0)
         grid_sizer_activite.Add(self.ctrl_activites_valides, 1,wx.ALIGN_RIGHT, 0)
@@ -344,7 +344,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(staticbox_activite, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         
         # Groupes
-        staticbox_groupe = wx.StaticBoxSizer(self.staticbox_groupe_staticbox, wx.VERTICAL)
+        staticbox_groupe = wx.StaticBoxSizer(self.stbGroupe, wx.VERTICAL)
         grid_sizer_groupe = wx.FlexGridSizer(rows=2, cols=1, vgap=2, hgap=2)
         grid_sizer_groupe.Add(self.ctrl_groupes, 1, wx.EXPAND, 0)
         grid_sizer_actComplements = wx.FlexGridSizer(rows=1, cols=3, vgap=2, hgap=2)
@@ -359,7 +359,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(staticbox_groupe, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         
         # Catégories de tarifs
-        staticbox_categorie = wx.StaticBoxSizer(self.staticbox_categorie_staticbox, wx.VERTICAL)
+        staticbox_categorie = wx.StaticBoxSizer(self.stbCategorie, wx.VERTICAL)
         staticbox_categorie.Add(self.ctrl_categories, 1, wx.ALL|wx.EXPAND, 5)
         grid_sizer_base.Add(staticbox_categorie, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         
