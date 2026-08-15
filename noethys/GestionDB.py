@@ -6,18 +6,11 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-import Chemins
-import sqlite3
 import datetime
 import wx
 import os, sys
-import base64
-from Data import DATA_Tables
-from Ctrl import CTRL_ChoixListe
-from Ctrl import CTRL_SaisieSimple
-from Gest import GestionArticle
-from Utils import UTILS_Fichiers
-from Utils import UTILS_Dates as ut
+
+
 
 MODE_TEAMWORKS = False
 DICT_CONNEXIONS = {}
@@ -95,6 +88,7 @@ def SetInterfaceMySQL(nom="mysqldb", pool_mysql=5):
 def GetCertificatsSSL():
     dict_certificats = {}
     liste_fichiers = [("ca", "ca-cert.pem"), ("key", "client-key.pem"), ("cert", "client-cert.pem"),]
+    from Utils import UTILS_Fichiers
     for nom, fichier in liste_fichiers :
         chemin_fichier = UTILS_Fichiers.GetRepUtilisateur(fichier)
         if os.path.isfile(chemin_fichier):
@@ -159,6 +153,7 @@ class DB():
             if "[RESEAU]" in self.nomFichier :
                 self.isNetwork = True
             else:
+                from Utils import UTILS_Fichiers
                 self.isNetwork = False
                 if suffixe != None :
                     self.nomFichier = UTILS_Fichiers.GetRepData(u"%s.dat" % self.nomFichier)
@@ -185,6 +180,7 @@ class DB():
                 return
         # Initialisation de la connexion
         try :
+            import sqlite3
             self.connexion = sqlite3.connect(nomFichier.encode('utf-8'))
             self.cursor = self.connexion.cursor()
             self.isNetwork = False
@@ -359,6 +355,7 @@ class DB():
             self.cursor.execute("SELECT LAST_INSERT_ID();")
         else:
             # Version Sqlite
+            import sqlite3
             sql = "INSERT INTO photos (IDindividu, photo) VALUES (?, ?)"
             self.cursor.execute(sql, [IDindividu, sqlite3.Binary(blobPhoto)])
             self.connexion.commit()
@@ -378,6 +375,7 @@ class DB():
             self.connexion.commit()
         else:
             # Version Sqlite
+            import sqlite3
             sql = "UPDATE photos SET IDindividu=?, photo=? WHERE IDphoto=%d" % IDphoto
             self.cursor.execute(sql, [IDindividu, sqlite3.Binary(blobPhoto)])
             self.connexion.commit()
@@ -391,6 +389,7 @@ class DB():
             self.cursor.execute(req, (blobImage,))
             self.connexion.commit()
         else:
+            import sqlite3
             # Version Sqlite
             sql = "UPDATE %s SET %s=? WHERE %s=%d" % (table, nomChampBlob, key, IDkey)
             self.cursor.execute(sql, [sqlite3.Binary(blobImage),])
@@ -672,6 +671,7 @@ class DB():
         listeNewID = []
         # Recherche des noms de champs
         listeChamps = []
+        from Data import DATA_Tables
         for nom, type, info in DATA_Tables.DB_DATA[nomTable]:
             listeChamps.append(nom)
 
@@ -1052,9 +1052,10 @@ class DB():
             for dd, df in recordset:
                 if dd < firstDeb: firstDeb = dd
                 lstClotures.append(df)
-        firstdd = ut.DateEngEnDateDD(firstDeb)
+        from Utils import UTILS_Dates
+        firstdd = UTILS_Dates.DateEngEnDateDD(firstDeb)
         cl0 = firstdd + datetime.timedelta(days=-1)
-        lst = [ut.DateDDEnDateEng(cl0),]
+        lst = [UTILS_Dates.DateDDEnDateEng(cl0),]
         lst.extend(lstClotures)
         return lst
 
@@ -1079,9 +1080,10 @@ class DB():
         lastDeb = None
         lastFin = datetime.date(1900,1,1)
         if len(recordset)>0 :
+            from Utils import UTILS_Dates
             for dd, df in recordset:
-                ddebut = ut.DateEngEnDateDD(dd)
-                dfin = ut.DateEngEnDateDD(df)
+                ddebut = UTILS_Dates.DateEngEnDateDD(dd)
+                dfin = UTILS_Dates.DateEngEnDateDD(df)
                 if not dateInput:
                     dateDebut = ddebut
                     dateFin = dfin
@@ -1116,6 +1118,7 @@ class DB():
 
     def GetUneDateCompta(self,label="Saisissez une date"):
         # retourne une date saisie, et son exercice s'il est ouvert'
+        from Ctrl import CTRL_SaisieSimple
         dlg = CTRL_SaisieSimple.DlgDate(None,label)
         dlg.ShowModal()
         dte = dlg.GetDate()
@@ -1136,6 +1139,7 @@ class DB():
         exercice = None
         dateFacture = None
         if IDactivite > 0:
+            from Gest import GestionArticle
             dateDeb, dateFin = GestionArticle.DebutFin_Activite(self,IDactivite)
             if dateFin == None or dateDeb == None:
                 # l'activité n'a pas de dates définies
@@ -1428,6 +1432,7 @@ class GestionBase(wx.Frame):
         return lstOccupations
 
 def ImporterFichierDonnees() :
+    import Chemins
     db = DB(nomFichier=Chemins.GetStaticPath("Databases/Prenoms.dat"), suffixe=None, modeCreation=True)
     db.CreationTable("prenoms",None)
     db.Close()
@@ -1443,6 +1448,7 @@ def ImporterFichierDonnees() :
     db.Close()
 
 def CreationBaseAnnonces():
+    import Chemins
     """ Création de la base de données sqlite pour les Annonces """
     DB_DATA_ANNONCES = {
             "annonces_aleatoires":[             ("IDannonce", "INTEGER PRIMARY KEY AUTOINCREMENT", "ID Annonce"),
@@ -1499,6 +1505,7 @@ def AfficheConnexionsOuvertes(msgFin="fin"):
 def DecodeMdpReseau(mdp=None):
     if mdp not in (None, "") and mdp.startswith("#64#"):
         try:
+            import base64
             mdp = base64.b64decode(mdp[4:])
             mdp = mdp.decode('utf-8')
         except:
@@ -1506,6 +1513,7 @@ def DecodeMdpReseau(mdp=None):
     return mdp
 
 def EncodeMdpReseau(mdp=None):
+    import base64
     mdp = mdp.encode()
     mdp = base64.b64encode(mdp)
     mdp = mdp.decode('utf-8')
@@ -1564,6 +1572,7 @@ class Messages(wx.Frame):
         return ret
 
     def Choix(self,listeTuples=[(1,"a"),(2,"b")], titre = "Choisissez", intro = "Dans la liste"):
+        from Ctrl import CTRL_ChoixListe
         dlg = CTRL_ChoixListe.Dialog(self,LargeurCode= 30,LargeurLib= 200,minSize = (500,300), listeOriginale=listeTuples, titre = titre, intro = intro)
         interroChoix = dlg.ShowModal()
         if interroChoix == wx.ID_OK :

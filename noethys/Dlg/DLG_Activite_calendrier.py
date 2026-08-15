@@ -28,10 +28,10 @@ class Panel(wx.Panel):
         self.IDactivite = IDactivite
                 
         # Ouvertures
-        self.staticbox_ouvertures_staticbox = wx.StaticBox(self, -1, _("Calendrier des ouvertures et des évènements"))
-        self.ctrl_ouvertures = CTRL_Calendrier_ouvertures.Calendrier(self, IDactivite=self.IDactivite)
+        self.stbOuvertures = wx.StaticBox(self, -1, _("Calendrier des ouvertures et des évènements"))
+        self.ctrl_ouvertures = CTRL_Calendrier_ouvertures.Calendrier(self.stbOuvertures, IDactivite=self.IDactivite)
         self.ctrl_ouvertures.Initialisation() 
-        self.bouton_ouvertures_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ouvertures_modifier = wx.BitmapButton(self.stbOuvertures, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
 
         self.__set_properties()
         self.__do_layout()
@@ -44,7 +44,7 @@ class Panel(wx.Panel):
         
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
-        staticbox_ouvertures = wx.StaticBoxSizer(self.staticbox_ouvertures_staticbox, wx.VERTICAL)
+        staticbox_ouvertures = wx.StaticBoxSizer(self.stbOuvertures, wx.VERTICAL)
         grid_sizer_ouvertures = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_boutons_ouvertures = wx.FlexGridSizer(rows=5, cols=1, vgap=5, hgap=5)
         grid_sizer_ouvertures.Add(self.ctrl_ouvertures, 1, wx.EXPAND, 0)

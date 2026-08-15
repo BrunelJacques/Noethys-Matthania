@@ -18,7 +18,7 @@ import wx.lib.agw.hypertreelist as HTL
 import wx.lib.colourselect
 import GestionDB
 
-from Ctrl.CTRL_Saisie_date import Date2
+from Ctrl import CTRL_Saisie_date
 from Ctrl import CTRL_Saisie_euros
 from Dlg import DLG_Saisie_categorie_question
 from Ctrl import CTRL_Vignettes_documents
@@ -501,9 +501,9 @@ class CTRL_case_coche(wx.CheckBox):
 
 # -------------------------------------------------------------------------------------------------------------------
 
-class CTRL_saisieDate(Date2):
+class CTRL_saisieDate(CTRL_Saisie_date.Date2):
     def __init__(self, parent, item=None, track=None):
-        Date2.__init__(self, parent)
+        CTRL_Saisie_date.Date2.__init__(self, parent)
         self.parent = parent
         self.item = item
         self.track = track

@@ -120,49 +120,49 @@ class Dialog(wx.Dialog):
         self.IDunite_remplissage = IDunite_remplissage
         
         # Nom
-        self.staticbox_nom_staticbox = wx.StaticBox(self, -1, _("Nom de l'unité"))
-        self.label_nom = wx.StaticText(self, -1, _("Nom complet :"))
-        self.ctrl_nom = wx.TextCtrl(self, -1, "")
+        self.stbNom = wx.StaticBox(self, -1, _("Nom de l'unité"))
+        self.label_nom = wx.StaticText(self.stbNom, -1, _("Nom complet :"))
+        self.ctrl_nom = wx.TextCtrl(self.stbNom, -1, "")
         self.ctrl_nom.SetMinSize((300, -1))
 
-        self.label_abrege = wx.StaticText(self, -1, _("Nom abrégé :"))
-        self.ctrl_abrege = wx.TextCtrl(self, -1, "")
+        self.label_abrege = wx.StaticText(self.stbNom, -1, _("Nom abrégé :"))
+        self.ctrl_abrege = wx.TextCtrl(self.stbNom, -1, "")
         
         # Caractéristiques
-        self.staticbox_caract_staticbox = wx.StaticBox(self, -1, _("Caractéristiques"))
-        self.label_seuil = wx.StaticText(self, -1, _("Seuil d'alerte :"))
-        self.ctrl_seuil = wx.SpinCtrl(self, -1, "5", size=(60, -1))
+        self.stbCaract = wx.StaticBox(self, -1, _("Caractéristiques"))
+        self.label_seuil = wx.StaticText(self.stbCaract, -1, _("Seuil d'alerte :"))
+        self.ctrl_seuil = wx.SpinCtrl(self.stbCaract, -1, "5", size=(60, -1))
         self.ctrl_seuil.SetRange(0, 200)
                 
-        self.label_unites = wx.StaticText(self, -1, _("Unités :"))
-        self.ctrl_unites = CheckListBoxUnites(self, self.IDactivite, self.IDunite_remplissage)
+        self.label_unites = wx.StaticText(self.stbCaract, -1, _("Unités :"))
+        self.ctrl_unites = CheckListBoxUnites(self.stbCaract, self.IDactivite, self.IDunite_remplissage)
         self.ctrl_unites.SetMinSize((-1, 100))
         self.ctrl_unites.MAJ() 
         
-        self.label_etiquettes = wx.StaticText(self, -1, _("Etiquettes :"))
-        self.ctrl_etiquettes = CTRL_Etiquettes.CTRL(self, listeActivites=[self.IDactivite,], nomActivite=u"Activité", activeMenu=False)
+        self.label_etiquettes = wx.StaticText(self.stbCaract, -1, _("Etiquettes :"))
+        self.ctrl_etiquettes = CTRL_Etiquettes.CTRL(self.stbCaract, listeActivites=[self.IDactivite,], nomActivite=u"Activité", activeMenu=False)
         self.ctrl_etiquettes.SetMinSize((-1, 80))
         self.ctrl_etiquettes.MAJ() 
         
-        self.label_horaire = wx.StaticText(self, -1, _("Plage horaire :"))
-        self.label_de = wx.StaticText(self, -1, _("de"))
-        self.ctrl_heure_min = CTRL_Saisie_heure.Heure(self)
-        self.label_a = wx.StaticText(self, -1, "à")
-        self.ctrl_heure_max = CTRL_Saisie_heure.Heure(self)
+        self.label_horaire = wx.StaticText(self.stbCaract, -1, _("Plage horaire :"))
+        self.label_de = wx.StaticText(self.stbCaract, -1, _("de"))
+        self.ctrl_heure_min = CTRL_Saisie_heure.Heure(self.stbCaract)
+        self.label_a = wx.StaticText(self.stbCaract, -1, "à")
+        self.ctrl_heure_max = CTRL_Saisie_heure.Heure(self.stbCaract)
         
-        self.label_affichage = wx.StaticText(self, -1, _("Affichage :"))
-        self.check_afficher_page_accueil = wx.CheckBox(self, -1, _("Effectifs de la page d'accueil"))
-        self.check_afficher_page_accueil.SetValue(True) 
-        self.check_afficher_grille_conso = wx.CheckBox(self, -1, _("Grille des consommations"))
+        self.label_affichage = wx.StaticText(self.stbCaract, -1, _("Affichage :"))
+        self.check_afficher_page_accueil = wx.CheckBox(self.stbCaract, -1, _("Effectifs de la page d'accueil"))
+        self.check_afficher_page_accueil.SetValue(True)
+        self.check_afficher_grille_conso = wx.CheckBox(self.stbCaract, -1, _("Grille des consommations"))
         self.check_afficher_grille_conso.SetValue(True) 
 
         # Validité
-        self.staticbox_validite_staticbox = wx.StaticBox(self, -1, _("Validité"))
-        self.radio_illimitee = wx.RadioButton(self, -1, _("Durant la période de validité de l'activité"), style=wx.RB_GROUP)
-        self.radio_limitee = wx.RadioButton(self, -1, "Du")
-        self.ctrl_date_debut = CTRL_Saisie_date.Date(self)
-        self.label_au = wx.StaticText(self, -1, _("au"))
-        self.ctrl_date_fin = CTRL_Saisie_date.Date(self)
+        self.stbValidite = wx.StaticBox(self, -1, _("Validité"))
+        self.radio_illimitee = wx.RadioButton(self.stbValidite, -1, _("Durant la période de validité de l'activité"), style=wx.RB_GROUP)
+        self.radio_limitee = wx.RadioButton(self.stbValidite, -1, "Du")
+        self.ctrl_date_debut = CTRL_Saisie_date.Date(self.stbValidite)
+        self.label_au = wx.StaticText(self.stbValidite, -1, _("au"))
+        self.ctrl_date_fin = CTRL_Saisie_date.Date(self.stbValidite)
         
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"), cheminImage="Images/32x32/Valider.png")
@@ -204,7 +204,7 @@ class Dialog(wx.Dialog):
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
         # Nom
-        staticbox_nom = wx.StaticBoxSizer(self.staticbox_nom_staticbox, wx.VERTICAL)
+        staticbox_nom = wx.StaticBoxSizer(self.stbNom, wx.VERTICAL)
         grid_sizer_nom = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         grid_sizer_nom.Add(self.label_nom, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_nom.Add(self.ctrl_nom, 0, wx.EXPAND, 0)
@@ -214,7 +214,7 @@ class Dialog(wx.Dialog):
         staticbox_nom.Add(grid_sizer_nom, 1, wx.ALL|wx.EXPAND, 10)
         grid_sizer_base.Add(staticbox_nom, 1, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 10)
         # Caract
-        staticbox_caract = wx.StaticBoxSizer(self.staticbox_caract_staticbox, wx.VERTICAL)
+        staticbox_caract = wx.StaticBoxSizer(self.stbCaract, wx.VERTICAL)
         grid_sizer_caract = wx.FlexGridSizer(rows=7, cols=2, vgap=15, hgap=5)
         grid_sizer_caract.Add(self.label_seuil, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_caract.Add(self.ctrl_seuil, 0, 0, 0)
@@ -243,7 +243,7 @@ class Dialog(wx.Dialog):
         staticbox_caract.Add(grid_sizer_caract, 1, wx.ALL|wx.EXPAND, 10)
         grid_sizer_base.Add(staticbox_caract, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         # Validité
-        staticbox_validite = wx.StaticBoxSizer(self.staticbox_validite_staticbox, wx.VERTICAL)
+        staticbox_validite = wx.StaticBoxSizer(self.stbValidite, wx.VERTICAL)
         grid_sizer_validite = wx.FlexGridSizer(rows=2, cols=1, vgap=5, hgap=5)
         grid_sizer_validite.Add(self.radio_illimitee, 0, 0, 0)
         grid_sizer_dates = wx.FlexGridSizer(rows=1, cols=4, vgap=5, hgap=5)

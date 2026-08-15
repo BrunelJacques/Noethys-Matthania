@@ -80,12 +80,12 @@ class Dialog(wx.Dialog):
             self.SetTitle(title)
             
         self.staticbox = wx.StaticBox(self, -1, "")
-        self.label = wx.StaticText(self, -1, _("Veuillez saisir le paramétre : %s")% self.nomParam)
-        self.ctrl_param = CTRL(self, modeDLG=False)
+        self.label = wx.StaticText(self.staticbox, -1, _("Veuillez saisir le paramétre : %s")% self.nomParam)
+        self.ctrl_param = CTRL(self.staticbox, modeDLG=False)
         self.ctrl_param.SetDescriptiveText("Saisir "+nomParam)
 
         # Texte pour rappeller mot de passe du fichier Exemple
-        self.label_exemple = wx.StaticText(self, -1, _("La saisie sera stockée par <Enregistrer>"))
+        self.label_exemple = wx.StaticText(self.staticbox, -1, _("La saisie sera stockée par <Enregistrer>"))
         self.label_exemple.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL))
         self.label_exemple.SetForegroundColour((130, 130, 130))
 
@@ -154,8 +154,8 @@ class DlgDate(wx.Dialog):
             self.SetTitle(title)
 
         self.staticbox = wx.StaticBox(self, -1, "")
-        self.label = wx.StaticText(self, -1, _("%s")% self.nomParam)
-        self.ctrl_param = CTRL_date(self)
+        self.label = wx.StaticText(self.staticbox, -1, _("%s")% self.nomParam)
+        self.ctrl_param = CTRL_date(self.staticbox)
 
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Validez"), cheminImage=Chemins.GetStaticPath("Images/32x32/Valider.png"))
         self.bouton_annuler = CTRL_Bouton_image.CTRL(self, texte=_("Abandon"), cheminImage=Chemins.GetStaticPath("Images/32x32/Annuler.png"))

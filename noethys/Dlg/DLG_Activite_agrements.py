@@ -25,22 +25,22 @@ class Panel(wx.Panel):
         self.parent = parent
         self.IDactivite = IDactivite
         
-        self.staticbox_agrements_staticbox = wx.StaticBox(self, -1, _("Agréments de l'activité"))
-        self.radio_aucun = wx.RadioButton(self, -1, "")
+        self.stbAgrements = wx.StaticBox(self, -1, _("Agréments de l'activité"))
+        self.radio_aucun = wx.RadioButton(self.stbAgrements, -1, "")
         self.radio_aucun.SetValue(True)
-        self.label_aucun = wx.StaticText(self, -1, _("Aucun agrément"))
-        self.radio_unique = wx.RadioButton(self, -1, "")
-        self.label_unique = wx.StaticText(self, -1, _("Agrément unique :"))
-        self.ctrl_agrement_unique = wx.TextCtrl(self, -1, "")
-        self.radio_multiples = wx.RadioButton(self, -1, "")
-        self.label_multiples = wx.StaticText(self, -1, _("Agréments multiples :"))
+        self.label_aucun = wx.StaticText(self.stbAgrements, -1, _("Aucun agrément"))
+        self.radio_unique = wx.RadioButton(self.stbAgrements, -1, "")
+        self.label_unique = wx.StaticText(self.stbAgrements, -1, _("Agrément unique :"))
+        self.ctrl_agrement_unique = wx.TextCtrl(self.stbAgrements, -1, "")
+        self.radio_multiples = wx.RadioButton(self.stbAgrements, -1, "")
+        self.label_multiples = wx.StaticText(self.stbAgrements, -1, _("Agréments multiples :"))
         
-        self.ctrl_agrements = OL_Agrements.ListView(self, IDactivite=self.IDactivite, id=-1, name="OL_agrements", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
+        self.ctrl_agrements = OL_Agrements.ListView(self.stbAgrements, IDactivite=self.IDactivite, id=-1, name="OL_agrements", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         self.ctrl_agrements.MAJ() 
         
-        self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter = wx.BitmapButton(self.stbAgrements, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier = wx.BitmapButton(self.stbAgrements, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer = wx.BitmapButton(self.stbAgrements, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
 
         self.__set_properties()
         self.__do_layout()
@@ -71,7 +71,7 @@ class Panel(wx.Panel):
 
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=1, cols=1, vgap=10, hgap=10)
-        staticbox_agrements = wx.StaticBoxSizer(self.staticbox_agrements_staticbox, wx.VERTICAL)
+        staticbox_agrements = wx.StaticBoxSizer(self.stbAgrements, wx.VERTICAL)
         grid_sizer_agrements = wx.FlexGridSizer(rows=4, cols=2, vgap=5, hgap=5)
         grid_sizer_multiples = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_boutons = wx.FlexGridSizer(rows=3, cols=1, vgap=5, hgap=5)

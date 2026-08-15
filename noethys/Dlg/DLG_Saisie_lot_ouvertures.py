@@ -8,15 +8,10 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
-import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
 from Ctrl import CTRL_Saisie_date
-
-
 
 
 class CTRL_Jours(wx.Panel):
@@ -64,9 +59,7 @@ class CTRL_Jours(wx.Panel):
                 etat = False
             getattr(self, "check_%s" % jour).SetValue(etat)
             index += 1
-            
-        
-        
+
         
 # ---------------------------------------------------------------------------------------------------------------------------------------
 
@@ -77,17 +70,17 @@ class Dialog(wx.Dialog):
         self.afficheElements = afficheElements
         
         # Action
-        self.box_action_staticbox = wx.StaticBox(self, -1, _("Action"))
+        self.stbAction = wx.StaticBox(self, -1, _("Action"))
         
-        self.label_action = wx.StaticText(self, -1, _("Action :"))
-        self.radio_date = wx.RadioButton(self, -1, _("Copier le"))
-        self.ctrl_date = CTRL_Saisie_date.Date2(self)
-        self.radio_renitialisation = wx.RadioButton(self, -1, _("Réinitialisation"))
+        self.label_action = wx.StaticText(self.stbAction, -1, _("Action :"))
+        self.radio_date = wx.RadioButton(self.stbAction, -1, _("Copier le"))
+        self.ctrl_date = CTRL_Saisie_date.Date2(self.stbAction)
+        self.radio_renitialisation = wx.RadioButton(self.stbAction, -1, _("Réinitialisation"))
         
-        self.label_elements = wx.StaticText(self, -1, _("Eléments :"))
-        self.check_ouvertures = wx.CheckBox(self, -1, _("Ouvertures"))
-        self.check_places = wx.CheckBox(self, -1, _("Nbre de places max."))
-        self.check_evenements = wx.CheckBox(self, -1, _("Evènements"))
+        self.label_elements = wx.StaticText(self.stbAction, -1, _("Eléments :"))
+        self.check_ouvertures = wx.CheckBox(self.stbAction, -1, _("Ouvertures"))
+        self.check_places = wx.CheckBox(self.stbAction, -1, _("Nbre de places max."))
+        self.check_evenements = wx.CheckBox(self.stbAction, -1, _("Evènements"))
 
         if self.afficheElements == False :
             self.label_elements.Show(False)
@@ -96,22 +89,22 @@ class Dialog(wx.Dialog):
             self.check_evenements.Show(False)
         
         # Période
-        self.box_periode_staticbox = wx.StaticBox(self, -1, _("Période d'application"))
+        self.stbPeriode = wx.StaticBox(self, -1, _("Période d'application"))
         
-        self.label_date_debut = wx.StaticText(self, -1, "Du")
-        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self)
-        self.label_date_fin = wx.StaticText(self, -1, _("au"))
-        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self)
+        self.label_date_debut = wx.StaticText(self.stbPeriode, -1, "Du")
+        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self.stbPeriode)
+        self.label_date_fin = wx.StaticText(self.stbPeriode, -1, _("au"))
+        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self.stbPeriode)
         
         # Jours
-        self.box_jours_staticbox = wx.StaticBox(self, -1, _("Jours"))
+        self.stbJours = wx.StaticBox(self, -1, _("Jours"))
         
-        self.label_scolaires = wx.StaticText(self, -1, _("Scolaires :"))
-        self.ctrl_scolaires = CTRL_Jours(self, "scolaire")
-        self.label_vacances = wx.StaticText(self, -1, _("Vacances :"))
-        self.ctrl_vacances = CTRL_Jours(self, "vacances")
-        self.label_feries = wx.StaticText(self, -1, _("Fériés :"))
-        self.ctrl_feries = wx.CheckBox(self, -1, _("Inclure les jours fériés"))
+        self.label_scolaires = wx.StaticText(self.stbJours, -1, _("Scolaires :"))
+        self.ctrl_scolaires = CTRL_Jours(self.stbJours, "scolaire")
+        self.label_vacances = wx.StaticText(self.stbJours, -1, _("Vacances :"))
+        self.ctrl_vacances = CTRL_Jours(self.stbJours, "vacances")
+        self.label_feries = wx.StaticText(self.stbJours, -1, _("Fériés :"))
+        self.ctrl_feries = wx.CheckBox(self.stbJours, -1, _("Inclure les jours fériés"))
 
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"), cheminImage="Images/32x32/Valider.png")
@@ -153,7 +146,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base = wx.FlexGridSizer(rows=5, cols=1, vgap=10, hgap=10)
         
         # Action
-        box_action = wx.StaticBoxSizer(self.box_action_staticbox, wx.VERTICAL)
+        box_action = wx.StaticBoxSizer(self.stbAction, wx.VERTICAL)
         grid_sizer_action = wx.FlexGridSizer(rows=2, cols=2, vgap=15, hgap=15)
         grid_sizer_elements = wx.FlexGridSizer(rows=3, cols=1, vgap=5, hgap=5)
         grid_sizer_action2 = wx.FlexGridSizer(rows=2, cols=1, vgap=5, hgap=5)
@@ -177,7 +170,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(box_action, 1, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 10)
         
         # Périodes
-        box_periode = wx.StaticBoxSizer(self.box_periode_staticbox, wx.VERTICAL)
+        box_periode = wx.StaticBoxSizer(self.stbPeriode, wx.VERTICAL)
         grid_sizer_periode = wx.FlexGridSizer(rows=1, cols=4, vgap=5, hgap=5)
         grid_sizer_periode.Add(self.label_date_debut, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_periode.Add(self.ctrl_date_debut, 0, 0, 0)
@@ -188,7 +181,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(box_periode, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         
         # Jours
-        box_jours = wx.StaticBoxSizer(self.box_jours_staticbox, wx.VERTICAL)
+        box_jours = wx.StaticBoxSizer(self.stbJours, wx.VERTICAL)
         grid_sizer_jours = wx.FlexGridSizer(rows=3, cols=2, vgap=10, hgap=10)
         grid_sizer_jours.Add(self.label_scolaires, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_jours.Add(self.ctrl_scolaires, 0, wx.EXPAND, 0)

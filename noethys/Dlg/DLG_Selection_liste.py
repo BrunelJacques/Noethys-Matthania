@@ -9,14 +9,10 @@
 #------------------------------------------------------------------------
 
 
-import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
 import wx.lib.agw.hyperlink as hl
-from wx.lib.mixins.listctrl import CheckListCtrlMixin
-import six
 
 
 class Dialog(wx.Dialog):
@@ -152,10 +148,12 @@ class Dialog(wx.Dialog):
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-class ListCtrl(wx.ListCtrl, CheckListCtrlMixin):
+class ListCtrl(wx.ListCtrl):
     def __init__(self, parent, listeColonnes, listeValeurs):
         wx.ListCtrl.__init__(self, parent, -1, style=wx.LC_REPORT|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
-        CheckListCtrlMixin.__init__(self)
+
+        # Activer explicitement pour le composant sous-jacent sous Windows / wxWidgets
+        self.EnableCheckBoxes()
         self.parent = parent
         self.listeColonnes = listeColonnes
         self.listeValeurs = listeValeurs
@@ -181,23 +179,19 @@ class ListCtrl(wx.ListCtrl, CheckListCtrlMixin):
                 ID = 0
             else :
                 ID = int(valeurs[0])
-            if 'phoenix' in wx.PlatformInfo:
-                index = self.InsertItem(six.MAXSIZE, str(ID))
-            else:
-                index = self.InsertStringItem(six.MAXSIZE, str(ID))
+
+            index = self.InsertItem(ID, str(ID))
+
             x = 1
             for valeur in valeurs[1:] :
-                if 'phoenix' in wx.PlatformInfo:
-                    self.SetItem(index, x, valeur)
-                else:
-                    self.SetStringItem(index, x, valeur)
+                self.SetItem(index, x, valeur)
                 x += 1
 
             self.SetItemData(index, ID)
                 
             # Check
-            if action == None or action == "select" :
-                self.CheckItem(index) 
+            #if action == None  or action == "select" :
+            #    self.CheckItem(index)
     
         self.remplissage = False
 
@@ -215,19 +209,16 @@ class ListCtrl(wx.ListCtrl, CheckListCtrlMixin):
         for index in range(0, nbreItems) :
             ID = int(self.GetItem(index, 0).GetText())
             # Vérifie si l'item est coché
-            if self.IsChecked(index) :
+            if self.IsSelected(index) :
                 listeIDcoches.append(ID)
         return listeIDcoches
-        
 
-
-    
     
 if __name__ == "__main__":
     app = wx.App(0)
     #wx.InitAllImageHandlers()
     liste_labelsColonnes=[(u"COL1", "left", 50, "col1"), (u"COL2", "left", 200, "col2"),]
-    listeValeurs=[ (1, _("ligne1-col2")), (2, _("ligne2-col2")),]
+    listeValeurs=[ (1, "ligne1-col2"), (2, "ligne2-col2"),]
     frm = Dialog(None, liste_labelsColonnes, listeValeurs)
     frm.ShowModal()
     app.MainLoop()

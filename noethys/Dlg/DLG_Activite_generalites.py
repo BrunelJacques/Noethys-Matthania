@@ -121,84 +121,84 @@ class Panel(wx.Panel):
         self.nbreOuvertures = 0
         
         # Nom Activité
-        self.staticbox_nom_staticbox = wx.StaticBox(self, -1, _("Nom de l'activité"))
-        self.label_nom_complet = wx.StaticText(self, -1, _("Nom complet :"))
-        self.ctrl_nom_complet = wx.TextCtrl(self, -1, "")
-        self.label_nom_abrege = wx.StaticText(self, -1, _("Nom abrégé :"))
-        self.ctrl_nom_abrege = wx.TextCtrl(self, -1, "")
+        self.stbNom = wx.StaticBox(self, -1, _("Nom de l'activité"))
+        self.label_nom_complet = wx.StaticText(self.stbNom, -1, _("Nom complet :"))
+        self.ctrl_nom_complet = wx.TextCtrl(self.stbNom, -1, "")
+        self.label_nom_abrege = wx.StaticText(self.stbNom, -1, _("Nom abrégé :"))
+        self.ctrl_nom_abrege = wx.TextCtrl(self.stbNom, -1, "")
         
         # Coords
-        self.staticbox_coords_staticbox = wx.StaticBox(self, -1, _("Coordonnées"))
-        self.radio_coords_org = wx.RadioButton(self, -1, "", style=wx.RB_GROUP)
-        self.label_coords_org = wx.StaticText(self, -1, _("Identique à l'organisateur"))
-        self.radio_coords_autres = wx.RadioButton(self, -1, "")
-        self.label_coords_autres = wx.StaticText(self, -1, _("Autres coordonnées :"))
-        self.label_rue = wx.StaticText(self, -1, _("Rue :"))
-        self.ctrl_rue = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE)
-        self.label_ville = wx.StaticText(self, -1, _("C.P. :"))
-        self.ctrl_ville = CTRL_Saisie_adresse.Adresse(self)
-        self.label_tel = wx.StaticText(self, -1, _("Tél :"))
-        self.ctrl_tel = CTRL_Saisie_tel.Tel(self, intitule=_("contact pour cette activité"))
-        self.label_mail = wx.StaticText(self, -1, _("Email :"))
-        self.ctrl_mail = CTRL_Saisie_mail.Mail(self)
-        self.label_fax = wx.StaticText(self, -1, _("Fax :"))
-        self.ctrl_fax = CTRL_Saisie_tel.Tel(self, intitule=_("fax"))
-        self.label_site = wx.StaticText(self, -1, _("Site internet :"))
-        self.ctrl_site = wx.TextCtrl(self, -1, "")
+        self.stbcoords = wx.StaticBox(self, -1, _("Coordonnées"))
+        self.radio_coords_org = wx.RadioButton(self.stbcoords, -1, "", style=wx.RB_GROUP)
+        self.label_coords_org = wx.StaticText(self.stbcoords, -1, _("Identique à l'organisateur"))
+        self.radio_coords_autres = wx.RadioButton(self.stbcoords, -1, "")
+        self.label_coords_autres = wx.StaticText(self.stbcoords, -1, _("Autres coordonnées :"))
+        self.label_rue = wx.StaticText(self.stbcoords, -1, _("Rue :"))
+        self.ctrl_rue = wx.TextCtrl(self.stbcoords, -1, "", style=wx.TE_MULTILINE)
+        self.label_ville = wx.StaticText(self.stbcoords, -1, _("C.P. :"))
+        self.ctrl_ville = CTRL_Saisie_adresse.Adresse(self.stbcoords)
+        self.label_tel = wx.StaticText(self.stbcoords, -1, _("Tél :"))
+        self.ctrl_tel = CTRL_Saisie_tel.Tel(self.stbcoords, intitule=_("contact pour cette activité"))
+        self.label_mail = wx.StaticText(self.stbcoords, -1, _("Email :"))
+        self.ctrl_mail = CTRL_Saisie_mail.Mail(self.stbcoords)
+        self.label_fax = wx.StaticText(self.stbcoords, -1, _("Fax :"))
+        self.ctrl_fax = CTRL_Saisie_tel.Tel(self.stbcoords, intitule=_("fax"))
+        self.label_site = wx.StaticText(self.stbcoords, -1, _("Site internet :"))
+        self.ctrl_site = wx.TextCtrl(self.stbcoords, -1, "")
         
         # Responsables
-        self.staticbox_responsables_staticbox = wx.StaticBox(self, -1, _("Responsables de l'activité"))
-        self.ctrl_responsables = OL_Responsables_activite.ListView(self, IDactivite=IDactivite, id=-1, name="OL_responsables", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
+        self.stbResponsables = wx.StaticBox(self, -1, _("Responsables de l'activité"))
+        self.ctrl_responsables = OL_Responsables_activite.ListView(self.stbResponsables, IDactivite=IDactivite, id=-1, name="OL_responsables", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         self.ctrl_responsables.SetMinSize((-1, 40))
         self.ctrl_responsables.MAJ() 
-        self.bouton_ajouter_responsable = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier_responsable = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer_responsable = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_defaut_responsable = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ok.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter_responsable = wx.BitmapButton(self.stbResponsables, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier_responsable = wx.BitmapButton(self.stbResponsables, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer_responsable = wx.BitmapButton(self.stbResponsables, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_defaut_responsable = wx.BitmapButton(self.stbResponsables, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ok.png"), wx.BITMAP_TYPE_ANY))
 
         # Code comptable
-        self.staticbox_code_comptable_staticbox = wx.StaticBox(self, -1, _("Compta: codes analytiques"))
-        self.label_code_comptable = wx.StaticText(self, -1, _("Activité :"))
-        self.ctrl_code_comptable = wx.TextCtrl(self, -1, "")
-        self.label_code_transport = wx.StaticText(self, -1, _("Convoi :"))
-        self.ctrl_code_transport = wx.TextCtrl(self, -1, "")
+        self.stbCodeCpt = wx.StaticBox(self, -1, _("Compta: codes analytiques"))
+        self.label_code_comptable = wx.StaticText(self.stbCodeCpt, -1, _("Activité :"))
+        self.ctrl_code_comptable = wx.TextCtrl(self.stbCodeCpt, -1, "")
+        self.label_code_transport = wx.StaticText(self.stbCodeCpt, -1, _("Convoi :"))
+        self.ctrl_code_transport = wx.TextCtrl(self.stbCodeCpt, -1, "")
 
         # Groupes d'activités
-        self.staticbox_groupes_staticbox = wx.StaticBox(self, -1, _("Regroupement d'activités"))
-        self.ctrl_groupes = CTRL_Groupes_activite(self)
+        self.stbGroupes = wx.StaticBox(self, -1, _("Regroupement d'activités"))
+        self.ctrl_groupes = CTRL_Groupes_activite(self.stbGroupes)
         self.ctrl_groupes.SetMinSize((320, 70))
         
         # Logo
-        self.staticbox_logo_staticbox = wx.StaticBox(self, -1, _("Logo"))
-        self.radio_logo_org = wx.RadioButton(self, -1, "Identique à l'organisateur", style=wx.RB_GROUP)
-        self.radio_logo_autre = wx.RadioButton(self, -1, "Autre logo :")
-        self.bouton_modifier_logo = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer_logo = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_visualiser_logo = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Loupe.png"), wx.BITMAP_TYPE_ANY))
-        self.ctrl_logo = CTRL_Logo.CTRL(self, qualite=100, couleurFond=wx.Colour(255, 255, 255), size=self.bouton_modifier_logo.GetSize())
+        self.stbLogo = wx.StaticBox(self, -1, _("Logo"))
+        self.radio_logo_org = wx.RadioButton(self.stbLogo, -1, "Identique à l'organisateur", style=wx.RB_GROUP)
+        self.radio_logo_autre = wx.RadioButton(self.stbLogo, -1, "Autre logo :")
+        self.bouton_modifier_logo = wx.BitmapButton(self.stbLogo, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer_logo = wx.BitmapButton(self.stbLogo, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_visualiser_logo = wx.BitmapButton(self.stbLogo, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Loupe.png"), wx.BITMAP_TYPE_ANY))
+        self.ctrl_logo = CTRL_Logo.CTRL(self.stbLogo, qualite=100, couleurFond=wx.Colour(255, 255, 255), size=self.bouton_modifier_logo.GetSize())
 
         # Validité
-        self.staticbox_validite_staticbox = wx.StaticBox(self, -1, _("Dates de validité"))
-        self.radio_illimitee = wx.RadioButton(self, -1, "", style=wx.RB_GROUP)
-        self.label_illimitee = wx.StaticText(self, -1, _("Illimitée"))
-        self.radio_limitee = wx.RadioButton(self, -1, "")
-        self.label_validite_du = wx.StaticText(self, -1, "Du")
-        self.ctrl_validite_du = CTRL_Saisie_date.Date(self)
-        self.label_validite_au = wx.StaticText(self, -1, _("au"))
-        self.ctrl_validite_au = CTRL_Saisie_date.Date(self)
+        self.stbValidite = wx.StaticBox(self, -1, _("Dates de validité"))
+        self.radio_illimitee = wx.RadioButton(self.stbValidite, -1, "", style=wx.RB_GROUP)
+        self.label_illimitee = wx.StaticText(self.stbValidite, -1, _("Illimitée"))
+        self.radio_limitee = wx.RadioButton(self.stbValidite, -1, "")
+        self.label_validite_du = wx.StaticText(self.stbValidite, -1, "Du")
+        self.ctrl_validite_du = CTRL_Saisie_date.Date(self.stbValidite)
+        self.label_validite_au = wx.StaticText(self.stbValidite, -1, _("au"))
+        self.ctrl_validite_au = CTRL_Saisie_date.Date(self.stbValidite)
         
         # Public
-        self.staticbox_public_staticbox = wx.StaticBox(self, -1, _("Public"))
-        self.ctrl_public = CTRL_Public(self)
+        self.stbPublic = wx.StaticBox(self, -1, _("Public"))
+        self.ctrl_public = CTRL_Public(self.stbPublic)
         listePublic = [(1, _("Représentants"), False), (2, _("Enfants"), False),]
         self.ctrl_public.SetData(listePublic)
         self.ctrl_public.SetMinSize((-1, 40))
 
         # Nombre max d'inscrits
-        self.staticbox_limitation_inscrits_staticbox = wx.StaticBox(self, -1, _("Limitation du nombre d'inscrits"))
-        self.check_limitation_inscrits = wx.CheckBox(self, -1, _("Nombre d'inscrits maximal :"))
-        self.ctrl_limitation_inscrits = wx.SpinCtrl(self, -1, size=(80, -1), min=1, max=99999)
-        self.check_inscriptions_multiples = wx.CheckBox(self, -1, _("Autoriser les inscriptions multiples pour un individu"))
+        self.stbLimitInscrits = wx.StaticBox(self, -1, _("Limitation du nombre d'inscrits"))
+        self.check_limitation_inscrits = wx.CheckBox(self.stbLimitInscrits, -1, _("Nombre d'inscrits maximal :"))
+        self.ctrl_limitation_inscrits = wx.SpinCtrl(self.stbLimitInscrits, -1, size=(80, -1), min=1, max=99999)
+        self.check_inscriptions_multiples = wx.CheckBox(self.stbLimitInscrits, -1, _("Autoriser les inscriptions multiples pour un individu"))
 
         self.__set_properties()
         self.__do_layout()
@@ -272,7 +272,7 @@ class Panel(wx.Panel):
         grid_sizer_gauche = wx.FlexGridSizer(rows=6, cols=1, vgap=10, hgap=10)
 
         # Nom activité
-        staticbox_nom = wx.StaticBoxSizer(self.staticbox_nom_staticbox, wx.VERTICAL)
+        staticbox_nom = wx.StaticBoxSizer(self.stbNom, wx.VERTICAL)
         grid_sizer_nom = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         grid_sizer_nom.Add(self.label_nom_complet, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_nom.Add(self.ctrl_nom_complet, 0, wx.EXPAND, 0)
@@ -283,7 +283,7 @@ class Panel(wx.Panel):
         grid_sizer_gauche.Add(staticbox_nom, 1, wx.EXPAND, 0)
 
         # Validité
-        staticbox_validite = wx.StaticBoxSizer(self.staticbox_validite_staticbox, wx.VERTICAL)
+        staticbox_validite = wx.StaticBoxSizer(self.stbValidite, wx.VERTICAL)
         grid_sizer_validite = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         grid_sizer_validite_limitee = wx.FlexGridSizer(rows=1, cols=4, vgap=5, hgap=5)
         grid_sizer_validite.Add(self.radio_illimitee, 0, wx.ALIGN_CENTER_VERTICAL, 0)
@@ -298,12 +298,12 @@ class Panel(wx.Panel):
         grid_sizer_gauche.Add(staticbox_validite, 1, wx.EXPAND, 0)
 
         # Regroupement d'activités
-        staticbox_groupes = wx.StaticBoxSizer(self.staticbox_groupes_staticbox, wx.VERTICAL)
+        staticbox_groupes = wx.StaticBoxSizer(self.stbGroupes, wx.VERTICAL)
         staticbox_groupes.Add(self.ctrl_groupes, 1, wx.ALL|wx.EXPAND, 5)
         grid_sizer_gauche.Add(staticbox_groupes, 1, wx.EXPAND, 0)
 
         # Limitation nombre inscrits
-        staticbox_inscriptions = wx.StaticBoxSizer(self.staticbox_limitation_inscrits_staticbox, wx.VERTICAL)
+        staticbox_inscriptions = wx.StaticBoxSizer(self.stbLimitInscrits, wx.VERTICAL)
         grid_sizer_limitation_inscrits = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_limitation_inscrits.Add(self.check_limitation_inscrits, 0, wx.EXPAND, 0)
         grid_sizer_limitation_inscrits.Add(self.ctrl_limitation_inscrits, 0, wx.EXPAND, 0)
@@ -312,7 +312,7 @@ class Panel(wx.Panel):
         grid_sizer_gauche.Add(staticbox_inscriptions, 1, wx.EXPAND, 0)
 
         # Comptabilité Analytique
-        staticbox_code_analytique = wx.StaticBoxSizer(self.staticbox_code_comptable_staticbox, wx.HORIZONTAL)
+        staticbox_code_analytique = wx.StaticBoxSizer(self.stbCodeCpt, wx.HORIZONTAL)
         grid_sizer_analytique = wx.FlexGridSizer(rows=1, cols=4, vgap=5, hgap=5)
         grid_sizer_analytique.Add(self.label_code_comptable, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_analytique.Add(self.ctrl_code_comptable, 0, wx.EXPAND, 0)
@@ -331,7 +331,7 @@ class Panel(wx.Panel):
         grid_sizer_droit = wx.FlexGridSizer(rows=5, cols=1, vgap=10, hgap=10)
 
         # Responsables
-        staticbox_responsables = wx.StaticBoxSizer(self.staticbox_responsables_staticbox, wx.VERTICAL)
+        staticbox_responsables = wx.StaticBoxSizer(self.stbResponsables, wx.VERTICAL)
         grid_sizer_responsables = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_responsables_boutons = wx.FlexGridSizer(rows=5, cols=1, vgap=5, hgap=5)
         grid_sizer_responsables.Add(self.ctrl_responsables, 1, wx.EXPAND, 0)
@@ -352,12 +352,12 @@ class Panel(wx.Panel):
         """
 
         # Public
-        staticbox_public = wx.StaticBoxSizer(self.staticbox_public_staticbox, wx.VERTICAL)
+        staticbox_public = wx.StaticBoxSizer(self.stbPublic, wx.VERTICAL)
         staticbox_public.Add(self.ctrl_public, 0, wx.ALL|wx.EXPAND, 5)
         grid_sizer_droit.Add(staticbox_public, 1, wx.EXPAND, 0)
 
         # Logo
-        staticbox_logo = wx.StaticBoxSizer(self.staticbox_logo_staticbox, wx.VERTICAL)
+        staticbox_logo = wx.StaticBoxSizer(self.stbLogo, wx.VERTICAL)
         grid_sizer_logo = wx.FlexGridSizer(rows=1, cols=8, vgap=5, hgap=5)
         grid_sizer_logo.Add(self.radio_logo_org, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_logo.Add((10, 10), 0, wx.EXPAND, 0)
@@ -370,7 +370,7 @@ class Panel(wx.Panel):
         grid_sizer_droit.Add(staticbox_logo, 1, wx.EXPAND, 0)
 
         # Coordonnées
-        staticbox_coords = wx.StaticBoxSizer(self.staticbox_coords_staticbox, wx.VERTICAL)
+        staticbox_coords = wx.StaticBoxSizer(self.stbcoords, wx.VERTICAL)
         grid_sizer_coords = wx.FlexGridSizer(rows=3, cols=2, vgap=5, hgap=5)
         grid_sizer_coords_autres = wx.FlexGridSizer(rows=4, cols=2, vgap=5, hgap=5)
         grid_sizer_fax = wx.FlexGridSizer(rows=1, cols=3, vgap=5, hgap=5)

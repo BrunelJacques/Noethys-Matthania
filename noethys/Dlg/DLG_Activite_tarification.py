@@ -22,26 +22,26 @@ class Panel(wx.Panel):
         self.IDactivite = IDactivite
 
         # Catégories de tarifs
-        self.staticbox_categories_staticbox = wx.StaticBox(self, -1, _("Catégories de tarifs"))
-        self.ctrl_categories = OL_Categories_tarifs.ListView(self, id=-1, IDactivite=IDactivite, name="OL_categories",
+        self.stbCategories = wx.StaticBox(self, -1, _("Catégories de tarifs"))
+        self.ctrl_categories = OL_Categories_tarifs.ListView(self.stbCategories, id=-1, IDactivite=IDactivite, name="OL_categories",
                                     style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         self.ctrl_categories.MAJ() 
 
-        self.bouton_ajouter_categorie = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier_categorie = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer_categorie = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter_categorie = wx.BitmapButton(self.stbCategories, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier_categorie = wx.BitmapButton(self.stbCategories, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer_categorie = wx.BitmapButton(self.stbCategories, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
 
         # Tarifs
-        self.staticbox_tarifs_staticbox = wx.StaticBox(self, -1, _("Affectations des tarifs selon type campeur"))
+        self.stbTarifs = wx.StaticBox(self, -1, _("Affectations des tarifs selon type campeur"))
 
-        self.ctrl_tarification = OL_Tarifs.ListView(self, id=-1, IDactivite=self.IDactivite,style=wx.LC_REPORT )
+        self.ctrl_tarification = OL_Tarifs.ListView(self.stbTarifs, id=-1, IDactivite=self.IDactivite,style=wx.LC_REPORT )
         #style=wx.LC_HRULES|wx.LC_VRULES
         self.ctrl_tarification.MAJ()
-        self.ctrl_recherche = OL_Tarifs.CTRL_Outils(self, listview=self.ctrl_tarification)
+        self.ctrl_recherche = OL_Tarifs.CTRL_Outils(self.stbTarifs, listview=self.ctrl_tarification)
 
         #self.bouton_ajouter_tarif = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier_tarif = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer_tarif = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier_tarif = wx.BitmapButton(self.stbTarifs, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer_tarif = wx.BitmapButton(self.stbTarifs, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
         #self.bouton_dupliquer_tarif = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Dupliquer.png"), wx.BITMAP_TYPE_ANY))
 
         self.__set_properties()
@@ -70,7 +70,7 @@ class Panel(wx.Panel):
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
         
         # Catégories de tarifs
-        staticbox_categories = wx.StaticBoxSizer(self.staticbox_categories_staticbox, wx.VERTICAL)
+        staticbox_categories = wx.StaticBoxSizer(self.stbCategories, wx.VERTICAL)
         grid_sizer_categories = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_boutons_categories = wx.FlexGridSizer(rows=5, cols=1, vgap=5, hgap=5)
         grid_sizer_categories.Add(self.ctrl_categories, 1, wx.EXPAND, 0)
@@ -84,7 +84,7 @@ class Panel(wx.Panel):
         grid_sizer_base.Add(staticbox_categories, 1, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 10)
         
         # Tarifs
-        staticbox_tarifs = wx.StaticBoxSizer(self.staticbox_tarifs_staticbox, wx.VERTICAL)
+        staticbox_tarifs = wx.StaticBoxSizer(self.stbTarifs, wx.VERTICAL)
         grid_sizer_tarifs = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_olv = wx.FlexGridSizer(rows=2, cols=1, vgap=5, hgap=5)
         grid_sizer_olv.Add(self.ctrl_tarification, 1, wx.EXPAND, 0)

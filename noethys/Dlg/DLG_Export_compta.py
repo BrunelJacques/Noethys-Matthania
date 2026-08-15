@@ -116,7 +116,7 @@ class DataType(object):
                 try:                                #on vérifie qu'il s'agit bien d'un nombre
                     data=int(data)
                 except ValueError as e:
-                    print("/!\ Erreur de format, impossible de convertir en int /!\\")
+                    print("/!\\ Erreur de format, impossible de convertir en int /!\\")
                     print(e)
                     data=0
                 ret_val = "{0:{align}0{length}d}".format(data,align=self.align,length=self.length)
@@ -141,7 +141,7 @@ class DataType(object):
                     data=float(data)
                     #on vérifie qu'il s'agit bien d'un nombre
                 except ValueError as e:
-                    print("/!\ Erreur de format, impossible de convertir en float /!\\")
+                    print("/!\\ Erreur de format, impossible de convertir en float /!\\")
                     print(e)
                     data=0
                 ret_val = "{0: {align}0{length}.{precision}f}".format(data,align=self.align,length=self.length,precision=self.precision)
@@ -1634,7 +1634,7 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL):#(wxpg.PropertyGrid) :
     def __init__(self, parent, listeDonnees=None):
         if not listeDonnees: listeDonnees = []
         CTRL_Propertygrid.CTRL.__init__(self, parent)
-        self.parent = parent
+        self.parent = parent.Parent
         self.listeDonnees = listeDonnees
         self.SetExtraStyle(wxpg.PG_EX_HELP_AS_TOOLTIPS)
         couleurFond = "#e5ecf3"
@@ -2002,24 +2002,24 @@ class Dialog(wx.Dialog):
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/22x22/Smiley_nul.png")
         
         # Période
-        self.box_periode_staticbox = wx.StaticBox(self, wx.ID_ANY, _("Période"))
-        self.label_date_debut = wx.StaticText(self, wx.ID_ANY, "Du")
-        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self)
-        self.label_date_fin = wx.StaticText(self, wx.ID_ANY, _("au"))
-        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self)
+        self.stbPeriode = wx.StaticBox(self, wx.ID_ANY, _("Période"))
+        self.label_date_debut = wx.StaticText(self.stbPeriode, wx.ID_ANY, "Du")
+        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self.stbPeriode)
+        self.label_date_fin = wx.StaticText(self.stbPeriode, wx.ID_ANY, _("au"))
+        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self.stbPeriode)
         self.ctrl_date_debut.SetDate(dateDebut)
         self.ctrl_date_fin.SetDate(str(dateFin))
 
         # Logiciel de sortie
-        self.box_logiciel_staticbox = wx.StaticBox(self, -1, _("Format d'export"))
-        self.ctrl_logiciel = CTRL_Logiciel(self)
+        self.stbLogiciel = wx.StaticBox(self, -1, _("Format d'export"))
+        self.ctrl_logiciel = CTRL_Logiciel(self.stbLogiciel)
 
         # Paramètres
-        self.box_parametres_staticbox = wx.StaticBox(self, wx.ID_ANY, _("Paramètres"))
-        self.ctrl_parametres = CTRL_Lanceur(self)
+        self.stbParams = wx.StaticBox(self, wx.ID_ANY, _("Paramètres"))
+        self.ctrl_parametres = CTRL_Lanceur(self.stbParams)
         
-        self.bouton_reinit = CTRL_Propertygrid.Bouton_reinit(self, self.ctrl_parametres)
-        self.bouton_sauve = CTRL_Propertygrid.Bouton_sauve(self, self.ctrl_parametres)
+        self.bouton_reinit = CTRL_Propertygrid.Bouton_reinit(self.stbParams, self.ctrl_parametres)
+        self.bouton_sauve = CTRL_Propertygrid.Bouton_sauve(self.stbParams, self.ctrl_parametres)
 
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage=Chemins.GetStaticPath("Images/32x32/Aide.png"))
@@ -2052,7 +2052,7 @@ class Dialog(wx.Dialog):
         
         grid_sizer_haut = wx.FlexGridSizer(1, 2, 10, 10)
         
-        box_periode = wx.StaticBoxSizer(self.box_periode_staticbox, wx.VERTICAL)
+        box_periode = wx.StaticBoxSizer(self.stbPeriode, wx.VERTICAL)
         grid_sizer_periode = wx.FlexGridSizer(2, 2, 5, 5)
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
         grid_sizer_periode.Add(self.label_date_debut, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, 0)
@@ -2062,7 +2062,7 @@ class Dialog(wx.Dialog):
         box_periode.Add(grid_sizer_periode, 1, wx.ALL|wx.EXPAND, 10)
         grid_sizer_haut.Add(box_periode, 1, wx.EXPAND, 10)
         
-        box_logiciel = wx.StaticBoxSizer(self.box_logiciel_staticbox, wx.VERTICAL)
+        box_logiciel = wx.StaticBoxSizer(self.stbLogiciel, wx.VERTICAL)
         grid_sizer_logiciel = wx.FlexGridSizer(1, 2, 5, 5)
         grid_sizer_logiciel.Add(self.ctrl_logiciel, 0, wx.EXPAND, 0)
         grid_sizer_logiciel.AddGrowableCol(0)
@@ -2072,7 +2072,7 @@ class Dialog(wx.Dialog):
         grid_sizer_haut.AddGrowableCol(1)
         grid_sizer_base.Add(grid_sizer_haut, 1, wx.LEFT | wx.RIGHT | wx.EXPAND, 10)
         
-        box_parametres = wx.StaticBoxSizer(self.box_parametres_staticbox, wx.VERTICAL)
+        box_parametres = wx.StaticBoxSizer(self.stbParams, wx.VERTICAL)
         grid_sizer_parametres = wx.FlexGridSizer(1, 2, 5, 5)
         grid_sizer_parametres.Add(self.ctrl_parametres, 1, wx.ALL | wx.EXPAND, 0) 
 

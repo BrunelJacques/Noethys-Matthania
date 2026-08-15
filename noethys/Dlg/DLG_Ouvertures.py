@@ -1977,19 +1977,19 @@ class Dialog(wx.Dialog):
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Calendrier.png")
         
         # Selection Mois
-        self.staticbox_mois_staticbox = wx.StaticBox(self, -1, _("Sélection du mois"))
-        self.label_mois = wx.StaticText(self, -1, _("Mois :"))
-        self.ctrl_mois = wx.Choice(self, -1, choices=[_("Janvier"), _("Février"), _("Mars"), _("Avril"), _("Mai"), _("Juin"), _("Juillet"), _("Août"), _("Septembre"), _("Octobre"), _("Novembre"), _("Décembre")])
-        self.spin_mois = wx.SpinButton(self, -1, size=(18, 20),  style=wx.SP_VERTICAL)
+        self.stbMois = wx.StaticBox(self, -1, _("Sélection du mois"))
+        self.label_mois = wx.StaticText(self.stbMois, -1, _("Mois :"))
+        self.ctrl_mois = wx.Choice(self.stbMois, -1, choices=[_("Janvier"), _("Février"), _("Mars"), _("Avril"), _("Mai"), _("Juin"), _("Juillet"), _("Août"), _("Septembre"), _("Octobre"), _("Novembre"), _("Décembre")])
+        self.spin_mois = wx.SpinButton(self.stbMois, -1, size=(18, 20),  style=wx.SP_VERTICAL)
         self.spin_mois.SetRange(-1, 1)
-        self.label_annee = wx.StaticText(self, -1, _("Année :"))
-        self.ctrl_annee = wx.SpinCtrl(self, -1, "", min=1977, max=2999)
+        self.label_annee = wx.StaticText(self.stbMois, -1, _("Année :"))
+        self.ctrl_annee = wx.SpinCtrl(self.stbMois, -1, "", min=1977, max=2999)
         dateDuJour = datetime.date.today()
         self.ctrl_annee.SetValue(dateDuJour.year)
         self.ctrl_mois.SetSelection(dateDuJour.month-1)
         
         # Légende
-        self.staticbox_legende_staticbox = wx.StaticBox(self, -1, _("Légende"))
+        self.stbLegende = wx.StaticBox(self, -1, _("Légende"))
         self.listeLegende = [
             { "label" : _("Ouvert"), "couleur" : COULEUR_OUVERTURE, "ctrl_label" : None, "ctrl_img" : None },
             { "label" : _("Fermé"), "couleur" : COULEUR_FERMETURE, "ctrl_label" : None, "ctrl_img" : None },
@@ -1999,19 +1999,19 @@ class Dialog(wx.Dialog):
             ]
         index = 0
         for dictTemp in self.listeLegende :
-            img = wx.StaticBitmap(self, -1, CreationImage(12, 12, dictTemp["couleur"]))
-            label = wx.StaticText(self, -1, dictTemp["label"]) 
+            img = wx.StaticBitmap(self.stbLegende, -1, CreationImage(12, 12, dictTemp["couleur"]))
+            label = wx.StaticText(self.stbLegende, -1, dictTemp["label"])
             self.listeLegende[index]["ctrl_img"] = img
             self.listeLegende[index]["ctrl_label"] = label
             index += 1
 
         # Options
-        self.staticbox_options_staticbox = wx.StaticBox(self, -1, _("Options"))
-        self.check_tous_groupes = wx.CheckBox(self, -1, _("Afficher Total max."))
+        self.stbOptions = wx.StaticBox(self, -1, _("Options"))
+        self.check_tous_groupes = wx.CheckBox(self.stbOptions, -1, _("Afficher Total max."))
 
         # Calendrier
-        self.staticbox_calendrier_staticbox = wx.StaticBox(self, -1, _("Calendrier"))
-        self.ctrl_calendrier = Calendrier(self, self.IDactivite)
+        self.stbCalendrier = wx.StaticBox(self, -1, _("Calendrier"))
+        self.ctrl_calendrier = Calendrier(self.stbCalendrier, self.IDactivite)
                 
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
         self.bouton_saisie_lot = CTRL_Bouton_image.CTRL(self, texte=_("Saisie et suppression par lot"), cheminImage="Images/32x32/Magique.png")
@@ -2058,7 +2058,7 @@ class Dialog(wx.Dialog):
         grid_sizer_haut = wx.FlexGridSizer(rows=1, cols=3, vgap=10, hgap=10)
         
         # Selection Mois
-        staticbox_mois = wx.StaticBoxSizer(self.staticbox_mois_staticbox, wx.VERTICAL)
+        staticbox_mois = wx.StaticBoxSizer(self.stbMois, wx.VERTICAL)
         grid_sizer_mois = wx.FlexGridSizer(rows=1, cols=7, vgap=0, hgap=0)
         grid_sizer_mois.Add(self.label_mois, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_mois.Add(self.ctrl_mois, 0, wx.LEFT, 5)
@@ -2069,7 +2069,7 @@ class Dialog(wx.Dialog):
         grid_sizer_haut.Add(staticbox_mois, 1, wx.EXPAND, 0)
         
         # Légende
-        staticbox_legende = wx.StaticBoxSizer(self.staticbox_legende_staticbox, wx.VERTICAL)
+        staticbox_legende = wx.StaticBoxSizer(self.stbLegende, wx.VERTICAL)
         grid_sizer_legende = wx.FlexGridSizer(rows=1, cols=len(self.listeLegende)*3, vgap=4, hgap=4)
         for dictTemp in self.listeLegende :
             grid_sizer_legende.Add(dictTemp["ctrl_img"], 0, wx.ALIGN_CENTER_VERTICAL, 0)
@@ -2079,7 +2079,7 @@ class Dialog(wx.Dialog):
         grid_sizer_haut.Add(staticbox_legende, 1, wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 0)
 
         # Options
-        staticbox_options = wx.StaticBoxSizer(self.staticbox_options_staticbox, wx.VERTICAL)
+        staticbox_options = wx.StaticBoxSizer(self.stbOptions, wx.VERTICAL)
         staticbox_options.Add(self.check_tous_groupes, 1, wx.ALL|wx.EXPAND, 5)
         grid_sizer_haut.Add(staticbox_options, 1, wx.EXPAND, 0)
 
@@ -2087,7 +2087,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(grid_sizer_haut, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
     
         # Calendrier
-        staticbox_calendrier = wx.StaticBoxSizer(self.staticbox_calendrier_staticbox, wx.VERTICAL)
+        staticbox_calendrier = wx.StaticBoxSizer(self.stbCalendrier, wx.VERTICAL)
         staticbox_calendrier.Add(self.ctrl_calendrier, 1, wx.ALL|wx.EXPAND, 5)
         grid_sizer_base.Add(staticbox_calendrier, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         

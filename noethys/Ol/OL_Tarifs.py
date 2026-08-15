@@ -35,7 +35,7 @@ def FormateBool(nombre):
 class OlvTarifsNoms(FastObjectListView):
     # cadre olv dans l'écran du choix d'un tarif (saisie)
     def __init__(self, parent, *args, **kwds):
-        self.parent = parent
+        self.parent = parent.Parent
         # Initialisation du listCtrl
         FastObjectListView.__init__(self, parent, **kwds)
         # Binds perso
@@ -107,11 +107,11 @@ class Saisie(wx.Dialog):
         self.label_prix = wx.StaticText(self, -1, _("Prix de base:"))
         self.ctrl_prix = wx.TextCtrl(self, -1, "")
 
-        self.staticbox_tarifNom = wx.StaticBox(self, -1, "Choix du tarif")
-        self.olvTarifsNoms = OlvTarifsNoms(self, id=-1,
+        self.stbNom = wx.StaticBox(self, -1, "Choix du tarif")
+        self.olvTarifsNoms = OlvTarifsNoms(self.stbNom, id=-1,
                                            style=wx.LC_HRULES | wx.LC_VRULES | wx.LC_SINGLE_SEL)
         self.olvTarifsNoms.MAJ(IDselect)
-        self.ctrl_recherche = CTRL_Outils(self, listview=self.olvTarifsNoms)
+        self.ctrl_recherche = CTRL_Outils(self.stbNom, listview=self.olvTarifsNoms)
 
         if prix != None:
             self.ctrl_prix.SetValue(str(prix))
@@ -139,7 +139,7 @@ class Saisie(wx.Dialog):
 
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
         grid_sizer_base.Add(self.text_info, 0, 0, 0)
-        staticbox_olv = wx.StaticBoxSizer(self.staticbox_tarifNom, wx.VERTICAL)
+        staticbox_olv = wx.StaticBoxSizer(self.stbNom, wx.VERTICAL)
         staticbox_olv.Add(self.olvTarifsNoms, 1, wx.EXPAND | wx.ALL, 10)
         staticbox_olv.Add(self.ctrl_recherche, 0, wx.EXPAND | wx.ALL, 10)
         grid_sizer_base.Add(staticbox_olv, 0, wx.EXPAND, 0)
@@ -244,7 +244,7 @@ class ListView(FastObjectListView):
     def __init__(self, parent,*args, **kwds):
         self.donnees = []
         self.select = []
-        self.parent = parent
+        self.parent = parent.Parent
         # Récupération des paramètres perso
         self.champs = ["IDactivite","IDgroupe","IDcateg","nomCateg","nomGroupe","codeTarif","nomTarif","prix","cumul"]
         self.IDactivite = kwds.pop("IDactivite", None)

@@ -43,7 +43,6 @@ datePattern = re.compile(
 def Beep():
     print('\a')
 
-
 def ValideDate(texte, date_min="01/01/1900", date_max="01/01/2999", avecMessages=True):
     message = "La date que vous venez de saisir ne semble pas valide !"
     """ Verificateur de validite de date """

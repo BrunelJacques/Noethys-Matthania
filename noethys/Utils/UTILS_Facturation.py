@@ -22,8 +22,8 @@ from Utils import UTILS_Fichiers
 from Utils import UTILS_Config
 from Data import DATA_Civilites as Civilites
 from Utils import UTILS_Titulaires
-from Utils.UTILS_Questionnaires import ChampsEtReponses
 from Utils import UTILS_Dates
+from Utils.UTILS_Questionnaires import ChampsEtReponses
 from Dlg import DLG_Apercu_facture
 from Utils import UTILS_Impression_facture
 from Gest import GestionInscription

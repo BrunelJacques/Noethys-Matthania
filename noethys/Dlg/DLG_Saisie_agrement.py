@@ -21,18 +21,18 @@ from Ctrl import CTRL_Saisie_date
 class Dialog(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
-        self.parent = parent      
+        self.parent = parent.Parent
         self.SetTitle(_("Saisie d'un agrément"))  
         
-        self.sizer_agrement_staticbox = wx.StaticBox(self, -1, _("Numéro d'agrément"))
-        self.label_agrement = wx.StaticText(self, -1, _("Agrément :"))
-        self.ctrl_agrement = wx.TextCtrl(self, -1, "")
+        self.stbAgrem = wx.StaticBox(self, -1, _("Numéro d'agrément"))
+        self.label_agrement = wx.StaticText(self.stbAgrem, -1, _("Agrément :"))
+        self.ctrl_agrement = wx.TextCtrl(self.stbAgrem, -1, "")
         
-        self.sizer_duree_staticbox = wx.StaticBox(self, -1, _("Dates de validité"))
-        self.label_date_debut = wx.StaticText(self, -1, "Du")
-        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self)
-        self.label_date_fin = wx.StaticText(self, -1, _("au"))
-        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self)
+        self.stbDuree = wx.StaticBox(self, -1, _("Dates de validité"))
+        self.label_date_debut = wx.StaticText(self.stbDuree, -1, "Du")
+        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self.stbDuree)
+        self.label_date_fin = wx.StaticText(self.stbDuree, -1, _("au"))
+        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self.stbDuree)
         
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"), cheminImage="Images/32x32/Valider.png")
@@ -54,7 +54,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
         
         # Nom
-        sizer_nom = wx.StaticBoxSizer(self.sizer_agrement_staticbox, wx.VERTICAL)
+        sizer_nom = wx.StaticBoxSizer(self.stbAgrem, wx.VERTICAL)
         grid_sizer_nom = wx.FlexGridSizer(rows=4, cols=2, vgap=10, hgap=10)
         grid_sizer_nom.Add(self.label_agrement, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_nom.Add(self.ctrl_agrement, 0, wx.EXPAND, 0)
@@ -63,7 +63,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(sizer_nom, 1, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 10)
         
         # Validité
-        sizer_duree = wx.StaticBoxSizer(self.sizer_duree_staticbox, wx.VERTICAL)
+        sizer_duree = wx.StaticBoxSizer(self.stbDuree, wx.VERTICAL)
         grid_sizer_validite = wx.FlexGridSizer(rows=1, cols=5, vgap=5, hgap=5)
         grid_sizer_validite.Add((40,-1), 0, 0, 0)
         grid_sizer_validite.Add(self.label_date_debut, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)

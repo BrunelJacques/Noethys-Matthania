@@ -309,7 +309,7 @@ class CTRL(CT.CustomTreeCtrl):
         if parent == None and IDactivite == None :
             dlg.ctrl_parent.SelectPremierItem() 
         else :
-            dlg.SetIDparent(parent, IDactivite)
+            dlg.SetIDparent(parent.Parent, IDactivite)
         if dlg.ShowModal() == wx.ID_OK :
             label = dlg.GetLabel()
             couleur = dlg.GetCouleur()
@@ -548,7 +548,8 @@ class CTRL(CT.CustomTreeCtrl):
     
     def SelectPremierItem(self):
         item, cookie = self.GetFirstChild(self.root)
-        self.SelectItem(item)
+        if item:
+            self.SelectItem(item)
             
     def GetID(self):
         item = self.GetSelection()

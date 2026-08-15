@@ -113,8 +113,8 @@ class Hyperlien(Hyperlink.HyperLinkCtrl):
 class PnlFactures(wx.Panel):
     def __init__(self, parent,IDpayeur=None):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
-        self.DB = parent.DB
-        self.parent = parent
+        self.DB = self.GrandParent.DB
+        self.parent = self.GrandParent
         self.IDpayeur = IDpayeur
         self.listviewAvecFooter = OL_FacturationPieces.ListviewAvecFooter(self, kwargs={"IDpayeur" : IDpayeur, "factures" : True, "parent" : self.parent})
         self.olv_piecesFiltrees = self.listviewAvecFooter.GetListview()
@@ -150,36 +150,35 @@ class Dialog(wx.Dialog):
         self.SetTitle("DLG_FacturationPieces")
         self.IDpayeur = IDpayeur
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=self.titre, texte=intro,  hauteurHtml=15, nomImage="Images/22x22/Smiley_nul.png")
-        self.staticbox_factures = wx.StaticBox(self, -1, _("Factures de l'exercice"))
-        self.ctrl_factures = PnlFactures(self,self.IDpayeur)
+        self.stbFactures = wx.StaticBox(self, -1, _("Factures de l'exercice"))
+        self.ctrl_factures = PnlFactures(self.stbFactures,self.IDpayeur)
         self.ctrl_factures.SetMinSize((-1, 80))
 
-        self.staticbox_pieces = wx.StaticBox(self, -1, _("Pieces non facturées"))
+        self.stbPieces = wx.StaticBox(self, -1, _("Pieces non facturées"))
         # OL Pieces
-        self.listviewAvecFooter = OL_FacturationPieces.ListviewAvecFooter(self, kwargs={"IDpayeur" : IDpayeur,
+        self.listviewAvecFooter = OL_FacturationPieces.ListviewAvecFooter(self.stbPieces, kwargs={"IDpayeur" : IDpayeur,
                                                                                         "factures" : False,
                                                                                         "parent" : self})
         self.olv_piecesFiltrees = self.listviewAvecFooter.GetListview()
-        self.ctrl_recherche = OL_FacturationPieces.CTRL_Outils(self, listview=self.olv_piecesFiltrees, afficherCocher=True)
+        self.ctrl_recherche = OL_FacturationPieces.CTRL_Outils(self.stbPieces, listview=self.olv_piecesFiltrees, afficherCocher=True)
         self.ctrl_recherche.SetBackgroundColour((255, 255, 255))
 
         # Commandes boutons à droite Haut
-        self.bouton_imprimerFact = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_mailerFact = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Emails_exp.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimerFact = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_imprimerFact = wx.BitmapButton(self.stbFactures, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_mailerFact = wx.BitmapButton(self.stbFactures, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Emails_exp.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimerFact = wx.BitmapButton(self.stbFactures, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
         # Commandes boutons à droite Bas
-        self.bouton_monter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Fleche_haut.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_descendre = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Fleche_bas.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_imprimerDev = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_mailerDev = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Emails_exp.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_monter = wx.BitmapButton(self.stbPieces, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Fleche_haut.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_descendre = wx.BitmapButton(self.stbPieces, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Fleche_bas.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer = wx.BitmapButton(self.stbPieces, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_imprimerDev = wx.BitmapButton(self.stbPieces, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_mailerDev = wx.BitmapButton(self.stbPieces, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Emails_exp.png"), wx.BITMAP_TYPE_ANY))
 
         # Pied
-        #self.staticbox_pied= wx.StaticBox(self, -1, )
-        self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Facturer\n les devis"), cheminImage="Images/32x32/Generation.png")
-        self.bouton_devis = CTRL_Bouton_image.CTRL(self, texte=_("Imprimer\nEnsemble"), cheminImage="Images/32x32/Imprimante.png")
-        self.bouton_modif = CTRL_Bouton_image.CTRL(self, texte=_("Modifier\nTypeDevis"), cheminImage="Images/32x32/zoom_tout.png")
-        self.bouton_annuler = CTRL_Bouton_image.CTRL(self, id=wx.ID_CANCEL, texte=_("Fermer"), cheminImage="Images/32x32/Annuler.png")
+        self.bouton_ok = CTRL_Bouton_image.CTRL(self.stbPieces, texte=_("Facturer\n les devis"), cheminImage="Images/32x32/Generation.png")
+        self.bouton_devis = CTRL_Bouton_image.CTRL(self.stbPieces, texte=_("Imprimer\nEnsemble"), cheminImage="Images/32x32/Imprimante.png")
+        self.bouton_modif = CTRL_Bouton_image.CTRL(self.stbPieces, texte=_("Modifier\nTypeDevis"), cheminImage="Images/32x32/zoom_tout.png")
+        self.bouton_annuler = CTRL_Bouton_image.CTRL(self.stbPieces, id=wx.ID_CANCEL, texte=_("Fermer"), cheminImage="Images/32x32/Annuler.png")
 
         #self.__set_data()
         self.__set_properties()
@@ -222,7 +221,7 @@ class Dialog(wx.Dialog):
         # Layout
         gridsizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=5, hgap=5)
         gridsizer_base.Add(self.ctrl_bandeau, 1, wx.EXPAND, 0)
-        staticbox_factures = wx.StaticBoxSizer(self.staticbox_factures, wx.VERTICAL)
+        staticbox_factures = wx.StaticBoxSizer(self.stbFactures, wx.VERTICAL)
         gridsizer_factures = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         gridsizer_factures.Add(self.ctrl_factures, 5, wx.EXPAND, 0)
         gridsizer_btnFact = wx.FlexGridSizer(rows=6, cols=1, vgap=5, hgap=5)
@@ -239,7 +238,7 @@ class Dialog(wx.Dialog):
         staticbox_factures.Add(gridsizer_factures, 5, wx.EXPAND|wx.ALL, 5)
         gridsizer_base.Add(staticbox_factures, 5, wx.EXPAND|wx.ALL, 5)
 
-        staticbox_pieces = wx.StaticBoxSizer(self.staticbox_pieces, wx.VERTICAL)
+        staticbox_pieces = wx.StaticBoxSizer(self.stbPieces, wx.VERTICAL)
 
         gridsizer_BAS = wx.FlexGridSizer(rows=2, cols=1, vgap=5, hgap=5)
         gridsizer_pieces = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)

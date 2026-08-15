@@ -323,55 +323,55 @@ class Dialog(wx.Dialog):
         self.autogen_parametres = None
         
         # Nom
-        self.staticbox_nom_staticbox = wx.StaticBox(self, -1, _("Nom de l'unité"))
-        self.label_nom = wx.StaticText(self, -1, _("Nom :"))
-        self.ctrl_nom = wx.TextCtrl(self, -1, "")
-        self.label_abrege = wx.StaticText(self, -1, _("Abrégé :"))
-        self.ctrl_abrege = wx.TextCtrl(self, -1, "")
+        self.stbNom = wx.StaticBox(self, -1, _("Nom de l'unité"))
+        self.label_nom = wx.StaticText(self.stbNom, -1, _("Nom :"))
+        self.ctrl_nom = wx.TextCtrl(self.stbNom, -1, "")
+        self.label_abrege = wx.StaticText(self.stbNom, -1, _("Abrégé :"))
+        self.ctrl_abrege = wx.TextCtrl(self.stbNom, -1, "")
         
         # Caractéristiques
-        self.staticbox_caract_staticbox = wx.StaticBox(self, -1, _("Caractéristiques"))
-        self.label_type = wx.StaticText(self, -1, _("Type d'unité :"))
-        self.ctrl_type = CTRL_Type(self)
+        self.stbCaract = wx.StaticBox(self, -1, _("Caractéristiques"))
+        self.label_type = wx.StaticText(self.stbCaract, -1, _("Type d'unité :"))
+        self.ctrl_type = CTRL_Type(self.stbCaract)
 
-        self.label_horaires = wx.StaticText(self, -1, _("Amplitude horaire :"))
-        self.ctrl_heure_debut = CTRL_Saisie_heure.Heure(self)
-        self.ctrl_heure_debut_fixe = wx.CheckBox(self, -1, _("Fixe"))
-        self.label_a = wx.StaticText(self, -1, "à")
-        self.ctrl_heure_fin = CTRL_Saisie_heure.Heure(self)
-        self.ctrl_heure_fin_fixe = wx.CheckBox(self, -1, _("Fixe"))
+        self.label_horaires = wx.StaticText(self.stbCaract, -1, _("Amplitude horaire :"))
+        self.ctrl_heure_debut = CTRL_Saisie_heure.Heure(self.stbCaract)
+        self.ctrl_heure_debut_fixe = wx.CheckBox(self.stbCaract, -1, _("Fixe"))
+        self.label_a = wx.StaticText(self.stbCaract, -1, "à")
+        self.ctrl_heure_fin = CTRL_Saisie_heure.Heure(self.stbCaract)
+        self.ctrl_heure_fin_fixe = wx.CheckBox(self.stbCaract, -1, _("Fixe"))
         
-        self.label_groupes = wx.StaticText(self, -1, _("Groupes :"))
-        self.radio_groupes_tous = wx.RadioButton(self, -1, _("Tous les groupes"), style=wx.RB_GROUP)
-        self.radio_groupes_suivants = wx.RadioButton(self, -1, _("Uniquement les groupes suivants :"))
-        self.ctrl_groupes = CheckListBoxGroupes(self, self.IDactivite, self.IDunite)
+        self.label_groupes = wx.StaticText(self.stbCaract, -1, _("Groupes :"))
+        self.radio_groupes_tous = wx.RadioButton(self.stbCaract, -1, _("Tous les groupes"), style=wx.RB_GROUP)
+        self.radio_groupes_suivants = wx.RadioButton(self.stbCaract, -1, _("Uniquement les groupes suivants :"))
+        self.ctrl_groupes = CheckListBoxGroupes(self.stbCaract, self.IDactivite, self.IDunite)
         self.ctrl_groupes.MAJ() 
         
-        self.label_repas = wx.StaticText(self, -1, _("Repas :"))
-        self.ctrl_repas = wx.CheckBox(self, -1, _("Repas inclus"))
-        self.label_restaurateur = wx.StaticText(self, -1, _("Restaurateur :"))
-        self.ctrl_restaurateur = CTRL_Restaurateur(self)
-        self.bouton_restaurateur = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_ANY))
+        self.label_repas = wx.StaticText(self.stbCaract, -1, _("Repas :"))
+        self.ctrl_repas = wx.CheckBox(self.stbCaract, -1, _("Repas inclus"))
+        self.label_restaurateur = wx.StaticText(self.stbCaract, -1, _("Restaurateur :"))
+        self.ctrl_restaurateur = CTRL_Restaurateur(self.stbCaract)
+        self.bouton_restaurateur = wx.BitmapButton(self.stbCaract, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_ANY))
         
-        self.label_incompat = wx.StaticText(self, -1, _("Incompatibilités :"))
-        self.ctrl_incompat = CheckListBoxIncompat(self, self.IDactivite, self.IDunite)
+        self.label_incompat = wx.StaticText(self.stbCaract, -1, _("Incompatibilités :"))
+        self.ctrl_incompat = CheckListBoxIncompat(self.stbCaract, self.IDactivite, self.IDunite)
         self.ctrl_incompat.MAJ() 
         
-        self.label_raccourci = wx.StaticText(self, -1, _("Touche raccourci :"))
-        self.ctrl_raccourci = CTRL_Raccourci(self)
+        self.label_raccourci = wx.StaticText(self.stbCaract, -1, _("Touche raccourci :"))
+        self.ctrl_raccourci = CTRL_Raccourci(self.stbCaract)
 
         # Auto-génération
-        self.label_autogen = wx.StaticText(self, -1, _("Auto-génération :"))
-        self.check_autogen = wx.CheckBox(self, -1, _("Activer"))
-        self.bouton_autogen = wx.Button(self, -1, _("Paramètres de l'auto-génération"))
+        self.label_autogen = wx.StaticText(self.stbCaract, -1, _("Auto-génération :"))
+        self.check_autogen = wx.CheckBox(self.stbCaract, -1, _("Activer"))
+        self.bouton_autogen = wx.Button(self.stbCaract, -1, _("Paramètres de l'auto-génération"))
 
         # Validité
-        self.staticbox_validite_staticbox = wx.StaticBox(self, -1, _("Validité"))
-        self.radio_illimitee = wx.RadioButton(self, -1, _("Durant la période de validité de l'activité"), style=wx.RB_GROUP)
-        self.radio_limitee = wx.RadioButton(self, -1, "Du")
-        self.ctrl_date_debut = CTRL_Saisie_date.Date(self)
-        self.label_au = wx.StaticText(self, -1, _("au"))
-        self.ctrl_date_fin = CTRL_Saisie_date.Date(self)
+        self.stbValidite = wx.StaticBox(self, -1, _("Validité"))
+        self.radio_illimitee = wx.RadioButton(self.stbValidite, -1, _("Durant la période de validité de l'activité"), style=wx.RB_GROUP)
+        self.radio_limitee = wx.RadioButton(self.stbValidite, -1, "Du")
+        self.ctrl_date_debut = CTRL_Saisie_date.Date(self.stbValidite)
+        self.label_au = wx.StaticText(self.stbValidite, -1, _("au"))
+        self.ctrl_date_fin = CTRL_Saisie_date.Date(self.stbValidite)
         
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"), cheminImage="Images/32x32/Valider.png")
@@ -431,11 +431,11 @@ class Dialog(wx.Dialog):
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
 
-        staticbox_caract = wx.StaticBoxSizer(self.staticbox_caract_staticbox, wx.VERTICAL)
+        staticbox_caract = wx.StaticBoxSizer(self.stbCaract, wx.VERTICAL)
         grid_sizer_caract = wx.FlexGridSizer(rows=7, cols=2, vgap=15, hgap=5)
 
         # Noms
-        staticbox_nom = wx.StaticBoxSizer(self.staticbox_nom_staticbox, wx.VERTICAL)
+        staticbox_nom = wx.StaticBoxSizer(self.stbNom, wx.VERTICAL)
         grid_sizer_nom = wx.FlexGridSizer(rows=1, cols=5, vgap=5, hgap=5)
         grid_sizer_nom.Add(self.label_nom, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_nom.Add(self.ctrl_nom, 0, wx.EXPAND, 0)
@@ -512,7 +512,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(staticbox_caract, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
 
         # Période de validité
-        staticbox_validite = wx.StaticBoxSizer(self.staticbox_validite_staticbox, wx.VERTICAL)
+        staticbox_validite = wx.StaticBoxSizer(self.stbValidite, wx.VERTICAL)
         grid_sizer_validite = wx.FlexGridSizer(rows=2, cols=1, vgap=5, hgap=5)
 
         grid_sizer_validite.Add(self.radio_illimitee, 0, 0, 0)

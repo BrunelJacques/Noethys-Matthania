@@ -21,18 +21,18 @@ class Panel(wx.Panel):
         self.parent = parent
         self.IDactivite = IDactivite
         
-        self.staticbox_groupes_staticbox = wx.StaticBox(self, -1, _("Groupes"))
+        self.stbGrpes = wx.StaticBox(self, -1, _("Groupes"))
         
-        self.ctrl_groupes = OL_Groupes.ListView(self, IDactivite=self.IDactivite, id=-1, name="OL_groupes", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
+        self.ctrl_groupes = OL_Groupes.ListView(self.stbGrpes, IDactivite=self.IDactivite, id=-1, name="OL_groupes", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         self.ctrl_groupes.MAJ() 
 
-        self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_monter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Fleche_haut.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_descendre = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Fleche_bas.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter = wx.BitmapButton(self.stbGrpes, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier = wx.BitmapButton(self.stbGrpes, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer = wx.BitmapButton(self.stbGrpes, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_monter = wx.BitmapButton(self.stbGrpes, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Fleche_haut.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_descendre = wx.BitmapButton(self.stbGrpes, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Fleche_bas.png"), wx.BITMAP_TYPE_ANY))
 
-        self.label_info = wx.StaticText(self, -1, _("Vous devez obligatoirement saisir un groupe. Si votre activité n'en possède pas, créez juste un groupe intitulé 'Groupe unique'."))
+        self.label_info = wx.StaticText(self.stbGrpes, -1, _("Vous devez obligatoirement saisir un groupe. Si votre activité n'en possède pas, créez juste un groupe intitulé 'Groupe unique'."))
         self.label_info.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL, False))
         
         self.__set_properties()
@@ -57,7 +57,7 @@ class Panel(wx.Panel):
 
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=1, cols=1, vgap=10, hgap=10)
-        staticbox_groupes = wx.StaticBoxSizer(self.staticbox_groupes_staticbox, wx.VERTICAL)
+        staticbox_groupes = wx.StaticBoxSizer(self.stbGrpes, wx.VERTICAL)
         
         grid_sizer_groupes = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_groupes.Add(self.ctrl_groupes, 1, wx.EXPAND, 0)

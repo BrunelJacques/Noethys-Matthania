@@ -30,22 +30,22 @@ class Dialog(wx.Dialog):
         self.SetTitle(_("Saisie d'une étiquette"))
         
         # Label
-        self.staticbox_label_staticbox = wx.StaticBox(self, -1, _("Label de l'étiquette"))
-        self.ctrl_label = wx.TextCtrl(self, -1, "")
+        self.stbLabel = wx.StaticBox(self, -1, _("Label de l'étiquette"))
+        self.ctrl_label = wx.TextCtrl(self.stbLabel, -1, "")
 
         # Couleur
-        self.staticbox_couleur_staticbox = wx.StaticBox(self, -1, _("Couleur"))
-        self.ctrl_couleur = csel.ColourSelect(self, -1, "", (255, 255, 255), size = (40, 22))
+        self.stbCouleur = wx.StaticBox(self, -1, _("Couleur"))
+        self.ctrl_couleur = csel.ColourSelect(self.stbCouleur, -1, "", (255, 255, 255), size = (40, 22))
 
         # Parent
-        self.staticbox_parent_staticbox = wx.StaticBox(self, -1, _("Sélection du parent"))
-        self.ctrl_parent = CTRL_Etiquettes.CTRL(self, listeActivites=listeActivites, nomActivite=nomActivite, activeMenu=False)
+        self.stbParent = wx.StaticBox(self, -1, _("Sélection du parent"))
+        self.ctrl_parent = CTRL_Etiquettes.CTRL(self.stbParent, listeActivites=listeActivites, nomActivite=nomActivite, activeMenu=False)
         self.ctrl_parent.MAJ() 
         self.ctrl_parent.SetID(None)
         
         # Options
-        self.staticbox_options_staticbox = wx.StaticBox(self, -1, _("Options"))
-        self.ctrl_active = wx.CheckBox(self, -1, _("Etiquette active"))
+        self.stbOptions = wx.StaticBox(self, -1, _("Options"))
+        self.ctrl_active = wx.CheckBox(self.stbOptions, -1, _("Etiquette active"))
         self.ctrl_active.SetValue(True)
         
         # Commandes
@@ -76,12 +76,12 @@ class Dialog(wx.Dialog):
         grid_sizer_haut = wx.FlexGridSizer(rows=1, cols=2, vgap=10, hgap=10)
         
         # Label
-        staticbox_label = wx.StaticBoxSizer(self.staticbox_label_staticbox, wx.VERTICAL)
+        staticbox_label = wx.StaticBoxSizer(self.stbLabel, wx.VERTICAL)
         staticbox_label.Add(self.ctrl_label, 1, wx.ALL|wx.EXPAND, 10)
         grid_sizer_haut.Add(staticbox_label, 1, wx.EXPAND, 0)
         
         # Couleur
-        staticbox_couleur = wx.StaticBoxSizer(self.staticbox_couleur_staticbox, wx.VERTICAL)
+        staticbox_couleur = wx.StaticBoxSizer(self.stbCouleur, wx.VERTICAL)
         staticbox_couleur.Add(self.ctrl_couleur, 1, wx.ALL|wx.EXPAND, 10)
         grid_sizer_haut.Add(staticbox_couleur, 1, wx.EXPAND, 0)
         
@@ -89,12 +89,12 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(grid_sizer_haut, 1, wx.TOP | wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         
         # Parent
-        staticbox_parent = wx.StaticBoxSizer(self.staticbox_parent_staticbox, wx.VERTICAL)
+        staticbox_parent = wx.StaticBoxSizer(self.stbParent, wx.VERTICAL)
         staticbox_parent.Add(self.ctrl_parent, 1, wx.ALL|wx.EXPAND, 10)
         grid_sizer_base.Add(staticbox_parent, 1, wx.EXPAND | wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
 
         # Options
-        staticbox_options = wx.StaticBoxSizer(self.staticbox_options_staticbox, wx.VERTICAL)
+        staticbox_options = wx.StaticBoxSizer(self.stbOptions, wx.VERTICAL)
         staticbox_options.Add(self.ctrl_active, 1, wx.ALL|wx.EXPAND, 10)
         grid_sizer_base.Add(staticbox_options, 1, wx.EXPAND | wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         

@@ -83,7 +83,7 @@ class CTRL(wx.TextCtrl):
             dlg.Destroy()
             # Version pour la DLG du dessous
             if self.modeDLG == True :
-                self.GetParent().ChargeUtilisateur(dictUtilisateur)
+                self.GrandParent.ChargeUtilisateur(dictUtilisateur)
             # Version pour la barre Identification de la page d'accueil
             if self.modeDLG == False :
                 mainFrame = self.GetGrandParent()
@@ -112,10 +112,10 @@ class Dialog(wx.Dialog):
             
         self.staticbox = wx.StaticBox(self, -1, "")
         self.label = wx.StaticText(self, -1, "Veuillez saisir votre code d'identification personnel :")
-        self.ctrl_mdp = CTRL(self, listeUtilisateurs=self.listeUtilisateurs, modeDLG=True)
+        self.ctrl_mdp = CTRL(self.staticbox, listeUtilisateurs=self.listeUtilisateurs, modeDLG=True)
         
         # Texte pour rappeller mot de passe du fichier Exemple
-        self.label_exemple = wx.StaticText(self, -1, "Le mot de passe des fichiers exemples est 'aze'")
+        self.label_exemple = wx.StaticText(self.staticbox, -1, "Le mot de passe des fichiers exemples est 'aze'")
         self.label_exemple.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL))
         self.label_exemple.SetForegroundColour((130, 130, 130))
         if nomFichier == None or nomFichier.startswith("EXEMPLE_") == False :

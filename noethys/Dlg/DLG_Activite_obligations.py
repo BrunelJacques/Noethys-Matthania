@@ -344,32 +344,32 @@ class Panel(wx.Panel):
         self.IDactivite = IDactivite
         
         # Pièces
-        self.staticbox_pieces_staticbox = wx.StaticBox(self, -1, _("Pièces à fournir"))
-        self.ctrl_pieces = CheckListBoxPieces(self, IDactivite=IDactivite)
+        self.stbPieces = wx.StaticBox(self, -1, _("Pièces à fournir"))
+        self.ctrl_pieces = CheckListBoxPieces(self.stbPieces, IDactivite=IDactivite)
         self.ctrl_pieces.SetMinSize((-1, 55))
         self.ctrl_pieces.MAJ()
         self.hyper_pieces = Hyperlien(self, label=_("Accéder au paramétrage des pièces"), infobulle=_("Cliquez ici pour accéder au paramétrage des pièces"), URL="pieces")
         
         # Cotisations
-        self.staticbox_cotisations_staticbox = wx.StaticBox(self, -1, _("Cotisations"))
-        self.ctrl_check_cotisations = wx.CheckBox(self, -1, _("L'individu inscrit doit avoir à jour au moins l'une des cotisations suivantes :"))
-        self.ctrl_cotisations = CheckListBoxCotisations(self, IDactivite=IDactivite)
+        self.stbCotisations = wx.StaticBox(self, -1, _("Cotisations"))
+        self.ctrl_check_cotisations = wx.CheckBox(self.stbCotisations, -1, _("L'individu inscrit doit avoir à jour au moins l'une des cotisations suivantes :"))
+        self.ctrl_cotisations = CheckListBoxCotisations(self.stbCotisations, IDactivite=IDactivite)
         self.ctrl_cotisations.SetMinSize((-1, 55))
         self.ctrl_cotisations.MAJ()
-        self.hyper_cotisations = Hyperlien(self, label=_("Accéder au paramétrage des cotisations"), infobulle=_("Cliquez ici pour accéder au paramétrage des cotisations"), URL="cotisations")
+        self.hyper_cotisations = Hyperlien(self.stbCotisations, label=_("Accéder au paramétrage des cotisations"), infobulle=_("Cliquez ici pour accéder au paramétrage des cotisations"), URL="cotisations")
 
         # Vaccins
-        self.staticbox_vaccins_staticbox = wx.StaticBox(self, -1, _("Vaccins obligatoires"))
-        self.ctrl_vaccins = wx.CheckBox(self, -1, _("L'individu inscrit doit avoir ses vaccins à jour"))
-        self.label_vaccins_1 = wx.StaticText(self, -1, _("(Accéder au paramètrage "))
-        self.hyper_vaccins = Hyperlien(self, label=_("des vaccins"), infobulle=_("Cliquez ici pour accéder au paramétrage des vaccins"), URL="vaccins")
-        self.label_vaccins_2 = wx.StaticText(self, -1, _(" et "))
-        self.hyper_maladies = Hyperlien(self, label=_("des maladies"), infobulle=_("Cliquez ici pour accéder au paramétrage des maladies"), URL="maladies")
-        self.label_vaccins_3 = wx.StaticText(self, -1, ")")
+        self.stbVaccins = wx.StaticBox(self, -1, _("Vaccins obligatoires"))
+        self.ctrl_vaccins = wx.CheckBox(self.stbVaccins, -1, _("L'individu inscrit doit avoir ses vaccins à jour"))
+        self.label_vaccins_1 = wx.StaticText(self.stbVaccins, -1, _("(Accéder au paramètrage "))
+        self.hyper_vaccins = Hyperlien(self.stbVaccins, label=_("des vaccins"), infobulle=_("Cliquez ici pour accéder au paramétrage des vaccins"), URL="vaccins")
+        self.label_vaccins_2 = wx.StaticText(self.stbVaccins, -1, _(" et "))
+        self.hyper_maladies = Hyperlien(self.stbVaccins, label=_("des maladies"), infobulle=_("Cliquez ici pour accéder au paramétrage des maladies"), URL="maladies")
+        self.label_vaccins_3 = wx.StaticText(self.stbVaccins, -1, ")")
         
         # Infos
-        self.staticbox_infos_staticbox = wx.StaticBox(self, -1, _("Informations à renseigner"))
-        self.ctrl_infos = CheckListBoxRenseignements(self, IDactivite=IDactivite)
+        self.stbInfos = wx.StaticBox(self, -1, _("Informations à renseigner"))
+        self.ctrl_infos = CheckListBoxRenseignements(self.stbInfos, IDactivite=IDactivite)
         self.ctrl_infos.SetMinSize((50, 50))
         self.ctrl_infos.MAJ()
         
@@ -397,7 +397,7 @@ class Panel(wx.Panel):
         grid_sizer_base = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
         
         # Pièces
-        staticbox_pieces = wx.StaticBoxSizer(self.staticbox_pieces_staticbox, wx.VERTICAL)
+        staticbox_pieces = wx.StaticBoxSizer(self.stbPieces, wx.VERTICAL)
         grid_sizer_pieces = wx.FlexGridSizer(rows=2, cols=1, vgap=2, hgap=2)
         grid_sizer_pieces.Add(self.ctrl_pieces, 1, wx.EXPAND, 0)
         grid_sizer_pieces.Add(self.hyper_pieces, 0, wx.ALIGN_RIGHT, 0)
@@ -407,7 +407,7 @@ class Panel(wx.Panel):
         grid_sizer_base.Add(staticbox_pieces, 1, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 10)
         
         # Cotisations
-        staticbox_cotisations = wx.StaticBoxSizer(self.staticbox_cotisations_staticbox, wx.VERTICAL)
+        staticbox_cotisations = wx.StaticBoxSizer(self.stbCotisations, wx.VERTICAL)
         grid_sizer_cotisations = wx.FlexGridSizer(rows=4, cols=1, vgap=2, hgap=2)
         grid_sizer_cotisations.Add(self.ctrl_check_cotisations, 1, wx.EXPAND, 0)
         grid_sizer_cotisations.Add( (4, 4), 0, wx.EXPAND, 0)
@@ -419,7 +419,7 @@ class Panel(wx.Panel):
         grid_sizer_base.Add(staticbox_cotisations, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         
         # Vaccins
-        staticbox_vaccins = wx.StaticBoxSizer(self.staticbox_vaccins_staticbox, wx.VERTICAL)
+        staticbox_vaccins = wx.StaticBoxSizer(self.stbVaccins, wx.VERTICAL)
         grid_sizer_vaccins = wx.FlexGridSizer(rows=1, cols=7, vgap=0, hgap=0)
         grid_sizer_vaccins.Add(self.ctrl_vaccins, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_vaccins.Add(self.label_vaccins_1, 0, wx.ALIGN_CENTER_VERTICAL, 0)
@@ -431,7 +431,7 @@ class Panel(wx.Panel):
         grid_sizer_base.Add(staticbox_vaccins, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         
         # Infos
-        staticbox_infos = wx.StaticBoxSizer(self.staticbox_infos_staticbox, wx.VERTICAL)
+        staticbox_infos = wx.StaticBoxSizer(self.stbInfos, wx.VERTICAL)
         staticbox_infos.Add(self.ctrl_infos, 1, wx.ALL|wx.EXPAND, 5)
         grid_sizer_base.Add(staticbox_infos, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 10)
         self.SetSizer(grid_sizer_base)

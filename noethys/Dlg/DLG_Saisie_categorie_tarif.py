@@ -23,11 +23,11 @@ class Dialog(wx.Dialog):
         self.IDcategorie_tarif = IDcategorie_tarif
         
         # Nom
-        self.staticbox_nom_staticbox = wx.StaticBox(self, -1, _("Catégorie de tarif"))
-        self.label_nom = wx.StaticText(self, -1, _("Nom :"))
-        self.ctrl_nom = wx.TextCtrl(self, -1, "")
-        self.label_campeur = wx.StaticText(self, -1, _("Suivi remplissage :"))
-        self.ctrl_campeur = wx.RadioBox(self, -1, choices= ["Animateurs","Campeurs","Staff & Autres"],
+        self.stbNom = wx.StaticBox(self, -1, _("Catégorie de tarif"))
+        self.label_nom = wx.StaticText(self.stbNom, -1, _("Nom :"))
+        self.ctrl_nom = wx.TextCtrl(self.stbNom, -1, "")
+        self.label_campeur = wx.StaticText(self.stbNom, -1, _("Suivi remplissage :"))
+        self.ctrl_campeur = wx.RadioBox(self.stbNom, -1, choices= ["Animateurs","Campeurs","Staff & Autres"],
                                         label="Type de campeur", style=wx.RA_SPECIFY_COLS)
 
         # Boutons
@@ -63,7 +63,7 @@ class Dialog(wx.Dialog):
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
         grid_sizer_boutons = wx.FlexGridSizer(rows=1, cols=4, vgap=10, hgap=10)
-        staticbox_nom = wx.StaticBoxSizer(self.staticbox_nom_staticbox, wx.VERTICAL)
+        staticbox_nom = wx.StaticBoxSizer(self.stbNom, wx.VERTICAL)
         grid_sizer_nom = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_nom.Add(self.label_nom, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_nom.Add(self.ctrl_nom, 0, wx.EXPAND, 0)

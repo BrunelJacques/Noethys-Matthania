@@ -135,22 +135,22 @@ class Dialog(wx.Dialog):
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Contrat.png")
         
         # Activation
-        self.box_activation_staticbox = wx.StaticBox(self, -1, _("Activation"))
-        self.label_activation = wx.StaticText(self, -1, _("Mode P.S.U. activé :"))
-        self.radio_activation_oui = wx.RadioButton(self, -1, _("Oui"), style=wx.RB_GROUP)
-        self.radio_activation_non = wx.RadioButton(self, -1, _("Non"))
+        self.stbActivation = wx.StaticBox(self, -1, _("Activation"))
+        self.label_activation = wx.StaticText(self.stbActivation, -1, _("Mode P.S.U. activé :"))
+        self.radio_activation_oui = wx.RadioButton(self.stbActivation, -1, _("Oui"), style=wx.RB_GROUP)
+        self.radio_activation_non = wx.RadioButton(self.stbActivation, -1, _("Non"))
                 
         # Paramètres
-        self.box_parametres_staticbox = wx.StaticBox(self, -1, _("Paramètres P.S.U."))
-        self.label_unite_prevision = wx.StaticText(self, -1, _("Unité prévision :"))
-        self.ctrl_unite_prevision = CTRL_Unite(self, self.IDactivite)
+        self.stbParams = wx.StaticBox(self, -1, _("Paramètres P.S.U."))
+        self.label_unite_prevision = wx.StaticText(self.stbParams, -1, _("Unité prévision :"))
+        self.ctrl_unite_prevision = CTRL_Unite(self.stbParams, self.IDactivite)
         self.ctrl_unite_prevision.SetMinSize((350, -1))
-        self.label_unite_presence = wx.StaticText(self, -1, _("Unité présence :"))
-        self.ctrl_unite_presence = CTRL_Unite(self, self.IDactivite)
-        self.label_tarif_forfait = wx.StaticText(self, -1, _("Tarif forfait :"))
-        self.ctrl_tarif_forfait = CTRL_Tarif(self, IDactivite=self.IDactivite)
-        self.label_etiquette_rtt = wx.StaticText(self, -1, _("Etiquette RTT :"))
-        self.ctrl_etiquette_rtt = CTRL_Etiquette(self, self.IDactivite)
+        self.label_unite_presence = wx.StaticText(self.stbParams, -1, _("Unité présence :"))
+        self.ctrl_unite_presence = CTRL_Unite(self.stbParams, self.IDactivite)
+        self.label_tarif_forfait = wx.StaticText(self.stbParams, -1, _("Tarif forfait :"))
+        self.ctrl_tarif_forfait = CTRL_Tarif(self.stbParams, IDactivite=self.IDactivite)
+        self.label_etiquette_rtt = wx.StaticText(self.stbParams, -1, _("Etiquette RTT :"))
+        self.ctrl_etiquette_rtt = CTRL_Etiquette(self.stbParams, self.IDactivite)
 
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -184,7 +184,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
 
         # Activation
-        box_activation = wx.StaticBoxSizer(self.box_activation_staticbox, wx.VERTICAL)
+        box_activation = wx.StaticBoxSizer(self.stbActivation, wx.VERTICAL)
         grid_sizer_activation = wx.FlexGridSizer(rows=1, cols=3, vgap=10, hgap=10)
         grid_sizer_activation.Add(self.label_activation, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_activation.Add(self.radio_activation_oui, 0, wx.ALIGN_CENTER_VERTICAL, 0)
@@ -194,7 +194,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(box_activation, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
                 
         # Paramètres
-        box_parametres = wx.StaticBoxSizer(self.box_parametres_staticbox, wx.VERTICAL)
+        box_parametres = wx.StaticBoxSizer(self.stbParams, wx.VERTICAL)
         grid_sizer_parametres = wx.FlexGridSizer(rows=4, cols=2, vgap=10, hgap=10)
 
         grid_sizer_parametres.Add(self.label_unite_prevision, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)

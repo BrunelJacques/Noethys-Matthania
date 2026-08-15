@@ -10,7 +10,6 @@
 import wx
 import Chemins
 import sys
-import GestionDB
 import datetime
 import os
 import codecs
@@ -191,7 +190,7 @@ def Recherche_problemes_personnes(listeIDpersonnes = (), infosPersonne=[]):
     if len(listeIDpersonnes) == 0 : listeIDpersonnesTmp = "(100000)"
     elif len(listeIDpersonnes) == 1 : listeIDpersonnesTmp = "(%d)" % listeIDpersonnes[0]
     else : listeIDpersonnesTmp = str(tuple(listeIDpersonnes))
-    
+    import GestionDB
     DB = GestionDB.DB()        
     req = """SELECT IDpersonne, civilite, nom, nom_jfille, prenom, date_naiss, cp_naiss, ville_naiss, pays_naiss, nationalite, num_secu, adresse_resid, cp_resid, ville_resid, IDsituation
     FROM personnes WHERE IDpersonne IN %s ORDER BY nom; """ % listeIDpersonnesTmp
@@ -281,6 +280,7 @@ def Recherche_problemes_personnes(listeIDpersonnes = (), infosPersonne=[]):
     date_jour = datetime.date.today()
     
     # Initialisation de la base de données
+    import GestionDB
     DB = GestionDB.DB()
         
     for IDpersonne in listeIDpersonnes :
@@ -376,6 +376,7 @@ def Recherche_problemes_personnes(listeIDpersonnes = (), infosPersonne=[]):
         
         # Analyse des contrats
         problemesContrats = []
+        import GestionDB
         DB = GestionDB.DB()        
         req = """SELECT IDpersonne, signature, due
         FROM contrats 
@@ -417,6 +418,7 @@ def Recherche_ContratsEnCoursOuAVenir() :
     """ Renvoie la liste des personnes qui ont ou vont avoir un contrat """
     # Recherche des contrats
     dateDuJour = str(datetime.date.today())
+    import GestionDB
     DB = GestionDB.DB()        
     req = """SELECT contrats.IDpersonne, contrats_class.nom, contrats.date_debut, contrats.date_fin, contrats.date_rupture, contrats_types.duree_indeterminee
     FROM contrats INNER JOIN contrats_class ON contrats.IDclassification = contrats_class.IDclassification INNER JOIN contrats_types ON contrats.IDtype = contrats_types.IDtype
@@ -592,7 +594,8 @@ def Aide(numItem=None):
 
 def RecupNomCadrePersonne(IDpersonne):
     """ Récupère le nom du cadre de décoration pour une personne donnée """
-    DB = GestionDB.DB()        
+    import GestionDB
+    DB = GestionDB.DB()
     req = "SELECT cadre_photo FROM personnes WHERE IDpersonne=%d;" % IDpersonne
     DB.executerReq(req)
     donnees = DB.resultatReq()
@@ -785,6 +788,7 @@ def Formate_taille_octets(size):
 
 def GetIDfichier():
     try :
+        import GestionDB
         DB = GestionDB.DB()
         req = """SELECT IDparametre, nom, parametre 
         FROM parametres WHERE nom='IDfichier';"""
