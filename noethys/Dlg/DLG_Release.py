@@ -54,7 +54,7 @@ class CTRL_AfficheVersion(wx.TextCtrl):
         size = wx.DefaultSize
         style = wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_RICH | wx.TE_DONTWRAP
         wx.TextCtrl.__init__(self, parent, wx.ID_ANY, label, pos, size, style=style)
-        self.parent = parent
+        self.parent = parent.Parent
         self.version_logiciel = self.parent.version_logiciel
         self.version_data = self.parent.version_data
         self.version_choix = None
@@ -431,7 +431,7 @@ class Dialog(wx.Dialog):
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Restaurer.png")
 
         # Connexion à la base de donnée
-        self.txt_base = wx.StaticBox(self,-1,"Stockage des versions : ")
+        self.stbStock = wx.StaticBox(self,-1,"Stockage des versions : ")
         lstNomsFichiersDB, self.lstDicParamsDB = self.__getDerniersFichiers()
         self.choice_baseDonnees = wx.Choice(self, -1, choices=lstNomsFichiersDB)
         self.check_maj =     wx.CheckBox(self, -1, "Mettre à jour ma station")
@@ -443,8 +443,8 @@ class Dialog(wx.Dialog):
         self.bouton_annuler = CTRL_Bouton_image.CTRL(self, texte="Annuler", cheminImage="Images/32x32/Annuler.png")
 
         # Affichage de la version proposée
-        self.box_affiche_staticbox = wx.StaticBox(self, -1,"Description des versions :")
-        self.ctrl_affiche = CTRL_AfficheVersion(self)
+        self.stbAffiche = wx.StaticBox(self, -1,"Description des versions :")
+        self.ctrl_affiche = CTRL_AfficheVersion(self.stbAffiche)
         self.ctrl_affiche.SetMinSize((250, -1))
 
         self.__set_properties()
@@ -467,7 +467,7 @@ class Dialog(wx.Dialog):
             self.check_maj.SetValue(True)
         self.check_stocke.SetValue(False)
         self.check_stocke.Enable(False)
-        self.txt_base.SetToolTip(wx.ToolTip("Choix de la base de donnée qui conserve les versions"))
+        self.stbStock.SetToolTip(wx.ToolTip("Choix de la base de donnée qui conserve les versions"))
         self.choice_baseDonnees.SetToolTip(wx.ToolTip("Base de donnée qui conserve les différentes versions"))
         self.check_maj.SetToolTip(wx.ToolTip("Pour mettre à jour l'application sur votre station de travail"))
         self.check_stocke.SetToolTip(wx.ToolTip("Pour enregistrer la mise à jour dans la base et qu'elle devienne accessible aux autres stations"))
@@ -509,12 +509,12 @@ class Dialog(wx.Dialog):
         grid_sizer_base = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
         
-        box_donnees = wx.StaticBoxSizer(self.box_affiche_staticbox, wx.VERTICAL)
+        box_donnees = wx.StaticBoxSizer(self.stbAffiche, wx.VERTICAL)
         box_donnees.Add(self.ctrl_affiche, 1, wx.ALL|wx.EXPAND, 10)
         grid_sizer_base.Add(box_donnees, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
 
         grid_sizer_bd = wx.FlexGridSizer(rows=1, cols=4, vgap=0, hgap=0)
-        grid_sizer_bd.Add(self.txt_base,0,0,0)
+        grid_sizer_bd.Add(self.stbStock,0,0,0)
         grid_sizer_bd.Add(self.choice_baseDonnees,1,wx.EXPAND,0)
         grid_sizer_bd.Add((150,10),1,wx.EXPAND,0)
         grid_sizer_bd.Add(self.bouton_versions,1,wx.EXPAND,0)

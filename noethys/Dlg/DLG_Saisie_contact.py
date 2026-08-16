@@ -26,28 +26,28 @@ class Dialog(wx.Dialog):
         self.parent = parent
         self.IDcontact = IDcontact
         
-        self.staticbox_identite_staticbox = wx.StaticBox(self, -1, _("Identité"))
-        self.label_nom = wx.StaticText(self, -1, _("Nom :"))
-        self.ctrl_nom = wx.TextCtrl(self, -1, "")
-        self.label_prenom = wx.StaticText(self, -1, _("Prénom :"))
-        self.ctrl_prenom = wx.TextCtrl(self, -1, "")
+        self.stbIdentite = wx.StaticBox(self, -1, _("Identité"))
+        self.label_nom = wx.StaticText(self.stbIdentite, -1, _("Nom :"))
+        self.ctrl_nom = wx.TextCtrl(self.stbIdentite, -1, "")
+        self.label_prenom = wx.StaticText(self.stbIdentite, -1, _("Prénom :"))
+        self.ctrl_prenom = wx.TextCtrl(self.stbIdentite, -1, "")
 
-        self.staticbox_coords_staticbox = wx.StaticBox(self, -1, _("Coordonnées"))
-        self.label_rue = wx.StaticText(self, -1, _("Rue :"))
-        self.ctrl_rue = wx.TextCtrl(self, -1, "")
-        self.label_cp = wx.StaticText(self, -1, _("C.P. :"))
-        self.ctrl_ville = CTRL_Saisie_adresse.Adresse(self)
-        self.label_tel = wx.StaticText(self, -1, _("Tél. fixe :"))
-        self.ctrl_tel = CTRL_Saisie_tel.Tel(self, intitule=_("domicile"))
-        self.label_mobile = wx.StaticText(self, -1, _("Tél. portable :"))
-        self.ctrl_mobile = CTRL_Saisie_tel.Tel(self, intitule=_("mobile"))
-        self.label_mail = wx.StaticText(self, -1, _("Email :"))
-        self.ctrl_mail = CTRL_Saisie_mail.Mail(self)
-        self.label_site = wx.StaticText(self, -1, _("Site internet :"))
-        self.ctrl_site = wx.TextCtrl(self, -1, "")
+        self.stbCoords = wx.StaticBox(self, -1, _("Coordonnées"))
+        self.label_rue = wx.StaticText(self.stbCoords, -1, _("Rue :"))
+        self.ctrl_rue = wx.TextCtrl(self.stbCoords, -1, "")
+        self.label_cp = wx.StaticText(self.stbCoords, -1, _("C.P. :"))
+        self.ctrl_ville = CTRL_Saisie_adresse.Adresse(self.stbCoords)
+        self.label_tel = wx.StaticText(self.stbCoords, -1, _("Tél. fixe :"))
+        self.ctrl_tel = CTRL_Saisie_tel.Tel(self.stbCoords, intitule=_("domicile"))
+        self.label_mobile = wx.StaticText(self.stbCoords, -1, _("Tél. portable :"))
+        self.ctrl_mobile = CTRL_Saisie_tel.Tel(self.stbCoords, intitule=_("mobile"))
+        self.label_mail = wx.StaticText(self.stbCoords, -1, _("Email :"))
+        self.ctrl_mail = CTRL_Saisie_mail.Mail(self.stbCoords)
+        self.label_site = wx.StaticText(self.stbCoords, -1, _("Site internet :"))
+        self.ctrl_site = wx.TextCtrl(self.stbCoords, -1, "")
 
-        self.staticbox_memo_staticbox = wx.StaticBox(self, -1, _("Mémo"))
-        self.ctrl_memo = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE)
+        self.stbMemo = wx.StaticBox(self, -1, _("Mémo"))
+        self.ctrl_memo = wx.TextCtrl(self.stbMemo, -1, "", style=wx.TE_MULTILINE)
         self.ctrl_memo.SetMinSize((300, 90))
 
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -79,7 +79,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base = wx.FlexGridSizer(rows=5, cols=1, vgap=10, hgap=10)
 
         # Identité
-        staticbox_identite = wx.StaticBoxSizer(self.staticbox_identite_staticbox, wx.VERTICAL)
+        staticbox_identite = wx.StaticBoxSizer(self.stbIdentite, wx.VERTICAL)
         grid_sizer_identite = wx.FlexGridSizer(rows=2, cols=2, vgap=10, hgap=10)
         grid_sizer_identite.Add(self.label_nom, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_identite.Add(self.ctrl_nom, 0, wx.EXPAND, 0)
@@ -90,7 +90,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(staticbox_identite, 1, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 10)
 
         # Coordonnées
-        staticbox_coords = wx.StaticBoxSizer(self.staticbox_coords_staticbox, wx.VERTICAL)
+        staticbox_coords = wx.StaticBoxSizer(self.stbCoords, wx.VERTICAL)
         grid_sizer_coords = wx.FlexGridSizer(rows=8, cols=2, vgap=10, hgap=10)
         grid_sizer_coords.Add(self.label_rue, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_coords.Add(self.ctrl_rue, 0, wx.EXPAND, 0)
@@ -113,7 +113,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(staticbox_coords, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
 
         # Mémo
-        staticbox_memo = wx.StaticBoxSizer(self.staticbox_memo_staticbox, wx.VERTICAL)
+        staticbox_memo = wx.StaticBoxSizer(self.stbMemo, wx.VERTICAL)
         staticbox_memo.Add(self.ctrl_memo, 1, wx.ALL|wx.EXPAND, 10)
         grid_sizer_base.Add(staticbox_memo, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
 

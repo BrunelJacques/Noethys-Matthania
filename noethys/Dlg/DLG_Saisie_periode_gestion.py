@@ -72,18 +72,18 @@ class Dialog(wx.Dialog):
         self.IDperiode = IDperiode
         
         # Généralités
-        self.box_generalites_staticbox = wx.StaticBox(self, wx.ID_ANY, _("Généralités"))
-        self.label_periode = wx.StaticText(self, wx.ID_ANY, _("Période :"))
-        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self)
-        self.label_au = wx.StaticText(self, wx.ID_ANY, _("au"))
-        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self)
-        self.label_observations = wx.StaticText(self, wx.ID_ANY, _("Notes :"))
-        self.ctrl_observations = wx.TextCtrl(self, wx.ID_ANY, "", style=wx.TE_MULTILINE)
+        self.stbGeneralites = wx.StaticBox(self, wx.ID_ANY, _("Généralités"))
+        self.label_periode = wx.StaticText(self.stbGeneralites, wx.ID_ANY, _("Période :"))
+        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self.stbGeneralites)
+        self.label_au = wx.StaticText(self.stbGeneralites, wx.ID_ANY, _("au"))
+        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self.stbGeneralites)
+        self.label_observations = wx.StaticText(self.stbGeneralites, wx.ID_ANY, _("Notes :"))
+        self.ctrl_observations = wx.TextCtrl(self.stbGeneralites, wx.ID_ANY, "", style=wx.TE_MULTILINE)
         self.ctrl_observations.SetMinSize((270, -1))
         
         # Verrouillage
-        self.box_verrou_staticbox = wx.StaticBox(self, wx.ID_ANY, _("Verrous"))
-        self.ctrl_verrou = CTRL_Categories(self)
+        self.stbVerrou = wx.StaticBox(self, wx.ID_ANY, _("Verrous"))
+        self.ctrl_verrou = CTRL_Categories(self.stbVerrou)
         self.ctrl_verrou.SetMinSize((50, 130))
 
         # Boutons
@@ -120,7 +120,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base = wx.FlexGridSizer(3, 1, 10, 10)
 
         # Généralités
-        box_generalites = wx.StaticBoxSizer(self.box_generalites_staticbox, wx.VERTICAL)
+        box_generalites = wx.StaticBoxSizer(self.stbGeneralites, wx.VERTICAL)
         grid_sizer_generalites = wx.FlexGridSizer(5, 2, 10, 10)
 
         grid_sizer_generalites.Add(self.label_periode, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
@@ -139,7 +139,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(box_generalites, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 10)
 
         # Verrou
-        box_verrou = wx.StaticBoxSizer(self.box_verrou_staticbox, wx.VERTICAL)
+        box_verrou = wx.StaticBoxSizer(self.stbVerrou, wx.VERTICAL)
         box_verrou.Add(self.ctrl_verrou, 1, wx.ALL | wx.EXPAND, 10)
         grid_sizer_base.Add(box_verrou, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
 

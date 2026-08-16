@@ -382,27 +382,27 @@ class CTRL(wx.Panel):
         self.parent = parent
         
         # Orientation
-        self.box_orientation_staticbox = wx.StaticBox(self, -1, _("Orientation"))
-        self.ctrl_radio_portrait = wx.RadioButton(self, -1, "", style=wx.RB_GROUP)
-        self.ctrl_image_portrait = wx.StaticBitmap(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/32x32/Orientation_vertical.png"), wx.BITMAP_TYPE_ANY))
-        self.ctrl_radio_paysage = wx.RadioButton(self, -1, "")
-        self.ctrl_image_paysage = wx.StaticBitmap(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/32x32/Orientation_horizontal.png"), wx.BITMAP_TYPE_ANY))
+        self.stbOrientation = wx.StaticBox(self, -1, _("Orientation"))
+        self.ctrl_radio_portrait = wx.RadioButton(self.stbOrientation, -1, "", style=wx.RB_GROUP)
+        self.ctrl_image_portrait = wx.StaticBitmap(self.stbOrientation, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/32x32/Orientation_vertical.png"), wx.BITMAP_TYPE_ANY))
+        self.ctrl_radio_paysage = wx.RadioButton(self.stbOrientation, -1, "")
+        self.ctrl_image_paysage = wx.StaticBitmap(self.stbOrientation, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/32x32/Orientation_horizontal.png"), wx.BITMAP_TYPE_ANY))
         
         # Textes
-        self.box_document_staticbox = wx.StaticBox(self, -1, _("Document"))
-        self.label_titre = wx.StaticText(self, -1, _("Titre :"))
-        self.ctrl_titre = wx.TextCtrl(self, -1, "")
-        self.label_introduction = wx.StaticText(self, -1, _("Introduction :"))
-        self.ctrl_introduction = wx.TextCtrl(self, -1, "")
-        self.label_conclusion = wx.StaticText(self, -1, _("Conclusion :"))
-        self.ctrl_conclusion = wx.TextCtrl(self, -1, "")
+        self.stbDocument = wx.StaticBox(self, -1, _("Document"))
+        self.label_titre = wx.StaticText(self.stbDocument, -1, _("Titre :"))
+        self.ctrl_titre = wx.TextCtrl(self.stbDocument, -1, "")
+        self.label_introduction = wx.StaticText(self.stbDocument, -1, _("Introduction :"))
+        self.ctrl_introduction = wx.TextCtrl(self.stbDocument, -1, "")
+        self.label_conclusion = wx.StaticText(self.stbDocument, -1, _("Conclusion :"))
+        self.ctrl_conclusion = wx.TextCtrl(self.stbDocument, -1, "")
         
         # Paramètres généraux
-        self.box_options_staticbox = wx.StaticBox(self, -1, _("Options d'impression"))
-        self.ctrl_parametres = CTRL_Parametres(self)
+        self.stbOptions = wx.StaticBox(self, -1, _("Options d'impression"))
+        self.ctrl_parametres = CTRL_Parametres(self.stbOptions)
         self.ctrl_parametres.Importation() 
-        self.bouton_reinit = CTRL_Propertygrid.Bouton_reinit(self, self.ctrl_parametres)
-        self.bouton_sauve = CTRL_Propertygrid.Bouton_sauve(self, self.ctrl_parametres)
+        self.bouton_reinit = CTRL_Propertygrid.Bouton_reinit(self.stbOptions, self.ctrl_parametres)
+        self.bouton_sauve = CTRL_Propertygrid.Bouton_sauve(self.stbOptions, self.ctrl_parametres)
         self.ctrl_parametres.SetMinSize((440, 120)) 
         
         self.__do_layout()
@@ -439,7 +439,7 @@ class CTRL(wx.Panel):
         grid_sizer_haut = wx.FlexGridSizer(rows=1, cols=2, vgap=10, hgap=10)
         
         # Orientation
-        box_orientation = wx.StaticBoxSizer(self.box_orientation_staticbox, wx.VERTICAL)
+        box_orientation = wx.StaticBoxSizer(self.stbOrientation, wx.VERTICAL)
         grid_sizer_orientation = wx.FlexGridSizer(rows=2, cols=2, vgap=10, hgap=10)
         grid_sizer_orientation.Add(self.ctrl_radio_portrait, 0, wx.EXPAND, 0)
         grid_sizer_orientation.Add(self.ctrl_image_portrait, 0, wx.EXPAND, 0)
@@ -449,7 +449,7 @@ class CTRL(wx.Panel):
         grid_sizer_haut.Add(box_orientation, 0, wx.EXPAND, 0)
 
         # Paramètres du document
-        box_document = wx.StaticBoxSizer(self.box_document_staticbox, wx.VERTICAL)
+        box_document = wx.StaticBoxSizer(self.stbDocument, wx.VERTICAL)
         grid_sizer_document = wx.FlexGridSizer(rows=3, cols=2, vgap=2, hgap=10)
         grid_sizer_document.Add(self.label_titre, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_document.Add(self.ctrl_titre, 0, wx.EXPAND, 0)
@@ -465,7 +465,7 @@ class CTRL(wx.Panel):
         grid_sizer_base.Add(grid_sizer_haut, 1, wx.EXPAND|wx.ALL, 0)
 
         # Paramètres généraux
-        box_options = wx.StaticBoxSizer(self.box_options_staticbox, wx.VERTICAL)
+        box_options = wx.StaticBoxSizer(self.stbOptions, wx.VERTICAL)
         grid_sizer_parametres = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_parametres.Add(self.ctrl_parametres, 1, wx.EXPAND, 0)
         

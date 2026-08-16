@@ -96,24 +96,24 @@ class Parametres(wx.Panel):
         self.parent = parent
         
         # Période
-        self.staticbox_periode_staticbox = wx.StaticBox(self, -1, _("Période de référence"))
-        self.label_date_debut = wx.StaticText(self, -1, "Du")
-        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self)
-        self.label_date_fin = wx.StaticText(self, -1, _("Au"))
-        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self)
-        self.btn_plus = wx.Button(self,label="+1an",size=(40,25))
-        self.btn_moins = wx.Button(self,label="-1an",size=(40,25))
+        self.stbPeriode = wx.StaticBox(self, -1, _("Période de référence"))
+        self.label_date_debut = wx.StaticText(self.stbPeriode, -1, "Du")
+        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self.stbPeriode)
+        self.label_date_fin = wx.StaticText(self.stbPeriode, -1, _("Au"))
+        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self.stbPeriode)
+        self.btn_plus = wx.Button(self.stbPeriode,label="+1an",size=(40,25))
+        self.btn_moins = wx.Button(self.stbPeriode,label="-1an",size=(40,25))
 
         # Séparation
-        self.staticbox_saisie = wx.StaticBox(self, -1, _("Sélection des dons :"))
-        self.check_prestations = wx.CheckBox(self, -1, _(" saisis en prestations de type Don"))
-        self.check_factures = wx.CheckBox(self, -1, _(" saisis en lignes Don sur pièces"))
+        self.stbSaisie = wx.StaticBox(self, -1, _("Sélection des dons :"))
+        self.check_prestations = wx.CheckBox(self.stbSaisie, -1, _(" saisis en prestations de type Don"))
+        self.check_factures = wx.CheckBox(self.stbSaisie, -1, _(" saisis en lignes Don sur pièces"))
         self.check_prestations.SetValue(True)
         self.check_factures.SetValue(True)
 
         # Modes de règlements
-        self.staticbox_modes_staticbox = wx.StaticBox(self, -1, _("Modes de règlement"))
-        self.ctrl_modes = CTRL_Modes_reglements(self)
+        self.stbModes = wx.StaticBox(self, -1, _("Modes de règlement"))
+        self.ctrl_modes = CTRL_Modes_reglements(self.stbModes)
 
         # Actualiser
         self.bouton_actualiser = CTRL_Bouton_image.CTRL(self, texte=_("Rafraîchir la liste"), cheminImage=Chemins.GetStaticPath("Images/32x32/Actualiser.png"))
@@ -140,7 +140,7 @@ class Parametres(wx.Panel):
         grid_sizer_base = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
         
         # Date de référence
-        staticbox_periode = wx.StaticBoxSizer(self.staticbox_periode_staticbox, wx.VERTICAL)
+        staticbox_periode = wx.StaticBoxSizer(self.stbPeriode, wx.VERTICAL)
         grid_sizer_periode = wx.FlexGridSizer(rows=3, cols=3, vgap=5, hgap=5)
         grid_sizer_periode.Add(self.label_date_debut, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_periode.Add(self.ctrl_date_debut, 0, wx.ALIGN_CENTER_VERTICAL, 0)
@@ -152,7 +152,7 @@ class Parametres(wx.Panel):
         grid_sizer_base.Add(staticbox_periode, 1, wx.RIGHT|wx.EXPAND, 5)
         
         # Saisie
-        staticbox_saisie = wx.StaticBoxSizer(self.staticbox_saisie, wx.VERTICAL)
+        staticbox_saisie = wx.StaticBoxSizer(self.stbSaisie, wx.VERTICAL)
         grid_sizer_saisie = wx.FlexGridSizer(rows=2, cols=1, vgap=5, hgap=5)
         grid_sizer_saisie.Add(self.check_prestations, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_saisie.Add(self.check_factures, 0, wx.ALIGN_CENTER_VERTICAL, 0)
@@ -160,7 +160,7 @@ class Parametres(wx.Panel):
         grid_sizer_base.Add(staticbox_saisie, 1, wx.RIGHT|wx.EXPAND, 5)
 
         # Modes de règlements
-        staticbox_modes = wx.StaticBoxSizer(self.staticbox_modes_staticbox, wx.VERTICAL)
+        staticbox_modes = wx.StaticBoxSizer(self.stbModes, wx.VERTICAL)
         staticbox_modes.Add(self.ctrl_modes, 1, wx.ALL|wx.EXPAND, 5)
         grid_sizer_base.Add(staticbox_modes, 1, wx.RIGHT|wx.EXPAND, 5)
 
@@ -253,12 +253,12 @@ class Panel(wx.Panel):
         self.ctrl_parametres = Parametres(self)
         
         # CTRL Prestations
-        self.staticbox_prestations = wx.StaticBox(self, -1, _("Liste des dons à attester"))
-        self.label_commentaires = wx.StaticText(self, -1, _("C'est la part don réglée qui sera retenue. (Don - réglé hors période)"))
+        self.stbPrestations = wx.StaticBox(self, -1, _("Liste des dons à attester"))
+        self.label_commentaires = wx.StaticText(self.stbPrestations, -1, _("C'est la part don réglée qui sera retenue. (Don - réglé hors période)"))
 
-        self.listviewAvecFooter = OL_Attestations_cerfa_prestations.ListviewAvecFooter(self,  kwargs={})
+        self.listviewAvecFooter = OL_Attestations_cerfa_prestations.ListviewAvecFooter(self.stbPrestations,  kwargs={})
         self.ctrl_listview = self.listviewAvecFooter.GetListview()
-        self.ctrl_recherche = OL_Attestations_cerfa_prestations.CTRL_Outils(self, listview=self.ctrl_listview, afficherCocher=True)
+        self.ctrl_recherche = OL_Attestations_cerfa_prestations.CTRL_Outils(self.stbPrestations, listview=self.ctrl_listview, afficherCocher=True)
 
 
         self.__do_layout()
@@ -279,7 +279,7 @@ class Panel(wx.Panel):
         grid_sizer_contenu.Add(self.ctrl_parametres, 1, wx.EXPAND, 0)
         
         # Ctrl des prestations
-        staticbox_prestations = wx.StaticBoxSizer(self.staticbox_prestations, wx.VERTICAL)
+        staticbox_prestations = wx.StaticBoxSizer(self.stbPrestations, wx.VERTICAL)
         staticbox_prestations.Add(self.label_commentaires, 0, wx.ALL|wx.EXPAND, 5)
         staticbox_prestations.Add(self.listviewAvecFooter, 1, wx.EXPAND, 5)
         staticbox_prestations.Add(self.ctrl_recherche, 0, wx.EXPAND, 5)

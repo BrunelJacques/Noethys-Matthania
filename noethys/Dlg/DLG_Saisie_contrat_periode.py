@@ -30,33 +30,33 @@ class Dialog(wx.Dialog):
         self.listeTracks = listeTracks
 
         # Généralités
-        self.box_generalites_staticbox = wx.StaticBox(self, wx.ID_ANY, _("Généralités"))
-        self.label_dates = wx.StaticText(self, wx.ID_ANY, _("Dates :"))
-        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self)
-        self.label_au = wx.StaticText(self, wx.ID_ANY, _("au"))
-        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self)
+        self.stbGeneralites = wx.StaticBox(self, wx.ID_ANY, _("Généralités"))
+        self.label_dates = wx.StaticText(self.stbGeneralites, wx.ID_ANY, _("Dates :"))
+        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self.stbGeneralites)
+        self.label_au = wx.StaticText(self.stbGeneralites, wx.ID_ANY, _("au"))
+        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self.stbGeneralites)
         
         # Prestation
-        self.box_prestation_staticbox = wx.StaticBox(self, wx.ID_ANY, _("Prestation"))
-        self.label_label_prestation = wx.StaticText(self, wx.ID_ANY, _("Label :"))
-        self.ctrl_label_prestation = wx.TextCtrl(self, wx.ID_ANY, "")
-        self.label_date_prestation = wx.StaticText(self, wx.ID_ANY, _("Date :"))
-        self.ctrl_date_prestation = CTRL_Saisie_date.Date2(self)
-        self.label_montant_prestation = wx.StaticText(self, wx.ID_ANY, _("Montant :"))
-        self.ctrl_montant_prestation = CTRL_Saisie_euros.CTRL(self)
+        self.stbPrestation = wx.StaticBox(self, wx.ID_ANY, _("Prestation"))
+        self.label_label_prestation = wx.StaticText(self.stbPrestation, wx.ID_ANY, _("Label :"))
+        self.ctrl_label_prestation = wx.TextCtrl(self.stbPrestation, wx.ID_ANY, "")
+        self.label_date_prestation = wx.StaticText(self.stbPrestation, wx.ID_ANY, _("Date :"))
+        self.ctrl_date_prestation = CTRL_Saisie_date.Date2(self.stbPrestation)
+        self.label_montant_prestation = wx.StaticText(self.stbPrestation, wx.ID_ANY, _("Montant :"))
+        self.ctrl_montant_prestation = CTRL_Saisie_euros.CTRL(self.stbPrestation)
 
         # Consommations
-        self.box_conso_staticbox = wx.StaticBox(self, wx.ID_ANY, _("Consommations"))
+        self.stbConso = wx.StaticBox(self, wx.ID_ANY, _("Consommations"))
 
-        self.listviewAvecFooter = OL_Contrats_conso.ListviewAvecFooter(self, kwargs={"IDactivite" : self.IDactivite}) 
+        self.listviewAvecFooter = OL_Contrats_conso.ListviewAvecFooter(self.stbConso, kwargs={"IDactivite" : self.IDactivite})
         self.ctrl_conso = self.listviewAvecFooter.GetListview()
         
 ##        self.bouton_generer_conso = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Magique.png"), wx.BITMAP_TYPE_ANY))
 ##        self.bouton_ajouter_conso = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
 ##        self.bouton_modifier_conso = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer_conso = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_cocher_conso = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Cocher.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_decocher_conso = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Decocher.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer_conso = wx.BitmapButton(self.stbConso, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_cocher_conso = wx.BitmapButton(self.stbConso, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Cocher.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_decocher_conso = wx.BitmapButton(self.stbConso, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Decocher.png"), wx.BITMAP_TYPE_ANY))
 
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -108,7 +108,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base = wx.FlexGridSizer(4, 1, 10, 10)
         
         # Généralités
-        box_generalites = wx.StaticBoxSizer(self.box_generalites_staticbox, wx.VERTICAL)
+        box_generalites = wx.StaticBoxSizer(self.stbGeneralites, wx.VERTICAL)
         grid_sizer_generalites = wx.FlexGridSizer(2, 2, 10, 10)
         grid_sizer_dates = wx.FlexGridSizer(1, 4, 5, 5)
         grid_sizer_generalites.Add(self.label_dates, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
@@ -120,7 +120,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(box_generalites, 1, wx.LEFT | wx.RIGHT | wx.TOP | wx.EXPAND, 10)
         
         # Prestation
-        box_prestation = wx.StaticBoxSizer(self.box_prestation_staticbox, wx.VERTICAL)
+        box_prestation = wx.StaticBoxSizer(self.stbPrestation, wx.VERTICAL)
         grid_sizer_prestation = wx.FlexGridSizer(3, 2, 5, 10)
         grid_sizer_prestation.Add(self.label_label_prestation, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_prestation.Add(self.ctrl_label_prestation, 0, wx.EXPAND, 0)
@@ -138,7 +138,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(box_prestation, 1, wx.LEFT | wx.RIGHT | wx.EXPAND, 10)
 
         # Consommations
-        box_conso = wx.StaticBoxSizer(self.box_conso_staticbox, wx.VERTICAL)
+        box_conso = wx.StaticBoxSizer(self.stbConso, wx.VERTICAL)
         grid_sizer_conso = wx.FlexGridSizer(1, 2, 5, 5)
         grid_sizer_conso.Add(self.listviewAvecFooter, 1, wx.EXPAND, 0)
         grid_sizer_boutons_conso = wx.FlexGridSizer(5, 1, 5, 5)

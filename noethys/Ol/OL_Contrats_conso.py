@@ -86,6 +86,8 @@ class ListView(FastObjectListView):
         self.InitObjectListView()
 
     def Importation_unites(self):
+        if not self.IDactivite:
+            return
         # Récupération des unités
         DB = GestionDB.DB()
         req = """SELECT IDunite, nom, abrege, type, heure_debut, heure_fin

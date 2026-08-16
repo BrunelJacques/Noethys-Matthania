@@ -219,7 +219,7 @@ class ListView(FastObjectListView):
         return listeDonnees
 
     def OnCerfasEmis(self):
-        periode = self.GetParent().parent.page1.GetPeriode()
+        periode = self.GetParent().parent.Parent.page1.GetPeriode()
         periodeDeb, periodeFin = periode
         self.periodeDeb = periodeDeb
         self.periodeFin = periodeFin
@@ -309,7 +309,7 @@ class ListView(FastObjectListView):
 
 class ListviewAvecFooter(PanelAvecFooter):
     def __init__(self, parent, kwargs={}):
-        self.parent = parent.parent
+        self.parent = parent.Parent
         dictColonnes = {
             "nomsTitulaires" : {"mode" : "nombre", "singulier" : _("famille"), "pluriel" : _("familles"),
                            "alignement" : wx.ALIGN_CENTER},

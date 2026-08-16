@@ -79,26 +79,28 @@ class CTRL_Tarif(CTRL_Ultrachoice.CTRL):
         listeDonnees = DB.ResultatReq()
         DB.Close() 
         listeTarifs = []
-        for IDtarif, IDactivite, IDnom_tarif, nomTarif, date_debut, date_fin, methode, categories_tarifs, groupes, description in listeDonnees :
-            date_debut = UTILS_Dates.DateEngEnDateDD(date_debut)
-            date_fin = UTILS_Dates.DateEngEnDateDD(date_fin)
-            listeCategoriesTarifs = ConvertStrToListe(categories_tarifs)
-            listeNomsCategories = []
-            for IDcategorie_tarif in listeCategoriesTarifs :
-                nomCategorieTarif = _("Categorie de tarif inconnue")
-                if IDcategorie_tarif in dictCategoriesTarifs :
-                    nomCategorieTarif = dictCategoriesTarifs[IDcategorie_tarif]
-                listeNomsCategories.append(nomCategorieTarif)
-            
-            dictTemp = {
-                    "IDtarif" : IDtarif, "IDactivite" : IDactivite, 
-                    "IDnom_tarif" : IDnom_tarif, "nomTarif" : nomTarif, "date_debut" : date_debut,
-                    "date_fin" : date_fin, "methode" : methode, "categories_tarifs":categories_tarifs, "groupes":groupes,
-                    "listeNomsCategories" : listeNomsCategories, "nomPrecisTarif":description,
-                    }
-            
-            if self.IDcategorie_tarif in listeCategoriesTarifs or self.IDcategorie_tarif == None :
-                listeTarifs.append(dictTemp)
+        if len(listeDonnees) > 0:
+            for (IDtarif, IDactivite, IDnom_tarif, nomTarif, date_debut, date_fin,
+                 methode, categories_tarifs, groupes, description) in listeDonnees :
+                date_debut = UTILS_Dates.DateEngEnDateDD(date_debut)
+                date_fin = UTILS_Dates.DateEngEnDateDD(date_fin)
+                listeCategoriesTarifs = ConvertStrToListe(categories_tarifs)
+                listeNomsCategories = []
+                for IDcategorie_tarif in listeCategoriesTarifs :
+                    nomCategorieTarif = _("Categorie de tarif inconnue")
+                    if IDcategorie_tarif in dictCategoriesTarifs :
+                        nomCategorieTarif = dictCategoriesTarifs[IDcategorie_tarif]
+                    listeNomsCategories.append(nomCategorieTarif)
+
+                dictTemp = {
+                        "IDtarif" : IDtarif, "IDactivite" : IDactivite,
+                        "IDnom_tarif" : IDnom_tarif, "nomTarif" : nomTarif, "date_debut" : date_debut,
+                        "date_fin" : date_fin, "methode" : methode, "categories_tarifs":categories_tarifs, "groupes":groupes,
+                        "listeNomsCategories" : listeNomsCategories, "nomPrecisTarif":description,
+                        }
+
+                if self.IDcategorie_tarif in listeCategoriesTarifs or self.IDcategorie_tarif == None :
+                    listeTarifs.append(dictTemp)
         return listeTarifs
     
     def MAJ(self):
@@ -172,21 +174,26 @@ class Dialog(wx.Dialog):
             DB.ExecuterReq(req,MsgBox="ExecuterReq")
             listeDonnees = DB.ResultatReq()
             DB.Close()
-            self.IDactivite, self.nomActivite, self.IDcompte_payeur, self.IDfamille, self.IDcategorie_tarif, self.IDgroupe, self.nomGroupe = listeDonnees[0]
+            if len(listeDonnees) > 0:
+                (self.IDactivite, self.nomActivite, self.IDcompte_payeur, self.IDfamille,
+                 self.IDcategorie_tarif, self.IDgroupe, self.nomGroupe) = listeDonnees[0]
+            else:
+                (self.IDactivite, self.nomActivite, self.IDcompte_payeur, self.IDfamille,
+                 self.IDcategorie_tarif, self.IDgroupe, self.nomGroupe) = (None,) *7
         
         # Généralités
-        self.box_generalites_staticbox = wx.StaticBox(self, wx.ID_ANY, _("Généralités"))
+        self.stbGeneralites = wx.StaticBox(self, wx.ID_ANY, _("Généralités"))
         
-        self.label_nom = wx.StaticText(self, wx.ID_ANY, _("Nom du modèle :"))
-        self.ctrl_nom = wx.TextCtrl(self, wx.ID_ANY, "")
+        self.label_nom = wx.StaticText(self.stbGeneralites, wx.ID_ANY, _("Nom du modèle :"))
+        self.ctrl_nom = wx.TextCtrl(self.stbGeneralites, wx.ID_ANY, "")
 
         self.label_nom.Show(self.mode_modele)
         self.ctrl_nom.Show(self.mode_modele)
 
-        self.label_dates = wx.StaticText(self, wx.ID_ANY, _("Dates du contrat :"))
-        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self)
-        self.label_au = wx.StaticText(self, wx.ID_ANY, _("au"))
-        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self)
+        self.label_dates = wx.StaticText(self.stbGeneralites, wx.ID_ANY, _("Dates du contrat :"))
+        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self.stbGeneralites)
+        self.label_au = wx.StaticText(self.stbGeneralites, wx.ID_ANY, _("au"))
+        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self.stbGeneralites)
         
         self.label_observations = wx.StaticText(self, wx.ID_ANY, _("Observations :"))
         self.ctrl_observations = wx.TextCtrl(self, wx.ID_ANY, "", style=wx.TE_MULTILINE)
@@ -195,15 +202,15 @@ class Dialog(wx.Dialog):
         self.ctrl_tarif = CTRL_Tarif(self, IDactivite=self.IDactivite, IDcategorie_tarif=self.IDcategorie_tarif)
 
         # Périodes
-        self.box_periodes_staticbox = wx.StaticBox(self, wx.ID_ANY, _("Périodes de facturation"))
+        self.stbPeriodes = wx.StaticBox(self, wx.ID_ANY, _("Périodes de facturation"))
 
-        self.listviewAvecFooter = OL_Contrats_periodes.ListviewAvecFooter(self, kwargs={"IDactivite" : self.IDactivite}) 
+        self.listviewAvecFooter = OL_Contrats_periodes.ListviewAvecFooter(self.stbPeriodes, kwargs={"IDactivite" : self.IDactivite})
         self.ctrl_periodes = self.listviewAvecFooter.GetListview()
         
-        self.bouton_assistant = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Magique.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_ajouter_periode = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier_periode = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer_periode = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_assistant = wx.BitmapButton(self.stbPeriodes, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Magique.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter_periode = wx.BitmapButton(self.stbPeriodes, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier_periode = wx.BitmapButton(self.stbPeriodes, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer_periode = wx.BitmapButton(self.stbPeriodes, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
         
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -265,7 +272,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base = wx.FlexGridSizer(3, 1, 10, 10)
         
         # Généralités
-        box_generalites = wx.StaticBoxSizer(self.box_generalites_staticbox, wx.VERTICAL)
+        box_generalites = wx.StaticBoxSizer(self.stbGeneralites, wx.VERTICAL)
         grid_sizer_generalites = wx.FlexGridSizer(4, 2, 10, 10)
         grid_sizer_generalites.Add(self.label_nom, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_generalites.Add(self.ctrl_nom, 0, wx.EXPAND, 0)
@@ -284,7 +291,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(box_generalites, 1, wx.LEFT | wx.RIGHT | wx.TOP | wx.EXPAND, 10)
         
         # Périodes
-        box_periodes = wx.StaticBoxSizer(self.box_periodes_staticbox, wx.VERTICAL)
+        box_periodes = wx.StaticBoxSizer(self.stbPeriodes, wx.VERTICAL)
         grid_sizer_periodes = wx.FlexGridSizer(1, 2, 5, 5)
         grid_sizer_periodes.Add(self.listviewAvecFooter, 1, wx.EXPAND, 0)
         grid_sizer_boutons_periodes = wx.FlexGridSizer(5, 1, 5, 5)

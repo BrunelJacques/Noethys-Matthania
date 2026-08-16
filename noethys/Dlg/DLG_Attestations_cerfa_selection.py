@@ -163,19 +163,19 @@ class Panel(wx.Panel):
         self.ctrl_options = CTRL_Options(self)
         
         # Attestations
-        self.staticbox_attestations_staticbox = wx.StaticBox(self, -1, _("Attestations à générer"))
-        self.listviewAvecFooter = OL_Attestations_cerfa_selection.ListviewAvecFooter(self,  kwargs={})
+        self.stbAttestations = wx.StaticBox(self, -1, _("Attestations à générer"))
+        self.listviewAvecFooter = OL_Attestations_cerfa_selection.ListviewAvecFooter(self.stbAttestations,  kwargs={})
         self.ctrl_attestations = self.listviewAvecFooter.GetListview()
-        self.ctrl_recherche = CTRL_Outils(self, listview=self.ctrl_attestations, afficherCocher=True)
+        self.ctrl_recherche = CTRL_Outils(self.stbAttestations, listview=self.ctrl_attestations, afficherCocher=True)
 
-        self.bouton_apercu_liste = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Apercu.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_imprimer_liste = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_export_texte = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Texte2.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_export_excel = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Excel.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_apercu_liste = wx.BitmapButton(self.stbAttestations, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Apercu.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_imprimer_liste = wx.BitmapButton(self.stbAttestations, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_export_texte = wx.BitmapButton(self.stbAttestations, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Texte2.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_export_excel = wx.BitmapButton(self.stbAttestations, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Excel.png"), wx.BITMAP_TYPE_ANY))
 
         # Actions
-        self.bouton_generation = CTRL_Bouton_image.CTRL(self, texte=_("Générer\nles Cerfas"), tailleImage=(32, 32), margesImage=(4, 4, 0, 0), margesTexte=(-5, 1), cheminImage="Images/32x32/Configuration2.png")
-        self.bouton_visualiser = CTRL_Bouton_image.CTRL(self, texte=_("Prévisualiser"), tailleImage=(32, 32), margesImage=(4, 0, 0, 0), margesTexte=(-5, 1), cheminImage="Images/32x32/Apercu.png")
+        self.bouton_generation = CTRL_Bouton_image.CTRL(self.stbAttestations, texte=_("Générer\nles Cerfas"), tailleImage=(32, 32), margesImage=(4, 4, 0, 0), margesTexte=(-5, 1), cheminImage="Images/32x32/Configuration2.png")
+        self.bouton_visualiser = CTRL_Bouton_image.CTRL(self.stbAttestations, texte=_("Prévisualiser"), tailleImage=(32, 32), margesImage=(4, 0, 0, 0), margesTexte=(-5, 1), cheminImage="Images/32x32/Apercu.png")
         self.bouton_generation.SetMinSize((200, -1))
         self.bouton_visualiser.SetMinSize((200, -1))
         
@@ -201,7 +201,7 @@ class Panel(wx.Panel):
 
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
         # Attestations
-        staticbox_attestations = wx.StaticBoxSizer(self.staticbox_attestations_staticbox, wx.VERTICAL)
+        staticbox_attestations = wx.StaticBoxSizer(self.stbAttestations, wx.VERTICAL)
         grid_sizer_attestations = wx.FlexGridSizer(rows=3, cols=2, vgap=5, hgap=5)
         grid_sizer_attestations.Add(self.listviewAvecFooter, 1, wx.EXPAND, 0)
 

@@ -1759,13 +1759,6 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL):#(wxpg.PropertyGrid) :
             carR = ["E","o","$","/","-","$","e","e"]
             for i in range(0,len(car)):
                 texte=texte.replace(car[i],carR[i])
-            try:
-                from unidecode import unidecode
-            except:
-                txtMessage = _("Il faut installer le module unidecode par la commande systeme PIP INSTALL unidecode")
-                dlgConfirm = wx.MessageDialog(None, txtMessage, _(" "), wx.YES_NO|wx.NO_DEFAULT|wx.ICON_QUESTION)
-                dlgConfirm.ShowModal()
-                dlgConfirm.Destroy()
         else:
             if iso == 'latin':
                 texte=texte.replace("?","E")

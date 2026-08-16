@@ -228,25 +228,25 @@ class Panel(wx.Panel):
         self.tous = False
         self.donnees = {}
         # Options
-        self.staticbox_options_staticbox = wx.StaticBox(self, -1, _("Options d'impression"))
-        self.ctrl_options = CTRL_Options(self)
+        self.stbOptions = wx.StaticBox(self, -1, _("Options d'impression"))
+        self.ctrl_options = CTRL_Options(self.stbOptions)
 
         # Cerfas
-        self.staticbox_attestations_staticbox = wx.StaticBox(self, -1, _("Cerfas à éditer"))
-        self.listviewAvecFooter = OL_Attestations_cerfa_edition.ListviewAvecFooter(self,  kwargs={})
+        self.stbAttest = wx.StaticBox(self, -1, _("Cerfas à éditer"))
+        self.listviewAvecFooter = OL_Attestations_cerfa_edition.ListviewAvecFooter(self.stbAttest,  kwargs={})
         self.ctrl_attestations = self.listviewAvecFooter.GetListview()
 
-        self.ctrl_recherche = OL_Attestations_cerfa_edition.CTRL_Outils(self, listview=self.ctrl_attestations, afficherCocher=True)
+        self.ctrl_recherche = OL_Attestations_cerfa_edition.CTRL_Outils(self.stbAttest, listview=self.ctrl_attestations, afficherCocher=True)
 
-        self.bouton_apercu_liste = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Apercu.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_imprimer_liste = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_export_texte = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Texte2.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_export_excel = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Excel.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_apercu_liste = wx.BitmapButton(self.stbAttest, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Apercu.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_imprimer_liste = wx.BitmapButton(self.stbAttest, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_export_texte = wx.BitmapButton(self.stbAttest, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Texte2.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_export_excel = wx.BitmapButton(self.stbAttest, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Excel.png"), wx.BITMAP_TYPE_ANY))
 
         # Actions
-        self.staticbox_actions_staticbox = wx.StaticBox(self, -1, _("Actions"))
-        self.bouton_email = CTRL_Bouton_image.CTRL(self, texte=_("Transmettre\npar Email"), tailleImage=(22, 22), margesImage=(4, 4, 0, 0), margesTexte=(-5, 1), cheminImage="Images/32x32/Emails_exp.png")
-        self.bouton_imprimer = CTRL_Bouton_image.CTRL(self, texte=_("Imprimer"), tailleImage=(22, 22), margesImage=(4, 0, 0, 0), margesTexte=(-5, 1), cheminImage="Images/32x32/Imprimante.png")
+        self.stbAction = wx.StaticBox(self, -1, _("Actions"))
+        self.bouton_email = CTRL_Bouton_image.CTRL(self.stbAction, texte=_("Transmettre\npar Email"), tailleImage=(22, 22), margesImage=(4, 4, 0, 0), margesTexte=(-5, 1), cheminImage="Images/32x32/Emails_exp.png")
+        self.bouton_imprimer = CTRL_Bouton_image.CTRL(self.stbAction, texte=_("Imprimer"), tailleImage=(22, 22), margesImage=(4, 0, 0, 0), margesTexte=(-5, 1), cheminImage="Images/32x32/Imprimante.png")
         self.bouton_email.SetMinSize((150, -1))
         self.bouton_imprimer.SetMinSize((150, -1))
         
@@ -271,7 +271,7 @@ class Panel(wx.Panel):
 
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
         # Attestations
-        staticbox_attestations = wx.StaticBoxSizer(self.staticbox_attestations_staticbox, wx.VERTICAL)
+        staticbox_attestations = wx.StaticBoxSizer(self.stbAttest, wx.VERTICAL)
         grid_sizer_attestations = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
 
         grid_sizer_attestations.Add(self.listviewAvecFooter, 1, wx.EXPAND, 0)
@@ -300,12 +300,12 @@ class Panel(wx.Panel):
         grid_sizer_bas.AddGrowableRow(0)
 
         # Options
-        staticbox_options = wx.StaticBoxSizer(self.staticbox_options_staticbox, wx.VERTICAL)
+        staticbox_options = wx.StaticBoxSizer(self.stbOptions, wx.VERTICAL)
         staticbox_options.Add(self.ctrl_options, 1, wx.ALL|wx.EXPAND, 5)
         grid_sizer_bas.Add(staticbox_options, 1, wx.EXPAND, 0)
         
         # Boutons d'actions
-        staticbox_actions = wx.StaticBoxSizer(self.staticbox_actions_staticbox, wx.HORIZONTAL)
+        staticbox_actions = wx.StaticBoxSizer(self.stbAction, wx.HORIZONTAL)
         staticbox_actions.Add(self.bouton_email, 1, wx.EXPAND|wx.ALL,10)
         staticbox_actions.Add(self.bouton_imprimer, 1, wx.EXPAND|wx.ALL, 10)
         grid_sizer_bas.Add(staticbox_actions, 1, wx.EXPAND, 0)
