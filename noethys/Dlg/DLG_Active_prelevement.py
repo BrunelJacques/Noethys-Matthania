@@ -32,21 +32,21 @@ class Dialog(wx.Dialog):
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Prelevement.png")
         
         # Activation
-        self.box_activation_staticbox = wx.StaticBox(self, -1, _("Activation"))
-        self.label_activation = wx.StaticText(self, -1, _("Prélèvement activé :"))
-        self.radio_activation_oui = wx.RadioButton(self, -1, _("Oui"), style=wx.RB_GROUP)
-        self.radio_activation_non = wx.RadioButton(self, -1, _("Non"))
+        self.stbActivation = wx.StaticBox(self, -1, _("Activation"))
+        self.label_activation = wx.StaticText(self.stbActivation, -1, _("Prélèvement activé :"))
+        self.radio_activation_oui = wx.RadioButton(self.stbActivation, -1, _("Oui"), style=wx.RB_GROUP)
+        self.radio_activation_non = wx.RadioButton(self.stbActivation, -1, _("Non"))
         self.radio_activation_non.SetValue(True) 
 
         # Mandats
-        self.box_mandats_staticbox = wx.StaticBox(self, -1, _("Mandats SEPA"))
-        self.ctrl_listview = OL_Mandats.ListView(self, id=-1, IDfamille=self.IDfamille, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
+        self.stbMandats = wx.StaticBox(self, -1, _("Mandats SEPA"))
+        self.ctrl_listview = OL_Mandats.ListView(self.stbMandats, id=-1, IDfamille=self.IDfamille, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         self.ctrl_listview.SetMinSize((20, 20))
         self.ctrl_listview.MAJ()
         
-        self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter = wx.BitmapButton(self.stbMandats, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier = wx.BitmapButton(self.stbMandats, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer = wx.BitmapButton(self.stbMandats, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
 
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -84,7 +84,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
 
         # Activation
-        box_activation = wx.StaticBoxSizer(self.box_activation_staticbox, wx.VERTICAL)
+        box_activation = wx.StaticBoxSizer(self.stbActivation, wx.VERTICAL)
         grid_sizer_activation = wx.FlexGridSizer(rows=1, cols=3, vgap=10, hgap=10)
         grid_sizer_activation.Add(self.label_activation, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_activation.Add(self.radio_activation_oui, 0, wx.ALIGN_CENTER_VERTICAL, 0)
@@ -94,7 +94,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(box_activation, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         
         # Mandats
-        box_mandats = wx.StaticBoxSizer(self.box_mandats_staticbox, wx.VERTICAL)
+        box_mandats = wx.StaticBoxSizer(self.stbMandats, wx.VERTICAL)
         grid_sizer_mandats = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         
         grid_sizer_mandats.Add(self.ctrl_listview, 0, wx.EXPAND, 0)

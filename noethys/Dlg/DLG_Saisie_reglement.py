@@ -69,7 +69,7 @@ def DateFREnDateDD(dateFR):
 class CTRL_Image(wx.StaticBitmap):
     def __init__(self, parent, style=0):
         wx.StaticBitmap.__init__(self, parent, id=-1, style=style)
-        self.parent = parent
+        self.parent = parent.Parent
         self.tailleImage = (132, 72)
         self.SetMinSize(self.tailleImage) 
         self.SetSize(self.tailleImage) 
@@ -124,7 +124,7 @@ class CTRL_Image(wx.StaticBitmap):
 class CTRL_Infos(html.HtmlWindow):
     def __init__(self, parent, texte="", hauteur=32,  couleurFond=(255, 255, 255), style=0):
         html.HtmlWindow.__init__(self, parent, -1, style=style)#, style=wx.html.HW_NO_SELECTION | wx.html.HW_SCROLLBAR_NEVER | wx.NO_FULL_REPAINT_ON_RESIZE)
-        self.parent = parent
+        self.parent = parent.Parent
         if "gtk2" in wx.PlatformInfo:
             self.SetStandardFonts()
         self.SetBorders(5)
@@ -145,7 +145,7 @@ class CTRL_Mode(wx.Choice):
     # choix du mode de paiement
     def __init__(self, parent):
         wx.Choice.__init__(self, parent, -1) 
-        self.parent = parent
+        self.parent = parent.Parent
         self.MAJ() 
     
     def MAJ(self):
@@ -197,7 +197,7 @@ class CTRL_Mode(wx.Choice):
 class CTRL_Emetteur(wx.Choice):
     def __init__(self, parent):
         wx.Choice.__init__(self, parent, -1) 
-        self.parent = parent
+        self.parent = parent.Parent
         self.MAJ() 
         if len(self.dictDonnees) > 0 :
             self.SetSelection(0)
@@ -243,7 +243,7 @@ class CTRL_Emetteur(wx.Choice):
 class CTRL_Payeurs(wx.ListBox):
     def __init__(self, parent, IDcompte_payeur=None):
         wx.ListBox.__init__(self, parent, id=-1, choices=[])
-        self.parent = parent
+        self.parent = parent.Parent
         self.IDcompte_payeur = IDcompte_payeur
         self.MAJ() 
     
@@ -351,7 +351,7 @@ class CTRL_Payeurs(wx.ListBox):
 class CTRL_Frais(Hyperlink.HyperLinkCtrl):
     def __init__(self, parent, id=-1, label="", infobulle="", URL="", size=(-1, -1), pos=(0, 0)):
         Hyperlink.HyperLinkCtrl.__init__(self, parent, id, label, URL=URL, size=size, pos=pos)
-        self.parent = parent
+        self.parent = parent.Parent
         self.dictFrais = {}
         self.labelPrestation = ""
         self.montantPrestation = 0.0
@@ -459,7 +459,7 @@ class CTRL_Compte(wx.Choice):
     # Choix du Compte bancaire et des paramètres du dépôt
     def __init__(self, parent):
         wx.Choice.__init__(self, parent, -1) 
-        self.parent = parent
+        self.parent = parent.Parent
         self.IDdefaut = None
         self.MAJ()             
     
@@ -560,63 +560,63 @@ class Dialog(wx.Dialog):
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/22x22/Smiley_nul.png")
         
         # Infos
-        self.staticbox_infos_staticbox = wx.StaticBox(self, -1, _("Informations"))
+        self.stbInfos = wx.StaticBox(self, -1, _("Informations"))
 ##        self.panel_infos = wx.Panel(self, -1, style=wx.TAB_TRAVERSAL)
 ##        self.panel_infos.SetBackgroundColour("#F0FBED")
-        self.ctrl_image = CTRL_Image(self, style=wx.SUNKEN_BORDER)
-        self.ctrl_infos = CTRL_Infos(self, couleurFond="#FFFFFF", style=wx.SUNKEN_BORDER ) #F0FBED
+        self.ctrl_image = CTRL_Image(self.stbInfos, style=wx.SUNKEN_BORDER)
+        self.ctrl_infos = CTRL_Infos(self.stbInfos, couleurFond="#FFFFFF", style=wx.SUNKEN_BORDER ) #F0FBED
         
         # Généralités
-        self.staticbox_generalites_staticbox = wx.StaticBox(self, -1, _("Généralites"))
-        self.label_date = wx.StaticText(self, -1, _("Date :"))
-        self.ctrl_date = CTRL_Saisie_date.Date(self)
+        self.stbGeneral = wx.StaticBox(self, -1, _("Généralites"))
+        self.label_date = wx.StaticText(self.stbGeneral, -1, _("Date :"))
+        self.ctrl_date = CTRL_Saisie_date.Date(self.stbGeneral)
         self.ctrl_date.SetDate(datetime.date.today())
-        self.label_mode = wx.StaticText(self, -1, _("Mode :"))
-        self.ctrl_mode = CTRL_Mode(self)
-        self.label_emetteur = wx.StaticText(self, -1, _("Emetteur :"))
-        self.ctrl_emetteur = CTRL_Emetteur(self)
-        self.label_numero = wx.StaticText(self, -1, _("N° Pièce :"))
-        self.ctrl_numero = wx.TextCtrl(self, -1, "")
-        self.label_montant = wx.StaticText(self, -1, _("Montant :"))
+        self.label_mode = wx.StaticText(self.stbGeneral, -1, _("Mode :"))
+        self.ctrl_mode = CTRL_Mode(self.stbGeneral)
+        self.label_emetteur = wx.StaticText(self.stbGeneral, -1, _("Emetteur :"))
+        self.ctrl_emetteur = CTRL_Emetteur(self.stbGeneral)
+        self.label_numero = wx.StaticText(self.stbGeneral, -1, _("N° Pièce :"))
+        self.ctrl_numero = wx.TextCtrl(self.stbGeneral, -1, "")
+        self.label_montant = wx.StaticText(self.stbGeneral, -1, _("Montant :"))
         font = wx.Font(14, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.BOLD, 0, "")
-        self.ctrl_montant = CTRL_Saisie_euros.CTRL(self, font)
-        self.label_payeur = wx.StaticText(self, -1, _("Payeur :"))
-        self.ctrl_payeur = CTRL_Payeurs(self, self.IDcompte_payeur)
-        self.bouton_ajouter_payeur = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier_payeur = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer_payeur = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.ctrl_montant = CTRL_Saisie_euros.CTRL(self.stbGeneral, font)
+        self.label_payeur = wx.StaticText(self.stbGeneral, -1, _("Payeur :"))
+        self.ctrl_payeur = CTRL_Payeurs(self.stbGeneral, self.IDcompte_payeur)
+        self.bouton_ajouter_payeur = wx.BitmapButton(self.stbGeneral, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier_payeur = wx.BitmapButton(self.stbGeneral, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer_payeur = wx.BitmapButton(self.stbGeneral, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
         
-        self.bouton_calendrier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Calendrier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_mode = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_emetteur = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_calendrier = wx.BitmapButton(self.stbGeneral, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Calendrier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_mode = wx.BitmapButton(self.stbGeneral, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_emetteur = wx.BitmapButton(self.stbGeneral, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_ANY))
 
         # Options
-        self.staticbox_options_staticbox = wx.StaticBox(self, -1, _("Options"))
-        self.label_observations = wx.StaticText(self, -1, _("Observations :"))
-        self.ctrl_observations = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE)
-        self.label_quittancier = wx.StaticText(self, -1, _("N° Quittancier :"))
-        self.ctrl_quittancier = wx.TextCtrl(self, -1, "")
-        self.label_recu = wx.StaticText(self, -1, _("Edition reçu :"))
-        self.ctrl_recu = wx.CheckBox(self, -1, "")
-        self.label_frais = wx.StaticText(self, -1, _("Frais de gestion :"))
-        self.hyperlien_frais = CTRL_Frais(self, label=_("Aucun frais"), infobulle=_("Cliquez ici pour appliquer des frais de gestion"), URL="")
+        self.stbOptions = wx.StaticBox(self, -1, _("Options"))
+        self.label_observations = wx.StaticText(self.stbOptions, -1, _("Observations :"))
+        self.ctrl_observations = wx.TextCtrl(self.stbOptions, -1, "", style=wx.TE_MULTILINE)
+        self.label_quittancier = wx.StaticText(self.stbOptions, -1, _("N° Quittancier :"))
+        self.ctrl_quittancier = wx.TextCtrl(self.stbOptions, -1, "")
+        self.label_recu = wx.StaticText(self.stbOptions, -1, _("Edition reçu :"))
+        self.ctrl_recu = wx.CheckBox(self.stbOptions, -1, "")
+        self.label_frais = wx.StaticText(self.stbOptions, -1, _("Frais de gestion :"))
+        self.hyperlien_frais = CTRL_Frais(self.stbOptions, label=_("Aucun frais"), infobulle=_("Cliquez ici pour appliquer des frais de gestion"), URL="")
         
         # Encaissement
-        self.staticbox_encaissement_staticbox = wx.StaticBox(self, -1, _("Encaissement"))
-        self.label_compte = wx.StaticText(self, -1, _("Compte :"))
-        self.ctrl_compte = CTRL_Compte(self)
-        self.label_differe = wx.StaticText(self, -1, _("Différé :"))
-        self.ctrl_check_differe = wx.CheckBox(self, -1, "")
-        self.label_differe_2 = wx.StaticText(self, -1, _("A partir du"))
-        self.ctrl_differe = CTRL_Saisie_date.Date(self)
-        self.label_attente = wx.StaticText(self, -1, _("Attente :"))
-        self.ctrl_attente = wx.CheckBox(self, -1, "")
+        self.stbEncaiss = wx.StaticBox(self, -1, _("Encaissement"))
+        self.label_compte = wx.StaticText(self.stbEncaiss, -1, _("Compte :"))
+        self.ctrl_compte = CTRL_Compte(self.stbEncaiss)
+        self.label_differe = wx.StaticText(self.stbEncaiss, -1, _("Différé :"))
+        self.ctrl_check_differe = wx.CheckBox(self.stbEncaiss, -1, "")
+        self.label_differe_2 = wx.StaticText(self.stbEncaiss, -1, _("A partir du"))
+        self.ctrl_differe = CTRL_Saisie_date.Date(self.stbEncaiss)
+        self.label_attente = wx.StaticText(self.stbEncaiss, -1, _("Attente :"))
+        self.ctrl_attente = wx.CheckBox(self.stbEncaiss, -1, "")
         
-        self.bouton_calendrier_differe = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Calendrier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_calendrier_differe = wx.BitmapButton(self.stbEncaiss, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Calendrier.png"), wx.BITMAP_TYPE_ANY))
 
         # Ventilation
-        self.staticbox_ventilation_staticbox = wx.StaticBox(self, -1, _("Ventilation"))
-        self.ctrl_ventilation = CTRL_Ventilation.CTRL(self, IDcompte_payeur=self.IDcompte_payeur, IDreglement=self.IDreglement)
+        self.stbVentil = wx.StaticBox(self, -1, _("Ventilation"))
+        self.ctrl_ventilation = CTRL_Ventilation.CTRL(self.stbVentil, IDcompte_payeur=self.IDcompte_payeur, IDreglement=self.IDreglement)
         
         # Commandes
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage=Chemins.GetStaticPath("Images/32x32/Aide.png"))
@@ -730,7 +730,7 @@ class Dialog(wx.Dialog):
         grid_sizer_haut_droit = wx.FlexGridSizer(rows=2, cols=1, vgap=10, hgap=10)
         
         # Infos
-        staticbox_infos = wx.StaticBoxSizer(self.staticbox_infos_staticbox, wx.VERTICAL)
+        staticbox_infos = wx.StaticBoxSizer(self.stbInfos, wx.VERTICAL)
         grid_sizer_infos = wx.FlexGridSizer(rows=2, cols=1, vgap=0, hgap=0)
         grid_sizer_infos.Add(self.ctrl_image, 0, wx.ALL, 5)
         grid_sizer_infos.Add(self.ctrl_infos, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.TOP|wx.EXPAND, 5)
@@ -740,7 +740,7 @@ class Dialog(wx.Dialog):
         grid_sizer_haut.Add(staticbox_infos, 1, wx.EXPAND, 0)
         
         # Généralités
-        staticbox_generalites = wx.StaticBoxSizer(self.staticbox_generalites_staticbox, wx.VERTICAL)
+        staticbox_generalites = wx.StaticBoxSizer(self.stbGeneral, wx.VERTICAL)
         grid_sizer_generalites = wx.FlexGridSizer(rows=6, cols=2, vgap=5, hgap=5)
         grid_sizer_generalites.Add(self.label_date, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         
@@ -791,7 +791,7 @@ class Dialog(wx.Dialog):
         grid_sizer_haut.Add(staticbox_generalites, 1, wx.EXPAND, 0)
         
         # Options
-        staticbox_options = wx.StaticBoxSizer(self.staticbox_options_staticbox, wx.VERTICAL)
+        staticbox_options = wx.StaticBoxSizer(self.stbOptions, wx.VERTICAL)
         grid_sizer_options = wx.FlexGridSizer(rows=4, cols=2, vgap=5, hgap=5)
         grid_sizer_options.Add(self.label_observations, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_options.Add(self.ctrl_observations, 0, wx.EXPAND, 0)
@@ -811,7 +811,7 @@ class Dialog(wx.Dialog):
         grid_sizer_haut_droit.Add(staticbox_options, 1, wx.EXPAND, 0)
         
         # Encaissement
-        staticbox_encaissement = wx.StaticBoxSizer(self.staticbox_encaissement_staticbox, wx.VERTICAL)
+        staticbox_encaissement = wx.StaticBoxSizer(self.stbEncaiss, wx.VERTICAL)
         grid_sizer_encaissement = wx.FlexGridSizer(rows=3, cols=2, vgap=5, hgap=5)
         grid_sizer_encaissement.Add(self.label_compte, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_encaissement.Add(self.ctrl_compte, 0, wx.EXPAND, 0)
@@ -836,7 +836,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(grid_sizer_haut, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         
         # Ventilation
-        staticbox_ventilation = wx.StaticBoxSizer(self.staticbox_ventilation_staticbox, wx.VERTICAL)
+        staticbox_ventilation = wx.StaticBoxSizer(self.stbVentil, wx.VERTICAL)
         grid_sizer_ventilation = wx.FlexGridSizer(rows=2, cols=2, vgap=10, hgap=10)
         grid_sizer_ventilation.Add(self.ctrl_ventilation, 0, wx.EXPAND, 0)
         grid_sizer_ventilation.AddGrowableRow(0)

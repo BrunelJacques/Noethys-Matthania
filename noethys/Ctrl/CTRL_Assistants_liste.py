@@ -64,7 +64,7 @@ class FirstColumnRenderer(object):
     def DrawSubItem(self, dc, rect, line, highlighted, enabled):
         # Icone
         bmpWidth, bmpHeight = self.icon.GetWidth(), self.icon.GetHeight()
-        dc.DrawBitmap(self.icon, rect.x+8, rect.y+(rect.height-bmpHeight)/2)
+        dc.DrawBitmap(self.icon, rect.x+8, rect.y+int((rect.height-bmpHeight)/2))
 
         # Titre
         dc.SetFont(self.normalFont)

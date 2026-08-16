@@ -259,13 +259,13 @@ class DLG_Saisie_mdp(wx.Dialog):
         self.Init()
 
     def Init(self):
-        self.staticbox = wx.StaticBox(self, -1, "")
-        self.label = wx.StaticText(self, -1, self.intro)
-        self.label_mdp = wx.StaticText(self, -1, _("Mot de passe :"))
-        self.label_confirmation = wx.StaticText(self, -1, _("Confirmation :"))
-        self.checkHideMdp = wx.CheckBox(self,-1,"Masquer la saisie ",)
-        self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"), cheminImage="Images/32x32/Valider.png")
-        self.bouton_annuler = CTRL_Bouton_image.CTRL(self, id=wx.ID_CANCEL, texte=_("Annuler"), cheminImage="Images/32x32/Annuler.png")
+        self.stbMdp = wx.StaticBox(self, -1, "")
+        self.label = wx.StaticText(self.stbMdp, -1, self.intro)
+        self.label_mdp = wx.StaticText(self.stbMdp, -1, _("Mot de passe :"))
+        self.label_confirmation = wx.StaticText(self.stbMdp, -1, _("Confirmation :"))
+        self.checkHideMdp = wx.CheckBox(self.stbMdp,-1,"Masquer la saisie ",)
+        self.bouton_ok = CTRL_Bouton_image.CTRL(self.stbMdp, texte=_("Ok"), cheminImage="Images/32x32/Valider.png")
+        self.bouton_annuler = CTRL_Bouton_image.CTRL(self.stbMdp, id=wx.ID_CANCEL, texte=_("Annuler"), cheminImage="Images/32x32/Annuler.png")
 
         self.Set_properties()
         self.Do_layout()
@@ -287,7 +287,7 @@ class DLG_Saisie_mdp(wx.Dialog):
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=0, hgap=0)
         grid_sizer_base.Add(self.label, 0, wx.ALL, 10)
         # Staticbox
-        staticbox = wx.StaticBoxSizer(self.staticbox, wx.HORIZONTAL)
+        staticbox = wx.StaticBoxSizer(self.stbMdp, wx.HORIZONTAL)
         grid_sizer_contenu = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         grid_sizer_contenu.Add(self.label_mdp, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_contenu.Add(self.ctrl_mdp, 0, wx.EXPAND, 0)
@@ -456,40 +456,40 @@ class Dialog(wx.Dialog):
             DB.Close()
 
         # Identité
-        self.staticbox_identite_staticbox = wx.StaticBox(self, -1, _("Identité"))
-        self.label_sexe = wx.StaticText(self, -1, _("Sexe :"))
-        self.ctrl_sexe = wx.Choice(self, -1, choices=[_("Homme"), _("Femme")])
-        self.label_nom = wx.StaticText(self, -1, _("Nom :"))
-        self.ctrl_nom = wx.TextCtrl(self, -1, "")
-        self.label_prenom = wx.StaticText(self, -1, _("Prénom :"))
-        self.ctrl_prenom = wx.TextCtrl(self, -1, "")
+        self.stbIdentite = wx.StaticBox(self, -1, _("Identité"))
+        self.label_sexe = wx.StaticText(self.stbIdentite, -1, _("Sexe :"))
+        self.ctrl_sexe = wx.Choice(self.stbIdentite, -1, choices=[_("Homme"), _("Femme")])
+        self.label_nom = wx.StaticText(self.stbIdentite, -1, _("Nom :"))
+        self.ctrl_nom = wx.TextCtrl(self.stbIdentite, -1, "")
+        self.label_prenom = wx.StaticText(self.stbIdentite, -1, _("Prénom :"))
+        self.ctrl_prenom = wx.TextCtrl(self.stbIdentite, -1, "")
         
         # Image
-        self.staticbox_image_staticbox = wx.StaticBox(self, -1, _("Avatar"))
-        self.ctrl_image = CTRL_Image(self)
-        self.hyper_image = Hyperlien(self, label=_("Choisir un avatar"), infobulle=_("Cliquez ici pour modifier l'avatar de l'utilisateur"), URL="")
+        self.stbImage = wx.StaticBox(self, -1, _("Avatar"))
+        self.ctrl_image = CTRL_Image(self.stbImage)
+        self.hyper_image = Hyperlien(self.stbImage, label=_("Choisir un avatar"), infobulle=_("Cliquez ici pour modifier l'avatar de l'utilisateur"), URL="")
         
         # Accès
-        self.staticbox_acces_staticbox = wx.StaticBox(self, -1, _("Accès"))
-        self.ctrl_actif = wx.CheckBox(self, -1, "Utilisateur actif")
+        self.stbAcces = wx.StaticBox(self, -1, _("Accès"))
+        self.ctrl_actif = wx.CheckBox(self.stbAcces, -1, "Utilisateur actif")
         self.ctrl_actif.SetValue(True)
-        self.bouton_modif_mdp = CTRL_Bouton_image.CTRL(self, texte="", cheminImage="Images/32x32/Cle.png")
+        self.bouton_modif_mdp = CTRL_Bouton_image.CTRL(self.stbAcces, texte="", cheminImage="Images/32x32/Cle.png")
 
         # Compte internet
-        self.staticbox_internet_staticbox = wx.StaticBox(self, -1, _("Compte internet"))
-        self.ctrl_compte_internet = CTRL_Compte_internet.CTRL(self, IDutilisateur=IDutilisateur, couleurFond=wx.WHITE)
-        self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.stbInternet = wx.StaticBox(self, -1, _("Compte internet"))
+        self.ctrl_compte_internet = CTRL_Compte_internet.CTRL(self.stbInternet, IDutilisateur=IDutilisateur, couleurFond=wx.WHITE)
+        self.bouton_modifier = wx.BitmapButton(self.stbInternet, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
         #self.bouton_envoi_mail = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Emails_exp.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_envoi_pressepapiers = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Clipboard.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_envoi_pressepapiers = wx.BitmapButton(self.stbInternet, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Clipboard.png"), wx.BITMAP_TYPE_ANY))
         #self.bouton_historique = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Historique.png"), wx.BITMAP_TYPE_ANY))
 
         # Droits
-        self.staticbox_droits_staticbox = wx.StaticBox(self, -1, _("Droits"))
-        self.radio_droits_admin = wx.RadioButton(self, -1, _("Administrateur"), style=wx.RB_GROUP)
-        self.radio_droits_modele = wx.RadioButton(self, -1, _("Le modèle de droits suivant :"))
-        self.ctrl_modele_droits = CTRL_Modeles_droits(self)
-        self.radio_droits_perso = wx.RadioButton(self, -1, _("Les droits personnalisés suivants :"))
-        self.ctrl_droits = CTRL_Droits.CTRL(self, IDutilisateur=self.IDutilisateur)
+        self.stbDroits = wx.StaticBox(self, -1, _("Droits"))
+        self.radio_droits_admin = wx.RadioButton(self.stbDroits, -1, _("Administrateur"), style=wx.RB_GROUP)
+        self.radio_droits_modele = wx.RadioButton(self.stbDroits, -1, _("Le modèle de droits suivant :"))
+        self.ctrl_modele_droits = CTRL_Modeles_droits(self.stbDroits)
+        self.radio_droits_perso = wx.RadioButton(self.stbDroits, -1, _("Les droits personnalisés suivants :"))
+        self.ctrl_droits = CTRL_Droits.CTRL(self.stbDroits, IDutilisateur=self.IDutilisateur)
         self.ctrl_droits.MAJ()
         
         # Commandes
@@ -551,7 +551,7 @@ class Dialog(wx.Dialog):
         grid_sizer_haut_gauche = wx.FlexGridSizer(rows=2, cols=1, vgap=10, hgap=10)
         
         # Identité
-        staticbox_identite = wx.StaticBoxSizer(self.staticbox_identite_staticbox, wx.VERTICAL)
+        staticbox_identite = wx.StaticBoxSizer(self.stbIdentite, wx.VERTICAL)
         grid_sizer_identite = wx.FlexGridSizer(rows=3, cols=2, vgap=5, hgap=10)
         grid_sizer_identite.Add(self.label_sexe, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_identite.Add(self.ctrl_sexe, 0, 0, 0)
@@ -565,7 +565,7 @@ class Dialog(wx.Dialog):
         grid_sizer_haut_gauche.Add(staticbox_identite, 1, wx.EXPAND, 0)
         
         # Accès
-        staticbox_acces = wx.StaticBoxSizer(self.staticbox_acces_staticbox, wx.VERTICAL)
+        staticbox_acces = wx.StaticBoxSizer(self.stbAcces, wx.VERTICAL)
         self.grid_sizer_acces = wx.FlexGridSizer(rows=1, cols=5, vgap=10, hgap=10)
         self.grid_sizer_acces.Add(self.ctrl_actif, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         self.grid_sizer_acces.Add( (5, 5), 0, wx.EXPAND, 0)
@@ -579,7 +579,7 @@ class Dialog(wx.Dialog):
         grid_sizer_haut.Add(grid_sizer_haut_gauche, 1, wx.EXPAND, 0)
         
         # Image
-        staticbox_image = wx.StaticBoxSizer(self.staticbox_image_staticbox, wx.VERTICAL)
+        staticbox_image = wx.StaticBoxSizer(self.stbImage, wx.VERTICAL)
         staticbox_image.Add(self.ctrl_image, 0, wx.ALL|wx.EXPAND, 10)
         staticbox_image.Add(self.hyper_image, 0, wx.ALIGN_CENTER|wx.ALL, 0)
         grid_sizer_haut.Add(staticbox_image, 1, wx.EXPAND, 0)
@@ -588,7 +588,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(grid_sizer_haut, 1, wx.ALL|wx.EXPAND, 10)
 
         # Compte internet
-        staticbox_internet = wx.StaticBoxSizer(self.staticbox_internet_staticbox, wx.VERTICAL)
+        staticbox_internet = wx.StaticBoxSizer(self.stbInternet, wx.VERTICAL)
         grid_sizer_param = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_param.Add(self.ctrl_compte_internet, 0, wx.EXPAND, 0)
 
@@ -606,7 +606,7 @@ class Dialog(wx.Dialog):
         grid_sizer_haut.Add(staticbox_internet, 1, wx.ALL|wx.EXPAND, 0)
 
         # Droits
-        staticbox_droits = wx.StaticBoxSizer(self.staticbox_droits_staticbox, wx.VERTICAL)
+        staticbox_droits = wx.StaticBoxSizer(self.stbDroits, wx.VERTICAL)
         grid_sizer_droits = wx.FlexGridSizer(rows=5, cols=1, vgap=10, hgap=10)
 
         grid_sizer_droits.Add(self.radio_droits_admin, 0, wx.ALIGN_CENTER_VERTICAL, 0)

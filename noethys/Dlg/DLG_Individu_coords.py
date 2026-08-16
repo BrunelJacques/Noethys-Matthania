@@ -363,22 +363,22 @@ class Panel_contact(wx.Panel):
 
 
         if cat == "individu":
-            self.radio_adresse_auto = wx.RadioButton(self, -1, "adresse de :", style=wx.RB_GROUP)
-            self.ctrl_adresse_auto = Adresse_auto(self,IDindividu=IDindividu)
+            self.radio_adresse_auto = wx.RadioButton(self.stbAdresse, -1, "adresse de :", style=wx.RB_GROUP)
+            self.ctrl_adresse_auto = Adresse_auto(self.stbAdresse,IDindividu=IDindividu)
             self.radio_adresse_manuelle = wx.RadioButton(self, -1, "adresse propre à l'individu")
             self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioAdresseAuto, self.radio_adresse_auto)
             self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioAdresseManu, self.radio_adresse_manuelle)
-            self.designationB = wx.TextCtrl(self, -1,"")
+            self.designationB = wx.TextCtrl(self.stbAdresse, -1,"")
             # Listes de diffusion
             self.label_listesdiff = wx.StaticText(self.stbContacts, -1, _("Listes de diffusion :"))
             self.ctrl_listesdiff = CTRL_diff(self.stbContacts)
             self.ctrl_refus_pub = wx.CheckBox(self.stbContacts, -1, "refus pub papier")
             self.ctrl_refus_mel = wx.CheckBox(self.stbContacts, -1, "refus mails de com")
         elif cat == "famille":
-            self.radio_adresse_auto = wx.StaticText(self, -1, "utiliser l'adresse de :", style=wx.RB_GROUP)
-            self.ctrl_adresse_auto = Adresse_auto(self,IDindividu=IDindividu,IDfamille = IDfamille)
-            self.radio_adresse_manuelle = wx.StaticText(self, -1, "Correspondance à : ")
-            self.designationB = wx.TextCtrl(self, -1,"")
+            self.radio_adresse_auto = wx.StaticText(self.stbAdresse, -1, "utiliser l'adresse de :", style=wx.RB_GROUP)
+            self.ctrl_adresse_auto = Adresse_auto(self.stbAdresse,IDindividu=IDindividu,IDfamille = IDfamille)
+            self.radio_adresse_manuelle = wx.StaticText(self.stbAdresse, -1, "Correspondance à : ")
+            self.designationB = wx.TextCtrl(self.stbAdresse, -1,"")
             self.designationB.SetMaxLength(38)
             self.designationB.Bind(wx.EVT_KILL_FOCUS, self.OnKillDesignationB)
             # Listes de diffusion
@@ -418,7 +418,7 @@ class Panel_contact(wx.Panel):
 
         self.label_travail_mail = wx.StaticText(self.stbContacts, -1, _("Mail2 :"))
         self.ctrl_travail_mail = CTRL_Saisie_mail.Mail(self.stbContacts)
-        self.bouton_mail_travail = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Emails_exp.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_mail_travail = wx.BitmapButton(self.stbContacts, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Emails_exp.png"), wx.BITMAP_TYPE_ANY))
                 
 
         self.__set_properties()
