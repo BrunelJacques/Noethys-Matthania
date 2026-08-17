@@ -38,8 +38,8 @@ class Dialog(wx.Dialog):
         self.ctrl_ordre.Select(1) 
 
         # Cotisations disponibles
-        self.staticbox_cotisations_disponibles_staticbox = wx.StaticBox(self, -1, _("Cotisations disponibles"))
-        self.ctrl_cotisations_disponibles = OL_Cotisations_depots.ListView(self, id=-1, inclus=False, name="OL_cotisations_depot", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
+        self.stbDispo = wx.StaticBox(self, -1, _("Cotisations disponibles"))
+        self.ctrl_cotisations_disponibles = OL_Cotisations_depots.ListView(self.stbDispo, id=-1, inclus=False, name="OL_cotisations_depot", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         
         # Commandes
         self.bouton_bas_tout = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Fleche_double_bas.png"), wx.BITMAP_TYPE_ANY))
@@ -48,8 +48,8 @@ class Dialog(wx.Dialog):
         self.bouton_haut_tout = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Fleche_double_haut_rouge.png"), wx.BITMAP_TYPE_ANY))
 
         # Reglements du dépôt
-        self.staticbox_cotisations_depot_staticbox = wx.StaticBox(self, -1, _("Cotisations du dépôt"))
-        self.ctrl_cotisations_depot = OL_Cotisations_depots.ListView(self, id=-1, inclus=True, name="OL_cotisations_depot", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
+        self.stbDepot = wx.StaticBox(self, -1, _("Cotisations du dépôt"))
+        self.ctrl_cotisations_depot = OL_Cotisations_depots.ListView(self.stbDepot, id=-1, inclus=True, name="OL_cotisations_depot", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -105,7 +105,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(grid_sizer_intro, 0, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 10)
 
         # Cotisations disponibles
-        staticbox_reglements_disponibles = wx.StaticBoxSizer(self.staticbox_cotisations_disponibles_staticbox, wx.VERTICAL)
+        staticbox_reglements_disponibles = wx.StaticBoxSizer(self.stbDispo, wx.VERTICAL)
         staticbox_reglements_disponibles.Add(self.ctrl_cotisations_disponibles, 1, wx.ALL|wx.EXPAND, 5)
         grid_sizer_base.Add(staticbox_reglements_disponibles, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
 
@@ -122,7 +122,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(grid_sizer_commandes, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         
         # Cotisations déposées
-        staticbox_reglements_depot = wx.StaticBoxSizer(self.staticbox_cotisations_depot_staticbox, wx.VERTICAL)
+        staticbox_reglements_depot = wx.StaticBoxSizer(self.stbDepot, wx.VERTICAL)
         staticbox_reglements_depot.Add(self.ctrl_cotisations_depot, 1, wx.ALL|wx.EXPAND, 5)
         grid_sizer_base.Add(staticbox_reglements_depot, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         

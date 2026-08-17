@@ -312,8 +312,8 @@ class Dialog(wx.Dialog):
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Anniversaire.png")
 
         # Profil de configuration
-        self.staticbox_profil_staticbox = wx.StaticBox(self, -1, _("Profil de configuration"))
-        self.ctrl_profil = CTRL_profil_perso(self, categorie="impression_anniversaires", dlg=self)
+        self.stbProfil = wx.StaticBox(self, -1, _("Profil de configuration"))
+        self.ctrl_profil = CTRL_profil_perso(self.stbProfil, categorie="impression_anniversaires", dlg=self)
 
         # Notebook
         self.ctrl_notebook = CTRL_Parametres(self)
@@ -345,7 +345,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
 
         # Profil
-        staticbox_profil = wx.StaticBoxSizer(self.staticbox_profil_staticbox, wx.VERTICAL)
+        staticbox_profil = wx.StaticBoxSizer(self.stbProfil, wx.VERTICAL)
         staticbox_profil.Add(self.ctrl_profil, 1, wx.EXPAND | wx.ALL, 5)
         grid_sizer_base.Add(staticbox_profil, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
 

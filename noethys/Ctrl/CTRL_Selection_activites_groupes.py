@@ -12,7 +12,7 @@ import wx
 import GestionDB
 import wx.lib.agw.customtreectrl as CT
 from datetime import date
-from UTILS_Dates import DateDDEnDateEng, DateEngEnDateDD
+from Utils.UTILS_Dates import DateDDEnDateEng, DateEngEnDateDD
 
 def WhereDates(periode):
     deb_per, fin_per = periode
@@ -34,7 +34,7 @@ def WhereDates(periode):
 class CTRL_Groupes_activites(wx.CheckListBox):
     def __init__(self, parent):
         wx.CheckListBox.__init__(self, parent, -1)
-        self.parent = parent
+        self.parent = parent.Parent
         self.dictDonnees = {}
         self.dictIndex = {}
         self.periode = (None,None)
@@ -500,36 +500,36 @@ class CTRL(wx.Panel):
         self.periode = periode
 
         # Contrôles
-        self.groupes_activites_staticbox = wx.StaticBox(self, -1, _("Types d'activités"))
-        self.ctrl_groupes_activites = CTRL_Groupes_activites(self)
+        self.stbTypes = wx.StaticBox(self, -1, _("Types d'activités"))
+        self.ctrl_groupes_activites = CTRL_Groupes_activites(self.stbTypes)
         self.ctrl_groupes_activites.SetMinSize((100, 30))
 
-        self.activites_staticbox = wx.StaticBox(self, -1, _("Activités et groupes"))
-        self.ctrl_activites = CTRL_Activites(self)
+        self.stbActivites = wx.StaticBox(self, -1, _("Activités et groupes"))
+        self.ctrl_activites = CTRL_Activites(self.stbActivites)
         self.ctrl_activites.SetMinSize((100, 60))
 
-        self.tarifs_staticbox = wx.StaticBox(self, -1, _("Cocher les groupes par tarif"))
-        self.ctrl_tarifs= CTRL_Tarifs(self)
+        self.stbTarifs = wx.StaticBox(self, -1, _("Cocher les groupes par tarif"))
+        self.ctrl_tarifs= CTRL_Tarifs(self.stbTarifs)
         self.ctrl_tarifs.SetMinSize((100, 30))
 
         if self.modeGroupes == False:
             self.ctrl_tarifs.Show(False)
-            self.tarifs_staticbox.Show(False)
+            self.stbTarifs.Show(False)
 
         # Layout
         grid_sizer_base = wx.FlexGridSizer(rows=7, cols=1, vgap=3, hgap=5)
 
-        box_grpactiv = wx.StaticBoxSizer(self.groupes_activites_staticbox,wx.VERTICAL)
+        box_grpactiv = wx.StaticBoxSizer(self.stbTypes,wx.VERTICAL)
         box_grpactiv.Add(self.ctrl_groupes_activites,proportion=1,flag=wx.LEFT|wx.EXPAND,border=6)
         grid_sizer_base.Add(box_grpactiv,proportion=1,flag=wx.LEFT|wx.TOP|wx.EXPAND,border=3)
         grid_sizer_base.Add((1, 1), 0, wx.LEFT|wx.EXPAND, 0)
 
-        box_activ = wx.StaticBoxSizer(self.activites_staticbox,wx.VERTICAL)
+        box_activ = wx.StaticBoxSizer(self.stbActivites,wx.VERTICAL)
         box_activ.Add(self.ctrl_activites, proportion=50,flag=wx.LEFT|wx.EXPAND,border=6)
         grid_sizer_base.Add(box_activ,proportion=50,flag=wx.LEFT|wx.EXPAND,border=3)
         grid_sizer_base.Add((1, 1), 0, wx.LEFT | wx.EXPAND, 0)
 
-        box_tarifs = wx.StaticBoxSizer(self.tarifs_staticbox,wx.VERTICAL)
+        box_tarifs = wx.StaticBoxSizer(self.stbTarifs,wx.VERTICAL)
         box_tarifs.Add(self.ctrl_tarifs, 10, wx.LEFT|wx.EXPAND, 6)
         grid_sizer_base.Add(box_tarifs, 10, wx.LEFT|wx.EXPAND,3)
         grid_sizer_base.AddGrowableRow(0)

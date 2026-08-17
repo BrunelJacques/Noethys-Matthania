@@ -93,22 +93,22 @@ class Dialog(wx.Dialog):
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/%s.png" % self.nomImage)
         
         # Ligne
-        self.staticbox_ligne_staticbox = wx.StaticBox(self, -1, _("Ligne"))
-        self.label_ligne = wx.StaticText(self, -1, _("Ligne :"))
-        self.ctrl_ligne = CTRL_Choix_ligne(self, self.categorie)
-        self.bouton_gestion = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_ANY))
+        self.stbLigne = wx.StaticBox(self, -1, _("Ligne"))
+        self.label_ligne = wx.StaticText(self.stbLigne, -1, _("Ligne :"))
+        self.ctrl_ligne = CTRL_Choix_ligne(self.stbLigne, self.categorie)
+        self.bouton_gestion = wx.BitmapButton(self.stbLigne, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_ANY))
         if self.ligne:
             self.ctrl_ligne.SetID(self.ligne)
 
         # Arrêts
-        self.staticbox_arrets_staticbox = wx.StaticBox(self, -1, _("Arrêts"))
-        self.ctrl_arrets = OL_Arrets.ListView(self, id=-1, categorie=self.categorie, IDligne=0, categorieSingulier=self.categorieSingulier, categoriePluriel=self.categoriePluriel, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
+        self.stbArrets = wx.StaticBox(self, -1, _("Arrêts"))
+        self.ctrl_arrets = OL_Arrets.ListView(self.stbArrets, id=-1, categorie=self.categorie, IDligne=0, categorieSingulier=self.categorieSingulier, categoriePluriel=self.categoriePluriel, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         
-        self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_monter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Fleche_haut.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_descendre = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Fleche_bas.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter = wx.BitmapButton(self.stbArrets, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier = wx.BitmapButton(self.stbArrets, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer = wx.BitmapButton(self.stbArrets, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_monter = wx.BitmapButton(self.stbArrets, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Fleche_haut.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_descendre = wx.BitmapButton(self.stbArrets, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Fleche_bas.png"), wx.BITMAP_TYPE_ANY))
         
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -147,7 +147,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
         
         # Catégorie
-        staticbox_ligne = wx.StaticBoxSizer(self.staticbox_ligne_staticbox, wx.VERTICAL)
+        staticbox_ligne = wx.StaticBoxSizer(self.stbLigne, wx.VERTICAL)
         grid_sizer_ligne = wx.FlexGridSizer(rows=1, cols=3, vgap=5, hgap=5)
         grid_sizer_ligne.Add(self.label_ligne, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_ligne.Add(self.ctrl_ligne, 0, wx.EXPAND, 0)
@@ -157,7 +157,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(staticbox_ligne, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         
         # Modèles
-        staticbox_arrets = wx.StaticBoxSizer(self.staticbox_arrets_staticbox, wx.VERTICAL)
+        staticbox_arrets = wx.StaticBoxSizer(self.stbArrets, wx.VERTICAL)
         grid_sizer_arrets = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_arrets.Add(self.ctrl_arrets, 1, wx.EXPAND, 0)
         

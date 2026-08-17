@@ -15,109 +15,24 @@ from Ctrl import CTRL_Selection_activites_groupes
 from Ctrl import CTRL_Saisie_date
 from Utils import UTILS_Dates
 
-
-class zzCTRL_Groupes(wx.CheckListBox):
-    def __init__(self, parent):
-        wx.CheckListBox.__init__(self, parent, -1)
-        self.parent = parent
-        self.data = []
-        self.date = None
-        self.SetToolTip(wx.ToolTip(_("Cochez les groupes à afficher")))
-        self.listeGroupes = []
-        self.dictGroupes = {}
-        self.SetMinSize((-1, 100))
-
-    def SetActivites(self, listeActivites=[]):
-        self.listeActivites = listeActivites
-        self.MAJ()
-        self.CocheTout()
-
-    def MAJ(self):
-        self.listeGroupes, self.dictGroupes = self.Importation()
-        self.SetListeChoix()
-
-    def Importation(self):
-        listeGroupes = []
-        dictGroupes = {}
-        if len(self.listeActivites) == 0:
-            return listeGroupes, dictGroupes
-            # Récupération des groupes des activités sélectionnées
-        if len(self.listeActivites) == 0:
-            conditionActivites = "()"
-        elif len(self.listeActivites) == 1:
-            conditionActivites = "(%d)" % self.listeActivites[0]
-        else:
-            conditionActivites = str(tuple(self.listeActivites))
-        DB = GestionDB.DB()
-        req = """SELECT IDgroupe, groupes.IDactivite, groupes.nom, activites.nom
-        FROM groupes
-        LEFT JOIN activites ON activites.IDactivite = groupes.IDactivite
-        WHERE groupes.IDactivite IN %s
-        ORDER BY groupes.nom;""" % conditionActivites
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
-        listeDonnees = DB.ResultatReq()
-        DB.Close()
-        for IDgroupe, IDactivite, nom, nomActivite in listeDonnees:
-            dictTemp = {"nom": nom, "IDactivite": IDactivite, "nomActivite": nomActivite}
-            dictGroupes[IDgroupe] = dictTemp
-            listeGroupes.append((nom, IDgroupe, nomActivite))
-        listeGroupes.sort()
-        return listeGroupes, dictGroupes
-
-    def SetListeChoix(self):
-        self.Clear()
-        index = 0
-        for nom, IDgroupe, nomActivite in self.listeGroupes:
-            nom = "%s (%s)" % (nom, nomActivite)
-            self.Append(nom)
-            index += 1
-
-    def GetIDcoches(self):
-        listeIDcoches = []
-        NbreItems = len(self.listeGroupes)
-        for index in range(0, NbreItems):
-            if self.IsChecked(index):
-                listeIDcoches.append(self.listeGroupes[index][1])
-        return listeIDcoches
-
-    def CocheTout(self):
-        index = 0
-        for index in range(0, len(self.listeGroupes)):
-            self.Check(index)
-            index += 1
-
-    def SetIDcoches(self, listeIDcoches=[]):
-        index = 0
-        for index in range(0, len(self.listeGroupes)):
-            ID = self.listeGroupes[index][1]
-            if ID in listeIDcoches:
-                self.Check(index)
-            index += 1
-
-    def GetListeGroupes(self):
-        return self.GetIDcoches()
-
-    def GetDictGroupes(self):
-        return self.dictGroupes
-
 class CTRL(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
         self.parent = parent
 
         # Mode
-        self.staticbox_mode_staticbox = wx.StaticBox(self, -1, _("Mode de sélection sur la période"))
-        self.radio_inscrits = wx.RadioButton(self, -1, _("Inscrits"), style=wx.RB_GROUP)
-        self.radio_presents = wx.RadioButton(self, -1, _("Présents"))
+        self.stbMode = wx.StaticBox(self, -1, _("Mode de sélection sur la période"))
+        self.radio_inscrits = wx.RadioButton(self.stbMode, -1, _("Inscrits"), style=wx.RB_GROUP)
+        self.radio_presents = wx.RadioButton(self.stbMode, -1, _("Présents"))
 
         # Calendrier
-        self.staticbox_date_staticbox = wx.StaticBox(self, -1, _("Période"))
-        self.ctrl_periode = CTRL_Saisie_date.Periode(self)
+        self.stbDate = wx.StaticBox(self, -1, _("Période"))
+        self.ctrl_periode = CTRL_Saisie_date.Periode(self.stbDate)
         self.ctrl_periode.SetMinSize((200, 100))
 
         # Activités
-        self.staticbox_activites_staticbox = wx.StaticBox(self, -1, _("Activités"))
-        self.ctrl_activites = CTRL_Selection_activites_groupes.CTRL(self,modeGroupes=True)
+        self.stbActivite = wx.StaticBox(self, -1, _("Activités"))
+        self.ctrl_activites = CTRL_Selection_activites_groupes.CTRL(self.stbActivite,modeGroupes=True)
         self.ctrl_activites.SetMinSize((100, 100))
 
         # Groupes
@@ -145,7 +60,7 @@ class CTRL(wx.Panel):
         grid_sizer_gauche = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
 
         # Mode
-        staticbox_mode = wx.StaticBoxSizer(self.staticbox_mode_staticbox, wx.VERTICAL)
+        staticbox_mode = wx.StaticBoxSizer(self.stbMode, wx.VERTICAL)
         grid_sizer_mode = wx.FlexGridSizer(rows=3, cols=2, vgap=5, hgap=10)
         grid_sizer_mode.Add(self.radio_inscrits, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_mode.Add(self.radio_presents, 0, wx.ALIGN_CENTER_VERTICAL, 0)
@@ -153,7 +68,7 @@ class CTRL(wx.Panel):
         grid_sizer_gauche.Add(staticbox_mode, 1, wx.EXPAND, 0)
 
         # Période
-        staticbox_date = wx.StaticBoxSizer(self.staticbox_date_staticbox, wx.VERTICAL)
+        staticbox_date = wx.StaticBoxSizer(self.stbDate, wx.VERTICAL)
         staticbox_date.Add(self.ctrl_periode, 1, wx.ALL | wx.EXPAND, 10)
         grid_sizer_gauche.Add(staticbox_date, 1, wx.EXPAND, 0)
 
@@ -164,7 +79,7 @@ class CTRL(wx.Panel):
         grid_sizer_droit = wx.FlexGridSizer(rows=2, cols=1, vgap=10, hgap=10)
 
         # Activités
-        staticbox_activites = wx.StaticBoxSizer(self.staticbox_activites_staticbox, wx.VERTICAL)
+        staticbox_activites = wx.StaticBoxSizer(self.stbActivite, wx.VERTICAL)
 
         staticbox_activites.Add(self.ctrl_activites, 1, wx.ALL | wx.EXPAND, 10)
         grid_sizer_droit.Add(staticbox_activites, 1, wx.EXPAND, 0)

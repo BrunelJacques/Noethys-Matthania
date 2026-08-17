@@ -79,17 +79,17 @@ class Dialog(wx.Dialog):
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Classe.png")
         
         # Ecole
-        self.staticbox_ecole_staticbox = wx.StaticBox(self, -1, _("Ecole"))
-        self.label_ecole = wx.StaticText(self, -1, _("Ecole :"))
-        self.ctrl_ecole = CTRL_Ecole(self)
+        self.stbEcole = wx.StaticBox(self, -1, _("Ecole"))
+        self.label_ecole = wx.StaticText(self.stbEcole, -1, _("Ecole :"))
+        self.ctrl_ecole = CTRL_Ecole(self.stbEcole)
         
         # Classes
-        self.staticbox_classes_staticbox = wx.StaticBox(self, -1, _("Classes"))
-        self.ctrl_classes = CTRL_Classes.CTRL(self)
+        self.stbClasses = wx.StaticBox(self, -1, _("Classes"))
+        self.ctrl_classes = CTRL_Classes.CTRL(self.stbClasses)
         
-        self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter = wx.BitmapButton(self.stbClasses, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier = wx.BitmapButton(self.stbClasses, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer = wx.BitmapButton(self.stbClasses, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
         
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -123,7 +123,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
         
         # Catégorie
-        staticbox_ecole = wx.StaticBoxSizer(self.staticbox_ecole_staticbox, wx.VERTICAL)
+        staticbox_ecole = wx.StaticBoxSizer(self.stbEcole, wx.VERTICAL)
         grid_sizer_ecole = wx.FlexGridSizer(rows=1, cols=2, vgap=10, hgap=10)
         grid_sizer_ecole.Add(self.label_ecole, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_ecole.Add(self.ctrl_ecole, 0, wx.EXPAND, 0)
@@ -132,7 +132,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(staticbox_ecole, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         
         # Modèles
-        staticbox_classes = wx.StaticBoxSizer(self.staticbox_classes_staticbox, wx.VERTICAL)
+        staticbox_classes = wx.StaticBoxSizer(self.stbClasses, wx.VERTICAL)
         grid_sizer_classes = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_classes.Add(self.ctrl_classes, 1, wx.EXPAND, 0)
         

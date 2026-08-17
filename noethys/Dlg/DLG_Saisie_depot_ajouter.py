@@ -157,14 +157,14 @@ class Dialog(wx.Dialog):
         self.ctrl_ordre = wx.Choice(self, -1, choices = ("Descendant", "Ascendant"))
         
         # Reglements disponibles
-        self.staticbox_reglements_disponibles_staticbox = wx.StaticBox(self, -1, _("Règlements disponibles"))
+        self.stbDispos = wx.StaticBox(self, -1, _("Règlements disponibles"))
         kwd = {"inclus" : False,
                "sortable" : True,
                "style": wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_HRULES|wx.LC_VRULES|wx.LB_MULTIPLE}
-        self.listviewAvecFooter1 = OL_Reglements_depots.ListviewAvecFooter(self, kwargs=kwd)
+        self.listviewAvecFooter1 = OL_Reglements_depots.ListviewAvecFooter(self.stbDispos, kwargs=kwd)
         self.ctrl_reglements_disponibles = self.listviewAvecFooter1.GetListview()
         self.ctrl_reglements_disponibles.Name = "ctrl_reglements_disponibles"
-        self.ctrl_recherche = CTRL_Outils(self, listview=self.ctrl_reglements_disponibles)
+        self.ctrl_recherche = CTRL_Outils(self.stbDispos, listview=self.ctrl_reglements_disponibles)
 
         # Commandes
         self.bouton_bas_tout = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Fleche_double_bas.png"), wx.BITMAP_TYPE_ANY))
@@ -173,12 +173,12 @@ class Dialog(wx.Dialog):
         self.bouton_haut_tout = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Fleche_double_haut_rouge.png"), wx.BITMAP_TYPE_ANY))
 
         # Reglements du dépôt
-        self.staticbox_reglements_depot_staticbox = wx.StaticBox(self, -1, _("Règlements du dépôt"))
+        self.stbDepot = wx.StaticBox(self, -1, _("Règlements du dépôt"))
         kwd = {"inclus" : True,
                "style": wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_HRULES|wx.LC_VRULES|wx.LB_MULTIPLE,
                "selectionPossible": True
                }
-        self.listviewAvecFooter2 = OL_Reglements_depots.ListviewAvecFooter(self, kwargs=kwd)
+        self.listviewAvecFooter2 = OL_Reglements_depots.ListviewAvecFooter(self.stbDepot, kwargs=kwd)
         self.ctrl_reglements_depot = self.listviewAvecFooter2.GetListview()
         self.ctrl_reglements_depot.Name = "ctrl_reglements_depot"
 
@@ -237,7 +237,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(grid_sizer_intro, 1, wx.ALL|wx.EXPAND, 10)
         
         # Règlements disponibles
-        staticbox_reglements_disponibles = wx.StaticBoxSizer(self.staticbox_reglements_disponibles_staticbox, wx.VERTICAL)
+        staticbox_reglements_disponibles = wx.StaticBoxSizer(self.stbDispos, wx.VERTICAL)
         grid_sizer_dispo = wx.FlexGridSizer(rows=2, cols=1, vgap=10, hgap=10)
         
         grid_sizer_options = wx.FlexGridSizer(rows=1, cols=17, vgap=5, hgap=5)
@@ -281,7 +281,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(grid_sizer_commandes, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         
         # Règlements déposés
-        staticbox_reglements_depot = wx.StaticBoxSizer(self.staticbox_reglements_depot_staticbox, wx.VERTICAL)
+        staticbox_reglements_depot = wx.StaticBoxSizer(self.stbDepot, wx.VERTICAL)
         staticbox_reglements_depot.Add(self.listviewAvecFooter2, 1, wx.ALL|wx.EXPAND, 5)
         grid_sizer_base.Add(staticbox_reglements_depot, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         
@@ -330,12 +330,12 @@ class Dialog(wx.Dialog):
         self.ctrl_reglements_disponibles.MAJ(self.tracks, selectionTrack=selectionTrack,
                                              nextTrack=nextTrack, IDcompte=IDcompte,
                                              IDmode=IDmode, date=date)
-        self.staticbox_reglements_disponibles_staticbox.SetLabel(self.ctrl_reglements_disponibles.GetLabelListe(_("règlements disponibles")))
+        self.stbDispos.SetLabel(self.ctrl_reglements_disponibles.GetLabelListe(_("règlements disponibles")))
         # MAJ Liste règlements du dépôt
         self.ctrl_reglements_disponibles.numColonneTri = self.ctrl_tri.GetSelection()
         self.ctrl_reglements_depot.numColonneTri = self.ctrl_ordre.GetSelection()
         self.ctrl_reglements_depot.MAJ(self.tracks, selectionTrack=selectionTrack, nextTrack=nextTrack)
-        self.staticbox_reglements_depot_staticbox.SetLabel(self.ctrl_reglements_depot.GetLabelListe(_("règlements dans ce dépôt")))
+        self.stbDepot.SetLabel(self.ctrl_reglements_depot.GetLabelListe(_("règlements dans ce dépôt")))
     
     def DeplacerTout(self, inclus=True):
         listeTracks = []

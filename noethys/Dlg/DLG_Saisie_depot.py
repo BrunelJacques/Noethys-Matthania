@@ -184,32 +184,32 @@ class Dialog(wx.Dialog):
         self.nom = ""
         self.saisie = False
         # Reglements
-        self.staticbox_parametres_staticbox = wx.StaticBox(self, -1, _("Paramètres"))
-        self.label_nom = wx.StaticText(self, -1, _("Nom du dépôt :"))
-        self.ctrl_nom = Choix_mode(self)
+        self.stbParams = wx.StaticBox(self, -1, _("Paramètres"))
+        self.label_nom = wx.StaticText(self.stbParams, -1, _("Nom du dépôt :"))
+        self.ctrl_nom = Choix_mode(self.stbParams)
 
-        self.label_date = wx.StaticText(self, -1, _("Date du dépôt :"))
-        self.ctrl_date = CTRL_Saisie_date.Date2(self)
-        self.label_verrouillage = wx.StaticText(self, -1, _("Verrouillage :"))
-        self.ctrl_verrouillage = wx.CheckBox(self, -1, "")
-        self.label_code_compta = wx.StaticText(self, -1, _("Forcer compta :"))
-        self.ctrl_code_compta = wx.TextCtrl(self, -1, "")
-        self.label_compte = wx.StaticText(self, -1, _("Compte bancaire :"))
-        self.ctrl_compte = Choix_compte(self)
-        self.label_observations = wx.StaticText(self, -1, _("Observations :"))
-        self.ctrl_observations = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE)
+        self.label_date = wx.StaticText(self.stbParams, -1, _("Date du dépôt :"))
+        self.ctrl_date = CTRL_Saisie_date.Date2(self.stbParams)
+        self.label_verrouillage = wx.StaticText(self.stbParams, -1, _("Verrouillage :"))
+        self.ctrl_verrouillage = wx.CheckBox(self.stbParams, -1, "")
+        self.label_code_compta = wx.StaticText(self.stbParams, -1, _("Forcer compta :"))
+        self.ctrl_code_compta = wx.TextCtrl(self.stbParams, -1, "")
+        self.label_compte = wx.StaticText(self.stbParams, -1, _("Compte bancaire :"))
+        self.ctrl_compte = Choix_compte(self.stbParams)
+        self.label_observations = wx.StaticText(self.stbParams, -1, _("Observations :"))
+        self.ctrl_observations = wx.TextCtrl(self.stbParams, -1, "", style=wx.TE_MULTILINE)
         
         # Reglements
-        self.staticbox_reglements_staticbox = wx.StaticBox(self, -1, _("Règlements"))
+        self.stbReglements = wx.StaticBox(self, -1, _("Règlements"))
         kwd = {"inclus": True,
                "style": wx.LC_REPORT | wx.SUNKEN_BORDER | wx.LC_HRULES | wx.LC_VRULES | wx.LB_MULTIPLE,
                "selectionPossible":True
                }
-        self.listviewAvecFooter = OL_Reglements_depots.ListviewAvecFooter(self, kwargs=kwd)
+        self.listviewAvecFooter = OL_Reglements_depots.ListviewAvecFooter(self.stbReglements, kwargs=kwd)
         self.ctrl_reglements = self.listviewAvecFooter.GetListview()
         
-        self.ctrl_infos = CTRL_Infos(self, hauteur=32, couleurFond="#F0FBED" , style=wx.html.HW_NO_SELECTION | wx.html.HW_SCROLLBAR_NEVER | wx.SUNKEN_BORDER)
-        self.bouton_ajouter = CTRL_Bouton_image.CTRL(self, texte=_("Ajouter ou retirer des règlements"), cheminImage="Images/32x32/Reglement_ajouter.png")
+        self.ctrl_infos = CTRL_Infos(self.stbReglements, hauteur=32, couleurFond="#F0FBED" , style=wx.html.HW_NO_SELECTION | wx.html.HW_SCROLLBAR_NEVER | wx.SUNKEN_BORDER)
+        self.bouton_ajouter = CTRL_Bouton_image.CTRL(self.stbReglements, texte=_("Ajouter ou retirer des règlements"), cheminImage="Images/32x32/Reglement_ajouter.png")
         
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -266,10 +266,10 @@ class Dialog(wx.Dialog):
 
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
-        staticbox_reglements = wx.StaticBoxSizer(self.staticbox_reglements_staticbox, wx.VERTICAL)
+        staticbox_reglements = wx.StaticBoxSizer(self.stbReglements, wx.VERTICAL)
         grid_sizer_reglements = wx.FlexGridSizer(rows=2, cols=1, vgap=10, hgap=10)
         grid_sizer_bas_reglements = wx.FlexGridSizer(rows=1, cols=2, vgap=10, hgap=10)
-        staticbox_parametres = wx.StaticBoxSizer(self.staticbox_parametres_staticbox, wx.VERTICAL)
+        staticbox_parametres = wx.StaticBoxSizer(self.stbParams, wx.VERTICAL)
         grid_sizer_parametres = wx.FlexGridSizer(rows=1, cols=2, vgap=10, hgap=30)
         grid_sizer_haut_droit = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         grid_sizer_haut_gauche = wx.FlexGridSizer(rows=3, cols=2, vgap=5, hgap=5)
@@ -565,7 +565,7 @@ class Dialog(wx.Dialog):
             texte = texte[:-7] + "</B>"
         self.ctrl_infos.SetLabel(texte)
         # Label de staticbox
-        self.staticbox_reglements_staticbox.SetLabel(self.ctrl_reglements.GetLabelListe(_("règlements")))
+        self.stbReglements.SetLabel(self.ctrl_reglements.GetLabelListe(_("règlements")))
     
     def OnBoutonImprimer(self, event):
         # Création du menu contextuel

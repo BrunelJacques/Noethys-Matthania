@@ -9,19 +9,19 @@
 #------------------------------------------------------------------------
 
 
-from UTILS_Traduction import _
+from Utils.UTILS_Traduction import _
 import wx
-import CTRL_Bouton_image
+from Ctrl import CTRL_Bouton_image
 import datetime
 import sys
 import traceback
 import GestionDB
-import CTRL_Attestations_selection
+from Ctrl import CTRL_Attestations_selection
 
-import UTILS_Identification
-import UTILS_Historique
-import UTILS_Impression_facture
-import CTRL_Attestations_options
+from Utils import UTILS_Identification
+from Utils import UTILS_Historique
+from Utils import UTILS_Impression_facture
+from Ctrl import CTRL_Attestations_options
 
 import wx.lib.agw.hyperlink as Hyperlink
 
@@ -154,14 +154,14 @@ class Dialog(wx.Dialog):
         self.donnees = {}
         
         # Attestations
-        self.staticbox_attestations_staticbox = wx.StaticBox(self, -1, _("Attestations à créer"))
-        self.ctrl_attestations = CTRL_Attestations_selection.CTRL(self, date_debut=self.date_debut, date_fin=self.date_fin, dateNaiss=self.dateNaiss, listeActivites=self.listeActivites, listePrestations=self.listePrestations)
+        self.stbAttest = wx.StaticBox(self, -1, _("Attestations à créer"))
+        self.ctrl_attestations = CTRL_Attestations_selection.CTRL(self.stbAttest, date_debut=self.date_debut, date_fin=self.date_fin, dateNaiss=self.dateNaiss, listeActivites=self.listeActivites, listePrestations=self.listePrestations)
         
-        self.hyper_payes = Hyperlien(self, label=_("Sélectionner uniquement les payés"), infobulle=_("Cliquez ici pour sélectionner uniquement les payés"), URL="payes")
-        self.label_separation_1 = wx.StaticText(self, -1, "|")
-        self.hyper_tout = Hyperlien(self, label=_("Tout sélectionner"), infobulle=_("Cliquez ici pour tout sélectionner"), URL="tout")
-        self.label_separation_2 = wx.StaticText(self, -1, "|")
-        self.hyper_rien = Hyperlien(self, label=_("Tout désélectionner"), infobulle=_("Cliquez ici pour tout désélectionner"), URL="rien")
+        self.hyper_payes = Hyperlien(self.stbAttest, label=_("Sélectionner uniquement les payés"), infobulle=_("Cliquez ici pour sélectionner uniquement les payés"), URL="payes")
+        self.label_separation_1 = wx.StaticText(self.stbAttest, -1, "|")
+        self.hyper_tout = Hyperlien(self.stbAttest, label=_("Tout sélectionner"), infobulle=_("Cliquez ici pour tout sélectionner"), URL="tout")
+        self.label_separation_2 = wx.StaticText(self.stbAttest, -1, "|")
+        self.hyper_rien = Hyperlien(self.stbAttest, label=_("Tout désélectionner"), infobulle=_("Cliquez ici pour tout désélectionner"), URL="rien")
 
         # Options des documents
         self.ctrl_parametres = CTRL_Attestations_options.CTRL(self, listeActivites=listeActivites)
@@ -196,7 +196,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
         
         # Attestations
-        staticbox_attestations = wx.StaticBoxSizer(self.staticbox_attestations_staticbox, wx.VERTICAL)
+        staticbox_attestations = wx.StaticBoxSizer(self.stbAttest, wx.VERTICAL)
         grid_sizer_attestations = wx.FlexGridSizer(rows=2, cols=1, vgap=5, hgap=10)
         grid_sizer_attestations.Add(self.ctrl_attestations, 1, wx.EXPAND, 0)
         
@@ -262,7 +262,7 @@ class Dialog(wx.Dialog):
         self.ctrl_attestations.ImpressionListe() 
 
     def OnBoutonAide(self, event):
-        import UTILS_Aide
+        from Utils import UTILS_Aide
         UTILS_Aide.Aide("Gnration2")
 
     def OnBoutonAnnuler(self, event):

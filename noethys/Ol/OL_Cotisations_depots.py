@@ -39,8 +39,7 @@ def DateEngEnDateDD(dateEng):
     return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 
-        
-        
+
     
 class ListView(FastObjectListView):
     def __init__(self, *args, **kwds):
@@ -60,6 +59,7 @@ class ListView(FastObjectListView):
         # Initialisation du listCtrl
         self.nom_fichier_liste = __file__
         FastObjectListView.__init__(self, *args, **kwds)
+        self.parent = self.Parent.Parent
         # Binds perso
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
         self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
@@ -91,7 +91,7 @@ class ListView(FastObjectListView):
                 nextTrack = None
         else:
             nextTrack = self.GetObjectAt(index+1)
-        self.GetParent().MAJListes(self.tracks, selectionTrack=track, nextTrack=nextTrack)
+        self.parent.MAJListes(self.tracks, selectionTrack=track, nextTrack=nextTrack)
         
     def InitModel(self, tracks=None):
         if tracks != None :
@@ -295,22 +295,12 @@ class ListView(FastObjectListView):
         dlg.Destroy()
 
 
-
-
-
-
-
-
-
-
-
-
 # -------------------------------------------------------------------------------------------------------------------------------------------
 
 class BarreRecherche(wx.SearchCtrl):
     def __init__(self, parent):
         wx.SearchCtrl.__init__(self, parent, size=(-1, -1), style=wx.TE_PROCESS_ENTER)
-        self.parent = parent
+        self.parent = parent.Parent
         self.rechercheEnCours = False
         
         self.SetDescriptiveText(_("Rechercher une cotisation..."))

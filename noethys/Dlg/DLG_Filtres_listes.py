@@ -66,25 +66,25 @@ class Dialog(wx.Dialog):
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Filtre.png")
 
         # Filtres
-        self.staticbox_filtres_staticbox = wx.StaticBox(self, -1, _("Liste des filtres"))
-        self.ctrl_filtres = OL_Filtres_listes.ListView(self, ctrl_listview=ctrl_listview, id=-1, name="OL_test", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
+        self.stbFiltres = wx.StaticBox(self, -1, _("Liste des filtres"))
+        self.ctrl_filtres = OL_Filtres_listes.ListView(self.stbFiltres, ctrl_listview=ctrl_listview, id=-1, name="OL_test", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         self.ctrl_filtres.MAJ() 
 
-        self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_tout_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Filtre_supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter = wx.BitmapButton(self.stbFiltres, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier = wx.BitmapButton(self.stbFiltres, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer = wx.BitmapButton(self.stbFiltres, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_tout_supprimer = wx.BitmapButton(self.stbFiltres, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Filtre_supprimer.png"), wx.BITMAP_TYPE_ANY))
 
         # Profil
         if self.ctrl_listview != None :
             nom_liste = self.ctrl_listview.GetNomModule()
         else :
             nom_liste = None
-        self.staticbox_profil_staticbox = wx.StaticBox(self, -1, _("Profil de configuration"))
-        self.ctrl_profil = CTRL_profil_perso(self, categorie=nom_liste, dlg=self)
+        self.stbProfil = wx.StaticBox(self, -1, _("Profil de configuration"))
+        self.ctrl_profil = CTRL_profil_perso(self.stbProfil, categorie=nom_liste, dlg=self)
         self.ctrl_profil.SetMinSize((100, -1))
         if nom_liste == None :
-            self.staticbox_profil_staticbox.Show(False)
+            self.stbProfil.Show(False)
             self.ctrl_profil.Show(False)
 
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte="Aide", cheminImage="Images/32x32/Aide.png")
@@ -122,7 +122,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
 
         # Filtres
-        staticbox_filtres = wx.StaticBoxSizer(self.staticbox_filtres_staticbox, wx.VERTICAL)
+        staticbox_filtres = wx.StaticBoxSizer(self.stbFiltres, wx.VERTICAL)
         grid_sizer_filtres = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         
         grid_sizer_gauche = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
@@ -147,7 +147,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(staticbox_filtres, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
 
         # Profil
-        staticbox_profil = wx.StaticBoxSizer(self.staticbox_profil_staticbox, wx.VERTICAL)
+        staticbox_profil = wx.StaticBoxSizer(self.stbProfil, wx.VERTICAL)
         staticbox_profil.Add(self.ctrl_profil, 1, wx.ALL|wx.EXPAND, 5)
         grid_sizer_base.Add(staticbox_profil, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
 
@@ -177,8 +177,9 @@ class Dialog(wx.Dialog):
         self.EndModal(wx.ID_OK)
 
     def OnFiltrer(self,event):
-        self.ctrl_listview.filtrerAndNotOr = self.check_filtrer.Value
-        self.filtrerAndNotOr = self.check_filtrer.Value
+        if self.ctrl_listview:
+            self.ctrl_listview.filtrerAndNotOr = self.check_filtrer.Value
+            self.filtrerAndNotOr = self.check_filtrer.Value
         if self.parent:
             self.parent.filtrerAndNotOr = self.check_filtrer.Value
 

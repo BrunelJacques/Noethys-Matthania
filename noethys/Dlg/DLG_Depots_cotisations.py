@@ -150,22 +150,22 @@ class Dialog(wx.Dialog):
             self.dictActivites[IDactivite] = dictTemp
 
         # Cotisations disponibles
-        self.staticbox_cotisations = wx.StaticBox(self, -1, _("Cotisations disponibles"))
-        self.ctrl_cotisations = OL_Cotisations_depots.ListView(self, id=-1, inclus=False, selectionPossible=False, size=(-1, 150), style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
+        self.stbCotis = wx.StaticBox(self, -1, _("Cotisations disponibles"))
+        self.ctrl_cotisations = OL_Cotisations_depots.ListView(self.stbCotis, id=-1, inclus=False, selectionPossible=False, size=(-1, 150), style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         self.ctrl_cotisations.SetMinSize((100, 100))
         self.MAJcotisations() 
 
         # Dépôts
-        self.staticbox_depots = wx.StaticBox(self, -1, _("Dépôts de cotisations"))
-        self.listviewAvecFooter = OL_Depots_cotisations.ListviewAvecFooter(self, kwargs={}) 
+        self.stbDepots = wx.StaticBox(self, -1, _("Dépôts de cotisations"))
+        self.listviewAvecFooter = OL_Depots_cotisations.ListviewAvecFooter(self.stbDepots, kwargs={})
         self.ctrl_depots = self.listviewAvecFooter.GetListview()
         self.ctrl_depots.MAJ()
-        self.ctrl_recherche = OL_Depots_cotisations.CTRL_Outils(self, listview=self.ctrl_depots)
+        self.ctrl_recherche = OL_Depots_cotisations.CTRL_Outils(self.stbDepots, listview=self.ctrl_depots)
 
-        self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_imprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter = wx.BitmapButton(self.stbDepots, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier = wx.BitmapButton(self.stbDepots, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer = wx.BitmapButton(self.stbDepots, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_imprimer = wx.BitmapButton(self.stbDepots, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
 
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -197,7 +197,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
 
         # Règlements
-        staticbox_cotisations = wx.StaticBoxSizer(self.staticbox_cotisations, wx.VERTICAL)
+        staticbox_cotisations = wx.StaticBoxSizer(self.stbCotis, wx.VERTICAL)
         grid_sizer_reglements = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         
         grid_sizer_reglements.Add(self.ctrl_cotisations, 0, wx.EXPAND | wx.ALL, 0)
@@ -208,7 +208,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(staticbox_cotisations, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
 
         # Dépôts
-        staticbox_depots = wx.StaticBoxSizer(self.staticbox_depots, wx.VERTICAL)
+        staticbox_depots = wx.StaticBoxSizer(self.stbDepots, wx.VERTICAL)
         grid_sizer_depots = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         
         grid_sizer_gauche = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)

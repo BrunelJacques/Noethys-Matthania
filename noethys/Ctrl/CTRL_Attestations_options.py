@@ -464,11 +464,11 @@ class CTRL(wx.Panel):
         self.parent = parent
                 
         # Paramètres
-        self.box_options_staticbox = wx.StaticBox(self, -1, _("Options d'impression"))
-        self.ctrl_parametres = CTRL_Parametres(self, listeActivites=listeActivites)
+        self.stbOptions = wx.StaticBox(self, -1, _("Options d'impression"))
+        self.ctrl_parametres = CTRL_Parametres(self.stbOptions, listeActivites=listeActivites)
         self.ctrl_parametres.Importation() 
-        self.bouton_reinit = CTRL_Propertygrid.Bouton_reinit(self, self.ctrl_parametres)
-        self.bouton_sauve = CTRL_Propertygrid.Bouton_sauve(self, self.ctrl_parametres)
+        self.bouton_reinit = CTRL_Propertygrid.Bouton_reinit(self.stbOptions, self.ctrl_parametres)
+        self.bouton_sauve = CTRL_Propertygrid.Bouton_sauve(self.stbOptions, self.ctrl_parametres)
         self.ctrl_parametres.SetMinSize((440, 120)) 
                 
         self.__do_layout()
@@ -479,7 +479,7 @@ class CTRL(wx.Panel):
         grid_sizer_base.AddGrowableRow(0)
 
         # Paramètres
-        box_options = wx.StaticBoxSizer(self.box_options_staticbox, wx.VERTICAL)
+        box_options = wx.StaticBoxSizer(self.stbOptions, wx.VERTICAL)
         grid_sizer_parametres = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_parametres.Add(self.ctrl_parametres, 1, wx.EXPAND, 0)
 
