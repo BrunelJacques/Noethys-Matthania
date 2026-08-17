@@ -89,26 +89,26 @@ class Dialog(wx.Dialog):
         self.IDreleve = IDreleve
         
         # Généralités
-        self.box_generalites_staticbox = wx.StaticBox(self, wx.ID_ANY, _("Généralités"))
+        self.stbGeneral = wx.StaticBox(self, wx.ID_ANY, _("Généralités"))
         
-        self.label_compte = wx.StaticText(self, wx.ID_ANY, _("Compte :"))
-        self.ctrl_compte = CTRL_Compte(self)
+        self.label_compte = wx.StaticText(self.stbGeneral, wx.ID_ANY, _("Compte :"))
+        self.ctrl_compte = CTRL_Compte(self.stbGeneral)
 
-        self.label_nom = wx.StaticText(self, wx.ID_ANY, _("Nom :"))
-        self.ctrl_nom = wx.TextCtrl(self, wx.ID_ANY, "")
+        self.label_nom = wx.StaticText(self.stbGeneral, wx.ID_ANY, _("Nom :"))
+        self.ctrl_nom = wx.TextCtrl(self.stbGeneral, wx.ID_ANY, "")
         
-        self.label_du = wx.StaticText(self, wx.ID_ANY, "Du :")
-        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self)
-        self.label_au = wx.StaticText(self, wx.ID_ANY, _("au"))
-        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self)
+        self.label_du = wx.StaticText(self.stbGeneral, wx.ID_ANY, "Du :")
+        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self.stbGeneral)
+        self.label_au = wx.StaticText(self.stbGeneral, wx.ID_ANY, _("au"))
+        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self.stbGeneral)
         
         # Informations
-        self.box_informations_staticbox = wx.StaticBox(self, wx.ID_ANY, _("Détail du relevé"))
-        self.ctrl_informations = CTRL_Informations(self)
+        self.stbInfos = wx.StaticBox(self, wx.ID_ANY, _("Détail du relevé"))
+        self.ctrl_informations = CTRL_Informations(self.stbInfos)
 
         # Opérations
-        self.box_operations_staticbox = wx.StaticBox(self, wx.ID_ANY, _("Opérations"))
-        self.ctrl_operations = OL_Operations_releve.ListView(self, id=-1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
+        self.stbOperations = wx.StaticBox(self, wx.ID_ANY, _("Opérations"))
+        self.ctrl_operations = OL_Operations_releve.ListView(self.stbOperations, id=-1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         self.ctrl_operations.SetMinSize((50, 50))
         
         # Boutons
@@ -153,7 +153,7 @@ class Dialog(wx.Dialog):
         grid_sizer_haut = wx.FlexGridSizer(1, 2, 10, 10)
         
         # Généralités
-        box_generalites = wx.StaticBoxSizer(self.box_generalites_staticbox, wx.VERTICAL)
+        box_generalites = wx.StaticBoxSizer(self.stbGeneral, wx.VERTICAL)
         grid_sizer_generalites = wx.FlexGridSizer(3, 2, 10, 10)
         grid_sizer_generalites.Add(self.label_compte, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_generalites.Add(self.ctrl_compte, 0, wx.EXPAND, 0)
@@ -173,7 +173,7 @@ class Dialog(wx.Dialog):
         grid_sizer_haut.Add(box_generalites, 1, wx.EXPAND, 0)
         
         # Informations
-        box_informations = wx.StaticBoxSizer(self.box_informations_staticbox, wx.VERTICAL)
+        box_informations = wx.StaticBoxSizer(self.stbInfos, wx.VERTICAL)
         box_informations.Add(self.ctrl_informations, 1, wx.ALL | wx.EXPAND, 10)
         
         grid_sizer_haut.Add(box_informations, 1, wx.EXPAND, 0)
@@ -183,7 +183,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(grid_sizer_haut, 1, wx.LEFT | wx.RIGHT | wx.TOP | wx.EXPAND, 10)
         
         # Opérations
-        box_operations = wx.StaticBoxSizer(self.box_operations_staticbox, wx.VERTICAL)
+        box_operations = wx.StaticBoxSizer(self.stbOperations, wx.VERTICAL)
         box_operations.Add(self.ctrl_operations, 1, wx.ALL | wx.EXPAND, 10)
         
         grid_sizer_base.Add(box_operations, 1, wx.LEFT | wx.RIGHT | wx.EXPAND, 10)

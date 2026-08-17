@@ -435,7 +435,7 @@ class MyFrame(wx.Frame):
 
         self.ctrl_operations = ListView(panel, id=-1, IDcompte_bancaire=1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         
-        self.ctrl_soldes = BarreSoldes(self, listview=self.ctrl_operations)
+        self.ctrl_soldes = BarreSoldes(panel, listview=self.ctrl_operations)
         self.ctrl_operations.ctrl_soldes = self.ctrl_soldes
         
         self.ctrl_operations.MAJ() 

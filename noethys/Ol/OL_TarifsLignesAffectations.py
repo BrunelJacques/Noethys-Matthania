@@ -33,7 +33,7 @@ class Track(object):
 
 class ListView(FastObjectListView):
     def __init__(self,parent,*args, **kwds):
-        self.parent = parent
+        self.parent = parent.Parent
         self.popupIndex = -1
         self.listeFiltres = []
         # Initialisation du listCtrl
@@ -77,7 +77,7 @@ class ListView(FastObjectListView):
         objects = self.listeOLV
         for track in objects :
             self.SetCheckState(track, False)
-            if track.tarif == self.parent.ctrl_code.GetValue():
+            if track.tarif == self.parent.Parent.ctrl_code.GetValue():
                     self.SetCheckState(track, True)
         self.SetObjects(self.listeOLV)
         self.SortBy(0, ascending=False)

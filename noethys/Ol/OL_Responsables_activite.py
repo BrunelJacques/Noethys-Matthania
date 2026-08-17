@@ -467,4 +467,7 @@ if __name__ == '__main__':
     frame_1 = MyFrame(None, -1, "OL TEST")
     app.SetTopWindow(frame_1)
     frame_1.Show()
+    frame_2 = Saisie(None)
+    app.SetTopWindow(frame_2)
+    frame_2.Show()
     app.MainLoop()

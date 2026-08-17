@@ -13,7 +13,6 @@ import Chemins
 from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
-from Ctrl import CTRL_Bouton_image
 import GestionDB
 from Dlg import DLG_Saisie_operation_tresorerie
 from Dlg import DLG_Saisie_virement
@@ -26,7 +25,6 @@ SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 from Utils import UTILS_Interface
 from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, CTRL_Outils, CTRL_Outils
 
-from Utils import UTILS_Utilisateurs
 from Utils import UTILS_Dates
 
 

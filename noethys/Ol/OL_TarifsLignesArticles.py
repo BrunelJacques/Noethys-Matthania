@@ -36,7 +36,7 @@ class Track(object):
 
 class ListView(FastObjectListView):
     def __init__(self,parent,*args, **kwds):
-        self.parent = parent
+        self.parent = parent.Parent
         self.popupIndex = -1
         self.listeFiltres = []
         # Initialisation du listCtrl

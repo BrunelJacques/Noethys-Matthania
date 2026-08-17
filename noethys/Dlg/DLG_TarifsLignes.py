@@ -86,15 +86,15 @@ class PanelArticles(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=-1, name="panel_articles", style=wx.TAB_TRAVERSAL)
         self.parent = parent
-        self.staticbox_articles = wx.StaticBox(self, -1, _("Lignes d'articles"))
+        self.stbArticles = wx.StaticBox(self, -1, _("Lignes d'articles"))
         self.ctrl_code = parent.ctrl_code
-        self.ctrl_listview = OL_TarifsLignesArticles.ListView(self, id=-1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+        self.ctrl_listview = OL_TarifsLignesArticles.ListView(self.stbArticles, id=-1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
         self.ctrl_listview.cellEditMode = FastObjectListView.CELLEDIT_SINGLECLICK
         #self.ctrl_listview.MAJ()
-        self.ctrl_recherche = OL_TarifsLignesArticles.CTRL_Outils(self, listview=self.ctrl_listview)
+        self.ctrl_recherche = OL_TarifsLignesArticles.CTRL_Outils(self.stbArticles, listview=self.ctrl_listview)
 
-        self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter = wx.BitmapButton(self.stbArticles, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier = wx.BitmapButton(self.stbArticles, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
 
         self.__set_properties()
         self.__do_layout()
@@ -110,7 +110,7 @@ class PanelArticles(wx.Panel):
 
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=1, cols=1, vgap=5, hgap=5)
-        staticbox_articles = wx.StaticBoxSizer(self.staticbox_articles, wx.VERTICAL)
+        staticbox_articles = wx.StaticBoxSizer(self.stbArticles, wx.VERTICAL)
         grid_sizer_articles = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
 
         grid_sizer_articles.Add(self.ctrl_listview, 1, wx.EXPAND, 0)
@@ -150,12 +150,11 @@ class PanelAffectations(wx.Panel):
     def __init__(self, parent, IDfamille=None):
         wx.Panel.__init__(self, parent, id=-1, name="panel_quotients", style=wx.TAB_TRAVERSAL)
         self.parent = parent
-        self.staticbox_Affectations = wx.StaticBox(self, -1, _("Affectations en consultation seulement, pour modif passer par l'activité"))
-        self.ctrl_code = parent.ctrl_code
+        self.stbAffectations = wx.StaticBox(self, -1, _("Affectations en consultation seulement, pour modif passer par l'activité"))
         self.ctrl_annee = parent.ctrl_annee
-        self.ctrl_listview = OL_TarifsLignesAffectations.ListView(self, id=-1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+        self.ctrl_listview = OL_TarifsLignesAffectations.ListView(self.stbAffectations, id=-1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
         self.ctrl_listview.cellEditMode = FastObjectListView.CELLEDIT_SINGLECLICK
-        self.ctrl_recherche = OL_TarifsLignesAffectations.CTRL_Outils(self, listview=self.ctrl_listview)
+        self.ctrl_recherche = OL_TarifsLignesAffectations.CTRL_Outils(self.stbAffectations, listview=self.ctrl_listview)
 
         self.__set_properties()
         self.__do_layout()
@@ -167,7 +166,7 @@ class PanelAffectations(wx.Panel):
 
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=1, cols=1, vgap=5, hgap=5)
-        staticbox_Affectations = wx.StaticBoxSizer(self.staticbox_Affectations, wx.VERTICAL)
+        staticbox_Affectations = wx.StaticBoxSizer(self.stbAffectations, wx.VERTICAL)
         grid_sizer_Affectations = wx.FlexGridSizer(rows=2, cols=1, vgap=5, hgap=5)
 
         grid_sizer_Affectations.Add(self.ctrl_listview, 1, wx.EXPAND, 0)
@@ -197,19 +196,19 @@ class Dialog(wx.Dialog):
         intro = ("Crée ou modifie un tarif par la table matTarifsNoms et matTarifsLignes. Seuls les articles cochés seront proposés dans le tarif en plus de ceux préfixés '*'")
         self.SetTitle("DLG_TarifsLignes")
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=self.titre, texte=intro,  hauteurHtml=15, nomImage="Images/22x22/Smiley_nul.png")
-        self.staticbox_NOM = wx.StaticBox(self, -1, _("Nom du Tarif"))
-        self.staticbox_BOUTONS= wx.StaticBox(self, -1, )
+        self.stbNOM = wx.StaticBox(self, -1, _("Nom du Tarif"))
+        self.stbBTN= wx.StaticBox(self, -1, )
 
         #Elements gérés
-        self.label_code = wx.StaticText(self, -1, "Code : ")
-        self.ctrl_code = wx.TextCtrl(self, -1, "",size=(100, 20))
-        self.label_libelle = wx.StaticText(self, -1, "Libelle : ")
-        self.ctrl_libelle = wx.TextCtrl(self, -1, "")
+        self.label_code = wx.StaticText(self.stbNOM, -1, "Code : ")
+        self.ctrl_code = wx.TextCtrl(self.stbNOM, -1, "",size=(100, 20))
+        self.label_libelle = wx.StaticText(self.stbNOM, -1, "Libelle : ")
+        self.ctrl_libelle = wx.TextCtrl(self.stbNOM, -1, "")
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage=Chemins.GetStaticPath("Images/32x32/Aide.png"))
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"), cheminImage=Chemins.GetStaticPath("Images/32x32/Valider.png"))
-        self.bouton_annuler = CTRL_Bouton_image.CTRL(self, id=wx.ID_CANCEL, texte=_("Annuler"), cheminImage=Chemins.GetStaticPath("Images/32x32/Annuler.png"))
-        self.label_annee = wx.StaticText(self, -1, "Activités depuis : ")
-        self.ctrl_annee = wx.TextCtrl(self, -1, "",size=(100, 20))
+        self.bouton_annuler = CTRL_Bouton_image.CTRL(self.stbBTN, id=wx.ID_CANCEL, texte=_("Annuler"), cheminImage=Chemins.GetStaticPath("Images/32x32/Annuler.png"))
+        self.label_annee = wx.StaticText(self.stbBTN, -1, "Activités depuis : ")
+        self.ctrl_annee = wx.TextCtrl(self.stbBTN, -1, "",size=(100, 20))
         self.GetAnnee()
 
         self.notebook = Notebook(self)
@@ -242,7 +241,7 @@ class Dialog(wx.Dialog):
         gridsizer_BASE = wx.FlexGridSizer(rows=4, cols=1, vgap=0, hgap=0)
         gridsizer_BASE.Add(self.ctrl_bandeau, 1, wx.EXPAND, 0)
 
-        staticsizer_NOM = wx.StaticBoxSizer(self.staticbox_NOM, wx.VERTICAL)
+        staticsizer_NOM = wx.StaticBoxSizer(self.stbNOM, wx.VERTICAL)
         gridsizer_NOM = wx.FlexGridSizer(rows=2, cols=2, vgap=0, hgap=5)
         gridsizer_NOM.Add(self.label_code, 0, wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL, 0)
         gridsizer_NOM.Add(self.label_libelle, 0, wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL, 0)
@@ -255,7 +254,7 @@ class Dialog(wx.Dialog):
         gridsizer_BASE.Add(self.notebook, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
 
         gridsizer_BOUTONS = wx.FlexGridSizer(rows=1, cols=6, vgap=10, hgap=10)
-        staticsizer_BOUTONS = wx.StaticBoxSizer(self.staticbox_BOUTONS, wx.VERTICAL)
+        staticsizer_BOUTONS = wx.StaticBoxSizer(self.stbBTN, wx.VERTICAL)
         gridsizer_BOUTONS.Add(self.bouton_aide, 0, wx.ALIGN_BOTTOM, 0)
         gridsizer_BOUTONS.Add(self.label_annee, 0, wx.ALIGN_CENTER, 0)
         gridsizer_BOUTONS.Add(self.ctrl_annee, 0, wx.ALIGN_CENTER, 0)

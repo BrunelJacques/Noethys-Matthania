@@ -16,10 +16,9 @@ import wx
 from Ctrl import CTRL_Bouton_image
 import datetime
 import GestionDB
-if 'phoenix' in wx.PlatformInfo:
-    from wx.adv import DatePickerCtrl, DP_DROPDOWN
-else :
-    from wx import DatePickerCtrl, DP_DROPDOWN
+
+from wx.adv import DatePickerCtrl, DP_DROPDOWN
+
 
 from Utils import UTILS_Interface
 from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, CTRL_Outils
@@ -313,21 +312,21 @@ class Saisie(wx.Dialog):
         wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
         self.parent = parent
 
-        self.sizer_periode_staticbox = wx.StaticBox(self, -1, _("Nom de la période"))
+        self.stbPeriode = wx.StaticBox(self, -1, _("Nom de la période"))
         choices = [_("Février"), _("Pâques"), _("Eté"), _("Toussaint"), _("Noël")]
-        self.label_nom = wx.StaticText(self, -1, _("Nom :"))
-        self.ctrl_nom = wx.Choice(self, -1, choices=choices, size=(100, -1))
-        self.label_annee = wx.StaticText(self, -1, _("Année :"))
-        self.ctrl_annee = wx.SpinCtrl(self, -1, "", style=wx.TE_CENTRE, size=(60, -1))
+        self.label_nom = wx.StaticText(self.stbPeriode, -1, _("Nom :"))
+        self.ctrl_nom = wx.Choice(self.stbPeriode, -1, choices=choices, size=(100, -1))
+        self.label_annee = wx.StaticText(self.stbPeriode, -1, _("Année :"))
+        self.ctrl_annee = wx.SpinCtrl(self.stbPeriode, -1, "", style=wx.TE_CENTRE, size=(60, -1))
         self.ctrl_annee.SetRange(2000, 2099)
         anneeEnCours = datetime.date.today().year
         self.ctrl_annee.SetValue(anneeEnCours)
         
-        self.sizer_dates_staticbox = wx.StaticBox(self, -1, _("Dates de la période"))
-        self.label_dateDebut = wx.StaticText(self, -1, "Du")
-        self.ctrl_dateDebut = MyDatePickerCtrl(self)
-        self.label_dateFin = wx.StaticText(self, -1, _("au"))
-        self.ctrl_dateFin = MyDatePickerCtrl(self)
+        self.stbDates = wx.StaticBox(self, -1, _("Dates de la période"))
+        self.label_dateDebut = wx.StaticText(self.stbDates, -1, "Du")
+        self.ctrl_dateDebut = MyDatePickerCtrl(self.stbDates)
+        self.label_dateFin = wx.StaticText(self.stbDates, -1, _("au"))
+        self.ctrl_dateFin = MyDatePickerCtrl(self.stbDates)
         
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"), cheminImage="Images/32x32/Valider.png")
@@ -351,7 +350,7 @@ class Saisie(wx.Dialog):
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
         grid_sizer_boutons = wx.FlexGridSizer(rows=1, cols=4, vgap=10, hgap=10)
         
-        sizer_contenu_1 = wx.StaticBoxSizer(self.sizer_periode_staticbox, wx.VERTICAL)
+        sizer_contenu_1 = wx.StaticBoxSizer(self.stbPeriode, wx.VERTICAL)
         grid_sizer_contenu_1 = wx.FlexGridSizer(rows=1, cols=6, vgap=10, hgap=10)
         grid_sizer_contenu_1.Add(self.label_nom, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_contenu_1.Add(self.ctrl_nom, 0, 0, 0)
@@ -359,7 +358,7 @@ class Saisie(wx.Dialog):
         grid_sizer_contenu_1.Add(self.ctrl_annee, 0, 0, 0)
         sizer_contenu_1.Add(grid_sizer_contenu_1, 1, wx.ALL|wx.EXPAND, 10)
         
-        sizer_contenu_2 = wx.StaticBoxSizer(self.sizer_dates_staticbox, wx.VERTICAL)
+        sizer_contenu_2 = wx.StaticBoxSizer(self.stbDates, wx.VERTICAL)
         grid_sizer_contenu_2 = wx.FlexGridSizer(rows=1, cols=6, vgap=10, hgap=10)
         grid_sizer_contenu_2.Add(self.label_dateDebut, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_contenu_2.Add(self.ctrl_dateDebut, 0, 0, 0)
@@ -496,8 +495,10 @@ class MyFrame(wx.Frame):
 
 if __name__ == '__main__':
     app = wx.App(0)
-    #wx.InitAllImageHandlers()
     frame_1 = MyFrame(None, -1, "OL TEST")
     app.SetTopWindow(frame_1)
     frame_1.Show()
+    frame_2 = Saisie(None)
+    app.SetTopWindow(frame_2)
+    frame_2.Show()
     app.MainLoop()

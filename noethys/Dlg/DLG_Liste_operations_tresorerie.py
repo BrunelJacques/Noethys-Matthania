@@ -8,7 +8,6 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
 import Chemins
 from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
@@ -17,8 +16,6 @@ from Ctrl import CTRL_Bouton_image
 from Ctrl import CTRL_Bandeau
 from Ol import OL_Operations_tresorerie
 from Ctrl import CTRL_Saisie_compte
-import GestionDB
-
 
 
 class Dialog(wx.Dialog):

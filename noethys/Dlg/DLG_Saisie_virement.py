@@ -9,8 +9,6 @@
 #------------------------------------------------------------------------
 
 
-import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
@@ -79,32 +77,32 @@ class Dialog(wx.Dialog):
         self.IDoperation_credit = None
         
         # Généralités
-        self.box_generalites_staticbox = wx.StaticBox(self, wx.ID_ANY, _("Généralités"))
+        self.stbGeneral = wx.StaticBox(self, wx.ID_ANY, _("Généralités"))
         
-        self.label_date = wx.StaticText(self, wx.ID_ANY, _("Date :"))
-        self.ctrl_date = CTRL_Saisie_date.Date2(self)
+        self.label_date = wx.StaticText(self.stbGeneral, wx.ID_ANY, _("Date :"))
+        self.ctrl_date = CTRL_Saisie_date.Date2(self.stbGeneral)
         self.ctrl_date.SetDate(datetime.date.today())
 
-        self.label_compte_debit = wx.StaticText(self, wx.ID_ANY, _("Compte débiteur :"))
-        self.ctrl_compte_debit = CTRL_Compte(self)
+        self.label_compte_debit = wx.StaticText(self.stbGeneral, wx.ID_ANY, _("Compte débiteur :"))
+        self.ctrl_compte_debit = CTRL_Compte(self.stbGeneral)
         
-        self.label_compte_credit = wx.StaticText(self, wx.ID_ANY, _("Compte créditeur :"))
-        self.ctrl_compte_credit = CTRL_Compte(self)
+        self.label_compte_credit = wx.StaticText(self.stbGeneral, wx.ID_ANY, _("Compte créditeur :"))
+        self.ctrl_compte_credit = CTRL_Compte(self.stbGeneral)
         
-        self.label_montant = wx.StaticText(self, wx.ID_ANY, _("Montant :"))
-        self.ctrl_montant = CTRL_Saisie_euros.CTRL(self)
+        self.label_montant = wx.StaticText(self.stbGeneral, wx.ID_ANY, _("Montant :"))
+        self.ctrl_montant = CTRL_Saisie_euros.CTRL(self.stbGeneral)
         
         # Options
-        self.box_options_staticbox = wx.StaticBox(self, wx.ID_ANY, _("Options"))
+        self.stbOption = wx.StaticBox(self, wx.ID_ANY, _("Options"))
 
-        self.label_releve_debit = wx.StaticText(self, wx.ID_ANY, _("Relevé débiteur :"))
-        self.ctrl_releve_debit = CTRL_Saisie_releve_bancaire.CTRL(self)
+        self.label_releve_debit = wx.StaticText(self.stbOption, wx.ID_ANY, _("Relevé débiteur :"))
+        self.ctrl_releve_debit = CTRL_Saisie_releve_bancaire.CTRL(self.stbOption)
         
-        self.label_releve_credit = wx.StaticText(self, wx.ID_ANY, _("Relevé créditeur :"))
-        self.ctrl_releve_credit = CTRL_Saisie_releve_bancaire.CTRL(self)
+        self.label_releve_credit = wx.StaticText(self.stbOption, wx.ID_ANY, _("Relevé créditeur :"))
+        self.ctrl_releve_credit = CTRL_Saisie_releve_bancaire.CTRL(self.stbOption)
         
-        self.label_observations = wx.StaticText(self, wx.ID_ANY, _("Notes :"))
-        self.ctrl_observations = wx.TextCtrl(self, wx.ID_ANY, "", style=wx.TE_MULTILINE)
+        self.label_observations = wx.StaticText(self.stbOption, wx.ID_ANY, _("Notes :"))
+        self.ctrl_observations = wx.TextCtrl(self.stbOption, wx.ID_ANY, "", style=wx.TE_MULTILINE)
         self.ctrl_observations.SetMinSize((200, -1))
 
         # Boutons
@@ -150,7 +148,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base = wx.FlexGridSizer(3, 1, 10, 10)
 
         # Généralités
-        box_generalites = wx.StaticBoxSizer(self.box_generalites_staticbox, wx.VERTICAL)
+        box_generalites = wx.StaticBoxSizer(self.stbGeneral, wx.VERTICAL)
         grid_sizer_generalites = wx.FlexGridSizer(7, 2, 10, 10)
         
         grid_sizer_generalites.Add(self.label_date, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
@@ -170,7 +168,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(box_generalites, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 10)
         
         # Options
-        box_options = wx.StaticBoxSizer(self.box_options_staticbox, wx.VERTICAL)
+        box_options = wx.StaticBoxSizer(self.stbOption, wx.VERTICAL)
         grid_sizer_options = wx.FlexGridSizer(5, 2, 10, 10)
         
         grid_sizer_options.Add(self.label_releve_debit, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)

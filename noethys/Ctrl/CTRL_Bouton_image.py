@@ -24,14 +24,9 @@ import PIL.ImageOps as ImageOps
 def PILtoWx(image):
     """Convert a PIL image to wx image format"""
     largeur, hauteur = image.size
-    if 'phoenix' in wx.PlatformInfo:
-        imagewx = wx.Image(largeur, hauteur)
-        imagewx.SetData(image.tobytes('raw', 'RGB'))
-        imagewx.SetAlpha(image.convert("RGBA").tobytes()[3::4])
-    else :
-        imagewx = wx.EmptyImage(largeur, hauteur)
-        imagewx.SetData(image.tobytes('raw', 'RGB'))
-        imagewx.SetAlphaData(image.convert("RGBA").tobytes()[3::4])
+    imagewx = wx.Image(largeur, hauteur)
+    imagewx.SetData(image.tobytes('raw', 'RGB'))
+    imagewx.SetAlpha(image.convert("RGBA").tobytes()[3::4])
     return imagewx        
 
 

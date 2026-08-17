@@ -134,38 +134,38 @@ class Dialog(wx.Dialog):
         self.IDoperation = IDoperation
         
         # Généralités
-        self.box_generalites_staticbox = wx.StaticBox(self, wx.ID_ANY, _("Généralités"))
-        self.label_date = wx.StaticText(self, wx.ID_ANY, _("Date :"))
-        self.ctrl_date = CTRL_Saisie_date.Date2(self)
+        self.stbGeneral = wx.StaticBox(self, wx.ID_ANY, _("Généralités"))
+        self.label_date = wx.StaticText(self.stbGeneral, wx.ID_ANY, _("Date :"))
+        self.ctrl_date = CTRL_Saisie_date.Date2(self.stbGeneral)
         self.ctrl_date.SetDate(datetime.date.today())
-        self.label_libelle = wx.StaticText(self, wx.ID_ANY, _("Libellé :"))
-        self.ctrl_libelle = wx.TextCtrl(self, wx.ID_ANY, "")
-        self.label_tiers = wx.StaticText(self, wx.ID_ANY, _("Tiers :"))
-        self.ctrl_tiers = CTRL_Tiers(self)
-        self.label_mode = wx.StaticText(self, wx.ID_ANY, _("Mode :"))
-        self.ctrl_mode = CTRL_Mode(self)
-        self.label_num_cheque = wx.StaticText(self, wx.ID_ANY, _("N° Chq. :"))
-        self.ctrl_num_cheque = wx.TextCtrl(self, wx.ID_ANY, "")
+        self.label_libelle = wx.StaticText(self.stbGeneral, wx.ID_ANY, _("Libellé :"))
+        self.ctrl_libelle = wx.TextCtrl(self.stbGeneral, wx.ID_ANY, "")
+        self.label_tiers = wx.StaticText(self.stbGeneral, wx.ID_ANY, _("Tiers :"))
+        self.ctrl_tiers = CTRL_Tiers(self.stbGeneral)
+        self.label_mode = wx.StaticText(self.stbGeneral, wx.ID_ANY, _("Mode :"))
+        self.ctrl_mode = CTRL_Mode(self.stbGeneral)
+        self.label_num_cheque = wx.StaticText(self.stbGeneral, wx.ID_ANY, _("N° Chq. :"))
+        self.ctrl_num_cheque = wx.TextCtrl(self.stbGeneral, wx.ID_ANY, "")
         self.ctrl_num_cheque.Enable(False) 
         
         # Options
-        self.box_options_staticbox = wx.StaticBox(self, wx.ID_ANY, _("Options"))
-        self.label_releve = wx.StaticText(self, wx.ID_ANY, _("Relevé :"))
-        self.ctrl_releve = CTRL_Saisie_releve_bancaire.CTRL(self, IDcompte_bancaire=self.IDcompte_bancaire, afficherBouton=False)
-        self.label_num_piece = wx.StaticText(self, wx.ID_ANY, _("N° Pièce :"))
-        self.ctrl_num_piece = wx.TextCtrl(self, wx.ID_ANY, "")
-        self.label_observations = wx.StaticText(self, wx.ID_ANY, _("Notes :"))
-        self.ctrl_observations = wx.TextCtrl(self, wx.ID_ANY, "", style=wx.TE_MULTILINE)
+        self.stbOptions = wx.StaticBox(self, wx.ID_ANY, _("Options"))
+        self.label_releve = wx.StaticText(self.stbOptions, wx.ID_ANY, _("Relevé :"))
+        self.ctrl_releve = CTRL_Saisie_releve_bancaire.CTRL(self.stbOptions, IDcompte_bancaire=self.IDcompte_bancaire, afficherBouton=False)
+        self.label_num_piece = wx.StaticText(self.stbOptions, wx.ID_ANY, _("N° Pièce :"))
+        self.ctrl_num_piece = wx.TextCtrl(self.stbOptions, wx.ID_ANY, "")
+        self.label_observations = wx.StaticText(self.stbOptions, wx.ID_ANY, _("Notes :"))
+        self.ctrl_observations = wx.TextCtrl(self.stbOptions, wx.ID_ANY, "", style=wx.TE_MULTILINE)
         self.ctrl_observations.SetMinSize((200, -1))
 
         # Ventilation
-        self.box_ventilation_staticbox = wx.StaticBox(self, wx.ID_ANY, _("Ventilation"))
-        self.listviewAvecFooter = OL_Ventilation_operation.ListviewAvecFooter(self, kwargs={"typeOperation" : self.typeOperation}) 
+        self.stbVentil = wx.StaticBox(self, wx.ID_ANY, _("Ventilation"))
+        self.listviewAvecFooter = OL_Ventilation_operation.ListviewAvecFooter(self.stbVentil, kwargs={"typeOperation" : self.typeOperation})
         self.ctrl_ventilation = self.listviewAvecFooter.GetListview()
         
-        self.bouton_ajouter_ventilation = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier_ventilation = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer_ventilation = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter_ventilation = wx.BitmapButton(self.stbVentil, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier_ventilation = wx.BitmapButton(self.stbVentil, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer_ventilation = wx.BitmapButton(self.stbVentil, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
         
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -237,7 +237,7 @@ class Dialog(wx.Dialog):
         grid_sizer_haut = wx.FlexGridSizer(1, 2, 10, 10)
 
         # Généralités
-        box_generalites = wx.StaticBoxSizer(self.box_generalites_staticbox, wx.VERTICAL)
+        box_generalites = wx.StaticBoxSizer(self.stbGeneral, wx.VERTICAL)
         grid_sizer_generalites = wx.FlexGridSizer(5, 2, 10, 10)
         
         grid_sizer_generalites.Add(self.label_date, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
@@ -271,7 +271,7 @@ class Dialog(wx.Dialog):
         
         
         # Options
-        box_options = wx.StaticBoxSizer(self.box_options_staticbox, wx.VERTICAL)
+        box_options = wx.StaticBoxSizer(self.stbOptions, wx.VERTICAL)
         grid_sizer_options = wx.FlexGridSizer(5, 2, 10, 10)
                 
         grid_sizer_options.Add(self.label_releve, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
@@ -292,7 +292,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(grid_sizer_haut, 1, wx.LEFT | wx.RIGHT | wx.TOP | wx.EXPAND, 10)
         
         # Ventilation
-        box_ventilation = wx.StaticBoxSizer(self.box_ventilation_staticbox, wx.VERTICAL)
+        box_ventilation = wx.StaticBoxSizer(self.stbVentil, wx.VERTICAL)
         grid_sizer_ventilation = wx.FlexGridSizer(1, 2, 5, 5)
         grid_sizer_ventilation.Add(self.listviewAvecFooter, 1, wx.EXPAND, 0)
         
