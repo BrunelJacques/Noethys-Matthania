@@ -71,23 +71,23 @@ class Panel(wx.Panel):
         self.IDfamille = IDfamille
         
         # Informations
-        self.staticbox_infos = wx.StaticBox(self, -1, _("Messages pour toute la famille"))
-        self.ctrl_infos = CTRL_Informations.CTRL(self.staticbox_infos, IDfamille=self.IDfamille)
-        self.bouton_ajouter = wx.BitmapButton(self.staticbox_infos, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self.staticbox_infos, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self.staticbox_infos, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.stbInfos = wx.StaticBox(self, -1, _("Messages pour toute la famille"))
+        self.ctrl_infos = CTRL_Informations.CTRL(self.stbInfos, IDfamille=self.IDfamille)
+        self.bouton_ajouter = wx.BitmapButton(self.stbInfos, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier = wx.BitmapButton(self.stbInfos, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer = wx.BitmapButton(self.stbInfos, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
         
         # Etat de la facturation
-        self.staticbox_facturation = wx.StaticBox(self, -1, _("Etat du compte"))
-        self.ctrl_facturation = OL_Etat_compte.ListView(self.staticbox_facturation, id=-1, IDfamille=self.IDfamille, name="OL_Etat_compte", style=wx.LC_REPORT|wx.LC_NO_HEADER|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
+        self.stbFacturation = wx.StaticBox(self, -1, _("Etat du compte"))
+        self.ctrl_facturation = OL_Etat_compte.ListView(self.stbFacturation, id=-1, IDfamille=self.IDfamille, name="OL_Etat_compte", style=wx.LC_REPORT|wx.LC_NO_HEADER|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         self.ctrl_facturation.SetMinSize((220, 20))
         
         if "linux" in sys.platform :
             UTILS_Linux.AdaptePolice(self.ctrl_facturation)
         
         # Solde du compte
-        self.staticbox_solde = wx.StaticBox(self, -1, "Solde du compte")
-        self.ctrl_solde = CTRL_Solde(self.staticbox_solde)
+        self.stbSolde = wx.StaticBox(self, -1, "Solde du compte")
+        self.ctrl_solde = CTRL_Solde(self.stbSolde)
         
         # Binds
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAjouter, self.bouton_ajouter)
@@ -105,7 +105,7 @@ class Panel(wx.Panel):
         grid_sizer_base = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         
         # Infos
-        staticbox_infos = wx.StaticBoxSizer(self.staticbox_infos, wx.VERTICAL)
+        staticbox_infos = wx.StaticBoxSizer(self.stbInfos, wx.VERTICAL)
         grid_sizer_infos = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         
         grid_sizer_infos.Add(self.ctrl_infos, 1, wx.EXPAND, 0)
@@ -125,7 +125,7 @@ class Panel(wx.Panel):
         grid_sizer_compte = wx.FlexGridSizer(rows=2, cols=1, vgap=0, hgap=0)
         
         # Facturation
-        staticbox_facturation = wx.StaticBoxSizer(self.staticbox_facturation, wx.VERTICAL)
+        staticbox_facturation = wx.StaticBoxSizer(self.stbFacturation, wx.VERTICAL)
         grid_sizer_facturation = wx.FlexGridSizer(rows=2, cols=1, vgap=5, hgap=5)
         grid_sizer_facturation.Add(self.ctrl_facturation, 1, wx.EXPAND, 0)
         grid_sizer_facturation.AddGrowableCol(0)
@@ -135,7 +135,7 @@ class Panel(wx.Panel):
         grid_sizer_compte.Add(staticbox_facturation, 1, wx.EXPAND|wx.ALL, 5)
         
         # Solde
-        staticbox_solde = wx.StaticBoxSizer(self.staticbox_solde, wx.VERTICAL)
+        staticbox_solde = wx.StaticBoxSizer(self.stbSolde, wx.VERTICAL)
         grid_sizer_solde = wx.FlexGridSizer(rows=2, cols=1, vgap=5, hgap=5)
         grid_sizer_solde.Add(self.ctrl_solde, 1, wx.EXPAND, 0)
         grid_sizer_solde.AddGrowableCol(0)

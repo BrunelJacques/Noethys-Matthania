@@ -25,22 +25,22 @@ class Panel(wx.Panel):
         self.parent = parent
         self.IDfamille = IDfamille
         
-        self.staticbox_cotisations = wx.StaticBox(self, -1, _("Cotisations familiales et individuelles"))
+        self.stbCotisations = wx.StaticBox(self, -1, _("Cotisations familiales et individuelles"))
         
         # OL Cotisations
         codesColonnes = ["IDcotisation", "date_debut", "date_fin", "beneficiaires", "nom", "numero", "date_creation_carte", "depot_nom", "activites", "observations"]
         checkColonne = True
         triColonne = "date_debut"
-        self.listviewAvecFooter = OL_Liste_cotisations.ListviewAvecFooter(self, kwargs={"IDfamille" : IDfamille, "mode" : "famille", "codesColonnes" : codesColonnes, "checkColonne" : checkColonne, "triColonne" : triColonne}) 
+        self.listviewAvecFooter = OL_Liste_cotisations.ListviewAvecFooter(self.stbCotisations, kwargs={"IDfamille" : IDfamille, "mode" : "famille", "codesColonnes" : codesColonnes, "checkColonne" : checkColonne, "triColonne" : triColonne})
         self.ctrl_listview = self.listviewAvecFooter.GetListview()
-        self.ctrl_recherche = OL_Liste_cotisations.CTRL_Outils(self, listview=self.ctrl_listview, afficherCocher=True)
+        self.ctrl_recherche = OL_Liste_cotisations.CTRL_Outils(self.stbCotisations, listview=self.ctrl_listview, afficherCocher=True)
         self.ctrl_recherche.SetBackgroundColour((255, 255, 255))
         
         # Commandes boutons
-        self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_imprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter = wx.BitmapButton(self.stbCotisations, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier = wx.BitmapButton(self.stbCotisations, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer = wx.BitmapButton(self.stbCotisations, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_imprimer = wx.BitmapButton(self.stbCotisations, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
 
         # Binds
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAjouter, self.bouton_ajouter)
@@ -56,7 +56,7 @@ class Panel(wx.Panel):
 
         # Layout
         grid_sizer_base = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
-        staticbox_cotisations = wx.StaticBoxSizer(self.staticbox_cotisations, wx.VERTICAL)
+        staticbox_cotisations = wx.StaticBoxSizer(self.stbCotisations, wx.VERTICAL)
         grid_sizer_cotisations = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         
         grid_sizer_cotisations.Add(self.listviewAvecFooter, 1, wx.EXPAND, 0)

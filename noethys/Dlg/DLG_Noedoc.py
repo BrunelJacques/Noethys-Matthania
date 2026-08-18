@@ -15,12 +15,10 @@ from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
 import wx.lib.agw.aui as aui
-from wx.lib.floatcanvas import FloatCanvas, GUIMode
+import wx.lib.floatcanvas.FloatCanvas as FC
+import wx.lib.floatcanvas.GUIMode as GUIMode
 import wx.lib.colourselect as csel
-if 'phoenix' in wx.PlatformInfo:
-    from wx.adv import OwnerDrawnComboBox, ODCB_PAINTING_CONTROL, ODCB_PAINTING_SELECTED
-else :
-    from wx.combo import OwnerDrawnComboBox, ODCB_PAINTING_CONTROL, ODCB_PAINTING_SELECTED
+from wx.adv import OwnerDrawnComboBox, ODCB_PAINTING_CONTROL, ODCB_PAINTING_SELECTED
 import wx.grid
 import wx.lib.agw.floatspin as FloatSpin
 import wx.lib.agw.supertooltip as STT
@@ -1306,13 +1304,11 @@ class Panel_commandes(wx.Panel):
         if etat == False : 
             return
         # Fermeture de la fenêtre
-        if 'phoenix' in wx.PlatformInfo:
-            self.parent._mgr.UnInit()
+        self.parent._mgr.UnInit()
         self.parent.OnBoutonOk()
 
     def OnBoutonAnnuler(self, event):
-        if 'phoenix' in wx.PlatformInfo:
-            self.parent._mgr.UnInit()
+        self.parent._mgr.UnInit()
         self.parent.OnBoutonAnnuler()
         
     def OnBoutonAide(self, event):
@@ -1440,7 +1436,7 @@ class CTRL_Style(OwnerDrawnComboBox):
 
         if flags & ODCB_PAINTING_CONTROL:
             # for painting the control itself
-            dc.DrawLine( r.x+5, r.y+r.height/2, r.x+r.width - 5, r.y+r.height/2 )
+            dc.DrawLine( r.x+5, int(r.y+r.height/2), r.x+r.width - 5, int(r.y+r.height/2 ))
             self.selection = item
         else:
             # for painting the items in the popup
@@ -1462,10 +1458,7 @@ class CTRL_Style(OwnerDrawnComboBox):
         bgCol = wx.Colour(240,240,250)
         dc.SetBrush(wx.Brush(bgCol))
         dc.SetPen(wx.Pen(bgCol))
-        if 'phoenix' in wx.PlatformInfo:
-            dc.DrawRectangle(rect)
-        else :
-            dc.DrawRectangleRect(rect)
+        dc.DrawRectangle(rect)
 
     # Overridden from OwnerDrawnComboBox, should return the height
     # needed to display an item in the popup, or -1 for default
@@ -1488,7 +1481,7 @@ class CTRL_Style(OwnerDrawnComboBox):
 class CTRL_Verrou(wx.StaticBitmap):
     def __init__(self, parent, id=-1, lienControle=None, type="x", pos=wx.DefaultPosition, size=wx.DefaultSize, style=0):
         # Variables
-        self.parent = parent
+        self.parent = parent.Parent
         self.lienControle = lienControle
         self.type = type
         self.verrouillage = False
@@ -1873,11 +1866,11 @@ class Proprietes_nom(wx.Panel):
         self.objet = None
         self.stopEvent = False
         
-        self.staticbox_staticbox = wx.StaticBox(self, -1, _(u"Nom"))
-        self.ctrl_nom = wx.TextCtrl(self, -1, u"")         
+        self.stbBox = wx.StaticBox(self, -1, _(u"Nom"))
+        self.ctrl_nom = wx.TextCtrl(self.stbBox, -1, u"")
         self.Bind(wx.EVT_TEXT, self.OnSaisieNom, self.ctrl_nom)
 
-        staticbox = wx.StaticBoxSizer(self.staticbox_staticbox, wx.VERTICAL)
+        staticbox = wx.StaticBoxSizer(self.stbBox, wx.VERTICAL)
         staticbox.Add(self.ctrl_nom, 1, wx.ALL|wx.EXPAND, 5)
         self.SetSizer(staticbox)
         staticbox.Fit(self)
@@ -1913,13 +1906,13 @@ class Proprietes_position(wx.Panel):
         self.objet = None
         self.stopEvent = False
         
-        self.staticbox_staticbox = wx.StaticBox(self, -1, _(u"Position"))
-        self.label_x = wx.StaticText(self, -1, u"X :")
-        self.ctrl_x = wx.TextCtrl(self, -1, u"") # wx.SpinCtrl(self, -1, "", min=-10000, max=10000)
-        self.ctrl_verr_x = CTRL_Verrou(self, lienControle=self.ctrl_x, type="x")
-        self.label_y = wx.StaticText(self, -1, u"Y :")
-        self.ctrl_y = wx.TextCtrl(self, -1, u"") # wx.SpinCtrl(self, -1, "", min=-10000, max=10000)
-        self.ctrl_verr_y = CTRL_Verrou(self, lienControle=self.ctrl_y, type="y")
+        self.stbBox = wx.StaticBox(self, -1, _(u"Position"))
+        self.label_x = wx.StaticText(self.stbBox, -1, u"X :")
+        self.ctrl_x = wx.TextCtrl(self.stbBox, -1, u"") # wx.SpinCtrl(self, -1, "", min=-10000, max=10000)
+        self.ctrl_verr_x = CTRL_Verrou(self.stbBox, lienControle=self.ctrl_x, type="x")
+        self.label_y = wx.StaticText(self.stbBox, -1, u"Y :")
+        self.ctrl_y = wx.TextCtrl(self.stbBox, -1, u"") # wx.SpinCtrl(self, -1, "", min=-10000, max=10000)
+        self.ctrl_verr_y = CTRL_Verrou(self.stbBox, lienControle=self.ctrl_y, type="y")
         
         self.__set_properties()
         self.__do_layout()
@@ -1935,7 +1928,7 @@ class Proprietes_position(wx.Panel):
         self.ctrl_y.SetMinSize((60, -1))
 
     def __do_layout(self):
-        staticbox = wx.StaticBoxSizer(self.staticbox_staticbox, wx.VERTICAL)
+        staticbox = wx.StaticBoxSizer(self.stbBox, wx.VERTICAL)
         grid_sizer_base = wx.FlexGridSizer(rows=1, cols=7, vgap=0, hgap=5)
         grid_sizer_base.Add(self.label_x, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_base.Add(self.ctrl_x, 0, 0, 0)
@@ -2012,14 +2005,14 @@ class Proprietes_taille(wx.Panel):
         self.objet = None
         self.stopEvent = False
         
-        self.staticbox_staticbox = wx.StaticBox(self, -1, _(u"Dimensions"))
-        self.label_largeur = wx.StaticText(self, -1, _(u"L :"))
-        self.ctrl_largeur = wx.TextCtrl(self, -1, u"") # wx.SpinCtrl(self, -1, "", min=-10000, max=10000)
-        self.ctrl_verr_largeur = CTRL_Verrou(self, lienControle=self.ctrl_largeur, type="largeur")
-        self.label_hauteur = wx.StaticText(self, -1, _(u"H :"))
-        self.ctrl_hauteur = wx.TextCtrl(self, -1, u"") # wx.SpinCtrl(self, -1, "", min=-10000, max=10000)
-        self.ctrl_verr_hauteur = CTRL_Verrou(self, lienControle=self.ctrl_hauteur, type="hauteur")
-        self.ctrl_proportions = wx.CheckBox(self, -1, _(u"Conserver les proportions"))
+        self.stbBox = wx.StaticBox(self, -1, _(u"Dimensions"))
+        self.label_largeur = wx.StaticText(self.stbBox, -1, _(u"L :"))
+        self.ctrl_largeur = wx.TextCtrl(self.stbBox, -1, u"") # wx.SpinCtrl(self, -1, "", min=-10000, max=10000)
+        self.ctrl_verr_largeur = CTRL_Verrou(self.stbBox, lienControle=self.ctrl_largeur, type="largeur")
+        self.label_hauteur = wx.StaticText(self.stbBox, -1, _(u"H :"))
+        self.ctrl_hauteur = wx.TextCtrl(self.stbBox, -1, u"") # wx.SpinCtrl(self, -1, "", min=-10000, max=10000)
+        self.ctrl_verr_hauteur = CTRL_Verrou(self.stbBox, lienControle=self.ctrl_hauteur, type="hauteur")
+        self.ctrl_proportions = wx.CheckBox(self.stbBox, -1, _(u"Conserver les proportions"))
         
         self.__set_properties()
         self.__do_layout()
@@ -2036,7 +2029,7 @@ class Proprietes_taille(wx.Panel):
         self.ctrl_hauteur.SetMinSize((60, -1))
 
     def __do_layout(self):
-        staticbox = wx.StaticBoxSizer(self.staticbox_staticbox, wx.VERTICAL)
+        staticbox = wx.StaticBoxSizer(self.stbBox, wx.VERTICAL)
         grid_sizer_base = wx.FlexGridSizer(rows=2, cols=1, vgap=5, hgap=5)
         
         grid_sizer_taille = wx.FlexGridSizer(rows=1, cols=7, vgap=0, hgap=5)
@@ -2141,9 +2134,9 @@ class Proprietes_largeur(wx.Panel):
         self.objet = None
         self.stopEvent = False
 
-        self.staticbox_staticbox = wx.StaticBox(self, -1, _(u"Largeur"))
-        self.check_largeur = wx.CheckBox(self, -1, _(u"Largeur fixe :"))
-        self.ctrl_largeur = wx.TextCtrl(self, -1, u"100")  # wx.SpinCtrl(self, -1, "", min=-10000, max=10000)
+        self.stbBox = wx.StaticBox(self, -1, _(u"Largeur"))
+        self.check_largeur = wx.CheckBox(self.stbBox, -1, _(u"Largeur fixe :"))
+        self.ctrl_largeur = wx.TextCtrl(self.stbBox, -1, u"100")  # wx.SpinCtrl(self, -1, "", min=-10000, max=10000)
 
         self.__set_properties()
         self.__do_layout()
@@ -2159,7 +2152,7 @@ class Proprietes_largeur(wx.Panel):
         self.ctrl_largeur.SetMinSize((60, -1))
 
     def __do_layout(self):
-        staticbox = wx.StaticBoxSizer(self.staticbox_staticbox, wx.VERTICAL)
+        staticbox = wx.StaticBoxSizer(self.stbBox, wx.VERTICAL)
         grid_sizer_base = wx.FlexGridSizer(rows=2, cols=1, vgap=5, hgap=5)
 
         grid_sizer_taille = wx.FlexGridSizer(rows=1, cols=7, vgap=0, hgap=5)
@@ -2234,16 +2227,16 @@ class Proprietes_trait(wx.Panel):
         self.objet = None
         self.stopEvent = False
         
-        self.staticbox_staticbox = wx.StaticBox(self, -1, _(u"Trait"))
-        self.label_afficher = wx.StaticText(self, -1, _(u"Afficher :"))
-        self.ctrl_afficher = wx.CheckBox(self, -1, u"")
-        self.label_couleur = wx.StaticText(self, -1, _(u"Couleur :"))
-        self.ctrl_couleur = csel.ColourSelect(self, -1, u"", (0, 0, 0), size=(60, 18))
-        self.label_style = wx.StaticText(self, -1, _(u"Style :"))
-        self.ctrl_style = CTRL_Style(self, categorie="trait", style=wx.CB_READONLY)
-        self.label_epaisseur = wx.StaticText(self, -1, _(u"Epaisseur :"))
+        self.stbBox = wx.StaticBox(self, -1, _(u"Trait"))
+        self.label_afficher = wx.StaticText(self.stbBox, -1, _(u"Afficher :"))
+        self.ctrl_afficher = wx.CheckBox(self.stbBox, -1, u"")
+        self.label_couleur = wx.StaticText(self.stbBox, -1, _(u"Couleur :"))
+        self.ctrl_couleur = csel.ColourSelect(self.stbBox, -1, u"", (0, 0, 0), size=(60, 18))
+        self.label_style = wx.StaticText(self.stbBox, -1, _(u"Style :"))
+        self.ctrl_style = CTRL_Style(self.stbBox, categorie="trait", style=wx.CB_READONLY)
+        self.label_epaisseur = wx.StaticText(self.stbBox, -1, _(u"Epaisseur :"))
 ##        self.ctrl_epaisseur = wx.SpinCtrl(self, -1, "", min=1, max=100, size=(60, -1))
-        self.ctrl_epaisseur = FloatSpin.FloatSpin(self, -1, min_val=0.25, max_val=100, increment=0.25, value=0.1, size=(60, -1), agwStyle=FloatSpin.FS_LEFT)
+        self.ctrl_epaisseur = FloatSpin.FloatSpin(self.stbBox, -1, min_val=0.25, max_val=100, increment=0.25, value=0.1, size=(60, -1), agwStyle=FloatSpin.FS_LEFT)
         self.ctrl_epaisseur.SetFormat("%f")
         self.ctrl_epaisseur.SetDigits(2)
         
@@ -2254,7 +2247,7 @@ class Proprietes_trait(wx.Panel):
         self.Bind(wx.EVT_SPINCTRL, self.OnSaisieEpaisseur, self.ctrl_epaisseur)
         
         # Layout
-        staticbox = wx.StaticBoxSizer(self.staticbox_staticbox, wx.VERTICAL)
+        staticbox = wx.StaticBoxSizer(self.stbBox, wx.VERTICAL)
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=2, vgap=5, hgap=5)
         
         grid_sizer_base.Add(self.label_afficher, 1, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
@@ -2361,13 +2354,13 @@ class Proprietes_remplissage(wx.Panel):
         self.objet = None
         self.stopEvent = False
 
-        self.staticbox_staticbox = wx.StaticBox(self, -1, _(u"Remplissage"))
-        self.label_afficher = wx.StaticText(self, -1, _(u"Afficher :"))
-        self.ctrl_afficher = wx.CheckBox(self, -1, u"")
-        self.label_couleur = wx.StaticText(self, -1, _(u"Couleur :"))
-        self.ctrl_couleur = csel.ColourSelect(self, -1, u"", (0, 0, 0), size=(60, 18))
-        self.label_style = wx.StaticText(self, -1, _(u"Style :"))
-        self.ctrl_style = CTRL_Style(self, categorie="remplissage", style=wx.CB_READONLY)
+        self.stbBox = wx.StaticBox(self, -1, _(u"Remplissage"))
+        self.label_afficher = wx.StaticText(self.stbBox, -1, _(u"Afficher :"))
+        self.ctrl_afficher = wx.CheckBox(self.stbBox, -1, u"")
+        self.label_couleur = wx.StaticText(self.stbBox, -1, _(u"Couleur :"))
+        self.ctrl_couleur = csel.ColourSelect(self.stbBox, -1, u"", (0, 0, 0), size=(60, 18))
+        self.label_style = wx.StaticText(self.stbBox, -1, _(u"Style :"))
+        self.ctrl_style = CTRL_Style(self.stbBox, categorie="remplissage", style=wx.CB_READONLY)
 
         # Binds
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckAfficher, self.ctrl_afficher)
@@ -2375,7 +2368,7 @@ class Proprietes_remplissage(wx.Panel):
         self.Bind(wx.EVT_COMBOBOX, self.OnSelectStyle, self.ctrl_style)
 
         # Layout
-        staticbox = wx.StaticBoxSizer(self.staticbox_staticbox, wx.VERTICAL)
+        staticbox = wx.StaticBoxSizer(self.stbBox, wx.VERTICAL)
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=2, vgap=5, hgap=5)
 
         grid_sizer_base.Add(self.label_afficher, 1, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
@@ -2497,12 +2490,12 @@ class Proprietes_interactive(wx.Panel):
         self.objet = None
         self.stopEvent = False
 
-        self.staticbox_staticbox = wx.StaticBox(self, -1, _(u"Zone interactive"))
-        self.label_donnee = wx.StaticText(self, -1, _(u"Donnée :"))
-        self.ctrl_donnee = CTRL_Champs_interactifs(self, canvas=canvas)
+        self.stbBox = wx.StaticBox(self, -1, _(u"Zone interactive"))
+        self.label_donnee = wx.StaticText(self.stbBox, -1, _(u"Donnée :"))
+        self.ctrl_donnee = CTRL_Champs_interactifs(self.stbBox, canvas=canvas)
 
         # Layout
-        staticbox = wx.StaticBoxSizer(self.staticbox_staticbox, wx.VERTICAL)
+        staticbox = wx.StaticBoxSizer(self.stbBox, wx.VERTICAL)
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=2, vgap=5, hgap=5)
 
         grid_sizer_base.Add(self.label_donnee, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
@@ -2554,11 +2547,8 @@ class CTRL_Points(wx.grid.Grid):
         self.SetColLabelValue(1, u"Y")
         
         # Binds
-        if 'phoenix' in wx.PlatformInfo:
-            self.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.OnChangeValeur)
-        else :
-            self.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.OnChangeValeur)
-    
+        self.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.OnChangeValeur)
+
     def OnChangeValeur(self, event):
         indexPoint = event.GetRow()
         x = self.GetCellValue(indexPoint, 0)
@@ -2631,12 +2621,12 @@ class Proprietes_points(wx.Panel):
         self.objet = None
         self.stopEvent = False
         
-        self.staticbox_staticbox = wx.StaticBox(self, -1, _(u"Points"))
-        self.ctrl_points = CTRL_Points(self, canvas)
+        self.stbBox = wx.StaticBox(self, -1, _(u"Points"))
+        self.ctrl_points = CTRL_Points(self.stbBox, canvas)
         self.ctrl_points.SetMinSize((-1, 80)) 
         
         # Layout
-        staticbox = wx.StaticBoxSizer(self.staticbox_staticbox, wx.VERTICAL)
+        staticbox = wx.StaticBoxSizer(self.stbBox, wx.VERTICAL)
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=2, vgap=5, hgap=5)
         grid_sizer_base.Add(self.ctrl_points, 1, wx.EXPAND, 5)
         grid_sizer_base.AddGrowableCol(0)
@@ -2659,18 +2649,18 @@ class Proprietes_texte(wx.Panel):
         self.objet = None
         self.stopEvent = False
         
-        self.staticbox_staticbox = wx.StaticBox(self, -1, _(u"Texte"))
+        self.stbBox = wx.StaticBox(self, -1, _(u"Texte"))
 ##        self.label_police = wx.StaticText(self, -1, _(u"Police :"))
 ##        self.ctrl_police = wx.FontPickerCtrl(self, style=wx.FNTP_FONTDESC_AS_LABEL)
         
-        self.label_taille = wx.StaticText(self, -1, _(u"Police :"))
-        self.ctrl_taille = wx.SpinCtrl(self, -1, u"", size=(40, -1), min=1, max=300)
+        self.label_taille = wx.StaticText(self.stbBox, -1, _(u"Police :"))
+        self.ctrl_taille = wx.SpinCtrl(self.stbBox, -1, u"", size=(46, -1), min=1, max=300)
         
-        self.ctrl_couleur = csel.ColourSelect(self, -1, u"", (0, 0, 0), size=(-1, self.ctrl_taille.GetSize()[1]+4))
+        self.ctrl_couleur = csel.ColourSelect(self.stbBox, -1, u"", (0, 0, 0), size=(-1, self.ctrl_taille.GetSize()[1]+4))
         
-        self.ctrl_gras = wx.ToggleButton(self, -1, u"G", size=(25, -1))
-        self.ctrl_italique = wx.ToggleButton(self, -1, u"I", size=(25, -1))
-        self.ctrl_souligne = wx.ToggleButton(self, -1, u"S", size=(25, -1))
+        self.ctrl_gras = wx.ToggleButton(self.stbBox, -1, u"G", size=(25, -1))
+        self.ctrl_italique = wx.ToggleButton(self.stbBox, -1, u"I", size=(25, -1))
+        self.ctrl_souligne = wx.ToggleButton(self.stbBox, -1, u"S", size=(25, -1))
         self.ctrl_souligne.Show(False) 
         
         # Binds
@@ -2682,7 +2672,7 @@ class Proprietes_texte(wx.Panel):
         self.Bind(wx.EVT_TOGGLEBUTTON, self.OnChangeSouligne, self.ctrl_souligne)
         
         # Layout
-        staticbox = wx.StaticBoxSizer(self.staticbox_staticbox, wx.VERTICAL)
+        staticbox = wx.StaticBoxSizer(self.stbBox, wx.VERTICAL)
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=2, vgap=5, hgap=5)
         
 ##        grid_sizer_base.Add(self.label_police, 1, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
@@ -2848,17 +2838,17 @@ class Proprietes_codebarres(wx.Panel):
         self.objet = None
         self.stopEvent = False
         
-        self.staticbox_staticbox = wx.StaticBox(self, -1, _(u"Code-barres"))
-        self.label_norme = wx.StaticText(self, -1, _(u"Norme :"))
-        self.ctrl_norme = CTRL_Normes(self)
-        self.label_numero = wx.StaticText(self, -1, _(u"Numéro :"))
-        self.ctrl_numero = wx.CheckBox(self, -1, _(u"Afficher"))
+        self.stbBox = wx.StaticBox(self, -1, _(u"Code-barres"))
+        self.label_norme = wx.StaticText(self.stbBox, -1, _(u"Norme :"))
+        self.ctrl_norme = CTRL_Normes(self.stbBox)
+        self.label_numero = wx.StaticText(self.stbBox, -1, _(u"Numéro :"))
+        self.ctrl_numero = wx.CheckBox(self.stbBox, -1, _(u"Afficher"))
         
         self.ctrl_norme.SetToolTip(wx.ToolTip(_(u"Sélectionnez une norme pour ce code-barres")))
         self.ctrl_numero.SetToolTip(wx.ToolTip(_(u"Cochez cette case pour afficher la valeur sous le code-barres")))
 
         # Layout
-        staticbox = wx.StaticBoxSizer(self.staticbox_staticbox, wx.VERTICAL)
+        staticbox = wx.StaticBoxSizer(self.stbBox, wx.VERTICAL)
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=2, vgap=5, hgap=5)
         grid_sizer_base.Add(self.label_norme, 1, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_base.Add(self.ctrl_norme, 1, wx.EXPAND, 5)
@@ -2975,10 +2965,7 @@ class MovingObjectMixin:
                     handler = wx.BITMAP_TYPE_PNG
                 else:
                     handler = wx.BITMAP_TYPE_JPEG
-                if 'phoenix' in wx.PlatformInfo:
-                    image.SaveFile(buffer, handler)
-                else :
-                    image.SaveStream(buffer, handler)
+                image.SaveFile(buffer, handler)
                 buffer.seek(0)
                 blob = buffer.read()
                 return blob
@@ -3134,10 +3121,10 @@ class MovingObjectMixin:
 
 
 
-class MovingScaledBitmap(FloatCanvas.ScaledBitmap, MovingObjectMixin):
+class MovingScaledBitmap(FC.ScaledBitmap, MovingObjectMixin):
     """ ScaledBitmap Object that can be moved"""
     def __init__(self, *args, **kwds):
-        FloatCanvas.ScaledBitmap.__init__(self, *args, **kwds)
+        FC.ScaledBitmap.__init__(self, *args, **kwds)
         MovingObjectMixin.__init__(self, *args, **kwds)
         self.verrouillageProportions = True
         self.interditModifProportions = True
@@ -3195,10 +3182,10 @@ class MovingScaledBitmap(FloatCanvas.ScaledBitmap, MovingObjectMixin):
                 HTdc.DrawRectanglePointSize(XY, (W, H))
 
                 
-class MovingCircle(FloatCanvas.Circle, MovingObjectMixin):
+class MovingCircle(FC.Circle, MovingObjectMixin):
     """ ScaledCircle Object that can be moved """
     def __init__(self, *args, **kwds):
-        FloatCanvas.Circle.__init__(self, *args, **kwds)
+        FC.Circle.__init__(self, *args, **kwds)
         MovingObjectMixin.__init__(self, *args, **kwds)
         self.verrouillageProportions = True
         self.interditModifProportions = True
@@ -3216,10 +3203,10 @@ class MovingCircle(FloatCanvas.Circle, MovingObjectMixin):
     def SetTaille(self, largeur, hauteur):
         self.WH = numpy.array((largeur, hauteur))
 
-class MovingEllipse(FloatCanvas.Ellipse, MovingObjectMixin):
+class MovingEllipse(FC.Ellipse, MovingObjectMixin):
     """ ScaledCircle Object that can be moved """
     def __init__(self, *args, **kwds):
-        FloatCanvas.Ellipse.__init__(self, *args, **kwds)
+        FC.Ellipse.__init__(self, *args, **kwds)
         MovingObjectMixin.__init__(self, *args, **kwds)
         self.proprietes = ["nom", "position", "taille", "trait", "remplissage", "interactive"]
     
@@ -3236,17 +3223,17 @@ class MovingEllipse(FloatCanvas.Ellipse, MovingObjectMixin):
         self.WH = numpy.array((largeur, hauteur))
 
 
-##class MovingArc(FloatCanvas.Arc, MovingObjectMixin):
+##class MovingArc(FC.Arc, MovingObjectMixin):
 ##    """ ScaledBitmap Object that can be moved """
 ##    def __init__(self, *args, **kwds):
-##        FloatCanvas.Arc.__init__(self, *args, **kwds)
+##        FC.Arc.__init__(self, *args, **kwds)
 ##        MovingObjectMixin.__init__(self, *args, **kwds)
 ##        self.proprietes = ["nom", "position", "taille", "trait", "remplissage"]
 
-class MovingScaledText(FloatCanvas.ScaledText, MovingObjectMixin):
+class MovingScaledText(FC.ScaledText, MovingObjectMixin):
     """ ScaledText Object that can be moved """
     def __init__(self, *args, **kwds):
-        FloatCanvas.ScaledText.__init__(self, *args, **kwds)
+        FC.ScaledText.__init__(self, *args, **kwds)
         MovingObjectMixin.__init__(self, *args, **kwds)
         self.verrouillageProportions = True
         self.interditModifProportions = True
@@ -3276,10 +3263,10 @@ class MovingScaledText(FloatCanvas.ScaledText, MovingObjectMixin):
         return self.taillePolicePDF
 
 
-class MovingScaledTextBox(FloatCanvas.ScaledTextBox, MovingObjectMixin):
+class MovingScaledTextBox(FC.ScaledTextBox, MovingObjectMixin):
     """ ScaledTextBox Object that can be moved """
     def __init__(self, *args, **kwds):
-        FloatCanvas.ScaledTextBox.__init__(self, *args, **kwds)
+        FC.ScaledTextBox.__init__(self, *args, **kwds)
         MovingObjectMixin.__init__(self, *args, **kwds)
         self.proprietes = ["nom", "position", "largeur", "trait", "texte", "interactive"]
         self.SetTexte(self.String)
@@ -3323,10 +3310,10 @@ class MovingScaledTextBox(FloatCanvas.ScaledTextBox, MovingObjectMixin):
         return self.taillePolicePDF
 
 
-class MovingPolygon(FloatCanvas.Polygon, MovingObjectMixin):
+class MovingPolygon(FC.Polygon, MovingObjectMixin):
     """ Polygon Object that can be moved """
     def __init__(self, *args, **kwds):
-        FloatCanvas.Polygon.__init__(self, *args, **kwds)
+        FC.Polygon.__init__(self, *args, **kwds)
         MovingObjectMixin.__init__(self, *args, **kwds)
         self.proprietes = ["nom", "points", "trait", "remplissage", "interactive"]
     
@@ -3341,10 +3328,10 @@ class MovingPolygon(FloatCanvas.Polygon, MovingObjectMixin):
         return (largeur, hauteur)
 
 
-class MovingRectangle(FloatCanvas.Rectangle, MovingObjectMixin):
+class MovingRectangle(FC.Rectangle, MovingObjectMixin):
     """ Rectangle Object that can be moved"""
     def __init__(self, *args, **kwds):
-        FloatCanvas.Rectangle.__init__(self, *args, **kwds)
+        FC.Rectangle.__init__(self, *args, **kwds)
         MovingObjectMixin.__init__(self, *args, **kwds)
         self.proprietes = ["nom", "position", "taille", "trait", "remplissage", "interactive"]
     
@@ -3360,10 +3347,10 @@ class MovingRectangle(FloatCanvas.Rectangle, MovingObjectMixin):
     def SetTaille(self, largeur, hauteur):
         self.WH = numpy.array((largeur, hauteur))
 
-class MovingLine(FloatCanvas.Line, MovingObjectMixin):
+class MovingLine(FC.Line, MovingObjectMixin):
     """ Line Object that can be moved"""
     def __init__(self, *args, **kwds):
-        FloatCanvas.Line.__init__(self, *args, **kwds)
+        FC.Line.__init__(self, *args, **kwds)
         MovingObjectMixin.__init__(self, *args, **kwds)
         self.proprietes = ["nom", "points", "trait", "interactive"]
     
@@ -3379,10 +3366,10 @@ class MovingLine(FloatCanvas.Line, MovingObjectMixin):
     def SetTaille(self, largeur, hauteur):
         self.WH = numpy.array((largeur, hauteur))
 
-class MovingGroup(FloatCanvas.Group, MovingObjectMixin):
+class MovingGroup(FC.Group, MovingObjectMixin):
     """ Group Object that can be moved"""
     def __init__(self, *args, **kwds):
-        FloatCanvas.Group.__init__(self, *args, **kwds)
+        FC.Group.__init__(self, *args, **kwds)
         MovingObjectMixin.__init__(self, *args, **kwds)
         self.proprietes = ["nom", "position", "taille", "interactive"]
     
@@ -3471,8 +3458,8 @@ class Panel_canvas(wx.Panel):
         self.IDdonnee = IDdonnee
         self.mode = mode # edition ou visualisation
         
-        # FloatCanvas
-        self.canvas = FloatCanvas.FloatCanvas(self, Debug=0, BackgroundColor=couleur_zone_travail, style=wx.WANTS_CHARS)
+        # FC
+        self.canvas = FC.FloatCanvas(self, Debug=0, BackgroundColor=couleur_zone_travail, style=wx.WANTS_CHARS)
 
         # AJout le zoom avec la molette de la souris
         self.canvas.SetMode(MyGUIMouse())
@@ -3505,11 +3492,11 @@ class Panel_canvas(wx.Panel):
             self.SetToolTip(wx.ToolTip(""))
 
         # Binds
-        self.canvas.Bind(FloatCanvas.EVT_LEFT_DCLICK, self.OnDClick)
-        self.canvas.Bind(FloatCanvas.EVT_MOTION, self.OnMove ) 
-        self.canvas.Bind(FloatCanvas.EVT_LEFT_UP, self.OnLeftUp ) 
-        self.canvas.Bind(FloatCanvas.EVT_LEFT_DOWN, self.OnLeftDownCanvas ) 
-        self.canvas.Bind(FloatCanvas.EVT_RIGHT_DOWN, self.OnRightDownCanvas ) 
+        self.canvas.Bind(FC.EVT_LEFT_DCLICK, self.OnDClick)
+        self.canvas.Bind(FC.EVT_MOTION, self.OnMove ) 
+        self.canvas.Bind(FC.EVT_LEFT_UP, self.OnLeftUp ) 
+        self.canvas.Bind(FC.EVT_LEFT_DOWN, self.OnLeftDownCanvas ) 
+        self.canvas.Bind(FC.EVT_RIGHT_DOWN, self.OnRightDownCanvas ) 
         self.canvas.Bind(wx.EVT_KEY_UP, self.OnKeyUp ) 
         self.canvas.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeaveWindow ) 
     
@@ -3532,10 +3519,10 @@ class Panel_canvas(wx.Panel):
     def Init_page(self):
         """ Dessine le fond de page """
         # Ombre de la page
-        ombre1 = FloatCanvas.Rectangle( (self.taille_page[0]-1, -EPAISSEUR_OMBRE), (EPAISSEUR_OMBRE+1, self.taille_page[1]), LineWidth=0, LineColor=COULEUR_OMBRE_PAGE, FillColor=COULEUR_OMBRE_PAGE, InForeground=False)
-        ombre2 = FloatCanvas.Rectangle( (EPAISSEUR_OMBRE, -EPAISSEUR_OMBRE), (self.taille_page[0]-1, EPAISSEUR_OMBRE+1), LineWidth=0, LineColor=COULEUR_OMBRE_PAGE, FillColor=COULEUR_OMBRE_PAGE, InForeground=False)
+        ombre1 = FC.Rectangle( (self.taille_page[0]-1, -EPAISSEUR_OMBRE), (EPAISSEUR_OMBRE+1, self.taille_page[1]), LineWidth=0, LineColor=COULEUR_OMBRE_PAGE, FillColor=COULEUR_OMBRE_PAGE, InForeground=False)
+        ombre2 = FC.Rectangle( (EPAISSEUR_OMBRE, -EPAISSEUR_OMBRE), (self.taille_page[0]-1, EPAISSEUR_OMBRE+1), LineWidth=0, LineColor=COULEUR_OMBRE_PAGE, FillColor=COULEUR_OMBRE_PAGE, InForeground=False)
         # Fond de page
-        rect = FloatCanvas.Rectangle( (0, 0), self.taille_page, LineWidth=1, FillColor=COULEUR_FOND_PAGE, InForeground=False)
+        rect = FC.Rectangle( (0, 0), self.taille_page, LineWidth=1, FillColor=COULEUR_FOND_PAGE, InForeground=False)
         self.page = self.canvas.AddGroup([ombre1, ombre2, rect], InForeground=False)
         
     def Init_grille(self, espace=10, couleur=(240, 240, 240)):
@@ -3543,11 +3530,11 @@ class Panel_canvas(wx.Panel):
         listeLignes = []
         # Dessin des lignes
         for y in range(espace, int(self.taille_page[1]), espace) :
-            L = FloatCanvas.Line([(2, y), (self.taille_page[0]-2, y)], LineWidth=1, LineColor=couleur, InForeground=False)
+            L = FC.Line([(2, y), (self.taille_page[0]-2, y)], LineWidth=1, LineColor=couleur, InForeground=False)
             listeLignes.append(L)
         # Dessin des colonnes
         for x in range(espace, int(self.taille_page[0]), espace) :
-            L = FloatCanvas.Line([(x, 2), (x, self.taille_page[1]-2)], LineWidth=1, LineColor=couleur, InForeground=False)
+            L = FC.Line([(x, 2), (x, self.taille_page[1]-2)], LineWidth=1, LineColor=couleur, InForeground=False)
             listeLignes.append(L)
         self.grille = self.canvas.AddGroup(listeLignes, InForeground=False)
         self.affichageGrille = True
@@ -3575,10 +3562,10 @@ class Panel_canvas(wx.Panel):
             # Insertion normale de l'objet
             if self.mode == "edition" or objet.IDdonnee == None :
                 self.canvas.AddObject(objet)
-                objet.Bind(FloatCanvas.EVT_FC_LEFT_DOWN, self.OnClicGaucheObjet)
-                objet.Bind(FloatCanvas.EVT_FC_RIGHT_DOWN, self.OnClicDroitObjet)
+                objet.Bind(FC.EVT_FC_LEFT_DOWN, self.OnClicGaucheObjet)
+                objet.Bind(FC.EVT_FC_RIGHT_DOWN, self.OnClicDroitObjet)
                 if "texte" in objet.categorie :
-                    objet.Bind(FloatCanvas.EVT_FC_LEFT_DCLICK, self.OnDClickObjet)
+                    objet.Bind(FC.EVT_FC_LEFT_DCLICK, self.OnDClickObjet)
 
             # Création d'un groupe d'objets pour pouvoir ajouter un label par-dessus l'objet
             if self.mode == "visualisation" and objet.IDdonnee != None:
@@ -3625,17 +3612,17 @@ class Panel_canvas(wx.Panel):
                 objet_label.SetXY(centre_texte)
 
                 # Binds visualisation
-                groupe.Bind(FloatCanvas.EVT_FC_LEFT_DCLICK, self.OnDClickObjet)
-                groupe.Bind(FloatCanvas.EVT_FC_ENTER_OBJECT, self.OnEnterObjet)
-                groupe.Bind(FloatCanvas.EVT_FC_LEAVE_OBJECT, self.OnLeaveObject)
-                groupe.Bind(FloatCanvas.EVT_FC_LEFT_DOWN, self.OnClicGaucheObjet)
-                groupe.Bind(FloatCanvas.EVT_FC_RIGHT_DOWN, self.OnClicDroitObjet)
+                groupe.Bind(FC.EVT_FC_LEFT_DCLICK, self.OnDClickObjet)
+                groupe.Bind(FC.EVT_FC_ENTER_OBJECT, self.OnEnterObjet)
+                groupe.Bind(FC.EVT_FC_LEAVE_OBJECT, self.OnLeaveObject)
+                groupe.Bind(FC.EVT_FC_LEFT_DOWN, self.OnClicGaucheObjet)
+                groupe.Bind(FC.EVT_FC_RIGHT_DOWN, self.OnClicDroitObjet)
 
             # Binds
-            # objet.Bind(FloatCanvas.EVT_FC_LEFT_DOWN, self.OnClicGaucheObjet)
-            # objet.Bind(FloatCanvas.EVT_FC_RIGHT_DOWN, self.OnClicDroitObjet)
+            # objet.Bind(FC.EVT_FC_LEFT_DOWN, self.OnClicGaucheObjet)
+            # objet.Bind(FC.EVT_FC_RIGHT_DOWN, self.OnClicDroitObjet)
             # if "texte" in objet.categorie :
-            #     objet.Bind(FloatCanvas.EVT_FC_LEFT_DCLICK, self.OnDClick)
+            #     objet.Bind(FC.EVT_FC_LEFT_DCLICK, self.OnDClick)
 
             # Pour les images interactives
             # if False and self.mode == "visualisation" and objet.IDdonnee != None :
@@ -3650,8 +3637,8 @@ class Panel_canvas(wx.Panel):
             #         objet.SetBrush(objet.FillColor, objet.FillStyle)
             #
             #     # Binds visualisation
-            #     objet.Bind(FloatCanvas.EVT_FC_ENTER_OBJECT, self.OnEnterObjet)
-            #     objet.Bind(FloatCanvas.EVT_FC_LEAVE_OBJECT, self.OnLeaveObject)
+            #     objet.Bind(FC.EVT_FC_ENTER_OBJECT, self.OnEnterObjet)
+            #     objet.Bind(FC.EVT_FC_LEAVE_OBJECT, self.OnLeaveObject)
             #
             #     # Ajoute un texte
             #     tailleFont = 15
@@ -4090,15 +4077,15 @@ class Panel_canvas(wx.Panel):
             self.dictSelection["cadre"] = ligne
             
             if objet.categorie == "polygone" :
-                    ligne.Bind(FloatCanvas.EVT_FC_RIGHT_DOWN, self.OnClicLignePolygone)
+                    ligne.Bind(FC.EVT_FC_RIGHT_DOWN, self.OnClicLignePolygone)
                     
             index = 0
             for point in objet.Points :
                 poignee = self.canvas.AddSquarePoint(point, Color=COULEUR_CADRE_SELECTION, Size=6, InForeground=True)
                 poignee.nom = u"%d" % index
-                poignee.Bind(FloatCanvas.EVT_FC_LEFT_DOWN, self.OnClicPoignee)
+                poignee.Bind(FC.EVT_FC_LEFT_DOWN, self.OnClicPoignee)
                 if objet.categorie == "polygone" :
-                    poignee.Bind(FloatCanvas.EVT_FC_RIGHT_DOWN, self.OnClicDroitPoignee)
+                    poignee.Bind(FC.EVT_FC_RIGHT_DOWN, self.OnClicDroitPoignee)
                 self.dictSelection["poignees"].append(poignee)
                 index += 1
 
@@ -4127,7 +4114,7 @@ class Panel_canvas(wx.Panel):
                 if objet.largeurTexte != None and nom in ("MG", "MD"):
                     poignee = self.canvas.AddSquarePoint(point, Color=COULEUR_CADRE_SELECTION, Size=6, InForeground=True)
                     poignee.nom = nom
-                    poignee.Bind(FloatCanvas.EVT_FC_LEFT_DOWN, self.OnClicPoignee)
+                    poignee.Bind(FC.EVT_FC_LEFT_DOWN, self.OnClicPoignee)
                     self.dictSelection["poignees"].append(poignee)
                 index += 1
 
@@ -4157,7 +4144,7 @@ class Panel_canvas(wx.Panel):
                     nom = listeNoms[index]
                     poignee = self.canvas.AddSquarePoint(point, Color=COULEUR_CADRE_SELECTION, Size=6, InForeground=True)
                     poignee.nom = nom
-                    poignee.Bind(FloatCanvas.EVT_FC_LEFT_DOWN, self.OnClicPoignee)
+                    poignee.Bind(FC.EVT_FC_LEFT_DOWN, self.OnClicPoignee)
                     self.dictSelection["poignees"].append(poignee)
                     index += 1
                 
@@ -5212,7 +5199,7 @@ class Panel_canvas(wx.Panel):
 
 class Dialog(wx.Dialog):
     def __init__(self, parent, IDmodele=None, nom="", observations=u"", IDfond=None, categorie=None, taille_page=(210, 297), size=(800, 600)):
-        wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
+        wx.Dialog.__init__(self, parent, -1, name="DLG_Noedoc", style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
         self.parent = parent     
         self.IDmodele = IDmodele
         self.taille_page = taille_page
@@ -5484,12 +5471,6 @@ class Dialog(wx.Dialog):
 
     def GetIDmodele(self, IDmodele=None):
         return self.ctrl_canvas.IDmodele
-
-
-
-
-
-
 
 
 def GetLogo_organisateur():

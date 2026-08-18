@@ -53,17 +53,22 @@ class Dialog(wx.Dialog):
         self.listeChamps = listeChamps 
         self.texte = texte
 
-        self.staticbox_texte_staticbox = wx.StaticBox(self, -1, _("Saisie de texte"))
-        self.staticbox_champs_staticbox = wx.StaticBox(self, -1, _("Champs disponibles"))
         self.label_intro = wx.StaticText(self, -1, _("Vous pouvez écrire votre texte et insérer des champs en double-cliquant sur un item de la liste."), style=wx.ALIGN_CENTER)
-        self.ctrl_champs = OL_Documents_champs.ListView(self, listeChamps=listeChamps, id=-1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
-        self.ctrl_recherche = OL_Documents_champs.BarreRecherche(self, self.ctrl_champs)
+
+        self.stbTexte = wx.StaticBox(self, -1, _("Saisie de texte"))
+        self.ctrl_texte = wx.TextCtrl(self.stbTexte, -1, self.texte, style=wx.TE_MULTILINE)
+        self.hyper_formule = Hyperlien(self.stbTexte,
+                                       label= "Insérer une formule conditionnelle",
+                                       infobulle= "Cliquez ici pour insérer une formule conditionnelle",
+                                       URL="")
+
+        self.stbChamps = wx.StaticBox(self, -1, _("Champs disponibles"))
+        self.ctrl_champs = OL_Documents_champs.ListView(self.stbChamps, listeChamps=listeChamps, id=-1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
+        self.ctrl_recherche = OL_Documents_champs.BarreRecherche(self.stbChamps, self.ctrl_champs)
         self.ctrl_champs.SetMinSize((-1, 300))
         self.ctrl_champs.MAJ() 
-        self.staticbox_champs_staticbox.SetLabel(_("%d champs disponibles") % self.ctrl_champs.GetNbreChamps())
-        self.ctrl_texte = wx.TextCtrl(self, -1, self.texte, style=wx.TE_MULTILINE)
-        self.hyper_formule = Hyperlien(self, label=_("Insérer une formule conditionnelle"), infobulle=_("Cliquez ici pour insérer une formule conditionnelle"), URL="")
-        
+        self.stbChamps.SetLabel(_("%d champs disponibles") % self.ctrl_champs.GetNbreChamps())
+
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"), cheminImage="Images/32x32/Valider.png")
         self.bouton_annuler = CTRL_Bouton_image.CTRL(self, texte=_("Annuler"), cheminImage="Images/32x32/Annuler.png")
@@ -88,8 +93,8 @@ class Dialog(wx.Dialog):
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=5, cols=1, vgap=10, hgap=10)
         grid_sizer_boutons = wx.FlexGridSizer(rows=1, cols=4, vgap=10, hgap=10)
-        staticbox_texte = wx.StaticBoxSizer(self.staticbox_texte_staticbox, wx.VERTICAL)
-        staticbox_champs = wx.StaticBoxSizer(self.staticbox_champs_staticbox, wx.VERTICAL)
+        staticbox_texte = wx.StaticBoxSizer(self.stbTexte, wx.VERTICAL)
+        staticbox_champs = wx.StaticBoxSizer(self.stbChamps, wx.VERTICAL)
         grid_sizer_base.Add(self.label_intro, 0, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 10)
         staticbox_champs.Add(self.ctrl_champs, 1, wx.ALL|wx.EXPAND, 5)
         staticbox_champs.Add(self.ctrl_recherche, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 5)

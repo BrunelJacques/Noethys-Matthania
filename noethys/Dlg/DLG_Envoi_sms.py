@@ -36,12 +36,12 @@ class Page_Message(wx.Panel):
         self.MAJ_effectuee = False
 
         # Message
-        self.staticbox_message_staticbox = wx.StaticBox(self, -1, _("3. Tapez le message"))
-        self.label_objet = wx.StaticText(self, -1, _("Objet :"))
-        self.ctrl_objet = wx.TextCtrl(self, -1, "")
-        self.label_message = wx.StaticText(self, -1, _("Message :"))
-        self.ctrl_message = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE)
-        self.label_nbre_caracteres = wx.StaticText(self, -1, "")
+        self.stbMessage = wx.StaticBox(self, -1, _("3. Tapez le message"))
+        self.label_objet = wx.StaticText(self.stbMessage, -1, _("Objet :"))
+        self.ctrl_objet = wx.TextCtrl(self.stbMessage, -1, "")
+        self.label_message = wx.StaticText(self.stbMessage, -1, _("Message :"))
+        self.ctrl_message = wx.TextCtrl(self.stbMessage, -1, "", style=wx.TE_MULTILINE)
+        self.label_nbre_caracteres = wx.StaticText(self.stbMessage, -1, "")
 
         self.__set_properties()
         self.__do_layout()
@@ -56,7 +56,7 @@ class Page_Message(wx.Panel):
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
 
-        box_message = wx.StaticBoxSizer(self.staticbox_message_staticbox, wx.VERTICAL)
+        box_message = wx.StaticBoxSizer(self.stbMessage, wx.VERTICAL)
         grid_sizer_message = wx.FlexGridSizer(rows=3, cols=2, vgap=10, hgap=10)
         grid_sizer_message.Add(self.label_objet, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_message.Add(self.ctrl_objet, 0, wx.EXPAND, 0)
@@ -256,10 +256,8 @@ def AjouteTexteImage(image=None, texte="", alignement="droite-bas", padding=0, t
     if "haut" in alignement: yRond = 1
     if "bas" in alignement: yRond = hauteurImage - hauteurRond - 1
 
-    if 'phoenix' in wx.PlatformInfo:
-        dc.DrawRoundedRectangle(wx.Rect(xRond, yRond, largeurRond, hauteurRond), hauteurRond / 2.0)
-    else:
-        dc.DrawRoundedRectangleRect(wx.Rect(xRond, yRond, largeurRond, hauteurRond), hauteurRond / 2.0)
+    tmp = wx.Rect(xRond, yRond, largeurRond, hauteurRond)
+    dc.DrawRoundedRectangle(tmp, int(hauteurRond / 2.0))
 
     # Texte
     xTexte = int(xRond + largeurRond / 2.0 - largeurTexte / 2.0)
@@ -364,9 +362,9 @@ class Page_Destinataires(wx.Panel):
         self.MAJ_effectuee = False
 
         # Destinataires
-        self.staticbox_destinataires_staticbox = wx.StaticBox(self, -1, _("2. Cochez les destinataires"))
-        self.ctrl_destinataires = CTRL_Destinataires(self)
-        self.check_avec_sms = wx.CheckBox(self, -1, _("Afficher uniquement les numéros de téléphones dont l'option SMS est activée"))
+        self.stbDestinataires = wx.StaticBox(self, -1, _("2. Cochez les destinataires"))
+        self.ctrl_destinataires = CTRL_Destinataires(self.stbDestinataires)
+        self.check_avec_sms = wx.CheckBox(self.stbDestinataires, -1, _("Afficher uniquement les numéros de téléphones dont l'option SMS est activée"))
 
         self.__set_properties()
         self.__do_layout()
@@ -379,7 +377,7 @@ class Page_Destinataires(wx.Panel):
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
 
-        box_destinataires = wx.StaticBoxSizer(self.staticbox_destinataires_staticbox, wx.VERTICAL)
+        box_destinataires = wx.StaticBoxSizer(self.stbDestinataires, wx.VERTICAL)
         grid_sizer_parametres = wx.FlexGridSizer(rows=2, cols=1, vgap=5, hgap=5)
         grid_sizer_parametres.Add(self.ctrl_destinataires, 1, wx.EXPAND, 0)
         grid_sizer_parametres.Add(self.check_avec_sms, 1, wx.EXPAND, 0)
@@ -595,11 +593,11 @@ class Page_Parametres(wx.Panel):
         self.MAJ_effectuee = False
 
         # Paramètres
-        self.staticbox_parametres_staticbox = wx.StaticBox(self, -1, _("1. Renseignez les paramètres"))
-        self.ctrl_parametres = CTRL_Parametres(self)
+        self.stbParams = wx.StaticBox(self, -1, _("1. Renseignez les paramètres"))
+        self.ctrl_parametres = CTRL_Parametres(self.stbParams)
         self.ctrl_parametres.Importation()
-        self.bouton_reinit = CTRL_Propertygrid.Bouton_reinit(self, self.ctrl_parametres)
-        self.bouton_sauve = CTRL_Propertygrid.Bouton_sauve(self, self.ctrl_parametres)
+        self.bouton_reinit = CTRL_Propertygrid.Bouton_reinit(self.stbParams, self.ctrl_parametres)
+        self.bouton_sauve = CTRL_Propertygrid.Bouton_sauve(self.stbParams, self.ctrl_parametres)
 
         self.__set_properties()
         self.__do_layout()
@@ -610,7 +608,7 @@ class Page_Parametres(wx.Panel):
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
 
-        box_parametres = wx.StaticBoxSizer(self.staticbox_parametres_staticbox, wx.VERTICAL)
+        box_parametres = wx.StaticBoxSizer(self.stbParams, wx.VERTICAL)
         grid_sizer_parametres = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_parametres.Add(self.ctrl_parametres, 1, wx.EXPAND, 0)
 
@@ -625,7 +623,7 @@ class Page_Parametres(wx.Panel):
         grid_sizer_base.Add(box_parametres, 1, wx.EXPAND|wx.ALL, 10)
 
         self.SetSizer(grid_sizer_base)
-        grid_sizer_base.Fit(self)
+        #grid_sizer_base.Fit(self)
         grid_sizer_base.AddGrowableRow(0)
         grid_sizer_base.AddGrowableCol(0)
 
@@ -725,7 +723,7 @@ class Dialog(wx.Dialog, Base):
             if index > 0 :
                 dictPage["ctrl"].Show(False)
             index += 1
-        self.sizer_pages.Layout()
+        #self.sizer_pages.Layout()
 
     def __set_properties(self):
         self.bouton_aide.SetToolTip(wx.ToolTip(_("Cliquez ici pour obtenir de l'aide")))
@@ -740,7 +738,6 @@ class Dialog(wx.Dialog, Base):
         grid_sizer_base.Add(self.ctrl_bandeau, 1, wx.EXPAND, 0)
         
         # Contenu
-        sizer_base = wx.BoxSizer(wx.VERTICAL)
         sizer_pages = wx.BoxSizer(wx.VERTICAL)
         grid_sizer_base.Add(sizer_pages, 1, wx.EXPAND, 0)
         grid_sizer_base.Add(self.static_line, 0, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
@@ -756,12 +753,12 @@ class Dialog(wx.Dialog, Base):
         grid_sizer_base.Add(grid_sizer_boutons, 1, wx.ALL|wx.EXPAND, 10)
         grid_sizer_base.AddGrowableRow(1)
         grid_sizer_base.AddGrowableCol(0)
-        
+
         self.SetSizer(grid_sizer_base)
         grid_sizer_base.Fit(self)
         self.Layout()
         self.CenterOnScreen()
-        
+
         self.sizer_pages = sizer_pages
 
     def Onbouton_aide(self, event):
@@ -866,7 +863,7 @@ class Dialog(wx.Dialog, Base):
 
             cheminFichier = UTILS_Fichiers.GetRepTemp(fichier="sms.txt")
             fichier = open(cheminFichier, 'w')
-            fichier.write(texte.encode('cp1252'))
+            fichier.write(texte.encode("utf8"))
             fichier.close()
 
             # Préparation du message
@@ -897,7 +894,7 @@ class Dialog(wx.Dialog, Base):
 
             cheminFichier = UTILS_Fichiers.GetRepTemp(fichier="sms.txt")
             fichier = open(cheminFichier, 'w')
-            fichier.write(texte.encode('cp1252'))
+            fichier.write(texte.encode("utf8"))
             fichier.close()
 
             # Préparation du message
@@ -1002,8 +999,9 @@ class Dialog(wx.Dialog, Base):
             messagerie.Fermer()
         except Exception as err:
             print((err,))
-            err = str(err).decode('cp1252')
-            dlgErreur = wx.MessageDialog(None, _("Une erreur a été détectée dans l'envoi de l'Email !\n\nErreur : %s") % err, _("Erreur"), wx.OK | wx.ICON_ERROR)
+            err = str(err).decode("utf8")
+            dlgErreur = wx.MessageDialog(None, _(
+                u"Une erreur a été détectée dans l'envoi de l'Email !\n\nErreur : %s") % err, _(u"Erreur"), wx.OK | wx.ICON_ERROR)
             dlgErreur.ShowModal()
             dlgErreur.Destroy()
             return False

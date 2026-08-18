@@ -28,15 +28,15 @@ class Panel(wx.Panel):
         self.majEffectuee = False
         
         # Questionnaire
-        self.staticbox_inscriptions = wx.StaticBox(self, -1, _("Questionnaire"))
-        self.ctrl_questionnaire = CTRL_Questionnaire.CTRL(self.staticbox_inscriptions, type="individu", IDdonnee=IDindividu)
+        self.stbInscriptions = wx.StaticBox(self, -1, _("Questionnaire"))
+        self.ctrl_questionnaire = CTRL_Questionnaire.CTRL(self.stbInscriptions, type="individu", IDdonnee=IDindividu)
         self.ctrl_questionnaire.SetMinSize((20, 20)) 
         
         # Layout
         grid_sizer_base = wx.FlexGridSizer(rows=2, cols=1, vgap=0, hgap=0)
         
         # Inscriptions
-        staticbox_inscriptions = wx.StaticBoxSizer(self.staticbox_inscriptions, wx.VERTICAL)
+        staticbox_inscriptions = wx.StaticBoxSizer(self.stbInscriptions, wx.VERTICAL)
         grid_sizer_inscriptions = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         
         grid_sizer_inscriptions.Add(self.ctrl_questionnaire, 1, wx.EXPAND, 0)

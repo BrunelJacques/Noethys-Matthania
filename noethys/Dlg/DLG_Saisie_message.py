@@ -10,8 +10,8 @@
 
 
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
+from Utils.UTILS_Dates import DateEngEnDateDD
 import wx
 from Ctrl import CTRL_Bouton_image
 import datetime
@@ -35,12 +35,6 @@ def DateComplete(dateDD):
     listeMois = (_("janvier"), _("février"), _("mars"), _("avril"), _("mai"), _("juin"), _("juillet"), _("août"), _("septembre"), _("octobre"), _("novembre"), _("décembre"))
     dateComplete = listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
     return dateComplete
-
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    if dateEng == None or dateEng == "" : return None
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-
 
 
 
@@ -110,20 +104,20 @@ class Dialog(wx.Dialog):
         self.nom = None
         
         # Catégorie
-        self.staticbox_categorie_staticbox = wx.StaticBox(self, -1, _("Catégorie"))
-        self.ctrl_categorie = CTRL_Categorie(self)
-        self.bouton_categorie = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_ANY))
+        self.stbCategorie = wx.StaticBox(self, -1, _("Catégorie"))
+        self.ctrl_categorie = CTRL_Categorie(self.stbCategorie)
+        self.bouton_categorie = wx.BitmapButton(self.stbCategorie, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_ANY))
 
         # Texte
-        self.staticbox_texte_staticbox = wx.StaticBox(self, -1, _("Texte"))
-        self.ctrl_texte = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE)
+        self.stbTexte = wx.StaticBox(self, -1, _("Texte"))
+        self.ctrl_texte = wx.TextCtrl(self.stbTexte, -1, "", style=wx.TE_MULTILINE)
 
         # Options
-        self.staticbox_options_staticbox = wx.StaticBox(self, -1, _("Options"))
+        self.stbOptions = wx.StaticBox(self, -1, _("Options"))
         
-        self.ctrl_afficher_accueil = wx.CheckBox(self, -1, _("Afficher sur la page d'accueil"))
-        self.ctrl_afficher_liste = wx.CheckBox(self, -1, _("Afficher sur la liste des consommations"))
-        self.ctrl_afficher_factures = wx.CheckBox(self, -1, _("Afficher sur les factures"))
+        self.ctrl_afficher_accueil = wx.CheckBox(self.stbOptions, -1, _("Afficher sur la page d'accueil"))
+        self.ctrl_afficher_liste = wx.CheckBox(self.stbOptions, -1, _("Afficher sur la liste des consommations"))
+        self.ctrl_afficher_factures = wx.CheckBox(self.stbOptions, -1, _("Afficher sur les factures"))
         if self.mode != "famille" :
             self.ctrl_afficher_factures.Enable(False)
         if self.mode == "accueil" :
@@ -131,15 +125,15 @@ class Dialog(wx.Dialog):
             self.ctrl_afficher_accueil.Enable(False)
             self.ctrl_afficher_liste.Enable(False)
 
-        self.ctrl_rappel_famille = wx.CheckBox(self, -1, _(u"Rappel à l'ouverture de la fiche famille"))
-        self.ctrl_rappel = wx.CheckBox(self, -1, _("Rappel à l'ouverture du fichier"))
+        self.ctrl_rappel_famille = wx.CheckBox(self.stbOptions, -1, _(u"Rappel à l'ouverture de la fiche famille"))
+        self.ctrl_rappel = wx.CheckBox(self.stbOptions, -1, _("Rappel à l'ouverture du fichier"))
 
-        self.label_parution = wx.StaticText(self, -1, _("Date de parution :"))
-        self.ctrl_parution = CTRL_Saisie_date.Date(self)
+        self.label_parution = wx.StaticText(self.stbOptions, -1, _("Date de parution :"))
+        self.ctrl_parution = CTRL_Saisie_date.Date(self.stbOptions)
         self.ctrl_parution.SetDate(datetime.date.today())
         
-        self.label_priorite = wx.StaticText(self, -1, _("Priorité :"))
-        self.ctrl_priorite = wx.Choice(self, -1, choices=[_("Normale"), _("Haute")])
+        self.label_priorite = wx.StaticText(self.stbOptions, -1, _("Priorité :"))
+        self.ctrl_priorite = wx.Choice(self.stbOptions, -1, choices=[_("Normale"), _("Haute")])
         self.ctrl_priorite.SetSelection(0)
         
         # Commandes
@@ -189,7 +183,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
         
         # Catégorie
-        staticbox_categorie = wx.StaticBoxSizer(self.staticbox_categorie_staticbox, wx.VERTICAL)
+        staticbox_categorie = wx.StaticBoxSizer(self.stbCategorie, wx.VERTICAL)
         grid_sizer_categorie = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_categorie.Add(self.ctrl_categorie, 0, wx.EXPAND, 0)
         grid_sizer_categorie.Add(self.bouton_categorie, 0, 0, 0)
@@ -198,12 +192,12 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(staticbox_categorie, 1, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 10)
         
         # Texte
-        staticbox_texte = wx.StaticBoxSizer(self.staticbox_texte_staticbox, wx.VERTICAL)
+        staticbox_texte = wx.StaticBoxSizer(self.stbTexte, wx.VERTICAL)
         staticbox_texte.Add(self.ctrl_texte, 1, wx.ALL|wx.EXPAND, 5)
         grid_sizer_base.Add(staticbox_texte, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         
         # Options
-        staticbox_options = wx.StaticBoxSizer(self.staticbox_options_staticbox, wx.VERTICAL)
+        staticbox_options = wx.StaticBoxSizer(self.stbOptions, wx.VERTICAL)
         grid_sizer_options = wx.FlexGridSizer(rows=1, cols=2, vgap=10, hgap=10)
         
         grid_sizer_options_gauche = wx.FlexGridSizer(rows=5, cols=1, vgap=5, hgap=5)

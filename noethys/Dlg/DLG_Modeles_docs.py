@@ -110,27 +110,27 @@ class Dialog(wx.Dialog):
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Document.png")
         
         # Catégorie
-        self.staticbox_categorie_staticbox = wx.StaticBox(self, -1, _("Catégorie"))
-        self.label_categorie = wx.StaticText(self, -1, _("Catégorie :"))
-        self.ctrl_categorie = CTRL_Categorie(self)
+        self.stbCategorie = wx.StaticBox(self, -1, _("Catégorie"))
+        self.label_categorie = wx.StaticText(self.stbCategorie, -1, _("Catégorie :"))
+        self.ctrl_categorie = CTRL_Categorie(self.stbCategorie)
         if categorie != None :
             self.ctrl_categorie.SetCategorie(categorie)
         
         # Modèles
-        self.staticbox_modeles_staticbox = wx.StaticBox(self, -1, _("Modèles disponibles"))
-        self.ctrl_modeles = OL_Modeles_docs.ListView(self, id=-1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
+        self.stbModeles = wx.StaticBox(self, -1, _("Modèles disponibles"))
+        self.ctrl_modeles = OL_Modeles_docs.ListView(self.stbModeles, id=-1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         
-        self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_dupliquer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Dupliquer.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_defaut = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ok.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_importer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Document_import.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_exporter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Document_export.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter = wx.BitmapButton(self.stbModeles, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier = wx.BitmapButton(self.stbModeles, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer = wx.BitmapButton(self.stbModeles, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_dupliquer = wx.BitmapButton(self.stbModeles, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Dupliquer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_defaut = wx.BitmapButton(self.stbModeles, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ok.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_importer = wx.BitmapButton(self.stbModeles, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Document_import.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_exporter = wx.BitmapButton(self.stbModeles, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Document_export.png"), wx.BITMAP_TYPE_ANY))
         
-        self.hyper_telecharger = Hyperlien(self, label=_("Télécharger de nouveaux modèles"), infobulle=_("Cliquez ici pour télécharger de nouveaux modèles de documents sur internet"), URL="telecharger")
-        self.label_separation = wx.StaticText(self, -1, "|")
-        self.hyper_proposer = Hyperlien(self, label=_("Proposer un modèle"), infobulle=_("Cliquez ici pour proposer un modèle à la communauté"), URL="proposer")
+        self.hyper_telecharger = Hyperlien(self.stbModeles, label=_("Télécharger de nouveaux modèles"), infobulle=_("Cliquez ici pour télécharger de nouveaux modèles de documents sur internet"), URL="telecharger")
+        self.label_separation = wx.StaticText(self.stbModeles, -1, "|")
+        self.hyper_proposer = Hyperlien(self.stbModeles, label=_("Proposer un modèle"), infobulle=_("Cliquez ici pour proposer un modèle à la communauté"), URL="proposer")
         
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -174,7 +174,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
         
         # Catégorie
-        staticbox_categorie = wx.StaticBoxSizer(self.staticbox_categorie_staticbox, wx.VERTICAL)
+        staticbox_categorie = wx.StaticBoxSizer(self.stbCategorie, wx.VERTICAL)
         grid_sizer_categorie = wx.FlexGridSizer(rows=1, cols=2, vgap=10, hgap=10)
         grid_sizer_categorie.Add(self.label_categorie, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_categorie.Add(self.ctrl_categorie, 0, wx.EXPAND, 0)
@@ -183,7 +183,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(staticbox_categorie, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         
         # Modèles
-        staticbox_modeles = wx.StaticBoxSizer(self.staticbox_modeles_staticbox, wx.VERTICAL)
+        staticbox_modeles = wx.StaticBoxSizer(self.stbModeles, wx.VERTICAL)
         grid_sizer_modeles = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         grid_sizer_modeles.Add(self.ctrl_modeles, 1, wx.EXPAND, 0)
         

@@ -123,14 +123,14 @@ class Dialog(wx.Dialog):
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Calendrier.png")
 
         # Paramètres
-        self.staticbox_options_staticbox = wx.StaticBox(self, -1, _("Filtres"))
+        self.stbOptions = wx.StaticBox(self, -1, _("Filtres"))
 
-        self.label_annee = wx.StaticText(self, -1, _("Année :"))
-        self.ctrl_annee = CTRL_Annee(self)
+        self.label_annee = wx.StaticText(self.stbOptions, -1, _("Année :"))
+        self.ctrl_annee = CTRL_Annee(self.stbOptions)
         self.ctrl_annee.SetMinSize((60, -1))
         
-        self.label_activite = wx.StaticText(self, -1, _("Activité :"))
-        self.ctrl_activite = CTRL_Activite(self)
+        self.label_activite = wx.StaticText(self.stbOptions, -1, _("Activité :"))
+        self.ctrl_activite = CTRL_Activite(self.stbOptions)
         self.ctrl_activite.SetMinSize((400, -1))
 
         # Liste
@@ -182,7 +182,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
         
         # Paramètres
-        staticbox_options = wx.StaticBoxSizer(self.staticbox_options_staticbox, wx.VERTICAL)
+        staticbox_options = wx.StaticBoxSizer(self.stbOptions, wx.VERTICAL)
         
         grid_sizer_options = wx.FlexGridSizer(rows=1, cols=16, vgap=5, hgap=5)
         grid_sizer_options.Add(self.label_annee, 0, wx.ALIGN_CENTER_VERTICAL, 0)

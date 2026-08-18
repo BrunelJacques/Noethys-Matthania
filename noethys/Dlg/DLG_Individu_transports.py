@@ -26,13 +26,13 @@ class Panel(wx.Panel):
         self.dictFamillesRattachees = dictFamillesRattachees
         
         # Transports programmés
-        self.staticbox_prog = wx.StaticBox(self, -1, _("Programmation de transports"))
-        self.ctrl_prog_transports = OL_Transports_prog.ListView(self.staticbox_prog, IDindividu=IDindividu, id=-1, name="OL_prog_transports", style=wx.LC_HRULES|wx.LC_VRULES|wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
+        self.stbProg = wx.StaticBox(self, -1, _("Programmation de transports"))
+        self.ctrl_prog_transports = OL_Transports_prog.ListView(self.stbProg, IDindividu=IDindividu, id=-1, name="OL_prog_transports", style=wx.LC_HRULES|wx.LC_VRULES|wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
         self.ctrl_prog_transports.SetMinSize((150, 20))
         
-        self.bouton_prog_ajouter = wx.BitmapButton(self.staticbox_prog, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_prog_modifier = wx.BitmapButton(self.staticbox_prog, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_prog_supprimer = wx.BitmapButton(self.staticbox_prog, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_prog_ajouter = wx.BitmapButton(self.stbProg, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_prog_modifier = wx.BitmapButton(self.stbProg, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_prog_supprimer = wx.BitmapButton(self.stbProg, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
 
         # Liste des transports
         self.staticbox_liste = wx.StaticBox(self, -1, _("Transports"))
@@ -69,7 +69,7 @@ class Panel(wx.Panel):
         grid_sizer_base = wx.FlexGridSizer(rows=2, cols=1, vgap=0, hgap=0)
         
         # Transports programmés
-        staticbox_prog_transports = wx.StaticBoxSizer(self.staticbox_prog, wx.VERTICAL)
+        staticbox_prog_transports = wx.StaticBoxSizer(self.stbProg, wx.VERTICAL)
         grid_sizer_prog = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_prog.Add(self.ctrl_prog_transports, 1, wx.EXPAND, 0)
         grid_sizer_boutons_prog = wx.FlexGridSizer(rows=3, cols=1, vgap=5, hgap=5)

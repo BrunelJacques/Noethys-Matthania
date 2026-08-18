@@ -162,7 +162,7 @@ class CTRL_Donnees(gridlib.Grid):
         gridlib.Grid.__init__(self, parent, -1, size=(200, 200), style=wx.WANTS_CHARS)
         self.moveTo = None
         self.SetMinSize((100, 100))
-        self.parent = parent
+        self.parent = parent.Parent
         self.dictCodes = {}
         
         self.MAJ_CTRL_Donnees() 
@@ -335,31 +335,31 @@ class Dialog(wx.Dialog):
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Imprimante.png")
         
         # Données
-        self.staticbox_donnees_staticbox = wx.StaticBox(self, -1, _("Données"))
-        self.ctrl_donnees = CTRL_Donnees(self)
+        self.stbDonnees = wx.StaticBox(self, -1, _("Données"))
+        self.ctrl_donnees = CTRL_Donnees(self.stbDonnees)
 
         # Options
-        self.staticbox_options_staticbox = wx.StaticBox(self, -1, _("Options"))
+        self.stbOptions = wx.StaticBox(self, -1, _("Options"))
 
-        self.label_email = wx.StaticText(self, -1, _("Modèle email:"))
-        self.ctrl_email = CTRL_Choix_modele.CTRL_Choice(self,
+        self.label_email = wx.StaticText(self.stbOptions, -1, _("Modèle email:"))
+        self.ctrl_email = CTRL_Choix_modele.CTRL_Choice(self.stbOptions,
                                                         categorie="recu_reglement",
                                                         table="modeles_emails")
-        self.bouton_email_modeles = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_email_modeles = wx.BitmapButton(self.stbOptions, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_ANY))
 
-        self.label_modele = wx.StaticText(self, -1, _("Modèle pdf:"))
-        self.ctrl_modele = CTRL_Choix_modele.CTRL_Choice(self, categorie="reglement")
-        self.bouton_gestion_modeles = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_ANY))
+        self.label_modele = wx.StaticText(self.stbOptions, -1, _("Modèle pdf:"))
+        self.ctrl_modele = CTRL_Choix_modele.CTRL_Choice(self.stbOptions, categorie="reglement")
+        self.bouton_gestion_modeles = wx.BitmapButton(self.stbOptions, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_ANY))
 
-        self.label_signataire = wx.StaticText(self, -1, _("Signataire :"))
-        self.ctrl_signataire = CTRL_Signataires(self)
+        self.label_signataire = wx.StaticText(self.stbOptions, -1, _("Signataire :"))
+        self.ctrl_signataire = CTRL_Signataires(self.stbOptions)
         
-        self.label_intro = wx.StaticText(self, -1, _("Intro pdf:"))
-        self.ctrl_intro = wx.CheckBox(self, -1, "")
+        self.label_intro = wx.StaticText(self.stbOptions, -1, _("Intro pdf:"))
+        self.ctrl_intro = wx.CheckBox(self.stbOptions, -1, "")
         self.ctrl_intro.SetValue(True)
-        self.ctrl_texte_intro = wx.TextCtrl(self, -1, TEXTE_INTRO)
-        self.label_prestations = wx.StaticText(self, -1, _("Prestations :"))
-        self.ctrl_prestations = wx.CheckBox(self, -1, _("Afficher la liste des prestations payées avec ce règlement"))
+        self.ctrl_texte_intro = wx.TextCtrl(self.stbOptions, -1, TEXTE_INTRO)
+        self.label_prestations = wx.StaticText(self.stbOptions, -1, _("Prestations :"))
+        self.ctrl_prestations = wx.CheckBox(self.stbOptions, -1, _("Afficher la liste des prestations payées avec ce règlement"))
 
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -434,12 +434,12 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
                 
         # Données
-        staticbox_donnees = wx.StaticBoxSizer(self.staticbox_donnees_staticbox, wx.VERTICAL)
+        staticbox_donnees = wx.StaticBoxSizer(self.stbDonnees, wx.VERTICAL)
         staticbox_donnees.Add(self.ctrl_donnees, 1, wx.ALL|wx.EXPAND, 5)
         grid_sizer_base.Add(staticbox_donnees, 1, wx.EXPAND|wx.LEFT|wx.RIGHT, 10)
         
         # Options
-        staticbox_options = wx.StaticBoxSizer(self.staticbox_options_staticbox, wx.VERTICAL)
+        staticbox_options = wx.StaticBoxSizer(self.stbOptions, wx.VERTICAL)
         grid_sizer_options = wx.FlexGridSizer(rows=5, cols=2, vgap=5, hgap=10)
         
         # Modèle email

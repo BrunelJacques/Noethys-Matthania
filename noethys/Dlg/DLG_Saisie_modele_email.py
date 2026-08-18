@@ -34,11 +34,11 @@ class Dialog(wx.Dialog):
         self.defaut = 0   
         
         # Généralités
-        self.staticbox_generalites_staticbox = wx.StaticBox(self, -1, _("Généralités"))
-        self.label_nom = wx.StaticText(self, -1, _("Nom :"))
-        self.ctrl_nom = wx.TextCtrl(self, -1, "")
-        self.label_description = wx.StaticText(self, -1, _("Description :"))
-        self.ctrl_description = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE)
+        self.stbGeneral = wx.StaticBox(self, -1, _("Généralités"))
+        self.label_nom = wx.StaticText(self.stbGeneral, -1, _("Nom :"))
+        self.ctrl_nom = wx.TextCtrl(self.stbGeneral, -1, "")
+        self.label_description = wx.StaticText(self.stbGeneral, -1, _("Description :"))
+        self.ctrl_description = wx.TextCtrl(self.stbGeneral, -1, "", style=wx.TE_MULTILINE)
         
         # Mots-clés
         self.listeMotsCles = []
@@ -46,22 +46,23 @@ class Dialog(wx.Dialog):
         for motCle, code in listeMotscles :
             self.listeMotsCles.append(motCle)
 
-        self.staticbox_motscles_staticbox = wx.StaticBox(self, -1, _("Mots-clés disponibles"))
-        self.ctrl_motscles = wx.ListBox(self, -1, choices=self.listeMotsCles, style=wx.SIMPLE_BORDER)
+        self.stbMots = wx.StaticBox(self, -1, _("Mots-clés disponibles"))
+        self.ctrl_motscles = wx.ListBox(self.stbMots, -1, choices=self.listeMotsCles, style=wx.SIMPLE_BORDER)
         self.ctrl_motscles.SetBackgroundColour("#F0FBED")
-        
+
+        # texte
+        self.stbText = wx.StaticBox(self, -1, _("Message"))
+        self.ctrl_editeur = CTRL_Editeur_email.CTRL(self.stbText)
+
         # Expéditeur
-        self.label_exp = wx.StaticText(self, -1, _("Expéditeur :"))
-        self.ctrl_exp = CTRL_Editeur_email.Panel_Expediteur(self)
+        self.label_exp = wx.StaticText(self.stbText, -1, _("Expéditeur :"))
+        self.ctrl_exp = CTRL_Editeur_email.Panel_Expediteur(self.stbText)
         
         # Objet
-        self.label_objet = wx.StaticText(self, -1, _("Objet :"))
-        self.ctrl_objet = wx.TextCtrl(self, -1, "")
+        self.label_objet = wx.StaticText(self.stbText, -1, _("Objet :"))
+        self.ctrl_objet = wx.TextCtrl(self.stbText, -1, "")
         
-        # texte
-        self.staticbox_texte_staticbox = wx.StaticBox(self, -1, _("Message"))
-        self.ctrl_editeur = CTRL_Editeur_email.CTRL(self)
-        
+
         # Commandes
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"), cheminImage="Images/32x32/Valider.png")
@@ -97,7 +98,7 @@ class Dialog(wx.Dialog):
         grid_sizer_contenu = wx.FlexGridSizer(rows=1, cols=2, vgap=10, hgap=10)
         
         # Généralités
-        staticbox_generalites = wx.StaticBoxSizer(self.staticbox_generalites_staticbox, wx.VERTICAL)
+        staticbox_generalites = wx.StaticBoxSizer(self.stbGeneral, wx.VERTICAL)
         grid_sizer_generalites = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         
         grid_sizer_generalites.Add(self.label_nom, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
@@ -110,12 +111,12 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(staticbox_generalites, 1, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 10)
 
         # Mots-clés
-        staticbox_motscles = wx.StaticBoxSizer(self.staticbox_motscles_staticbox, wx.VERTICAL)
+        staticbox_motscles = wx.StaticBoxSizer(self.stbMots, wx.VERTICAL)
         staticbox_motscles.Add(self.ctrl_motscles, 1, wx.ALL|wx.EXPAND, 10)
         grid_sizer_contenu.Add(staticbox_motscles, 1, wx.EXPAND, 0)
         
         # Message
-        staticbox_texte = wx.StaticBoxSizer(self.staticbox_texte_staticbox, wx.VERTICAL)
+        staticbox_texte = wx.StaticBoxSizer(self.stbText, wx.VERTICAL)
         grid_sizer_texte = wx.FlexGridSizer(rows=3, cols=1, vgap=0, hgap=0)
 
         grid_sizer_objet = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)

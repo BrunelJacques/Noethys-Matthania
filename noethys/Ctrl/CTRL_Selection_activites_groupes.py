@@ -159,7 +159,7 @@ class CTRL_Activites(CT.CustomTreeCtrl):
                  size=wx.DefaultSize,
                  style=wx.SIMPLE_BORDER):
         CT.CustomTreeCtrl.__init__(self, parent, id, pos, size, style)
-        self.parent = parent
+        self.parent = parent.Parent
         self.root = self.AddRoot(_("Racine"))
         self.SetBackgroundColour(wx.WHITE)
         self.SetAGWWindowStyleFlag(
@@ -378,7 +378,7 @@ class CTRL_Activites(CT.CustomTreeCtrl):
 class CTRL_Tarifs(wx.CheckListBox):
     def __init__(self, parent):
         wx.CheckListBox.__init__(self, parent, -1)
-        self.parent = parent
+        self.parent = parent.Parent
         self.dict_tarifs_groupes = {}
         self.Bind(wx.EVT_CHECKLISTBOX, self.OnCheck)
         self.lstDonnees = []

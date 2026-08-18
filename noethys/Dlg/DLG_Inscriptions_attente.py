@@ -39,22 +39,22 @@ class Dialog(wx.Dialog):
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Liste_attente.png")
 
         # Périodes
-        self.staticbox_periodes_staticbox = wx.StaticBox(self, -1, _("Période"))
-        self.ctrl_periodes = CTRL_Grille_periode.CTRL(self)
+        self.stbPeriodes = wx.StaticBox(self, -1, _("Période"))
+        self.ctrl_periodes = CTRL_Grille_periode.CTRL(self.stbPeriodes)
         self.ctrl_periodes.SetMinSize((220, 230))
 
         # PROVISOIRE
-        self.staticbox_periodes_staticbox.Show(False)
+        self.stbPeriodes.Show(False)
         self.ctrl_periodes.Show(False)
 
         # Résultats
-        self.staticbox_resultats_staticbox = wx.StaticBox(self, -1, titre)
-        self.ctrl_attente = CTRL_Inscriptions_attente.CTRL(self, liste_activites=liste_activites, mode=self.mode)
+        self.stbResult = wx.StaticBox(self, -1, titre)
+        self.ctrl_attente = CTRL_Inscriptions_attente.CTRL(self.stbResult, liste_activites=liste_activites, mode=self.mode)
         self.ctrl_attente.SetMinSize((100, 100))
 
-        self.bouton_ouvrir_fiche = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Famille.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_imprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_excel = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Excel.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ouvrir_fiche = wx.BitmapButton(self.stbResult, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Famille.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_imprimer = wx.BitmapButton(self.stbResult, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_excel = wx.BitmapButton(self.stbResult, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Excel.png"), wx.BITMAP_TYPE_ANY))
 
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
         self.bouton_fermer = CTRL_Bouton_image.CTRL(self, id=wx.ID_CANCEL, texte=_("Fermer"), cheminImage="Images/32x32/Fermer.png")
@@ -82,12 +82,12 @@ class Dialog(wx.Dialog):
         grid_sizer_contenu = wx.FlexGridSizer(rows=1, cols=3, vgap=10, hgap=10)
 
         # Période
-        staticbox_periodes = wx.StaticBoxSizer(self.staticbox_periodes_staticbox, wx.VERTICAL)
+        staticbox_periodes = wx.StaticBoxSizer(self.stbPeriodes, wx.VERTICAL)
         staticbox_periodes.Add(self.ctrl_periodes, 1, wx.EXPAND|wx.ALL, 5)
         grid_sizer_contenu.Add(staticbox_periodes, 1, wx.EXPAND, 0)
 
         # Résultats
-        staticbox_resultats = wx.StaticBoxSizer(self.staticbox_resultats_staticbox, wx.VERTICAL)
+        staticbox_resultats = wx.StaticBoxSizer(self.stbResult, wx.VERTICAL)
         grid_sizer_resultats = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_resultats.Add(self.ctrl_attente, 0, wx.EXPAND, 0)
 

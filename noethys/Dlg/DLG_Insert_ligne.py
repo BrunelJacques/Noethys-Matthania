@@ -15,25 +15,22 @@ from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
 
-
-
-
 class Dialog(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE)
         self.parent = parent
 
         # Nbre de lignes
-        self.staticbox_generalites_staticbox = wx.StaticBox(self, -1, _("Lignes"))
-        self.label_nbre_lignes = wx.StaticText(self, -1, "Saisissez le nombre de lignes à insérer :")
-        self.ctrl_nbre_lignes = wx.SpinCtrl(self, -1, "1", size=(60, -1), style=wx.TE_PROCESS_ENTER)
+        self.stbGeneral = wx.StaticBox(self, -1, _("Lignes"))
+        self.label_nbre_lignes = wx.StaticText(self.stbGeneral, -1, "Saisissez le nombre de lignes à insérer :")
+        self.ctrl_nbre_lignes = wx.SpinCtrl(self.stbGeneral, -1, "1", size=(60, -1), style=wx.TE_PROCESS_ENTER)
 
         # Options
-        self.staticbox_options_staticbox = wx.StaticBox(self, -1, _("Options"))
-        self.radio_debut = wx.RadioButton(self, -1, _("Au début du tableau"), style=wx.RB_GROUP)
-        self.radio_avant = wx.RadioButton(self, -1, _("Avant la ligne sélectionnée"))
-        self.radio_apres = wx.RadioButton(self, -1, _("Après la ligne sélectionnée"))
-        self.radio_fin = wx.RadioButton(self, -1, _("A la fin du tableau"))
+        self.stbOptions = wx.StaticBox(self, -1, _("Options"))
+        self.radio_debut = wx.RadioButton(self.stbOptions, -1, _("Au début du tableau"), style=wx.RB_GROUP)
+        self.radio_avant = wx.RadioButton(self.stbOptions, -1, _("Avant la ligne sélectionnée"))
+        self.radio_apres = wx.RadioButton(self.stbOptions, -1, _("Après la ligne sélectionnée"))
+        self.radio_fin = wx.RadioButton(self.stbOptions, -1, _("A la fin du tableau"))
 
         # Boutons
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"), cheminImage="Images/32x32/Valider.png")
@@ -59,7 +56,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
 
         # Généralités
-        staticbox_generalites = wx.StaticBoxSizer(self.staticbox_generalites_staticbox, wx.VERTICAL)
+        staticbox_generalites = wx.StaticBoxSizer(self.stbGeneral, wx.VERTICAL)
         grid_sizer_generalites = wx.FlexGridSizer(rows=1, cols=2, vgap=10, hgap=10)
         grid_sizer_generalites.Add(self.label_nbre_lignes, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_generalites.Add(self.ctrl_nbre_lignes, 0, 0, 0)
@@ -67,7 +64,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(staticbox_generalites, 1, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 10)
 
         # Options
-        staticbox_options = wx.StaticBoxSizer(self.staticbox_options_staticbox, wx.VERTICAL)
+        staticbox_options = wx.StaticBoxSizer(self.stbOptions, wx.VERTICAL)
         grid_sizer_options = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
         grid_sizer_options.Add(self.radio_debut, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_options.Add(self.radio_avant, 0, wx.ALIGN_CENTER_VERTICAL, 0)

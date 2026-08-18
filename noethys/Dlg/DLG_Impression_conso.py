@@ -148,7 +148,7 @@ class PANEL_Calendrier(wx.Panel):
         self.ctrl_calendrier.Bind(CTRL_Calendrier.EVT_SELECT_DATES, self.OnDateSelected)
         
     def OnDateSelected(self, event):
-        self.GetParent().SetDates(self.GetDates())
+        self.GetParent().Parent.SetDates(self.GetDates())
     
     def GetDates(self):
         selections = self.ctrl_calendrier.GetSelections() 
@@ -216,7 +216,7 @@ class CTRL_Activites(HTL.HyperTreeList):
                     self.EnableChildren(item, False)
             # Envoie les données aux contrôle parent
             listeActivites = self.GetListeActivites()
-            self.GetGrandParent().GetParent().SetUnites(listeActivites)
+            self.GetGrandParent().GetParent().Parent.SetUnites(listeActivites)
 
     def SetDates(self, listeDates=[]):
         self.listeDates = listeDates
@@ -1093,22 +1093,22 @@ class Dialog(wx.Dialog):
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Imprimante.png")
         
         # Type de calendrier
-        self.staticbox_type_staticbox = wx.StaticBox(self, -1, _("Type de liste"))
-        self.radio_journ = wx.RadioButton(self, -1, _("Journalière"), style=wx.RB_GROUP)
-        self.radio_period = wx.RadioButton(self, -1, _("Périodique"))
+        self.stbType = wx.StaticBox(self, -1, _("Type de liste"))
+        self.radio_journ = wx.RadioButton(self.stbType, -1, _("Journalière"), style=wx.RB_GROUP)
+        self.radio_period = wx.RadioButton(self.stbType, -1, _("Périodique"))
         
         # Calendrier
-        self.staticbox_date_staticbox = wx.StaticBox(self, -1, _("Date"))
-        self.ctrl_calendrier = PANEL_Calendrier(self)
+        self.stbDate = wx.StaticBox(self, -1, _("Date"))
+        self.ctrl_calendrier = PANEL_Calendrier(self.stbDate)
         self.ctrl_calendrier.SetMinSize((250, 80)) 
                 
         # Profil de configuration
-        self.staticbox_profil_staticbox = wx.StaticBox(self, -1, _("Profil de configuration"))
-        self.ctrl_profil = CTRL_profil_perso(self, categorie="impression_conso", dlg=self)
+        self.stbProfil = wx.StaticBox(self, -1, _("Profil de configuration"))
+        self.ctrl_profil = CTRL_profil_perso(self.stbProfil, categorie="impression_conso", dlg=self)
 
         # Paramètres
-        self.staticbox_parametres_staticbox = wx.StaticBox(self, -1, _("Paramètres"))
-        self.ctrl_parametres = CTRL_Parametres(self) 
+        self.stbParam = wx.StaticBox(self, -1, _("Paramètres"))
+        self.ctrl_parametres = CTRL_Parametres(self.stbParam)
 
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -1163,17 +1163,17 @@ class Dialog(wx.Dialog):
         grid_sizer_gauche = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
 
         # Profil
-        staticbox_profil = wx.StaticBoxSizer(self.staticbox_profil_staticbox, wx.VERTICAL)
+        staticbox_profil = wx.StaticBoxSizer(self.stbProfil, wx.VERTICAL)
         staticbox_profil.Add(self.ctrl_profil, 1, wx.EXPAND | wx.ALL, 5)
         grid_sizer_gauche.Add(staticbox_profil, 1, wx.EXPAND, 0)
 
         # Calendrier
-        staticbox_date = wx.StaticBoxSizer(self.staticbox_date_staticbox, wx.VERTICAL)
+        staticbox_date = wx.StaticBoxSizer(self.stbDate, wx.VERTICAL)
         staticbox_date.Add(self.ctrl_calendrier, 1, wx.ALL|wx.EXPAND, 5)
         grid_sizer_gauche.Add(staticbox_date, 1, wx.EXPAND, 0)
 
         # Type
-        staticbox_type = wx.StaticBoxSizer(self.staticbox_type_staticbox, wx.HORIZONTAL)
+        staticbox_type = wx.StaticBoxSizer(self.stbType, wx.HORIZONTAL)
         staticbox_type.Add(self.radio_journ, 0, wx.ALL|wx.EXPAND, 5)
         staticbox_type.Add(self.radio_period, 0, wx.ALL|wx.EXPAND, 5)
         grid_sizer_gauche.Add(staticbox_type, 1, wx.EXPAND, 0)
@@ -1182,7 +1182,7 @@ class Dialog(wx.Dialog):
         grid_sizer_contenu.Add(grid_sizer_gauche, 1, wx.EXPAND, 0)
         
         # Paramètres
-        staticbox_parametres = wx.StaticBoxSizer(self.staticbox_parametres_staticbox, wx.HORIZONTAL)
+        staticbox_parametres = wx.StaticBoxSizer(self.stbParam, wx.HORIZONTAL)
         staticbox_parametres.Add(self.ctrl_parametres, 1, wx.EXPAND | wx.ALL, 5)
         grid_sizer_contenu.Add(staticbox_parametres, 1, wx.EXPAND, 0)
         
@@ -1216,12 +1216,12 @@ class Dialog(wx.Dialog):
     def OnRadioJourn(self, event):
         self.ctrl_calendrier.SetMultiSelection(False)
         self.GetPage("unites").ctrl_unites.MAJ()
-        self.staticbox_date_staticbox.SetLabel(_("Date"))
+        self.stbDate.SetLabel(_("Date"))
         
     def OnRadioPeriod(self, event):
         self.ctrl_calendrier.SetMultiSelection(True)
         self.GetPage("unites").ctrl_unites.MAJ()
-        self.staticbox_date_staticbox.SetLabel(_("Période"))
+        self.stbDate.SetLabel(_("Période"))
 
     def OnBoutonAide(self, event): 
         from Utils import UTILS_Aide

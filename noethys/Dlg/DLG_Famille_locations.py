@@ -28,13 +28,13 @@ class Page_locations(wx.Panel):
         self.IDfamille = IDfamille
 
         # ------------------- Locations -------------------------
-        self.staticbox_locations = wx.StaticBox(self, -1, _("Locations"))
-        self.ctrl_locations = OL_Locations.ListView(self, IDfamille=IDfamille, id=-1, name="OL_locations", style=wx.LC_REPORT | wx.SUNKEN_BORDER | wx.LC_SINGLE_SEL | wx.LC_HRULES | wx.LC_VRULES)
+        self.stbLocations = wx.StaticBox(self, -1, _("Locations"))
+        self.ctrl_locations = OL_Locations.ListView(self.stbLocations, IDfamille=IDfamille, id=-1, name="OL_locations", style=wx.LC_REPORT | wx.SUNKEN_BORDER | wx.LC_SINGLE_SEL | wx.LC_HRULES | wx.LC_VRULES)
         self.ctrl_locations.SetMinSize((50, 50))
 
-        self.bouton_ajouter_location = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier_location = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer_location = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter_location = wx.BitmapButton(self.stbLocations, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier_location = wx.BitmapButton(self.stbLocations, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer_location = wx.BitmapButton(self.stbLocations, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
 
         # Binds
         self.Bind(wx.EVT_BUTTON, self.ctrl_locations.Ajouter, self.bouton_ajouter_location)
@@ -50,7 +50,7 @@ class Page_locations(wx.Panel):
         grid_sizer_base = wx.FlexGridSizer(rows=2, cols=1, vgap=0, hgap=0)
 
         # Locations
-        staticbox_locations = wx.StaticBoxSizer(self.staticbox_locations, wx.VERTICAL)
+        staticbox_locations = wx.StaticBoxSizer(self.stbLocations, wx.VERTICAL)
 
         grid_sizer_locations = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_locations.Add(self.ctrl_locations, 1, wx.EXPAND, 0)
@@ -83,13 +83,13 @@ class Page_demandes(wx.Panel):
         self.IDfamille = IDfamille
 
         # ----------------- Demandes de locations --------------
-        self.staticbox_demandes = wx.StaticBox(self, -1, _("Demandes de locations"))
-        self.ctrl_demandes = OL_Locations_demandes.ListView(self, IDfamille=IDfamille, id=-1, name="OL_Demandes_locations", style=wx.LC_REPORT | wx.SUNKEN_BORDER | wx.LC_SINGLE_SEL | wx.LC_HRULES | wx.LC_VRULES)
+        self.stbDemandes = wx.StaticBox(self, -1, _("Demandes de locations"))
+        self.ctrl_demandes = OL_Locations_demandes.ListView(self.stbDemandes, IDfamille=IDfamille, id=-1, name="OL_Demandes_locations", style=wx.LC_REPORT | wx.SUNKEN_BORDER | wx.LC_SINGLE_SEL | wx.LC_HRULES | wx.LC_VRULES)
         self.ctrl_demandes.SetMinSize((50, 50))
 
-        self.bouton_ajouter_demande = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier_demande = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer_demande = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter_demande = wx.BitmapButton(self.stbDemandes, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier_demande = wx.BitmapButton(self.stbDemandes, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer_demande = wx.BitmapButton(self.stbDemandes, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
 
         # Binds
         self.Bind(wx.EVT_BUTTON, self.ctrl_demandes.Ajouter, self.bouton_ajouter_demande)
@@ -105,7 +105,7 @@ class Page_demandes(wx.Panel):
         grid_sizer_base = wx.FlexGridSizer(rows=2, cols=1, vgap=0, hgap=0)
 
         # Demandes
-        staticbox_demandes = wx.StaticBoxSizer(self.staticbox_demandes, wx.VERTICAL)
+        staticbox_demandes = wx.StaticBoxSizer(self.stbDemandes, wx.VERTICAL)
 
         grid_sizer_demandes = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_demandes.Add(self.ctrl_demandes, 1, wx.EXPAND, 0)

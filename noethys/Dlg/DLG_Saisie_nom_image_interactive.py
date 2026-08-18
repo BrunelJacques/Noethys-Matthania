@@ -65,13 +65,13 @@ class Dialog(wx.Dialog):
         self.categorie = categorie
 
         # Généralités
-        self.box_generalites_staticbox = wx.StaticBox(self, -1, _("Saisissez un nom pour cette image"))
-        self.label_nom = wx.StaticText(self, -1, _("Nom :"))
-        self.ctrl_nom = wx.TextCtrl(self, -1, "")
+        self.stbGeneral = wx.StaticBox(self, -1, _("Saisissez un nom pour cette image"))
+        self.label_nom = wx.StaticText(self.stbGeneral, -1, _("Nom :"))
+        self.ctrl_nom = wx.TextCtrl(self.stbGeneral, -1, "")
 
         # Donnée associée
-        self.box_donnee_staticbox = wx.StaticBox(self, -1, _("Sélectionnez la donnée associée"))
-        self.ctrl_donnee = CTRL_Donnees(self, categorie=categorie)
+        self.stbDonnee = wx.StaticBox(self, -1, _("Sélectionnez la donnée associée"))
+        self.ctrl_donnee = CTRL_Donnees(self.stbDonnee, categorie=categorie)
         self.ctrl_donnee.SetMinSize((450, 250))
 
         # Boutons
@@ -95,7 +95,7 @@ class Dialog(wx.Dialog):
         grid_sizer_contenu = wx.FlexGridSizer(rows=2, cols=1, vgap=10, hgap=10)
 
         # Généralités
-        box_generalites = wx.StaticBoxSizer(self.box_generalites_staticbox, wx.VERTICAL)
+        box_generalites = wx.StaticBoxSizer(self.stbGeneral, wx.VERTICAL)
         grid_sizer_generalites = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         grid_sizer_generalites.Add(self.label_nom, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_generalites.Add(self.ctrl_nom, 0, wx.EXPAND, 0)
@@ -104,7 +104,7 @@ class Dialog(wx.Dialog):
         grid_sizer_contenu.Add(box_generalites, 1,wx.EXPAND, 0)
 
         # Donnée
-        box_donnee = wx.StaticBoxSizer(self.box_donnee_staticbox, wx.VERTICAL)
+        box_donnee = wx.StaticBoxSizer(self.stbDonnee, wx.VERTICAL)
         box_donnee.Add(self.ctrl_donnee, 1, wx.ALL | wx.EXPAND, 10)
         grid_sizer_contenu.Add(box_donnee, 1,wx.EXPAND, 0)
 

@@ -1352,29 +1352,7 @@ class CaseStandard(Case):
         if self.statut == None : self.statut = "modification"
         self.MemoriseValeurs()
         self.Refresh()
-    
-    def DLG_detail(self, event):
-        from Dlg import DLG_Detail_conso
-        dictConso = self.GetConso() 
-        texteInfoBulle = self.GetTexteInfobulle()
-        typeUnite = self.grid.dictUnites[dictConso.case.IDunite]["type"]
-        dlg = DLG_Detail_conso.Dialog(self.grid, dictConso, texteInfoBulle)
-        if typeUnite == "Horaire" :
-            dlg.ctrl_heure_debut.Enable(False)
-            dlg.ctrl_heure_fin.Enable(False)
-        if dlg.ShowModal() == wx.ID_OK:
-            self.IDgroupe = dlg.GetIDgroupe()
-            self.heure_debut = dlg.GetHeureDebut()
-            self.heure_fin = dlg.GetHeureFin()
-            self.MemoriseValeurs()
-            if self.IDconso != None : 
-                self.statut = "modification"
-            self.Refresh()
-            self.MAJremplissage()
-            self.grid.Autogeneration(ligne=self.ligne, IDactivite=self.IDactivite, IDunite=self.IDunite)
 
-        dlg.Destroy()
-    
     def Ajouter(self, event=None):
         self.OnClick()
         
@@ -1694,24 +1672,7 @@ class CaseMultihoraires(Case):
 ##        if self.statut == None : self.statut = "modification"
 ##        self.MemoriseValeurs()
 ##        self.renderer.MAJ()
-    
-    def DLG_detail(self, event):
-        barre = self.barreContextMenu
-        from Dlg import DLG_Detail_conso
-        texteInfoBulle = self.GetTexteInfobulleConso(barre.conso)
-        dlg = DLG_Detail_conso.Dialog(self.grid, barre.conso, texteInfoBulle)
-        if dlg.ShowModal() == wx.ID_OK:
-            barre.conso.IDgroupe = dlg.GetIDgroupe()
-            barre.conso.heure_debut = dlg.GetHeureDebut()
-            barre.conso.heure_fin = dlg.GetHeureFin()
-            barre.MemoriseValeurs()
-            if barre.conso.IDconso != None : 
-                barre.conso.statut = "modification"
-            barre.Refresh()
-            self.MAJremplissage()
-            self.grid.Autogeneration(ligne=self.ligne, IDactivite=self.IDactivite, IDunite=self.IDunite)
-        dlg.Destroy()
-    
+
     def SaisieBarre(self, heure_debut=None, heure_fin=None, modeSilencieux=False, TouchesRaccourciActives=True, etiquettes=None):
         """ Création d'une barre + conso """        
         # Vérifie d'abord qu'il n'y a aucune incompatibilités entre unités

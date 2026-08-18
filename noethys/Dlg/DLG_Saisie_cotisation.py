@@ -46,7 +46,7 @@ def DateEngEnDateDD(dateEng):
 class Choix_type(wx.Choice):
     def __init__(self, parent):
         wx.Choice.__init__(self, parent, -1) 
-        self.parent = parent
+        self.lanceur = self.GrandParent.Parent
         self.indexDefaut = None
         self.MAJ() 
     
@@ -105,7 +105,7 @@ class Choix_type(wx.Choice):
 class Choix_unite(wx.Choice):
     def __init__(self, parent):
         wx.Choice.__init__(self, parent, -1) 
-        self.parent = parent
+        self.lanceur = self.GrandParent.Parent
         self.IDtype_cotisation = None
         self.indexDefaut = None
     
@@ -175,7 +175,7 @@ class Choix_unite(wx.Choice):
 class Choix_beneficiaire(wx.Choice):
     def __init__(self, parent):
         wx.Choice.__init__(self, parent, -1) 
-        self.parent = parent
+        self.lanceur = self.GrandParent.Parent
         self.listeNoms = []
         self.listeDonnees = []
     
@@ -186,14 +186,14 @@ class Choix_beneficiaire(wx.Choice):
         # Si c'est une cotisation individuelle :
         if type == "individu" :
             
-            if self.GetGrandParent().IDfamille != None :
+            if self.lanceur.IDfamille != None :
                 # Si on vient d'une fiche familiale : on affiche tous les membres de la famille
                 DB = GestionDB.DB()
                 req = """SELECT IDrattachement, rattachements.IDindividu, rattachements.IDfamille, IDcategorie, titulaire, nom, prenom
                 FROM rattachements 
                 LEFT JOIN individus ON individus.IDindividu = rattachements.IDindividu
                 WHERE IDfamille=%d and IDcategorie IN (1, 2)
-                ORDER BY nom, prenom;""" % self.GetGrandParent().IDfamille
+                ORDER BY nom, prenom;""" % self.lanceur.IDfamille
                 DB.ExecuterReq(req,MsgBox="ExecuterReq")
                 listeTitulaires = DB.ResultatReq()
                 DB.Close()
@@ -207,7 +207,7 @@ class Choix_beneficiaire(wx.Choice):
                 req = """SELECT nom, prenom
                 FROM individus 
                 WHERE IDindividu=%d
-                ;""" % self.GetGrandParent().IDindividu
+                ;""" % self.lanceur.IDindividu
                 DB.ExecuterReq(req,MsgBox="ExecuterReq")
                 listeIndividus = DB.ResultatReq()
                 DB.Close()
@@ -217,19 +217,19 @@ class Choix_beneficiaire(wx.Choice):
                 nom, prenom = listeIndividus[0]
                 nomIndividu = "%s %s" % (nom, prenom)
                 self.listeNoms.append(nomIndividu)
-                self.listeDonnees.append(self.GetGrandParent().IDindividu)
+                self.listeDonnees.append(self.lanceur.IDindividu)
         
         # Si c'est une cotisation familiale :
         if type == "famille" :
             
-            if self.GetGrandParent().IDfamille != None :
+            if self.lanceur.IDfamille != None :
                 # Si on vient d'une fiche familiale : On affiche uniquement la famille en cours
                 DB = GestionDB.DB()
                 req = """SELECT IDrattachement, rattachements.IDindividu, rattachements.IDfamille, IDcategorie, titulaire, nom, prenom
                 FROM rattachements 
                 LEFT JOIN individus ON individus.IDindividu = rattachements.IDindividu
                 WHERE IDfamille=%d and titulaire=1 and IDcategorie=1
-                ORDER BY IDrattachement;""" % self.GetGrandParent().IDfamille
+                ORDER BY IDrattachement;""" % self.lanceur.IDfamille
                 DB.ExecuterReq(req,MsgBox="ExecuterReq")
                 listeDonnees = DB.ResultatReq()
                 DB.Close()
@@ -250,13 +250,13 @@ class Choix_beneficiaire(wx.Choice):
                         nomTitulaires += "%s, " % nomTitulaire
                     nomTitulaires = _("%s et %s") % (nomTitulaires[:-2], listeTitulaires[-1])
                 self.listeNoms.append(_("Famille de %s") % nomTitulaires)
-                self.listeDonnees.append(self.GetGrandParent().IDfamille)
+                self.listeDonnees.append(self.lanceur.IDfamille)
                 
             else:
                 # Si on vient d'une fiche individuelle : on affiche les familles rattachées
-                IDindividu = self.GetGrandParent().IDindividu
-                if self.GetGrandParent().dictFamillesRattachees != None :
-                    for IDfamille, dictFamille in self.GetGrandParent().dictFamillesRattachees.items() :
+                IDindividu = self.lanceur.IDindividu
+                if self.lanceur.dictFamillesRattachees != None :
+                    for IDfamille, dictFamille in self.lanceur.dictFamillesRattachees.items() :
                         if dictFamille["IDcategorie"] in (1, 2) :
                             nomTitulaires = dictFamille["nomsTitulaires"]
                             self.listeNoms.append(_("Famille de %s") % nomTitulaires)
@@ -291,7 +291,7 @@ class Choix_beneficiaire(wx.Choice):
 class Choix_payeur(wx.Choice):
     def __init__(self, parent):
         wx.Choice.__init__(self, parent, -1) 
-        self.parent = parent
+        self.lanceur = self.GrandParent.Parent
         self.listeNoms = []
         self.listeDonnees = []
 
@@ -300,23 +300,23 @@ class Choix_payeur(wx.Choice):
         self.listeDonnees = []
 
         # Si on vient d'une fiche INDIVIDU :
-        if self.GetGrandParent().IDindividu != None :
+        if self.lanceur.IDindividu != None :
                         
-            for IDfamille, dictFamille in self.GetGrandParent().dictFamillesRattachees.items() :
+            for IDfamille, dictFamille in self.lanceur.dictFamillesRattachees.items() :
                 nomTitulaires = dictFamille["nomsTitulaires"]
                 IDcompte_payeur = dictFamille["IDcompte_payeur"]
                 self.listeNoms.append(nomTitulaires)
                 self.listeDonnees.append((IDcompte_payeur, IDfamille))
         
         # Si on vient d'une fiche familiale :
-        if self.GetGrandParent().IDfamille != None :
+        if self.lanceur.IDfamille != None :
             DB = GestionDB.DB()
             req = """SELECT IDrattachement, rattachements.IDindividu, rattachements.IDfamille, IDcategorie, titulaire, nom, prenom, IDcompte_payeur
             FROM rattachements 
             LEFT JOIN individus ON individus.IDindividu = rattachements.IDindividu
             LEFT JOIN comptes_payeurs ON comptes_payeurs.IDfamille = rattachements.IDfamille
             WHERE rattachements.IDfamille=%d and titulaire=1 and IDcategorie=1
-            ORDER BY IDrattachement;""" % self.GetGrandParent().IDfamille
+            ORDER BY IDrattachement;""" % self.lanceur.IDfamille
             DB.ExecuterReq(req,MsgBox="ExecuterReq")
             listeDonnees = DB.ResultatReq()
             DB.Close()
@@ -338,7 +338,7 @@ class Choix_payeur(wx.Choice):
                     nomTitulaires += "%s, " % nomTitulaire
                 nomTitulaires = _("%s et %s") % (nomTitulaires[:-2], listeTitulaires[-1])
             self.listeNoms.append(nomTitulaires)
-            self.listeDonnees.append((IDcompte_payeur, self.GetGrandParent().IDfamille))
+            self.listeDonnees.append((IDcompte_payeur, self.lanceur.IDfamille))
                 
         # Remplissage du contrôle
         self.SetItems(self.listeNoms)
@@ -459,56 +459,56 @@ class CTRL_Parametres(wx.Panel):
         self.IDutilisateur = UTILS_Identification.GetIDutilisateur()
 
         # Cotisation
-        self.staticbox_cotisation_staticbox = wx.StaticBox(self, -1, _("Cotisation"))
-        self.label_type = wx.StaticText(self, -1, _("Type :"))
-        self.ctrl_type = Choix_type(self)
-        self.label_unite = wx.StaticText(self, -1, _("Unité :"))
-        self.ctrl_unite = Choix_unite(self)
-        self.label_beneficiaire = wx.StaticText(self, -1, _("Bénéfic. :"))
-        self.ctrl_beneficiaire = Choix_beneficiaire(self)
-        self.label_validite = wx.StaticText(self, -1, _("Validité :"))
-        self.label_du = wx.StaticText(self, -1, "du")
-        self.ctrl_date_debut = CTRL_Saisie_date.Date(self)
-        self.label_au = wx.StaticText(self, -1, _("au"))
-        self.ctrl_date_fin = CTRL_Saisie_date.Date(self)
+        self.stbCotisation = wx.StaticBox(self, -1, _("Cotisation"))
+        self.label_type = wx.StaticText(self.stbCotisation, -1, _("Type :"))
+        self.ctrl_type = Choix_type(self.stbCotisation)
+        self.label_unite = wx.StaticText(self.stbCotisation, -1, _("Unité :"))
+        self.ctrl_unite = Choix_unite(self.stbCotisation)
+        self.label_beneficiaire = wx.StaticText(self.stbCotisation, -1, _("Bénéfic. :"))
+        self.ctrl_beneficiaire = Choix_beneficiaire(self.stbCotisation)
+        self.label_validite = wx.StaticText(self.stbCotisation, -1, _("Validité :"))
+        self.label_du = wx.StaticText(self.stbCotisation, -1, "du")
+        self.ctrl_date_debut = CTRL_Saisie_date.Date(self.stbCotisation)
+        self.label_au = wx.StaticText(self.stbCotisation, -1, _("au"))
+        self.ctrl_date_fin = CTRL_Saisie_date.Date(self.stbCotisation)
 
-        self.label_activites = wx.StaticText(self, -1, _("Activités :"))
-        self.ctrl_activites = CTRL_Activites(self)
-        self.bouton_activites = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.label_activites = wx.StaticText(self.stbCotisation, -1, _("Activités :"))
+        self.ctrl_activites = CTRL_Activites(self.stbCotisation)
+        self.bouton_activites = wx.BitmapButton(self.stbCotisation, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
 
-        self.label_observations = wx.StaticText(self, -1, _("Notes :"))
-        self.ctrl_observations = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE)
+        self.label_observations = wx.StaticText(self.stbCotisation, -1, _("Notes :"))
+        self.ctrl_observations = wx.TextCtrl(self.stbCotisation, -1, "", style=wx.TE_MULTILINE)
 
         # Carte
-        self.staticbox_carte_staticbox = wx.StaticBox(self, -1, _("Carte d'adhérent"))
-        self.label_creation = wx.StaticText(self, -1, _("Création :"))
-        self.ctrl_creation = wx.CheckBox(self, -1, "")
-        self.label_numero = wx.StaticText(self, -1, _("Numéro :"))
+        self.stbCarte = wx.StaticBox(self, -1, _("Carte d'adhérent"))
+        self.label_creation = wx.StaticText(self.stbCarte, -1, _("Création :"))
+        self.ctrl_creation = wx.CheckBox(self.stbCarte, -1, "")
+        self.label_numero = wx.StaticText(self.stbCarte, -1, _("Numéro :"))
 
         if self.mode_lot == True :
-            self.radio_numero_auto = wx.RadioButton(self, -1, _("Automatique à partir de"), style=wx.RB_GROUP)
-            self.radio_numero_manuel = wx.RadioButton(self, -1, _("Manuel (saisie directe dans la liste)"))
+            self.radio_numero_auto = wx.RadioButton(self.stbCarte, -1, _("Automatique à partir de"), style=wx.RB_GROUP)
+            self.radio_numero_manuel = wx.RadioButton(self.stbCarte, -1, _("Manuel (saisie directe dans la liste)"))
 
-        self.ctrl_numero = wx.TextCtrl(self, -1, "")
-        self.label_date = wx.StaticText(self, -1, _("Date :"))
-        self.ctrl_date_creation = CTRL_Saisie_date.Date2(self)
+        self.ctrl_numero = wx.TextCtrl(self.stbCarte, -1, "")
+        self.label_date = wx.StaticText(self.stbCarte, -1, _("Date :"))
+        self.ctrl_date_creation = CTRL_Saisie_date.Date2(self.stbCarte)
         self.ctrl_date_creation.SetDate(datetime.date.today())
-        self.label_depot = wx.StaticText(self, -1, _("Dépôt :"))
-        self.ctrl_depot = wx.TextCtrl(self, -1, "")
+        self.label_depot = wx.StaticText(self.stbCarte, -1, _("Dépôt :"))
+        self.ctrl_depot = wx.TextCtrl(self.stbCarte, -1, "")
 
         # Prestation
-        self.staticbox_prestation_staticbox = wx.StaticBox(self, -1, _("Facturation"))
-        self.label_facturer = wx.StaticText(self, -1, _("Facturer :"))
-        self.ctrl_facturer = wx.CheckBox(self, -1, "")
-        self.label_date_prestation = wx.StaticText(self, -1, _("Date :"))
-        self.ctrl_date_prestation = CTRL_Saisie_date.Date2(self)
+        self.stbPrestation = wx.StaticBox(self, -1, _("Facturation"))
+        self.label_facturer = wx.StaticText(self.stbPrestation, -1, _("Facturer :"))
+        self.ctrl_facturer = wx.CheckBox(self.stbPrestation, -1, "")
+        self.label_date_prestation = wx.StaticText(self.stbPrestation, -1, _("Date :"))
+        self.ctrl_date_prestation = CTRL_Saisie_date.Date2(self.stbPrestation)
         self.ctrl_date_prestation.SetDate(datetime.date.today())
-        self.label_label = wx.StaticText(self, -1, _("Label :"))
-        self.ctrl_label = wx.TextCtrl(self, -1, "")
-        self.label_payeur = wx.StaticText(self, -1, _("Payeur :"))
-        self.ctrl_payeur = Choix_payeur(self)
-        self.label_montant = wx.StaticText(self, -1, _("Montant :"))
-        self.ctrl_montant = CTRL_Saisie_euros.CTRL(self)
+        self.label_label = wx.StaticText(self.stbPrestation, -1, _("Label :"))
+        self.ctrl_label = wx.TextCtrl(self.stbPrestation, -1, "")
+        self.label_payeur = wx.StaticText(self.stbPrestation, -1, _("Payeur :"))
+        self.ctrl_payeur = Choix_payeur(self.stbPrestation)
+        self.label_montant = wx.StaticText(self.stbPrestation, -1, _("Montant :"))
+        self.ctrl_montant = CTRL_Saisie_euros.CTRL(self.stbPrestation)
 
         # Bind
         self.Bind(wx.EVT_CHOICE, self.OnChoixType, self.ctrl_type)
@@ -575,7 +575,7 @@ class CTRL_Parametres(wx.Panel):
         grid_sizer_base = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
 
         # Cotisation
-        staticbox_cotisation = wx.StaticBoxSizer(self.staticbox_cotisation_staticbox, wx.VERTICAL)
+        staticbox_cotisation = wx.StaticBoxSizer(self.stbCotisation, wx.VERTICAL)
         grid_sizer_cotisation = wx.FlexGridSizer(rows=6, cols=2, vgap=5, hgap=5)
         grid_sizer_validite = wx.FlexGridSizer(rows=1, cols=5, vgap=5, hgap=5)
         grid_sizer_cotisation.Add(self.label_type, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
@@ -607,7 +607,7 @@ class CTRL_Parametres(wx.Panel):
         grid_sizer_base.Add(staticbox_cotisation, 1, wx.LEFT | wx.RIGHT | wx.TOP | wx.EXPAND, 0)
 
         # Carte
-        staticbox_carte = wx.StaticBoxSizer(self.staticbox_carte_staticbox, wx.VERTICAL)
+        staticbox_carte = wx.StaticBoxSizer(self.stbCarte, wx.VERTICAL)
         grid_sizer_carte = wx.FlexGridSizer(rows=4, cols=2, vgap=5, hgap=5)
 
         # Création
@@ -641,7 +641,7 @@ class CTRL_Parametres(wx.Panel):
         grid_sizer_base.Add(staticbox_carte, 1, wx.LEFT | wx.RIGHT | wx.EXPAND, 0)
 
         # Prestation
-        staticbox_prestation = wx.StaticBoxSizer(self.staticbox_prestation_staticbox, wx.VERTICAL)
+        staticbox_prestation = wx.StaticBoxSizer(self.stbPrestation, wx.VERTICAL)
         grid_sizer_prestation = wx.FlexGridSizer(rows=4, cols=2, vgap=5, hgap=5)
         grid_sizer_facturer = wx.FlexGridSizer(rows=1, cols=4, vgap=5, hgap=5)
         grid_sizer_prestation.Add(self.label_facturer, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)

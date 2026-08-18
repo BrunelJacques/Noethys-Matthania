@@ -147,7 +147,7 @@ class ListView(FastObjectListView):
         nom = self.Selection()[0].nom
         code = self.Selection()[0].code
         # Insertion dans le texte
-        self.GetParent().InsertTexte(code)
+        self.GetParent().Parent.InsertTexte(code)
     
     def GetNbreChamps(self):
         return len(self.donnees) 

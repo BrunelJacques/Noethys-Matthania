@@ -123,6 +123,8 @@ def GetListeFamilles(listview=None, listeActivites=None, presents=None, IDfamill
         for dictTitulaire in dictTemp["listeTitulaires"] :
             dictTemp = {"IDfamille" : IDfamille, "nomTitulaires" : nomTitulaires, "IDindividu": dictTitulaire["IDindividu"], "nom": dictTitulaire["nom"], "prenom": dictTitulaire["prenom"]}
 
+            if not "telephones" in dictTitulaire:
+                continue
             dictTelephones = dictTitulaire["telephones"]
 
             if dictTelephones["travail_tel"] != None:

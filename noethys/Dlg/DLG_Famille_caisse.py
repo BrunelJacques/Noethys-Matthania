@@ -125,15 +125,15 @@ class Panel(wx.Panel):
         self.majEffectuee = False
         
         # Caisse
-        self.staticbox_caisse_staticbox = wx.StaticBox(self, -1, _("Caisse"))
-        self.label_caisse = wx.StaticText(self.staticbox_caisse_staticbox, -1, _("Caisse d'allocation :"))
-        self.ctrl_caisse = CTRL_Caisse(self.staticbox_caisse_staticbox)
+        self.stbCaisse = wx.StaticBox(self, -1, _("Caisse"))
+        self.label_caisse = wx.StaticText(self.stbCaisse, -1, _("Caisse d'allocation :"))
+        self.ctrl_caisse = CTRL_Caisse(self.stbCaisse)
         self.ctrl_caisse.SetMinSize((120, -1))
-        self.bouton_caisses = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_caisses = wx.BitmapButton(self.stbCaisse, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_ANY))
         self.label_numero = wx.StaticText(self, -1, _("N° allocataire :"))
         self.ctrl_numero = wx.TextCtrl(self, -1, "")
-        self.label_allocataire = wx.StaticText(self.staticbox_caisse_staticbox, -1, _("Bénéficiaire AVE :"))
-        self.ctrl_allocataire = CTRL_Allocataire(self.staticbox_caisse_staticbox)
+        self.label_allocataire = wx.StaticText(self.stbCaisse, -1, _("Bénéficiaire AVE :"))
+        self.ctrl_allocataire = CTRL_Allocataire(self.stbCaisse)
 
         # Aides
         self.staticbox_aides_staticbox = wx.StaticBox(self, -1, _("Aides journalières"))
@@ -172,7 +172,7 @@ class Panel(wx.Panel):
         grid_sizer_base = wx.FlexGridSizer(rows=2, cols=1, vgap=5, hgap=5)
         
         # Caisse
-        staticbox_caisse = wx.StaticBoxSizer(self.staticbox_caisse_staticbox, wx.VERTICAL)
+        staticbox_caisse = wx.StaticBoxSizer(self.stbCaisse, wx.VERTICAL)
         grid_sizer_caisse = wx.FlexGridSizer(rows=1, cols=9, vgap=5, hgap=5)
         grid_sizer_caisse.Add(self.label_caisse, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_caisse.Add(self.ctrl_caisse, 0, wx.ALIGN_CENTER_VERTICAL, 0)

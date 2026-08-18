@@ -22,11 +22,7 @@ import GestionDB
 from Data import DATA_Renseignements as Renseignements
 from Utils import UTILS_Utilisateurs
 from Utils import UTILS_Interface
-
-
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
+from Utils.UTILS_Dates import DateEngEnDateDD
 
 def FormatDuree(duree):
     posM = duree.find("m")

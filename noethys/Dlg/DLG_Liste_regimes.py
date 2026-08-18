@@ -152,21 +152,15 @@ class Parametres(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=-1, name="panel_parametres", style=wx.TAB_TRAVERSAL)
         self.parent = parent
-        
-##        # Période
-##        self.staticbox_periode_staticbox = wx.StaticBox(self, -1, _("Date de référence"))
-##        self.ctrl_date = CTRL_Saisie_date.Date(self)
-##        self.ctrl_date.SetDate(datetime.date.today())
-##        self.bouton_date = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Calendrier.png"), wx.BITMAP_TYPE_ANY))
-        
+      
         # Activités
-        self.staticbox_activites_staticbox = wx.StaticBox(self, -1, _("Activités"))
-        self.ctrl_activites = CTRL_Selection_activites_groupes.CTRL(self)
+        self.stbActivites = wx.StaticBox(self, -1, _("Activités"))
+        self.ctrl_activites = CTRL_Selection_activites_groupes.CTRL(self.stbActivites)
         self.ctrl_activites.SetMinSize((-1, 90))
         
         # Inscrits / Présents
-        self.staticbox_presents_staticbox = wx.StaticBox(self, -1, _("Options"))
-        self.ctrl_options = Options(self)
+        self.stbPresents = wx.StaticBox(self, -1, _("Options"))
+        self.ctrl_options = Options(self.stbPresents)
         
         # Boutons afficher
         self.bouton_afficher = CTRL_Bouton_image.CTRL(self, texte=_("Rafraîchir la liste"), cheminImage="Images/32x32/Actualiser.png")
@@ -196,12 +190,12 @@ class Parametres(wx.Panel):
 ##        grid_sizer_base.Add(staticbox_periode, 1, wx.RIGHT|wx.EXPAND, 5)
         
         # Activités
-        staticbox_activites = wx.StaticBoxSizer(self.staticbox_activites_staticbox, wx.VERTICAL)
+        staticbox_activites = wx.StaticBoxSizer(self.stbActivites, wx.VERTICAL)
         staticbox_activites.Add(self.ctrl_activites, 1, wx.ALL|wx.EXPAND, 5)
         grid_sizer_base.Add(staticbox_activites, 1, wx.RIGHT|wx.EXPAND, 5)
         
         # Inscrits / Présents
-        staticbox_presents = wx.StaticBoxSizer(self.staticbox_presents_staticbox, wx.VERTICAL)
+        staticbox_presents = wx.StaticBoxSizer(self.stbPresents, wx.VERTICAL)
         staticbox_presents.Add(self.ctrl_options, 1, wx.ALL|wx.EXPAND, 5)
         grid_sizer_base.Add(staticbox_presents, 1, wx.RIGHT|wx.EXPAND, 5)
         

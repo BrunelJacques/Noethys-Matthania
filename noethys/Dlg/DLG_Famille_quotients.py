@@ -25,17 +25,17 @@ class Panel(wx.Panel):
         self.parent = parent
         self.IDfamille = IDfamille
         
-        self.staticbox_quotients = wx.StaticBox(self, -1, _("Quotients familiaux / Revenus"))
+        self.stbQuotients = wx.StaticBox(self, -1, _("Quotients familiaux / Revenus"))
         
         # OL Quotients
-        self.ctrl_quotients = OL_Quotients.ListView(self, id=-1, IDfamille=self.IDfamille, name="OL_quotients", style=wx.LC_HRULES|wx.LC_VRULES|wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
-        self.ctrl_recherche = OL_Quotients.CTRL_Outils(self, listview=self.ctrl_quotients)
+        self.ctrl_quotients = OL_Quotients.ListView(self.stbQuotients, id=-1, IDfamille=self.IDfamille, name="OL_quotients", style=wx.LC_HRULES|wx.LC_VRULES|wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
+        self.ctrl_recherche = OL_Quotients.CTRL_Outils(self.stbQuotients, listview=self.ctrl_quotients)
         self.ctrl_recherche.SetBackgroundColour((255, 255, 255))
 
         # Commandes boutons
-        self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter = wx.BitmapButton(self.stbQuotients, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier = wx.BitmapButton(self.stbQuotients, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer = wx.BitmapButton(self.stbQuotients, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
 
         # Binds
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAjouter, self.bouton_ajouter)
@@ -49,7 +49,7 @@ class Panel(wx.Panel):
 
         # Layout
         grid_sizer_base = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
-        staticbox_quotients = wx.StaticBoxSizer(self.staticbox_quotients, wx.VERTICAL)
+        staticbox_quotients = wx.StaticBoxSizer(self.stbQuotients, wx.VERTICAL)
         grid_sizer_quotients = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         
         grid_sizer_quotients.Add(self.ctrl_quotients, 1, wx.EXPAND, 0)

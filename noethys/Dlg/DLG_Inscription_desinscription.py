@@ -27,18 +27,18 @@ class Dialog(wx.Dialog):
         wx.Dialog.__init__(self, parent, style=wx.DEFAULT_DIALOG_STYLE)
         self.parent = parent
 
-        self.staticbox_remboursement_staticbox = wx.StaticBox(self, -1, _("Remboursement"))
-        self.ctrl_remboursement = wx.CheckBox(self, -1, _("Générer un remboursement"))
+        self.stbRbt = wx.StaticBox(self, -1, _("Remboursement"))
+        self.ctrl_remboursement = wx.CheckBox(self.stbRbt, -1, _("Générer un remboursement"))
         self.ctrl_remboursement.SetValue(0)
 
-        self.label_motif = wx.StaticText(self, label=_("Motif du départ :"))
-        self.ctrl_motif = wx.TextCtrl(self, -1, "")
-        self.label_total = wx.StaticText(self, label=_("Coût total de l'activité :"))
-        self.ctrl_total = CTRL_Saisie_euros.CTRL(self)
-        self.label_nb_seances = wx.StaticText(self, label=_("Nb séances effectuées :"))
-        self.ctrl_nb_seances = wx.TextCtrl(self, -1, "0", style=wx.TE_RIGHT)
-        self.label_prix_seance = wx.StaticText(self, label=_("Coût unitaire séance :"))
-        self.ctrl_prix_seance = CTRL_Saisie_euros.CTRL(self)
+        self.label_motif = wx.StaticText(self.stbRbt, label=_("Motif du départ :"))
+        self.ctrl_motif = wx.TextCtrl(self.stbRbt, -1, "")
+        self.label_total = wx.StaticText(self.stbRbt, label=_("Coût total de l'activité :"))
+        self.ctrl_total = CTRL_Saisie_euros.CTRL(self.stbRbt)
+        self.label_nb_seances = wx.StaticText(self.stbRbt, label=_("Nb séances effectuées :"))
+        self.ctrl_nb_seances = wx.TextCtrl(self.stbRbt, -1, "0", style=wx.TE_RIGHT)
+        self.label_prix_seance = wx.StaticText(self.stbRbt, label=_("Coût unitaire séance :"))
+        self.ctrl_prix_seance = CTRL_Saisie_euros.CTRL(self.stbRbt)
 
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -67,7 +67,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
 
         # Remboursement
-        staticbox_remboursement = wx.StaticBoxSizer(self.staticbox_remboursement_staticbox, wx.VERTICAL)
+        staticbox_remboursement = wx.StaticBoxSizer(self.stbRbt, wx.VERTICAL)
         staticbox_remboursement.Add(self.ctrl_remboursement, 0, wx.ALL, 10)
 
         grid_sizer_remboursement = wx.FlexGridSizer(rows=5, cols=2, vgap=10, hgap=10)

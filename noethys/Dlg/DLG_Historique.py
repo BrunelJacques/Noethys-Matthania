@@ -111,7 +111,7 @@ class CTRL_Categorie(wx.Choice):
 class CTRL_Famille(wx.Choice):
     def __init__(self, parent):
         wx.Choice.__init__(self, parent, -1) 
-        self.parent = parent
+        self.parent = parent.Parent
         self.MAJlisteDonnees() 
         self.SetSelection(0)
         self.Bind(wx.EVT_CHOICE, self.OnChoix)
@@ -216,15 +216,15 @@ class Dialog(wx.Dialog):
         self.ctrl_recherche = OL_Historique.CTRL_Outils(self, listview=self.ctrl_listview)
         
         # Filtres
-        self.staticbox_filtres_staticbox = wx.StaticBox(self, -1, _("Filtres"))
-        self.label_utilisateur = wx.StaticText(self, -1, _("Utilisateur :"))
-        self.ctrl_utilisateur = CTRL_Utilisateur(self)
-        self.label_famille = wx.StaticText(self, -1, _("Famille :"))
-        self.ctrl_famille = CTRL_Famille(self)
-        self.label_individu = wx.StaticText(self, -1, _("Individu :"))
-        self.ctrl_individu = CTRL_Individu(self)
-        self.label_categorie = wx.StaticText(self, -1, _("Catégorie :"))
-        self.ctrl_categorie = CTRL_Categorie(self)
+        self.stbFiltres = wx.StaticBox(self, -1, _("Filtres"))
+        self.label_utilisateur = wx.StaticText(self.stbFiltres, -1, _("Utilisateur :"))
+        self.ctrl_utilisateur = CTRL_Utilisateur(self.stbFiltres)
+        self.label_famille = wx.StaticText(self.stbFiltres, -1, _("Famille :"))
+        self.ctrl_famille = CTRL_Famille(self.stbFiltres)
+        self.label_individu = wx.StaticText(self.stbFiltres, -1, _("Individu :"))
+        self.ctrl_individu = CTRL_Individu(self.stbFiltres)
+        self.label_categorie = wx.StaticText(self.stbFiltres, -1, _("Catégorie :"))
+        self.ctrl_categorie = CTRL_Categorie(self.stbFiltres)
         
         if IDutilisateur != None : 
             self.ctrl_utilisateur.SetID(IDutilisateur)
@@ -263,7 +263,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
         
         # Filtres
-        staticbox_filtres = wx.StaticBoxSizer(self.staticbox_filtres_staticbox, wx.VERTICAL)
+        staticbox_filtres = wx.StaticBoxSizer(self.stbFiltres, wx.VERTICAL)
         grid_sizer_filtres = wx.FlexGridSizer(rows=1, cols=11, vgap=5, hgap=5)
         
         grid_sizer_filtres.Add(self.label_utilisateur, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)

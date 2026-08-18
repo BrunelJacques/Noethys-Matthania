@@ -22,6 +22,7 @@ import GestionDB
 from Utils import UTILS_Titulaires
 from Utils import UTILS_Organisateur
 from Utils import UTILS_Config
+from Utils.UTILS_Dates import DateEngEnDateDD
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 from Utils import UTILS_Utilisateurs
 from Data import DATA_Civilites
@@ -36,18 +37,6 @@ def DateEngFr(textDate):
     text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
     return text
 
-def DateComplete(dateDD):
-    """ Transforme une date DD en date complète : Ex : lundi 15 janvier 2008 """
-    listeJours = (_("Lundi"), _("Mardi"), _("Mercredi"), _("Jeudi"), _("Vendredi"), _("Samedi"), _("Dimanche"))
-    listeMois = (_("janvier"), _("février"), _("mars"), _("avril"), _("mai"), _("juin"), _("juillet"), _("août"), _("septembre"), _("octobre"), _("novembre"), _("décembre"))
-    dateComplete = listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
-    return dateComplete
-
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    if dateEng == None : return None
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-        
 def PeriodeComplete(mois, annee):
     listeMois = (_("Janvier"), _("Février"), _("Mars"), _("Avril"), _("Mai"), _("Juin"), _("Juillet"), _("Août"), _("Septembre"), _("Octobre"), _("Novembre"), _("Décembre"))
     periodeComplete = "%s %d" % (listeMois[mois-1], annee)
