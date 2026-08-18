@@ -35,16 +35,16 @@ class Panel(wx.Panel):
         self.bouton_prog_supprimer = wx.BitmapButton(self.stbProg, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
 
         # Liste des transports
-        self.staticbox_liste = wx.StaticBox(self, -1, _("Transports"))
-        self.ctrl_liste_transports = OL_Transports.ListView(self.staticbox_liste, IDindividu=IDindividu, id=-1, name="OL_liste_transports", style=wx.LC_HRULES|wx.LC_VRULES|wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
+        self.stbListe = wx.StaticBox(self, -1, _("Transports"))
+        self.ctrl_liste_transports = OL_Transports.ListView(self.stbListe, IDindividu=IDindividu, id=-1, name="OL_liste_transports", style=wx.LC_HRULES|wx.LC_VRULES|wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
         self.ctrl_liste_transports.SetMinSize((150, 20))
         
-        self.bouton_liste_ajouter = wx.BitmapButton(self.staticbox_liste, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_liste_modifier = wx.BitmapButton(self.staticbox_liste, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_liste_supprimer = wx.BitmapButton(self.staticbox_liste, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_liste_calendrier = wx.BitmapButton(self.staticbox_liste, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Calendrier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_liste_ajouter = wx.BitmapButton(self.stbListe, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_liste_modifier = wx.BitmapButton(self.stbListe, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_liste_supprimer = wx.BitmapButton(self.stbListe, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_liste_calendrier = wx.BitmapButton(self.stbListe, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Calendrier.png"), wx.BITMAP_TYPE_ANY))
         
-        self.ctrl_recherche = OL_Transports.CTRL_Outils(self.staticbox_liste, listview=self.ctrl_liste_transports, afficherCocher=True)
+        self.ctrl_recherche = OL_Transports.CTRL_Outils(self.stbListe, listview=self.ctrl_liste_transports, afficherCocher=True)
         self.ctrl_recherche.SetBackgroundColour((255, 255, 255)) 
         
         # Binds
@@ -83,7 +83,7 @@ class Panel(wx.Panel):
         grid_sizer_base.Add(staticbox_prog_transports, 1, wx.EXPAND|wx.ALL, 5)
 
         # Liste des transports
-        staticbox_liste_transports = wx.StaticBoxSizer(self.staticbox_liste, wx.VERTICAL)
+        staticbox_liste_transports = wx.StaticBoxSizer(self.stbListe, wx.VERTICAL)
         grid_sizer_liste = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         grid_sizer_liste.Add(self.ctrl_liste_transports, 1, wx.EXPAND, 0)
         grid_sizer_boutons_liste = wx.FlexGridSizer(rows=5, cols=1, vgap=5, hgap=5)

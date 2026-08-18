@@ -136,14 +136,14 @@ class Panel(wx.Panel):
         self.ctrl_allocataire = CTRL_Allocataire(self.stbCaisse)
 
         # Aides
-        self.staticbox_aides_staticbox = wx.StaticBox(self, -1, _("Aides journalières"))
-        self.ctrl_aides = OL_Aides.ListView(self.staticbox_aides_staticbox, id=-1, IDfamille=self.IDfamille, name="OL_aides", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
+        self.stbAides = wx.StaticBox(self, -1, _("Aides journalières"))
+        self.ctrl_aides = OL_Aides.ListView(self.stbAides, id=-1, IDfamille=self.IDfamille, name="OL_aides", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         self.ctrl_aides.SetMinSize((20, 20)) 
-        self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter = wx.BitmapButton(self.stbAides, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier = wx.BitmapButton(self.stbAides, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer = wx.BitmapButton(self.stbAides, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
         
-        self.hyper_liste = Hyperlien(self, label=_("Afficher la liste des déductions"), infobulle=_("Cliquez ici pour afficher la liste des déductions"), URL="")
+        self.hyper_liste = Hyperlien(self.stbAides, label=_("Afficher la liste des déductions"), infobulle=_("Cliquez ici pour afficher la liste des déductions"), URL="")
         
         self.__set_properties()
         self.__do_layout()
@@ -187,7 +187,7 @@ class Panel(wx.Panel):
         grid_sizer_base.Add(staticbox_caisse, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, 5)
         
         # Aides
-        staticbox_aides = wx.StaticBoxSizer(self.staticbox_aides_staticbox, wx.VERTICAL)
+        staticbox_aides = wx.StaticBoxSizer(self.stbAides, wx.VERTICAL)
         grid_sizer_aides = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         grid_sizer_aides.Add(self.ctrl_aides, 1, wx.EXPAND, 0)
         grid_sizer_boutons_aides = wx.FlexGridSizer(rows=3, cols=1, vgap=5, hgap=5)

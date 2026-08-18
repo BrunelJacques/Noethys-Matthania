@@ -84,18 +84,18 @@ class Dialog(wx.Dialog):
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Repas.png")
         
         # Modèle
-        self.staticbox_modele_staticbox = wx.StaticBox(self, -1, _("Modèle de commande"))
-        self.label_modele = wx.StaticText(self, -1, _("Modèle :"))
-        self.ctrl_modele = CTRL_Modele(self)
-        self.bouton_modeles = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_ANY))
+        self.stbModele = wx.StaticBox(self, -1, _("Modèle de commande"))
+        self.label_modele = wx.StaticText(self.stbModele, -1, _("Modèle :"))
+        self.ctrl_modele = CTRL_Modele(self.stbModele)
+        self.bouton_modeles = wx.BitmapButton(self.stbModele, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_ANY))
 
         # Commandes
-        self.staticbox_commandes_staticbox = wx.StaticBox(self, -1, _("Commandes"))
-        self.ctrl_commandes = OL_Commandes.ListView(self, id=-1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
+        self.stbCommandes = wx.StaticBox(self, -1, _("Commandes"))
+        self.ctrl_commandes = OL_Commandes.ListView(self.stbCommandes, id=-1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         
-        self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter = wx.BitmapButton(self.stbCommandes, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier = wx.BitmapButton(self.stbCommandes, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer = wx.BitmapButton(self.stbCommandes, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
 
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -130,7 +130,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
         
         # Modèle
-        staticbox_modele = wx.StaticBoxSizer(self.staticbox_modele_staticbox, wx.VERTICAL)
+        staticbox_modele = wx.StaticBoxSizer(self.stbModele, wx.VERTICAL)
         grid_sizer_modele = wx.FlexGridSizer(rows=1, cols=3, vgap=10, hgap=5)
         grid_sizer_modele.Add(self.label_modele, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_modele.Add(self.ctrl_modele, 0, wx.EXPAND, 0)
@@ -140,7 +140,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(staticbox_modele, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         
         # Commandes
-        staticbox_commandes = wx.StaticBoxSizer(self.staticbox_commandes_staticbox, wx.VERTICAL)
+        staticbox_commandes = wx.StaticBoxSizer(self.stbCommandes, wx.VERTICAL)
         grid_sizer_commandes = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         grid_sizer_commandes.Add(self.ctrl_commandes, 1, wx.EXPAND, 0)
         

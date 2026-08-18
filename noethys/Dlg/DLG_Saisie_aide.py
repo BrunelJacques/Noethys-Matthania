@@ -206,55 +206,57 @@ class Dialog(wx.Dialog):
         self.listeInitialeMontants = []
         self.listeInitialeCombi = []
         self.listeInitialeUnites = []
-                
-        # Nom
-        self.label_nom = wx.StaticText(self, -1, _("Nom de l'aide :"))
-        self.ctrl_nom = wx.TextCtrl(self, -1, "")
 
         # Généralités
-        self.staticbox_generalites_staticbox = wx.StaticBox(self, -1, _("Caractéristiques"))
+        self.stbGeneral = wx.StaticBox(self, -1, _("Caractéristiques"))
+
+        # Nom
+        self.label_nom = wx.StaticText(self.stbGeneral, -1, _("Nom de l'aide :"))
+        self.ctrl_nom = wx.TextCtrl(self.stbGeneral, -1, "")
+
+
 
         # Activité
-        self.label_activite = wx.StaticText(self, -1, _("Activité associée :"))
-        self.ctrl_activite = CTRL_Activite(self, IDfamille=self.IDfamille)
+        self.label_activite = wx.StaticText(self.stbGeneral, -1, _("Activité associée :"))
+        self.ctrl_activite = CTRL_Activite(self.stbGeneral, IDfamille=self.IDfamille)
 
         # Caisse
-        self.label_caisse = wx.StaticText(self, -1, _("Caisse associée :"))
-        self.ctrl_caisse = CTRL_Caisse(self, IDfamille=self.IDfamille)
+        self.label_caisse = wx.StaticText(self.stbGeneral, -1, _("Caisse associée :"))
+        self.ctrl_caisse = CTRL_Caisse(self.stbGeneral, IDfamille=self.IDfamille)
 
         # Période
-        self.label_periode = wx.StaticText(self, -1, _("Période de validité :"))
-        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self)
-        self.label_date_fin = wx.StaticText(self, -1, _("au"))
-        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self)
+        self.label_periode = wx.StaticText(self.stbGeneral, -1, _("Période de validité :"))
+        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self.stbGeneral)
+        self.label_date_fin = wx.StaticText(self.stbGeneral, -1, _("au"))
+        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self.stbGeneral)
 
         # Jours
-        self.label_scolaires = wx.StaticText(self, -1, _("Jours scolaires :"))
-        self.ctrl_scolaires = CTRL_Jours(self, "scolaires")
-        self.label_vacances = wx.StaticText(self, -1, _("Jours de vacances :"))
-        self.ctrl_vacances = CTRL_Jours(self, "vacances")
+        self.label_scolaires = wx.StaticText(self.stbGeneral, -1, _("Jours scolaires :"))
+        self.ctrl_scolaires = CTRL_Jours(self.stbGeneral, "scolaires")
+        self.label_vacances = wx.StaticText(self.stbGeneral, -1, _("Jours de vacances :"))
+        self.ctrl_vacances = CTRL_Jours(self.stbGeneral, "vacances")
         self.ctrl_scolaires.SetJoursStr("0;1;2;3;4;5;6")
         self.ctrl_vacances.SetJoursStr("0;1;2;3;4;5;6")
 
         # Plafonds
-        self.label_plafonds = wx.StaticText(self, -1, _("Plafonds :"))
-        self.checkbox_plafond_montant = wx.CheckBox(self, -1, _("Montant :"))
-        self.ctrl_plafond_montant = CTRL_Saisie_euros.CTRL(self, size=(65, -1))
-        self.checkbox_plafond_quantite = wx.CheckBox(self, -1, _("Quantité :"))
-        self.ctrl_plafond_quantite = wx.SpinCtrl(self, -1, "", min=0, max=1000, size=(60, -1))
+        self.label_plafonds = wx.StaticText(self.stbGeneral, -1, _("Plafonds :"))
+        self.checkbox_plafond_montant = wx.CheckBox(self.stbGeneral, -1, _("Montant :"))
+        self.ctrl_plafond_montant = CTRL_Saisie_euros.CTRL(self.stbGeneral, size=(65, -1))
+        self.checkbox_plafond_quantite = wx.CheckBox(self.stbGeneral, -1, _("Quantité :"))
+        self.ctrl_plafond_quantite = wx.SpinCtrl(self.stbGeneral, -1, "", min=0, max=1000, size=(60, -1))
 
         # Bénéficiaires
-        self.staticbox_beneficiaires_staticbox = wx.StaticBox(self, -1, _("Bénéficiaires"))
-        self.ctrl_beneficiaires = CTRL_Beneficiaires(self, IDfamille=self.IDfamille, IDactivite=None)
+        self.stbBeneficiaires = wx.StaticBox(self, -1, _("Bénéficiaires"))
+        self.ctrl_beneficiaires = CTRL_Beneficiaires(self.stbBeneficiaires, IDfamille=self.IDfamille, IDactivite=None)
         self.ctrl_beneficiaires.SetMinSize((50, 80))
 
         # Montants
-        self.staticbox_montants_staticbox = wx.StaticBox(self, -1, _("Montants"))
-        self.ctrl_montants = OL_Aides_montants.ListView(self, id=-1, name="OL_montants", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
+        self.stbMontants = wx.StaticBox(self.stbBeneficiaires, -1, _("Montants"))
+        self.ctrl_montants = OL_Aides_montants.ListView(self.stbMontants, id=-1, name="OL_montants", style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         self.ctrl_montants.SetMinSize((50, 100))
-        self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter = wx.BitmapButton(self.stbMontants, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier = wx.BitmapButton(self.stbMontants, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer = wx.BitmapButton(self.stbMontants, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
         
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -294,7 +296,7 @@ class Dialog(wx.Dialog):
         self.OnCheckbox_plafond_quantite(None) 
         
         if self.IDfamille == None :
-            self.staticbox_beneficiaires_staticbox.Show(False)
+            self.stbBeneficiaires.Show(False)
             self.ctrl_beneficiaires.Show(False)
             self.bouton_importer.Show(False)
         
@@ -322,7 +324,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base = wx.FlexGridSizer(rows=5, cols=1, vgap=10, hgap=10)
 
         # Généralites
-        staticbox_generalites = wx.StaticBoxSizer(self.staticbox_generalites_staticbox, wx.VERTICAL)
+        staticbox_generalites = wx.StaticBoxSizer(self.stbGeneral, wx.VERTICAL)
         grid_sizer_generalites = wx.FlexGridSizer(rows=7, cols=2, vgap=10, hgap=10)
 
         # Nom de l'aide
@@ -366,12 +368,12 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(staticbox_generalites, 1, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 10)
 
         # Bénéficiaires
-        staticbox_beneficiaires = wx.StaticBoxSizer(self.staticbox_beneficiaires_staticbox, wx.VERTICAL)
+        staticbox_beneficiaires = wx.StaticBoxSizer(self.stbBeneficiaires, wx.VERTICAL)
         staticbox_beneficiaires.Add(self.ctrl_beneficiaires, 0, wx.ALL|wx.EXPAND, 5)
         grid_sizer_base.Add(staticbox_beneficiaires, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
 
         # Montants
-        staticbox_montants = wx.StaticBoxSizer(self.staticbox_montants_staticbox, wx.VERTICAL)
+        staticbox_montants = wx.StaticBoxSizer(self.stbMontants, wx.VERTICAL)
         grid_sizer_montants = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_boutons_montants = wx.FlexGridSizer(rows=3, cols=1, vgap=5, hgap=5)
         grid_sizer_montants.Add(self.ctrl_montants, 1, wx.EXPAND, 0)

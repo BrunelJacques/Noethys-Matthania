@@ -324,17 +324,17 @@ class Dialog(wx.Dialog):
         # Widgets
         self.imgbox = ImgBox(self,-1, image=image, tailleCadre=tailleCadre)
         
-        self.staticBox_rotation = wx.StaticBox(self, -1, _("Rotation"))
-        self.bouton_rotation_gauche = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/22x22/RotationGauche.png"), wx.BITMAP_TYPE_PNG))
-        self.bouton_rotation_droite = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/22x22/RotationDroite.png"), wx.BITMAP_TYPE_PNG))
+        self.stbRotation = wx.StaticBox(self, -1, _("Rotation"))
+        self.bouton_rotation_gauche = wx.BitmapButton(self.stbRotation, -1, wx.Bitmap(Chemins.GetStaticPath("Images/22x22/RotationGauche.png"), wx.BITMAP_TYPE_PNG))
+        self.bouton_rotation_droite = wx.BitmapButton(self.stbRotation, -1, wx.Bitmap(Chemins.GetStaticPath("Images/22x22/RotationDroite.png"), wx.BITMAP_TYPE_PNG))
         
-        self.staticBox_zoom = wx.StaticBox(self, -1, _("Zoom"))
-        self.slider_zoom = wx.Slider(self, -1,  500, 1, 1000, size=(-1, -1), style=wx.SL_HORIZONTAL)
-        self.img_loupe_plus = wx.StaticBitmap(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/22x22/ZoomPlus.png"), wx.BITMAP_TYPE_ANY))
-        self.img_loupe_moins = wx.StaticBitmap(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/22x22/ZoomMoins.png"), wx.BITMAP_TYPE_ANY))
+        self.stbZoom = wx.StaticBox(self, -1, _("Zoom"))
+        self.slider_zoom = wx.Slider(self.stbZoom, -1,  500, 1, 1000, size=(-1, -1), style=wx.SL_HORIZONTAL)
+        self.img_loupe_plus = wx.StaticBitmap(self.stbZoom, -1, wx.Bitmap(Chemins.GetStaticPath("Images/22x22/ZoomPlus.png"), wx.BITMAP_TYPE_ANY))
+        self.img_loupe_moins = wx.StaticBitmap(self.stbZoom, -1, wx.Bitmap(Chemins.GetStaticPath("Images/22x22/ZoomMoins.png"), wx.BITMAP_TYPE_ANY))
                 
-        self.staticBox_reinit = wx.StaticBox(self, -1, _("Réinitialisation"))
-        self.bouton_reinit = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/22x22/Photo.png"), wx.BITMAP_TYPE_ANY), size=(70, -1))
+        self.stbReinit = wx.StaticBox(self, -1, _("Réinitialisation"))
+        self.bouton_reinit = wx.BitmapButton(self.stbReinit, -1, wx.Bitmap(Chemins.GetStaticPath("Images/22x22/Photo.png"), wx.BITMAP_TYPE_ANY), size=(70, -1))
         
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -380,20 +380,20 @@ class Dialog(wx.Dialog):
         sizer_commandes = wx.FlexGridSizer(rows=1, cols=5, vgap=5, hgap=5)
         
         # Rotation
-        staticBox_rotation = wx.StaticBoxSizer(self.staticBox_rotation, wx.HORIZONTAL)
+        staticBox_rotation = wx.StaticBoxSizer(self.stbRotation, wx.HORIZONTAL)
         staticBox_rotation.Add(self.bouton_rotation_gauche, 0, wx.ALL, 2)
         staticBox_rotation.Add(self.bouton_rotation_droite, 0, wx.ALL, 2)
         sizer_commandes.Add(staticBox_rotation, 1, wx.EXPAND, 0)
         
         # Zoom
-        staticBox_zoom = wx.StaticBoxSizer(self.staticBox_zoom, wx.HORIZONTAL)
+        staticBox_zoom = wx.StaticBoxSizer(self.stbZoom, wx.HORIZONTAL)
         staticBox_zoom.Add(self.img_loupe_moins, 0, wx.ALL, 2)
         staticBox_zoom.Add(self.slider_zoom, 1, wx.EXPAND | wx.ALL, 2)
         staticBox_zoom.Add(self.img_loupe_plus, 0, wx.ALL, 2)
         sizer_commandes.Add(staticBox_zoom, 1, wx.EXPAND, 0)
         
         # Reinit
-        staticBox_reinit = wx.StaticBoxSizer(self.staticBox_reinit, wx.HORIZONTAL)
+        staticBox_reinit = wx.StaticBoxSizer(self.stbReinit, wx.HORIZONTAL)
         staticBox_reinit.Add(self.bouton_reinit, 0, wx.ALL, 2)
         sizer_commandes.Add(staticBox_reinit, 1, wx.EXPAND, 0)
         

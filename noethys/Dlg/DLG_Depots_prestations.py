@@ -63,24 +63,24 @@ class Dialog(wx.Dialog):
         self.SetTitle(titre)
 
         # Sélection du dépôt
-        self.staticbox_depot = wx.StaticBox(self, -1, _("Sélection du dépôt"))
-        self.ctrl_infos = CTRL_Infos(self, hauteur=32, couleurFond="#F0FBED", style=wx.html.HW_NO_SELECTION | wx.html.HW_SCROLLBAR_NEVER | wx.SUNKEN_BORDER)
+        self.stbDepot = wx.StaticBox(self, -1, _("Sélection du dépôt"))
+        self.ctrl_infos = CTRL_Infos(self.stbDepot, hauteur=32, couleurFond="#F0FBED", style=wx.html.HW_NO_SELECTION | wx.html.HW_SCROLLBAR_NEVER | wx.SUNKEN_BORDER)
         self.ctrl_infos.SetLabel("")
-        self.bouton_rechercher = CTRL_Bouton_image.CTRL(self, texte=_("Sélectionner un dépôt"), cheminImage="Images/32x32/Loupe.png")
+        self.bouton_rechercher = CTRL_Bouton_image.CTRL(self.stbDepot, texte=_("Sélectionner un dépôt"), cheminImage="Images/32x32/Loupe.png")
 
         # Résultats
-        self.staticbox_resultats = wx.StaticBox(self, -1, _("Résultats"))
-        self.ctrl_resultats = CTRL_Depot_prestations.CTRL(self, IDdepot=None)
+        self.stbResult = wx.StaticBox(self, -1, _("Résultats"))
+        self.ctrl_resultats = CTRL_Depot_prestations.CTRL(self.stbResult, IDdepot=None)
         
         # Commandes de liste
-        self.bouton_apercu = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Apercu.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_excel = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Excel.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_apercu = wx.BitmapButton(self.stbResult, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Apercu.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_excel = wx.BitmapButton(self.stbResult, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Excel.png"), wx.BITMAP_TYPE_ANY))
 
-        self.check_details = wx.CheckBox(self, -1, _("Afficher détail par tarif unitaire"))
+        self.check_details = wx.CheckBox(self.stbResult, -1, _("Afficher détail par tarif unitaire"))
         self.check_details.SetValue(True) 
 
         self.hyper_developper = self.Build_Hyperlink_developper()
-        self.label_barre = wx.StaticText(self, -1, "|")
+        self.label_barre = wx.StaticText(self.stbResult, -1, "|")
         self.hyper_reduire = self.Build_Hyperlink_reduire()
         
         # Commandes
@@ -112,7 +112,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
         grid_sizer_base.Add(self.ctrl_bandeau, 1, wx.EXPAND, 0)
 
-        staticbox_depot = wx.StaticBoxSizer(self.staticbox_depot, wx.VERTICAL)
+        staticbox_depot = wx.StaticBoxSizer(self.stbDepot, wx.VERTICAL)
         grid_sizer_depot = wx.FlexGridSizer(rows=1, cols=3, vgap=5, hgap=5)
         grid_sizer_depot.Add(self.ctrl_infos, 0, wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 0)
         grid_sizer_depot.Add(self.bouton_rechercher, 0, wx.ALIGN_CENTER_VERTICAL, 0)
@@ -120,7 +120,7 @@ class Dialog(wx.Dialog):
         staticbox_depot.Add(grid_sizer_depot, 1, wx.ALL|wx.EXPAND, 10)
         grid_sizer_base.Add(staticbox_depot, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
 
-        staticbox_resultats = wx.StaticBoxSizer(self.staticbox_resultats, wx.VERTICAL)
+        staticbox_resultats = wx.StaticBoxSizer(self.stbResult, wx.VERTICAL)
 
         grid_sizer_contenu = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         
@@ -199,7 +199,7 @@ class Dialog(wx.Dialog):
     def Build_Hyperlink_developper(self) :
         """ Construit un hyperlien """
         self.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False))
-        hyper = hl.HyperLinkCtrl(self, -1, _("Tout développer"), URL="")
+        hyper = hl.HyperLinkCtrl(self.stbResult, -1, _("Tout développer"), URL="")
         hyper.Bind(hl.EVT_HYPERLINK_LEFT, self.OnLeftLink_developper)
         hyper.AutoBrowse(False)
         hyper.SetColours("BLUE", "BLUE", "BLUE")
@@ -217,7 +217,7 @@ class Dialog(wx.Dialog):
     def Build_Hyperlink_reduire(self) :
         """ Construit un hyperlien """
         self.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False))
-        hyper = hl.HyperLinkCtrl(self, -1, _("Tout réduire"), URL="")
+        hyper = hl.HyperLinkCtrl(self.stbResult, -1, _("Tout réduire"), URL="")
         hyper.Bind(hl.EVT_HYPERLINK_LEFT, self.OnLeftLink_reduire)
         hyper.AutoBrowse(False)
         hyper.SetColours("BLUE", "BLUE", "BLUE")

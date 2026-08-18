@@ -26,7 +26,7 @@ from Utils import UTILS_Config
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 
 from Ctrl.CTRL_Tarification_calcul import CHAMPS_TABLE_LIGNES
-from Dlg.DLG_Saisie_prestation import Choix_individu
+from Dlg.DLG_Saisie_prestation import Ctrl_individu
 from Utils import UTILS_Questionnaires
 
 
@@ -125,22 +125,22 @@ class Dialog(wx.Dialog):
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Euro.png")
 
         # Généralités
-        self.staticbox_generalites_staticbox = wx.StaticBox(self, -1, _("Paramètres"))
+        self.stbGeneral = wx.StaticBox(self, -1, _("Paramètres"))
 
-        self.label_modele = wx.StaticText(self, -1, _("Modèle :"))
-        self.ctrl_modele = CTRL_Modeles(self)
+        self.label_modele = wx.StaticText(self.stbGeneral, -1, _("Modèle :"))
+        self.ctrl_modele = CTRL_Modeles(self.stbGeneral)
         self.ctrl_modele.SetMinSize((300, -1))
         self.bouton_modeles = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_ANY))
 
-        self.label_individu = wx.StaticText(self, -1, _("Individu :"))
-        self.ctrl_individu = Choix_individu(self, IDfamille=self.IDfamille)
+        self.label_individu = wx.StaticText(self.stbGeneral, -1, _("Individu :"))
+        self.ctrl_individu = Ctrl_individu(self.stbGeneral, IDfamille=self.IDfamille)
 
-        self.label_date = wx.StaticText(self, -1, _("Date :"))
-        self.ctrl_date = CTRL_Saisie_date.Date2(self)
+        self.label_date = wx.StaticText(self.stbGeneral, -1, _("Date :"))
+        self.ctrl_date = CTRL_Saisie_date.Date2(self.stbGeneral)
         self.ctrl_date.SetDate(datetime.date.today())
 
-        self.label_montant = wx.StaticText(self, -1, _("Montant :"))
-        self.ctrl_montant = CTRL_Saisie_euros.CTRL(self)
+        self.label_montant = wx.StaticText(self.stbGeneral, -1, _("Montant :"))
+        self.ctrl_montant = CTRL_Saisie_euros.CTRL(self.stbGeneral)
 
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -173,7 +173,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
 
         # Généralités
-        staticbox_generalites = wx.StaticBoxSizer(self.staticbox_generalites_staticbox, wx.VERTICAL)
+        staticbox_generalites = wx.StaticBoxSizer(self.stbGeneral, wx.VERTICAL)
 
         grid_sizer_generalites = wx.FlexGridSizer(rows=3, cols=2, vgap=10, hgap=10)
 

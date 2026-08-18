@@ -8,7 +8,6 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
 import Chemins
 from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
@@ -51,27 +50,23 @@ import FonctionsPerso
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm as mmPDF
 from reportlab.lib.utils import ImageReader
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+#from reportlab.lib import colors
+#from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.pdfgen.canvas import Canvas as CanvasPDF
-from reportlab.graphics.shapes import Drawing
-from reportlab.platypus import Paragraph
+#from reportlab.graphics.shapes import Drawing
+#from reportlab.platypus import Paragraph
 
 from reportlab.graphics.barcode.common import Codabar, Code11, I2of5, MSI
 from reportlab.graphics.barcode.code128 import Code128
-from reportlab.graphics.barcode.eanbc import Ean13BarcodeWidget, Ean8BarcodeWidget
+#from reportlab.graphics.barcode.eanbc import Ean13BarcodeWidget, Ean8BarcodeWidget
 from reportlab.graphics.barcode.code39 import Extended39, Standard39
 from reportlab.graphics.barcode.code93 import Extended93, Standard93
-from reportlab.graphics.barcode.usps import FIM, POSTNET
-from reportlab.graphics.barcode.usps4s import USPS_4State
+from reportlab.graphics.barcode.usps import  POSTNET
 from reportlab.graphics.barcode import createBarcodeDrawing
-from reportlab.graphics.barcode import ecc200datamatrix
 
 from Dlg import DLG_Saisie_texte_doc
 from PIL import Image
 from Utils import UTILS_Images
-
-
 
 
 class Fond():
@@ -1264,7 +1259,7 @@ class Panel_commandes(wx.Panel):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
         self.parent = parent
         # Boutons
-        self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_(u"Aide"), cheminImage="Images/32x32/Aide.png")
+        self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_(u"Affichage"), cheminImage="Images/32x32/Restaurer.png")
 ##        self.bouton_options = CTRL_Bouton_image.CTRL(self, texte=_(u"Options"), cheminImage="Images/32x32/Configuration2.png")
 ##        self.bouton_outils = CTRL_Bouton_image.CTRL(self, texte=_(u"Outils"), cheminImage="Images/32x32/Configuration.png")
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_(u"Ok"), cheminImage="Images/32x32/Valider.png")
@@ -1288,7 +1283,7 @@ class Panel_commandes(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAnnuler, self.bouton_annuler)
 ##        self.Bind(wx.EVT_BUTTON, self.OnBoutonOptions, self.bouton_options)
 ##        self.Bind(wx.EVT_BUTTON, self.OnBoutonOutils, self.bouton_outils)
-        self.Bind(wx.EVT_BUTTON, self.OnBoutonAide, self.bouton_aide)
+        self.Bind(wx.EVT_BUTTON, self.OnBoutonAffichage, self.bouton_aide)
 
     def OnBoutonOk(self, event):
         # Sauvegarde
@@ -1311,10 +1306,9 @@ class Panel_commandes(wx.Panel):
         self.parent._mgr.UnInit()
         self.parent.OnBoutonAnnuler()
         
-    def OnBoutonAide(self, event):
-        from Utils import UTILS_Aide
-        UTILS_Aide.Aide("Lditeurdedocuments")
-    
+    def OnBoutonAffichage(self, event):
+        self.parent.ctrl_canvas.Reinit_canvas()
+
 
 
 # ------------------------------------------------------------------------------------------------------------------
@@ -3498,7 +3492,8 @@ class Panel_canvas(wx.Panel):
         self.canvas.Bind(FC.EVT_LEFT_DOWN, self.OnLeftDownCanvas ) 
         self.canvas.Bind(FC.EVT_RIGHT_DOWN, self.OnRightDownCanvas ) 
         self.canvas.Bind(wx.EVT_KEY_UP, self.OnKeyUp ) 
-        self.canvas.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeaveWindow ) 
+        self.canvas.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeaveWindow )
+
     
     def Init_canvas(self):
         if self.taille_page != None :
@@ -3506,9 +3501,10 @@ class Panel_canvas(wx.Panel):
             self.Init_fond()
             self.Init_grille()
             self.canvas.ZoomToBB()
-    
+
     def Reinit_canvas(self):
-        self.canvas.RemoveObject(self.page)
+        if hasattr(self,"page"):
+            self.canvas.RemoveObject(self.page)
         self.SupprimerFond()
         try :
             self.canvas.RemoveObject(self.grille)
@@ -3792,10 +3788,10 @@ class Panel_canvas(wx.Panel):
             menu = UTILS_Adaptations.Menu()
             self.point = objet
             # Supprimer la poignée
-            item = wx.MenuItem(menu, ID_MENU_SUPPRIMER_POINT, _(u"Supprimer ce point"), _(u"Supprimer ce point"), wx.ITEM_NORMAL)
+            item = wx.MenuItem(menu, self.ID_MENU_SUPPRIMER_POINT, _(u"Supprimer ce point"), _(u"Supprimer ce point"), wx.ITEM_NORMAL)
             item.SetMarginWidth(16)
             menu.AppendItem(item)
-            self.Bind(wx.EVT_MENU, self.OnMenu_supprimer_point, id=ID_MENU_SUPPRIMER_POINT)
+            self.Bind(wx.EVT_MENU, self.OnMenu_supprimer_point, id=self.ID_MENU_SUPPRIMER_POINT)
             # Finalisation du menu
             self.PopupMenu(menu)
             menu.Destroy()
@@ -3823,11 +3819,11 @@ class Panel_canvas(wx.Panel):
         menu = UTILS_Adaptations.Menu()
         self.coords = objet.HitCoords
         # Supprimer la poignée
-        item = wx.MenuItem(menu, ID_MENU_AJOUTER_POINT, _(u"Ajouter un point ici"), _(u"Ajouter un point ici"), wx.ITEM_NORMAL)
+        item = wx.MenuItem(menu, self.ID_MENU_AJOUTER_POINT, _(u"Ajouter un point ici"), _(u"Ajouter un point ici"), wx.ITEM_NORMAL)
 ##        item.SetBitmap(wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_PNG))
         item.SetMarginWidth(16)
         menu.AppendItem(item)
-        self.Bind(wx.EVT_MENU, self.OnMenu_ajouter_point, id=ID_MENU_AJOUTER_POINT)
+        self.Bind(wx.EVT_MENU, self.OnMenu_ajouter_point, id=self.ID_MENU_AJOUTER_POINT)
         # Finalisation du menu
         self.PopupMenu(menu)           
         menu.Destroy()
@@ -3859,13 +3855,9 @@ class Panel_canvas(wx.Panel):
         # Magnétisme
         coordsCurseur = event.Coords
         coordsCurseur = (Arrondir(coordsCurseur[0]), Arrondir(coordsCurseur[1]))
-        
-##        dc = wx.ScreenDC()
-##        x, y = event.GetPosition()
-##        print dc.GetPixel(x, y)
+
         
         # Affichage des coords
-##        self.parent.SetStatusText(u"    X : %d mm   Y : %d mm" % coordsCurseur)
         self.afficheStatusBarPerso(x=coordsCurseur[0], y=coordsCurseur[1])
          
         # Déplacement
@@ -4202,10 +4194,10 @@ class Panel_canvas(wx.Panel):
         ID_MENU_SUPPRIMER = wx.Window.NewControlId()
 
         # Menu contextuel Poignée
-        ID_MENU_SUPPRIMER_POINT = wx.Window.NewControlId()
+        self.ID_MENU_SUPPRIMER_POINT = wx.Window.NewControlId()
 
         # Menu contextuel Ligne
-        ID_MENU_AJOUTER_POINT = wx.Window.NewControlId()
+        self.ID_MENU_AJOUTER_POINT = wx.Window.NewControlId()
 
 
         if "texte" in objet.categorie :
@@ -5285,10 +5277,7 @@ class Dialog(wx.Dialog):
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         
         # Logo
-        if 'phoenix' in wx.PlatformInfo:
-            _icon = wx.Icon()
-        else :
-            _icon = wx.EmptyIcon()
+        _icon = wx.Icon()
         _icon.CopyFromBitmap(wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Logo.png"), wx.BITMAP_TYPE_ANY))
         self.SetIcon(_icon)
         
@@ -5301,7 +5290,6 @@ class Dialog(wx.Dialog):
         # Init Canvas
         self.ctrl_canvas.IDfond = IDfond
         self.CenterOnScreen()
-        self.ctrl_canvas.Init_canvas()
         
         del dlgAttente
 
@@ -5319,7 +5307,6 @@ class Dialog(wx.Dialog):
         UTILS_Dialogs.AjusteSizePerso(self, __file__)
         self.CenterOnScreen()
         self.ctrl_canvas.OnOutil_ajuster(None)
-
 
     def MakeToolBar1(self):
         tbar = aui.AuiToolBar(self, -1, wx.DefaultPosition, wx.DefaultSize, agwStyle=aui.AUI_TB_DEFAULT_STYLE | aui.AUI_TB_OVERFLOW)
@@ -5441,10 +5428,6 @@ class Dialog(wx.Dialog):
         del self._mgr
         self.Destroy()
 
-    def OnAide(self, event):
-        from Utils import UTILS_Aide
-        UTILS_Aide.Aide("Lditeurdedocuments")
-
     def SetNomDoc(self, nom=u""):
         if nom == None or nom == u"":
             nom = _(u"Sans nom")
@@ -5455,7 +5438,7 @@ class Dialog(wx.Dialog):
     def ChangeTaillePage(self, taille=(210, 297)):
         self.taille_page = taille
         self.ctrl_canvas.taille_page = taille
-        self.ctrl_canvas.Reinit_canvas()
+        self.ctrl_canvas.Init_canvas()
 
     def GetBufferPhotoPage(self):
         bmp = self.ctrl_canvas.GetPhotoPage()

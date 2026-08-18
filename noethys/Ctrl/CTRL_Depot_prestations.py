@@ -183,7 +183,6 @@ class CTRL(HTL.HyperTreeList):
             else :
                 nomActivite = _("Activité inconnue")
             listeLabels.append((nomActivite, IDactivite, dictActivite))
-        listeLabels.sort()
 
         quantite = 0
         total = 0.0
