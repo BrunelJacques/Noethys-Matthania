@@ -37,7 +37,7 @@ def ConditionDateSql(self):
         if hasattr(self.parent,"ctrl_date_debut"):
             dateDeb = DateEngSQL(self.parent.ctrl_date_debut.Value)
             dateFin = DateEngSQL(self.parent.ctrl_date_fin.Value)
-        condDates = " activites.date_fin >= '%s' And activites.date_fin <= '%s' " % (
+            condDates = " activites.date_fin >= '%s' And activites.date_fin <= '%s' " % (
                     dateDeb, dateFin)
     return condDates
 
@@ -47,7 +47,9 @@ def GetStaticBox(self):
 class ACheckListBox(wx.CheckListBox):
     def __init__(self, parent, *args, **kwargs):
         wx.CheckListBox.__init__(self, parent, -1, size = (50,50))
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else: self.parent = parent
         self.dictDonnees = {}
         self.listeDonnees = []
         self.listeChecked = []
@@ -183,7 +185,10 @@ class ACheckListBox(wx.CheckListBox):
 class Hyperlien(Hyperlink.HyperLinkCtrl):
     def __init__(self, parent, id=-1, label="", infobulle="", URL=""):
         Hyperlink.HyperLinkCtrl.__init__(self, parent, id, label, URL=URL)
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
         self.URL = URL
         self.AutoBrowse(False)
 
@@ -206,7 +211,10 @@ class Hyperlien(Hyperlink.HyperLinkCtrl):
 
 class CocheToutRien(wx.Panel):
     def __init__(self, parent,IDparent):
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
         self.IDparent = IDparent
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
         self.hyper_tout = Hyperlien(self, label="Cocher", infobulle="Cliquez ici pour tout cocher",
@@ -322,15 +330,15 @@ class CTRL(wx.Panel):
         wx.Panel.__init__(self, parent, id=-1, name="CTRL_SelectionActivites", style=wx.TAB_TRAVERSAL)
         self.parent = parent
         self.listview = listview
-        self.box_selection_staticbox = GetStaticBox(self)
+        self.stbSelect = GetStaticBox(self)
 
         # Période
-        self.label_date_debut = wx.StaticText(self, -1, "Du")
+        self.label_date_debut = wx.StaticText(self.stbSelect, -1, "Du")
         self.ctrl_date_debut = CTRL_Saisie_date.Date(self)
-        self.bouton_date_debut = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Calendrier.png"), wx.BITMAP_TYPE_ANY))
-        self.label_date_fin = wx.StaticText(self, -1, "Au")
-        self.ctrl_date_fin = CTRL_Saisie_date.Date(self)
-        self.bouton_date_fin = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Calendrier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_date_debut = wx.BitmapButton(self.stbSelect, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Calendrier.png"), wx.BITMAP_TYPE_ANY))
+        self.label_date_fin = wx.StaticText(self.stbSelect, -1, "Au")
+        self.ctrl_date_fin = CTRL_Saisie_date.Date(self.stbSelect)
+        self.bouton_date_fin = wx.BitmapButton(self.stbSelect, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Calendrier.png"), wx.BITMAP_TYPE_ANY))
         self.dateDebut, self.dateFin = self.GetExercice()
         if self.dateDebut:
             self.ctrl_date_debut.SetValue(self.dateDebut)
@@ -338,16 +346,16 @@ class CTRL(wx.Panel):
             self.ctrl_date_fin.SetValue(self.dateFin)
 
         # Groupes d'activités
-        self.box_groupes_activites_staticbox = wx.StaticBox(self, -1, "Groupes d'activités")
-        self.ctrl_groupes_activites = CTRL_Groupes_activites(self)
+        self.stbGrpActx = wx.StaticBox(self, -1, "Groupes d'activités")
+        self.ctrl_groupes_activites = CTRL_Groupes_activites(self.stbGrpActx)
         self.ctrl_groupes_activites.SetMinSize((50, 50))
-        self.ctrl_coche_grpAct = CocheToutRien(self, "grpAct")
-        self.ctrl_coche_act = CocheToutRien(self, "act")
+        self.ctrl_coche_grpAct = CocheToutRien(self.stbGrpActx, "grpAct")
 
         # Activités
-        self.box_activites_staticbox = wx.StaticBox(self, -1, "Activités")
-        self.ctrl_activites = CTRL_Activites(self)
+        self.stbActivites = wx.StaticBox(self, -1, "Activités")
+        self.ctrl_activites = CTRL_Activites(self.stbActivites)
         self.ctrl_activites.SetMinSize((50, 50))
+        self.ctrl_coche_act = CocheToutRien(self.stbActivites, "act")
 
         self.__set_properties()
         self.__do_layout()
@@ -368,7 +376,7 @@ class CTRL(wx.Panel):
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=2, cols=1, vgap=0, hgap=5)
         # Gauche - sélection des lignes
-        box_selection = wx.StaticBoxSizer(self.box_selection_staticbox, wx.VERTICAL)
+        box_selection = wx.StaticBoxSizer(self.stbSelect, wx.VERTICAL)
         grid_sizer_gauche = wx.FlexGridSizer(rows=6, cols=1, vgap=5, hgap=5)
 
         # Période
@@ -382,13 +390,13 @@ class CTRL(wx.Panel):
         grid_sizer_gauche.Add(grid_sizer_dates, 1, wx.ALIGN_CENTER_HORIZONTAL, 0)
 
         # Groupes d'activité
-        box_grpactiv = wx.StaticBoxSizer(self.box_groupes_activites_staticbox, wx.HORIZONTAL)
+        box_grpactiv = wx.StaticBoxSizer(self.stbGrpActx, wx.HORIZONTAL)
         box_grpactiv.Add(self.ctrl_groupes_activites, 1, wx.ALL | wx.EXPAND, 5)
         box_grpactiv.Add(self.ctrl_coche_grpAct, 0, wx.ALL, 0)
         grid_sizer_gauche.Add(box_grpactiv, 1, wx.LEFT | wx.EXPAND, 25)
 
         # Activité
-        box_activite = wx.StaticBoxSizer(self.box_activites_staticbox, wx.HORIZONTAL)
+        box_activite = wx.StaticBoxSizer(self.stbActivites, wx.HORIZONTAL)
         box_activite.Add(self.ctrl_activites, 1, wx.ALL | wx.EXPAND, 5)
         box_activite.Add(self.ctrl_coche_act, 0, wx.ALL, 0)
         grid_sizer_gauche.Add(box_activite, 1, wx.LEFT | wx.EXPAND, 25)
@@ -496,7 +504,7 @@ class DLG_SelectionActivites(wx.Dialog):
         wx.Dialog.__init__(self, parent, -1, style=style)
         self.parent = parent
         self.periode = kwd.pop('periode',None)
-        title = kwd.pop('title', "MultiChoix d'activité")
+        title = kwd.pop('title', "MultiChoix activité")
         self.SetTitle(title)
         self.SetMinSize(minSize)
 

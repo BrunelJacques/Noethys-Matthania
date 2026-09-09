@@ -13,7 +13,6 @@ from Utils.UTILS_Traduction import _
 import Chemins
 import wx
 from Ctrl import CTRL_Bouton_image
-import GestionDB
 from Ctrl import CTRL_Bandeau
 from Ol import OL_Liste_prestations
 from Ctrl import CTRL_Saisie_date

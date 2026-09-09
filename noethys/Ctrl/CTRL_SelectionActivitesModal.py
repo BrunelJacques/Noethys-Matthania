@@ -289,9 +289,9 @@ class CTRL(wx.Panel):
         self.parent = parent
 
     def __init_layout(self):
-        self.stbBase = wx.StaticBox(self, -1, self.Adapt.GetTitleBox())
+        #self.stbBase = wx.StaticBox(self, -1, self.Adapt.GetTitleBox())
         # Période
-        self.ctrl_periode = CTRL_Saisie_date.Periode(self.stbBase,flexGridParams=(1,4,2,10))
+        self.ctrl_periode = CTRL_Saisie_date.Periode(self,flexGridParams=(1,4,2,10))
         # Groupes d'activités
         self.stbGroupes = wx.StaticBox(self, -1, "Groupes d'activités")
         self.ctrl_groupesActivite = CTRL_GroupesActivite(self.stbGroupes)
@@ -316,7 +316,7 @@ class CTRL(wx.Panel):
 
     def __do_layout(self):
         fgSizer_base = wx.FlexGridSizer(rows=5, cols=1, vgap=10, hgap=5)
-        box_base = wx.StaticBoxSizer(self.stbBase, wx.VERTICAL)
+        box_base = wx.BoxSizer(wx.VERTICAL)
 
                      # Période
         box_base.Add(self.ctrl_periode, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
@@ -419,7 +419,7 @@ class DLG_SelectionActivites(wx.Dialog):
         style = kwd.pop('style',
                     wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
         wx.Dialog.__init__(self, parent, -1, style=style)
-        title = kwd.pop('title', "MultiChoix d'activité")
+        title = kwd.pop('title', "MultiChoix d'activités")
         self.periode = None
         self.SetTitle(title)
         self.SetMinSize(minSize)
