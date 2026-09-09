@@ -15,9 +15,7 @@ from Ctrl import CTRL_Bouton_image
 import wx.lib.agw.pybusyinfo as PBI
 import GestionDB
 from Ctrl import CTRL_Saisie_date
-from Dlg import DLG_calendrier_simple
 import wx.lib.agw.hyperlink as Hyperlink
-import UTILS_Dates as ut
 
 # Service d'accès aux données partagées, Adaptations possibles
 class Adapt(object):
@@ -222,7 +220,7 @@ class Hyperlien(Hyperlink.HyperLinkCtrl):
 
 class CocheToutRien(wx.Panel):
     def __init__(self, parent,IDparent):
-        self.parent = parent
+        self.parent = parent.Parent
         self.IDparent = IDparent
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
         self.hyper_tout = Hyperlien(self, label="Cocher", infobulle="Cliquez ici pour tout cocher",
@@ -245,6 +243,7 @@ class CTRL_GroupesActivite(ACheckListBox):
         ACheckListBox.__init__(self, parent, -1)
         self.periode = None
         self.nomCtrl = "Grp d'activité"
+        self.parent = parent.Parent
         self.Adapt = self.parent.Adapt
 
     def Importation(self):
@@ -260,9 +259,10 @@ class CTRL_Activites(ACheckListBox):
     def __init__(self, parent):
         ACheckListBox.__init__(self, parent, -1)
         self.periode = None
+        self.parent = self.parent.Parent
         self.lstGroupes = []
         self.nomCtrl = "Activité"
-        self.Adapt = parent.Adapt
+        self.Adapt = self.parent.Adapt
 
     def Importation(self):
         self.lstDonnees, self.lstID = self.Adapt.GetDataActivites(self.lstGroupes)
@@ -289,19 +289,19 @@ class CTRL(wx.Panel):
         self.parent = parent
 
     def __init_layout(self):
-        self.baseStaticBox = wx.StaticBox(self, -1, self.Adapt.GetTitleBox())
+        self.stbBase = wx.StaticBox(self, -1, self.Adapt.GetTitleBox())
         # Période
-        self.ctrl_periode = CTRL_Saisie_date.Periode(self,flexGridParams=(1,4,2,10))
+        self.ctrl_periode = CTRL_Saisie_date.Periode(self.stbBase,flexGridParams=(1,4,2,10))
         # Groupes d'activités
-        self.box_groupes_activites_staticbox = wx.StaticBox(self, -1, "Groupes d'activités")
-        self.ctrl_groupesActivite = CTRL_GroupesActivite(self)
+        self.stbGroupes = wx.StaticBox(self, -1, "Groupes d'activités")
+        self.ctrl_groupesActivite = CTRL_GroupesActivite(self.stbGroupes)
         self.ctrl_groupesActivite.SetMinSize((50, 50))
-        self.ctrl_coche_grpAct = CocheToutRien(self, "grpAct")
-        self.ctrl_coche_act = CocheToutRien(self, "act")
+        self.ctrl_coche_grpAct = CocheToutRien(self.stbGroupes, "grpAct")
         # Activités
-        self.box_activites_staticbox = wx.StaticBox(self, -1, "Activités")
-        self.ctrl_activites = CTRL_Activites(self)
+        self.stbActivites = wx.StaticBox(self, -1, "Activités")
+        self.ctrl_activites = CTRL_Activites(self.stbActivites)
         self.ctrl_activites.SetMinSize((50, 50))
+        self.ctrl_coche_act = CocheToutRien(self.stbActivites, "act")
 
         self.__set_properties()
         self.__do_layout()
@@ -316,19 +316,19 @@ class CTRL(wx.Panel):
 
     def __do_layout(self):
         fgSizer_base = wx.FlexGridSizer(rows=5, cols=1, vgap=10, hgap=5)
-        box_base = wx.StaticBoxSizer(self.baseStaticBox, wx.VERTICAL)
+        box_base = wx.StaticBoxSizer(self.stbBase, wx.VERTICAL)
 
                      # Période
         box_base.Add(self.ctrl_periode, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
 
         # Groupes d'activité
-        box_grpactiv = wx.StaticBoxSizer(self.box_groupes_activites_staticbox, wx.HORIZONTAL)
+        box_grpactiv = wx.StaticBoxSizer(self.stbGroupes, wx.HORIZONTAL)
         box_grpactiv.Add(self.ctrl_groupesActivite, 1, wx.ALL | wx.EXPAND, 5)
         box_grpactiv.Add(self.ctrl_coche_grpAct, 0, wx.ALL, 0)
         box_base.Add(box_grpactiv, 1, wx.LEFT | wx.EXPAND, 15)
 
         # Activité
-        box_activite = wx.StaticBoxSizer(self.box_activites_staticbox, wx.HORIZONTAL)
+        box_activite = wx.StaticBoxSizer(self.stbActivites, wx.HORIZONTAL)
         box_activite.Add(self.ctrl_activites, 1, wx.ALL | wx.EXPAND, 5)
         box_activite.Add(self.ctrl_coche_act, 0, wx.ALL, 0)
         box_base.Add(box_activite, 2, wx.LEFT | wx.EXPAND, 15)
@@ -469,7 +469,7 @@ class DLG_SelectionActivites(wx.Dialog):
 class CTRL_BoutonSelectionActivites(wx.Panel):
     def __init__(self,parent,id,periode, **kwds):
         wx.Panel.__init__(self,parent,id )
-        self.parent = parent
+        self.parent = parent.Parent
         maxSize = kwds.pop("size", (250, 40))
         minSize = kwds.pop('minSize',(85,30))
         self.periode = periode
@@ -543,7 +543,8 @@ class MyFrame(wx.Frame):
         panel = wx.Panel(self, -1)
         self.panel = panel
         periode = (datetime.date(2023,7,14),datetime.date(2023,7,15))
-        self.panel.ctrl = CTRL_BoutonSelectionActivites(panel,-1,periode)
+        #self.panel.ctrl = CTRL_BoutonSelectionActivites(panel,-1,periode)
+        self.panel.ctrl = CTRL(panel)
         self.panel.ctrl2 = wx.TextCtrl(panel,value="ctrl2")
         self.panel.ctrl3 = wx.TextCtrl(panel,value="ctrl3")
 
@@ -562,9 +563,9 @@ class MyFrame(wx.Frame):
 
 if __name__ == '__main__':
     app = wx.App(0)
-    #frame_1 = DLG_SelectionActivites(None)
+    frame_1 = DLG_SelectionActivites(None)
     #print(frame_1.ShowModal())
-    #app.SetTopWindow(frame_1)
+    app.SetTopWindow(frame_1)
     frame_1 = MyFrame(None, -1, "TEST", size=(500, 700))
     print('retour frame',frame_1.Show())
     app.MainLoop()

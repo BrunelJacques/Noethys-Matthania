@@ -441,7 +441,7 @@ class DefaultDrawingAlgorithm(DrawingAlgorithm):
             (tw, th) = self.dc.GetTextExtent(label)
             middle = self.metrics.calc_x(tp.mean_time())
             middley = self.metrics.half_height
-            self.dc.DrawText(label, middle - tw // 2, middley - th)
+            self.dc.DrawText(label, middle - tw // 2, int(middley - th))
         # Major strips
         self.dc.SetFont(self.header_font)
         self.dc.SetPen(self.grey_solid_pen)
@@ -466,11 +466,11 @@ class DefaultDrawingAlgorithm(DrawingAlgorithm):
                 left = self.metrics.calc_x(tp.start_time)
                 if x < left:
                     x = left + INNER_PADDING
-            self.dc.DrawText(label, x, INNER_PADDING)
+            self.dc.DrawText(label, int(x), INNER_PADDING)
         # Main divider line
         self.dc.SetPen(self.black_solid_pen)
-        self.dc.DrawLine(0, self.metrics.half_height, self.metrics.width,
-                         self.metrics.half_height)
+        self.dc.DrawLine(0, int(self.metrics.half_height), self.metrics.width,
+                         int(self.metrics.half_height))
         # Lines to all events
         self.dc.SetBrush(self.black_solid_brush)
         for (event, rect) in self.event_data:
@@ -750,7 +750,7 @@ class DefaultDrawingAlgorithm(DrawingAlgorithm):
             x += tw
 
     def _draw_balloon_bg(self, dc, inner_size, tip_pos, above):
-        """
+        r"""
         Draw the balloon background leaving inner_size for content.
 
         tip_pos determines where the tip of the ballon should be.

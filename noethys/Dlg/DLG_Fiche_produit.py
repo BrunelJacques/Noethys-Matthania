@@ -278,13 +278,13 @@ class Dialog(wx.Dialog):
         self.SetTitle(_("Fiche produit"))
 
         # Généralités
-        self.staticbox_generalites_staticbox = wx.StaticBox(self, -1, _("Caractéristiques"))
-        self.ctrl_produit = MyHtml(self)
+        self.stbGeneral = wx.StaticBox(self, -1, _("Caractéristiques"))
+        self.ctrl_produit = MyHtml(self.stbGeneral)
 
         # Logo
-        self.staticbox_logo_staticbox = wx.StaticBox(self, -1, _("Image"))
-        self.ctrl_logo = CTRL_Logo.CTRL(self, qualite=100, couleurFond=wx.Colour(255, 255, 255), size=(110, 110) )
-        self.bouton_visualiser = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Loupe.png"), wx.BITMAP_TYPE_ANY))
+        self.stbLogo = wx.StaticBox(self, -1, _("Image"))
+        self.ctrl_logo = CTRL_Logo.CTRL(self.stbLogo, qualite=100, couleurFond=wx.Colour(255, 255, 255), size=(110, 110) )
+        self.bouton_visualiser = wx.BitmapButton(self.stbLogo, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Loupe.png"), wx.BITMAP_TYPE_ANY))
 
         # Onglets
         self.ctrl_onglets = CTRL_Onglets(self, self.IDproduit)
@@ -319,12 +319,12 @@ class Dialog(wx.Dialog):
         grid_sizer_haut = wx.FlexGridSizer(rows=1, cols=2, vgap=10, hgap=10)
 
         # Généralités
-        staticbox_generalites = wx.StaticBoxSizer(self.staticbox_generalites_staticbox, wx.VERTICAL)
+        staticbox_generalites = wx.StaticBoxSizer(self.stbGeneral, wx.VERTICAL)
         staticbox_generalites.Add(self.ctrl_produit, 1, wx.ALL|wx.EXPAND, 10)
         grid_sizer_haut.Add(staticbox_generalites, 1, wx.EXPAND, 10)
 
         # Logo
-        staticbox_logo = wx.StaticBoxSizer(self.staticbox_logo_staticbox, wx.VERTICAL)
+        staticbox_logo = wx.StaticBoxSizer(self.stbLogo, wx.VERTICAL)
         grid_sizer_logo = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_logo_boutons = wx.FlexGridSizer(rows=3, cols=1, vgap=5, hgap=5)
         grid_sizer_logo.Add(self.ctrl_logo, 0, wx.EXPAND, 0)

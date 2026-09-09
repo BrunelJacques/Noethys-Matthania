@@ -23,8 +23,8 @@ from Ctrl import CTRL_SelectionActivitesModal as sam
 
 class CTRL_Activite(sam.CTRL_BoutonSelectionActivites):
     def __init__(self, parent):
-        sam.CTRL_BoutonSelectionActivites.__init__(self, parent, -1,parent.periode) 
-        self.parent = parent
+        sam.CTRL_BoutonSelectionActivites.__init__(self, parent, -1,parent.Parent.periode)
+        self.parent = parent.Parent
         self.listeID = []
         self.debutPeriode = None
         self.finPeriode = None
@@ -50,25 +50,25 @@ class Dialog(wx.Dialog):
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/22x22/Smiley_nul.png")
 
         # Paramètres
-        self.staticbox_options_staticbox = wx.StaticBox(self, -1, _("Filtres"))
+        self.stbOptions = wx.StaticBox(self, -1, _("Filtres"))
 
-        self.label_periode = wx.StaticText(self, -1, _("Période"))
-        self.ctrl_periode = CTRL_Saisie_date.Periode(self,flexGridParams=(1,5,0,4))
+        self.label_periode = wx.StaticText(self.stbOptions, -1, _("Période"))
+        self.ctrl_periode = CTRL_Saisie_date.Periode(self.stbOptions,flexGridParams=(1,5,0,4))
         self.ctrl_periode.SetMinSize((330, -1))
 
-        self.label_activite = wx.StaticText(self, -1, _("Activité :"))
-        self.ctrl_activite = CTRL_Activite(self)
+        self.label_activite = wx.StaticText(self.stbOptions, -1, _("Activité :"))
+        self.ctrl_activite = CTRL_Activite(self.stbOptions)
         self.ctrl_activite.SetMinSize((200, -1))
 
-        self.ctrl_avecDetail = wx.CheckBox(self, -1, "AvecDétail")
-        self.ctrl_niveauFamille = wx.CheckBox(self, -1, "NiveauFamille")
-        self.ctrl_horsConsos = wx.CheckBox(self, -1, "HorsConsos")
+        self.ctrl_avecDetail = wx.CheckBox(self.stbOptions, -1, "AvecDétail")
+        self.ctrl_niveauFamille = wx.CheckBox(self.stbOptions, -1, "NiveauFamille")
+        self.ctrl_horsConsos = wx.CheckBox(self.stbOptions, -1, "HorsConsos")
         self.ctrl_avecDetail.SetValue(False)
         self.ctrl_horsConsos.SetValue(True)
         self.ctrl_niveauFamille.SetValue(False)
                 
         # Liste
-        self.listviewAvecFooter = OL_Liste_prestations.ListviewAvecFooter(self, kwargs={}) 
+        self.listviewAvecFooter = OL_Liste_prestations.ListviewAvecFooter(self, kwargs={})
         self.ctrl_listview = self.listviewAvecFooter.GetListview()
         self.ctrl_recherche = OL_Liste_prestations.CTRL_Outils(self, listview=self.ctrl_listview)
 
@@ -117,7 +117,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
 
         # Paramètres
-        staticbox_options = wx.StaticBoxSizer(self.staticbox_options_staticbox, wx.VERTICAL)
+        staticbox_options = wx.StaticBoxSizer(self.stbOptions, wx.VERTICAL)
         
         grid_sizer_options = wx.FlexGridSizer(rows=1, cols=16, vgap=0, hgap=5)
         grid_sizer_options.Add(self.ctrl_periode, 0, 0, 0)

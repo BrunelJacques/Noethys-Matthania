@@ -38,7 +38,7 @@ def DateEngFr(textDate):
 class CTRL_Groupes(wx.CheckListBox):
     def __init__(self, parent):
         wx.CheckListBox.__init__(self, parent, -1)
-        self.parent = parent
+        self.parent = parent.Parent
         self.dictDonnees = {}
         self.dictIndex = {}
         self.listeDonnees = self.Importation()
@@ -128,7 +128,7 @@ class CTRL_Groupes(wx.CheckListBox):
 class CTRL_Activites(wx.CheckListBox):
     def __init__(self, parent):
         wx.CheckListBox.__init__(self, parent, -1)
-        self.parent = parent
+        self.parent = parent.Parent
         self.SetMinSize((-1, 100))
         self.MAJ() 
         self.Bind(wx.EVT_CHECKLISTBOX, self.OnCheck)
@@ -202,31 +202,31 @@ class Parametres(wx.Panel):
         self.parent = parent
         
         # Période
-        self.staticbox_periode_staticbox = wx.StaticBox(self, -1, _("Période de référence"))
-        self.label_date_debut = wx.StaticText(self, -1, "Du")
-        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self)
-        self.label_date_fin = wx.StaticText(self, -1, _("Au"))
-        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self)
+        self.stbPeriod = wx.StaticBox(self, -1, _("Période de référence"))
+        self.label_date_debut = wx.StaticText(self.stbPeriod, -1, "Du")
+        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self.stbPeriod)
+        self.label_date_fin = wx.StaticText(self.stbPeriod, -1, _("Au"))
+        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self.stbPeriod)
 
         # Filtres
-        self.staticbox_affichage_staticbox = wx.StaticBox(self, -1, _("Affichage"))
-        self.radio_cotisations = wx.CheckBox(self, -1, _("Cotisations"))
-        self.radio_consommations = wx.CheckBox(self, -1, _("Consommations"))
-        self.radio_locations = wx.CheckBox(self, -1, _("Locations"))
-        self.radio_autres = wx.CheckBox(self, -1, _("Autres"))
+        self.stbAffich = wx.StaticBox(self, -1, _("Affichage"))
+        self.radio_cotisations = wx.CheckBox(self.stbAffich, -1, _("Cotisations"))
+        self.radio_consommations = wx.CheckBox(self.stbAffich, -1, _("Consommations"))
+        self.radio_locations = wx.CheckBox(self.stbAffich, -1, _("Locations"))
+        self.radio_autres = wx.CheckBox(self.stbAffich, -1, _("Autres"))
         self.radio_cotisations.SetValue(True)
         self.radio_consommations.SetValue(True)
         self.radio_locations.SetValue(True)
         self.radio_autres.SetValue(True)
 
         # Activités
-        self.staticbox_activites_staticbox = wx.StaticBox(self, -1, _("Activités"))
-        self.radio_toutes = wx.RadioButton(self, -1, _("Toutes les activités"), style=wx.RB_GROUP)
-        self.radio_groupes = wx.RadioButton(self, -1, _("Sélectionner un groupe d'activités"))
-        self.ctrl_groupes = CTRL_Groupes(self)
+        self.stbAct = wx.StaticBox(self, -1, _("Activités"))
+        self.radio_toutes = wx.RadioButton(self.stbAct, -1, _("Toutes les activités"), style=wx.RB_GROUP)
+        self.radio_groupes = wx.RadioButton(self.stbAct, -1, _("Sélectionner un groupe d'activités"))
+        self.ctrl_groupes = CTRL_Groupes(self.stbAct)
         self.ctrl_groupes.SetMinSize((150, 60))
-        self.radio_activites = wx.RadioButton(self, -1, _("Sélectionner une ou plusieurs activités"))
-        self.ctrl_activites = CTRL_Activites(self)
+        self.radio_activites = wx.RadioButton(self.stbAct, -1, _("Sélectionner une ou plusieurs activités"))
+        self.ctrl_activites = CTRL_Activites(self.stbAct)
         self.ctrl_activites.SetMinSize((150, 60))
 
         # Boutons Actualiser
@@ -263,7 +263,7 @@ class Parametres(wx.Panel):
         grid_sizer_base = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
         
         # Date de référence
-        staticbox_periode = wx.StaticBoxSizer(self.staticbox_periode_staticbox, wx.VERTICAL)
+        staticbox_periode = wx.StaticBoxSizer(self.stbPeriod, wx.VERTICAL)
         grid_sizer_periode = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         grid_sizer_periode.Add(self.label_date_debut, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_periode.Add(self.ctrl_date_debut, 0, wx.ALIGN_CENTER_VERTICAL, 0)
@@ -273,7 +273,7 @@ class Parametres(wx.Panel):
         grid_sizer_base.Add(staticbox_periode, 1, wx.RIGHT|wx.EXPAND, 5)
 
         # Filtres 
-        staticbox_affichage = wx.StaticBoxSizer(self.staticbox_affichage_staticbox, wx.VERTICAL)
+        staticbox_affichage = wx.StaticBoxSizer(self.stbAffich, wx.VERTICAL)
         grid_sizer_affichage = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         grid_sizer_affichage.Add(self.radio_cotisations, 0, wx.LEFT|wx.ALIGN_CENTER_VERTICAL, 10)
         grid_sizer_affichage.Add(self.radio_consommations, 0, wx.ALIGN_CENTER_VERTICAL, 0)
@@ -283,7 +283,7 @@ class Parametres(wx.Panel):
         grid_sizer_base.Add(staticbox_affichage, 1, wx.RIGHT|wx.EXPAND, 5)
 
         # Activités
-        staticbox_activites = wx.StaticBoxSizer(self.staticbox_activites_staticbox, wx.VERTICAL)
+        staticbox_activites = wx.StaticBoxSizer(self.stbAct, wx.VERTICAL)
         grid_sizer_activites = wx.FlexGridSizer(rows=6, cols=1, vgap=5, hgap=5)
         grid_sizer_activites.Add(self.radio_toutes, 0, 0, 0)
         grid_sizer_activites.Add(self.radio_groupes, 0, 0, 0)

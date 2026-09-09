@@ -72,32 +72,32 @@ class Dialog(wx.Dialog):
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/22x22/Smiley_nul.png")
 
         # Paramètres
-        self.staticbox_options_staticbox = wx.StaticBox(self, -1, _("Filtres"))
+        self.stbOptions = wx.StaticBox(self, -1, _("Filtres"))
 
-        self.label_annee = wx.StaticText(self, -1, _("Exercice se clôturant au :"))
-        self.ctrl_cloture = CTRL_Cloture(self)
+        self.label_annee = wx.StaticText(self.stbOptions, -1, _("Exercice se clôturant au :"))
+        self.ctrl_cloture = CTRL_Cloture(self.stbOptions)
         self.ctrl_cloture.SetMinSize((90, -1))
 
 
-        self.label_facture = wx.StaticText(self, -1, _("Détail/Total :"))
-        self.ctrl_facture = wx.Choice(self, -1, choices = (_("Détail lignes"), _("Total prestations"), _("Prest.HorsConsos")))
+        self.label_facture = wx.StaticText(self.stbOptions, -1, _("Détail/Total :"))
+        self.ctrl_facture = wx.Choice(self.stbOptions, -1, choices = (_("Détail lignes"), _("Total prestations"), _("Prest.HorsConsos")))
         self.ctrl_facture.Select(1)
                 
-        self.label_compta = wx.StaticText(self, -1, _("Transféré en compta :"))
-        self.ctrl_compta = wx.CheckBox(self)
+        self.label_compta = wx.StaticText(self.stbOptions, -1, _("Transféré en compta :"))
+        self.ctrl_compta = wx.CheckBox(self.stbOptions)
 
         # Liste
-        self.listviewAvecFooter = OL_Liste_facturation.ListviewAvecFooter(self, kwargs={})
+        self.listviewAvecFooter = OL_Liste_facturation.ListviewAvecFooter(self.stbOptions, kwargs={})
         self.ctrl_listview = self.listviewAvecFooter.GetListview()
-        self.ctrl_recherche = OL_Liste_facturation.CTRL_Outils(self, listview=self.ctrl_listview, afficherCocher=True)
+        self.ctrl_recherche = OL_Liste_facturation.CTRL_Outils(self.stbOptions, listview=self.ctrl_listview, afficherCocher=True)
         self.ctrl_listview.ctrl_recherche = self.ctrl_recherche
-        self.bouton_ouvrir_fiche = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Famille.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ouvrir_fiche = wx.BitmapButton(self.stbOptions, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Famille.png"), wx.BITMAP_TYPE_ANY))
 
-        self.bouton_apercu = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Apercu.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_imprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_apercu = wx.BitmapButton(self.stbOptions, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Apercu.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_imprimer = wx.BitmapButton(self.stbOptions, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
 
-        self.bouton_liste_export_texte = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Texte2.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_liste_export_excel = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Excel.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_liste_export_texte = wx.BitmapButton(self.stbOptions, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Texte2.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_liste_export_excel = wx.BitmapButton(self.stbOptions, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Excel.png"), wx.BITMAP_TYPE_ANY))
         
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage=Chemins.GetStaticPath("Images/32x32/Aide.png"))
         self.bouton_fermer = CTRL_Bouton_image.CTRL(self, id=wx.ID_CANCEL, texte=_("Fermer"), cheminImage=Chemins.GetStaticPath("Images/32x32/Fermer.png"))
@@ -135,7 +135,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
 
         # Paramètres
-        staticbox_options = wx.StaticBoxSizer(self.staticbox_options_staticbox, wx.VERTICAL)
+        staticbox_options = wx.StaticBoxSizer(self.stbOptions, wx.VERTICAL)
         
         grid_sizer_options = wx.FlexGridSizer(rows=1, cols=16, vgap=0, hgap=5)
         grid_sizer_options.Add(self.label_annee, 0, wx.ALIGN_CENTER_VERTICAL, 0)

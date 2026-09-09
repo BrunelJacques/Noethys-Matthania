@@ -194,24 +194,24 @@ class Panel(wx.Panel):
         self.parent = parent
         self.IDfamille = IDfamille
         
-        self.staticbox_prestations = wx.StaticBox(self, -1, _("Prestations"))
+        self.stbPrest = wx.StaticBox(self, -1, _("Prestations"))
 
         # OL Prestations JB
         self.ctrl_solde = CTRL_Solde(self)
         #self.ctrl_solde.SetSolde(0.00)
-        self.listviewAvecFooter = OL_Prestations.ListviewAvecFooter(self, kwargs={"IDfamille" : IDfamille})
+        self.listviewAvecFooter = OL_Prestations.ListviewAvecFooter(self.stbPrest, kwargs={"IDfamille" : IDfamille})
         self.ctrl_prestations = self.listviewAvecFooter.GetListview()
         self.olv = self.listviewAvecFooter.ctrl_listview
-        self.ctrl_recherche = OL_Prestations.CTRL_Outils(self, listview=self.ctrl_prestations, afficherCocher=True)
+        self.ctrl_recherche = OL_Prestations.CTRL_Outils(self.stbPrest, listview=self.ctrl_prestations, afficherCocher=True)
         self.ctrl_recherche.SetBackgroundColour((255, 255, 255))
 
         # Commandes boutons
-        self.bouton_ajouter = wx.BitmapButton(self.staticbox_prestations, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self.staticbox_prestations, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self.staticbox_prestations, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_dupliquer = wx.BitmapButton(self.staticbox_prestations, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Dupliquer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter = wx.BitmapButton(self.stbPrest, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier = wx.BitmapButton(self.stbPrest, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer = wx.BitmapButton(self.stbPrest, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_dupliquer = wx.BitmapButton(self.stbPrest, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Dupliquer.png"), wx.BITMAP_TYPE_ANY))
 
-        self.bouton_imprimer = wx.BitmapButton(self.staticbox_prestations, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_imprimer = wx.BitmapButton(self.stbPrest, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
 
         # Binds
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAjouter, self.bouton_ajouter)
@@ -234,7 +234,7 @@ class Panel(wx.Panel):
 
         # Layout
         grid_sizer_base = wx.FlexGridSizer(rows=1, cols=1, vgap=5, hgap=5)
-        staticbox_prestations = wx.StaticBoxSizer(self.staticbox_prestations,wx.VERTICAL)
+        staticbox_prestations = wx.StaticBoxSizer(self.stbPrest,wx.VERTICAL)
         grid_sizer_prestations = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         
         grid_sizer_prestations.Add(self.listviewAvecFooter, 1, wx.EXPAND, 0)

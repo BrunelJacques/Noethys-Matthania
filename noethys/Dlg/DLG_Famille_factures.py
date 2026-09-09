@@ -96,27 +96,27 @@ class Panel(wx.Panel):
         self.IDfamille = IDfamille
         self.IDcompte_payeur = None 
         
-        self.staticbox_factures = wx.StaticBox(self, -1, "Factures")
+        self.stbFactures = wx.StaticBox(self, -1, "Factures")
                 
         # OL Factures
         codesColonnes = ["IDfacture", "date", "numero", "date_debut", "date_fin", "total", "regle", "solde_actuel", "date_echeance","compta"]
         checkColonne = True
         triColonne = "date"
 
-        self.listviewAvecFooter = OL_Factures.ListviewAvecFooter(self, kwargs={"codesColonnes" : codesColonnes, "checkColonne" : checkColonne, "triColonne" : triColonne})
+        self.listviewAvecFooter = OL_Factures.ListviewAvecFooter(self.stbFactures, kwargs={"codesColonnes" : codesColonnes, "checkColonne" : checkColonne, "triColonne" : triColonne})
         self.ctrl_listview = self.listviewAvecFooter.GetListview()
 
-        self.ctrl_recherche = CTRL_Outils(self.staticbox_factures, listview=self.ctrl_listview, afficherCocher=True)
+        self.ctrl_recherche = CTRL_Outils(self.stbFactures, listview=self.ctrl_listview, afficherCocher=True)
         self.ctrl_recherche.SetBackgroundColour((255, 255, 255))
         
         # Commandes boutons
-        self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_imprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Apercu.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_email = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Emails_exp.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter = wx.BitmapButton(self.stbFactures, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer = wx.BitmapButton(self.stbFactures, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_imprimer = wx.BitmapButton(self.stbFactures, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Apercu.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_email = wx.BitmapButton(self.stbFactures, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Emails_exp.png"), wx.BITMAP_TYPE_ANY))
         
         # Prélèvement
-        self.ctrl_email = CTRL_Email(self.staticbox_factures, IDfamille)
+        self.ctrl_email = CTRL_Email(self.stbFactures, IDfamille)
 
         # Binds
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAjouter, self.bouton_ajouter)
@@ -132,7 +132,7 @@ class Panel(wx.Panel):
 
         # Layout
         grid_sizer_base = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
-        staticbox_factures = wx.StaticBoxSizer(self.staticbox_factures, wx.VERTICAL)
+        staticbox_factures = wx.StaticBoxSizer(self.stbFactures, wx.VERTICAL)
         grid_sizer_factures = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         
         grid_sizer_factures.Add(self.listviewAvecFooter, 1, wx.EXPAND, 0)

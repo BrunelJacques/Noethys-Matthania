@@ -419,7 +419,9 @@ def GetStockDisponible(DB=None, IDproduit=None, date_debut=None, date_fin=None, 
     WHERE IDproduit=%d;""" % IDproduit
     DBT.ExecuterReq(req,MsgBox="ExecuterReq")
     listeDonnees = DBT.ResultatReq()
-    stock_initial = listeDonnees[0][1]
+    stock_initial = None
+    if listeDonnees and len(listeDonnees)>0 and len(listeDonnees[0])>1:
+        stock_initial = listeDonnees[0][1]
     if stock_initial == None :
         stock_initial = 1
 

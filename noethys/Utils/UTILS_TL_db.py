@@ -251,23 +251,25 @@ class TimelinePerso(Timeline):
         DB.Close()
         
         for IDindividu, nom, prenom, date_naiss in listeIndividus :
-            if date_naiss != None :
-                
-                date_naiss = DateEngEnDateDD(date_naiss)
-                for numAnnee in range(date_naiss.year, date_naiss.year+70) : # Boucle sur 100 ans
-                    date = datetime.date(numAnnee, date_naiss.month, date_naiss.day)
-                    age = CalculeAge(date, date_naiss)
+            if date_naiss != None and date_naiss[:4] > "1920" :
+                try:
+                    date_naiss = DateEngEnDateDD(date_naiss)
+                    for numAnnee in range(date_naiss.year, date_naiss.year+70) : # Boucle sur 100 ans
+                        date = datetime.date(numAnnee, date_naiss.month, date_naiss.day)
+                        age = CalculeAge(date, date_naiss)
 
-                    dateDebut = datetime.datetime(date.year, date.month, date.day, 9, 0, 0)
-                    texte = "%s %s" % (prenom, nom)
-                    categorie = None
-                    description = _("%s a %d ans") % (prenom, age)
-                    icon = None
-                    
-                    evt = Event(dateDebut, dateDebut, texte, categorie)
-                    if description != None : evt.set_data("description", description)
-                    if icon != None : evt.set_data("icon", icon)
-                    self.events.append(evt)
+                        dateDebut = datetime.datetime(date.year, date.month, date.day, 9, 0, 0)
+                        texte = "%s %s" % (prenom, nom)
+                        categorie = None
+                        description = _("%s a %d ans") % (prenom, age)
+                        icon = None
+
+                        evt = Event(dateDebut, dateDebut, texte, categorie)
+                        if description != None : evt.set_data("description", description)
+                        if icon != None : evt.set_data("icon", icon)
+                        self.events.append(evt)
+                except Exception as e:
+                    pass
 
 
 

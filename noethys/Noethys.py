@@ -1574,7 +1574,7 @@ class MainFrame(wx.Frame):
         message = "Base de donnée inchangée!\n\nAbandon du traitement"
         titre = "Abandon versioning"
         style = wx.OK | wx.ICON_INFORMATION
-        
+
         # Compare les versions par les tuples
         if len(versionLogiciel) < 3:
             # numéro de version trop court
@@ -1602,14 +1602,11 @@ class MainFrame(wx.Frame):
         elif versionData[:3] < versionLogiciel[:3]:
             mess = "Base de donnée d'un niveau inférieur\n\n"
             mess += "Faut-il mettre à jour la base de données pointée?"
-            dlg = wx.MessageDialog(self, mess, _(""),
-                                   wx.YES_NO|wx.CANCEL | wx.YES_DEFAULT | wx.ICON_WARNING)
-            reponse = dlg.ShowModal()
-            dlg.Destroy()
-            if reponse == wx.ID_CANCEL:
+            reponse = wx.MessageBox(mess,"", wx.YES_NO |wx.ICON_WARNING)
+            if reponse == wx.YES and UTILS_Utilisateurs.IsAdmin(afficheMessage=True):
                 self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(False)
                 return True
-            elif reponse == wx.ID_NO:
+            elif reponse == wx.NO:
                 mess = "UPGRADE BASE conseillée\n\n"
                 mess += "Version logiciel '%s' - Version base de donnée '%s'\n" % (
                     versionLogiciel[:3],versionData[:3])

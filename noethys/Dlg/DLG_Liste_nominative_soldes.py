@@ -319,23 +319,23 @@ class Parametres(wx.Panel):
         self.listview = listview
         
         # Activité
-        self.box_activite_staticbox = wx.StaticBox(self, -1, _("Activités"))
-        self.ctrl_activite = CTRL_Selection_activites_groupes.CTRL(self)
+        self.stbActivite = wx.StaticBox(self, -1, _("Activités"))
+        self.ctrl_activite = CTRL_Selection_activites_groupes.CTRL(self.stbActivite)
         self.ctrl_activite.SetMinSize((240, -1))
         
         # Groupes
-        self.box_groupes_staticbox = wx.StaticBox(self, -1, _("Groupes"))
-        self.ctrl_groupes = CTRL_Groupes(self)
+        self.stbGroupes = wx.StaticBox(self, -1, _("Groupes"))
+        self.ctrl_groupes = CTRL_Groupes(self.stbGroupes)
         self.ctrl_groupes.SetMinSize((-1, 50))
         
         # Catégories
-        self.box_categories_staticbox = wx.StaticBox(self, -1, _("Catégories"))
-        self.ctrl_categories = CTRL_Categories(self)
+        self.stbCategories = wx.StaticBox(self, -1, _("Catégories"))
+        self.ctrl_categories = CTRL_Categories(self.stbCategories)
         self.ctrl_categories.SetMinSize((-1, 50))
         
         # Présents
-        self.staticbox_presents_staticbox = wx.StaticBox(self, -1, _("Prestations"))
-        self.ctrl_presents = CTRL_Presents(self)
+        self.stbPresents = wx.StaticBox(self, -1, _("Prestations"))
+        self.ctrl_presents = CTRL_Presents(self.stbPresents)
         
         # Actualiser
         self.bouton_actualiser = CTRL_Bouton_image.CTRL(self, texte=_("Rafraîchir la liste"), cheminImage="Images/32x32/Actualiser.png")
@@ -355,22 +355,22 @@ class Parametres(wx.Panel):
         grid_sizer_base = wx.FlexGridSizer(rows=6, cols=1, vgap=5, hgap=5)
         
         # Activité
-        box_activite = wx.StaticBoxSizer(self.box_activite_staticbox, wx.VERTICAL)
+        box_activite = wx.StaticBoxSizer(self.stbActivite, wx.VERTICAL)
         box_activite.Add(self.ctrl_activite, 1, wx.ALL|wx.EXPAND, 5)
         grid_sizer_base.Add(box_activite, 1, wx.EXPAND, 0)
         
         # Groupes
-        box_groupes = wx.StaticBoxSizer(self.box_groupes_staticbox, wx.VERTICAL)
+        box_groupes = wx.StaticBoxSizer(self.stbGroupes, wx.VERTICAL)
         box_groupes.Add(self.ctrl_groupes, 0, wx.ALL|wx.EXPAND, 5)
         grid_sizer_base.Add(box_groupes, 1, wx.EXPAND, 0)
         
         # Catégories
-        box_categories = wx.StaticBoxSizer(self.box_categories_staticbox, wx.VERTICAL)
+        box_categories = wx.StaticBoxSizer(self.stbCategories, wx.VERTICAL)
         box_categories.Add(self.ctrl_categories, 0, wx.ALL|wx.EXPAND, 5)
         grid_sizer_base.Add(box_categories, 1, wx.EXPAND, 0)
         
         # Inscrits / Présents
-        staticbox_presents = wx.StaticBoxSizer(self.staticbox_presents_staticbox, wx.VERTICAL)
+        staticbox_presents = wx.StaticBoxSizer(self.stbPresents, wx.VERTICAL)
         staticbox_presents.Add(self.ctrl_presents, 1, wx.ALL|wx.EXPAND, 5)
         grid_sizer_base.Add(staticbox_presents, 1, wx.RIGHT|wx.EXPAND, 5)
         

@@ -31,7 +31,7 @@ def DateEngFr(textDate):
 class Options(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=-1, name="panel_presents", style=wx.TAB_TRAVERSAL)
-        self.parent = parent
+        self.parent = parent.Parent
         
 ##        self.check_concernes = wx.CheckBox(self, -1, _("Ne pas afficher les dossiers complets"))
         
@@ -163,20 +163,20 @@ class Parametres(wx.Panel):
         self.parent = parent
         
         # Période
-        self.staticbox_periode_staticbox = wx.StaticBox(self, -1, _("Date de référence"))
-        self.ctrl_date = CTRL_Saisie_date.Date(self)
+        self.stbPeriode = wx.StaticBox(self, -1, _("Date de référence"))
+        self.ctrl_date = CTRL_Saisie_date.Date(self.stbPeriode)
         self.periode = (datetime.date.today(),datetime.date.today())
         self.ctrl_date.SetDate(datetime.date.today())
-        self.bouton_date = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Calendrier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_date = wx.BitmapButton(self.stbPeriode, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Calendrier.png"), wx.BITMAP_TYPE_ANY))
         
         # Activités
-        self.staticbox_activites_staticbox = wx.StaticBox(self, -1, _("Activités"))
-        self.ctrl_activites = CTRL_Selection_activites_groupes.CTRL(self, periode=self.periode)
+        self.stbActiv = wx.StaticBox(self, -1, _("Activités"))
+        self.ctrl_activites = CTRL_Selection_activites_groupes.CTRL(self.stbActiv, periode=self.periode)
         self.ctrl_activites.SetMinSize((-1, 90))
         
         # Inscrits / Présents
-        self.staticbox_presents_staticbox = wx.StaticBox(self, -1, _("Options"))
-        self.ctrl_options = Options(self)
+        self.stbPresents = wx.StaticBox(self, -1, _("Options"))
+        self.ctrl_options = Options(self.stbPresents)
         
         # Boutons afficher
         self.bouton_afficher = CTRL_Bouton_image.CTRL(self, texte=_("Rafraîchir la liste"), cheminImage="Images/32x32/Actualiser.png")
@@ -197,7 +197,7 @@ class Parametres(wx.Panel):
         grid_sizer_base = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
         
         # Date de référence
-        staticbox_periode = wx.StaticBoxSizer(self.staticbox_periode_staticbox, wx.VERTICAL)
+        staticbox_periode = wx.StaticBoxSizer(self.stbPeriode, wx.VERTICAL)
         grid_sizer_periode = wx.FlexGridSizer(rows=1, cols=7, vgap=5, hgap=5)
         grid_sizer_periode.Add((13, 10), 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_periode.Add(self.ctrl_date, 0, wx.ALIGN_CENTER_VERTICAL, 0)
@@ -206,12 +206,12 @@ class Parametres(wx.Panel):
         grid_sizer_base.Add(staticbox_periode, 0, wx.RIGHT|wx.EXPAND, 5)
         
         # Activités
-        staticbox_activites = wx.StaticBoxSizer(self.staticbox_activites_staticbox, wx.VERTICAL)
+        staticbox_activites = wx.StaticBoxSizer(self.stbActiv, wx.VERTICAL)
         staticbox_activites.Add(self.ctrl_activites, 1, wx.ALL|wx.EXPAND, 5)
         grid_sizer_base.Add(staticbox_activites, 1, wx.RIGHT|wx.EXPAND, 5)
         
         # Inscrits / Présents
-        staticbox_presents = wx.StaticBoxSizer(self.staticbox_presents_staticbox, wx.VERTICAL)
+        staticbox_presents = wx.StaticBoxSizer(self.stbPresents, wx.VERTICAL)
         staticbox_presents.Add(self.ctrl_options, 1, wx.ALL|wx.EXPAND, 5)
         grid_sizer_base.Add(staticbox_presents, 1, wx.RIGHT|wx.EXPAND, 5)
         

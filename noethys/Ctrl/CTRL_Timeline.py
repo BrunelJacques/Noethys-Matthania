@@ -781,14 +781,14 @@ class DrawingArea(wx.Panel):
         Here we create a new background buffer with the new size and draw the
         timeline onto it.
         """
-        if 'phoenix' in wx.PlatformInfo:
-            logging.debug("Resize event in DrawingArea: %s", self.GetSize())
-            width, height = self.GetSize()
-            self.bgbuf = wx.Bitmap(width, height)
-        else :
-            logging.debug("Resize event in DrawingArea: %s", self.GetSizeTuple())
-            width, height = self.GetSizeTuple()
-            self.bgbuf = wx.EmptyBitmap(width, height)
+        logging.debug("Resize event in DrawingArea: %s", self.GetSize())
+        width, height = self.GetSize()
+        if width == 0:
+            width = 1
+        if height == 0:
+            height = 1
+        self.bgbuf = wx.Bitmap(width, height)
+
         self._redraw_timeline()
 
     def _window_on_erase_background(self, event):
@@ -1078,10 +1078,8 @@ class DrawingArea(wx.Panel):
         """Draw the timeline onto the background buffer."""
         logging.debug("Draw timeline to bgbuf")
         memdc = wx.MemoryDC()
-        memdc.SelectObject(self.bgbuf)
         try:
-            if 'phoenix' not in wx.PlatformInfo:
-                memdc.BeginDrawing()
+            memdc.SelectObject(self.bgbuf)
             memdc.SetBackground(wx.Brush(wx.WHITE, wx.SOLID))
             memdc.Clear()
             if self.timeline:

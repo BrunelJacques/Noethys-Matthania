@@ -279,16 +279,16 @@ class Panel(wx.Panel):
         self.majEffectuee = False
         
         # Compte internet
-        self.staticBox_param = wx.StaticBox(self, -1, _("Portail internet"))
-        self.ctrl_compte_internet = CTRL_Compte_internet.CTRL(self, IDfamille=IDfamille)
-        self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_envoi_mail = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Emails_exp.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_envoi_pressepapiers = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Clipboard.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_historique = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Historique.png"), wx.BITMAP_TYPE_ANY))
+        self.stbParam = wx.StaticBox(self, -1, _("Portail internet"))
+        self.ctrl_compte_internet = CTRL_Compte_internet.CTRL(self.stbParam, IDfamille=IDfamille)
+        self.bouton_modifier = wx.BitmapButton(self.stbParam, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_envoi_mail = wx.BitmapButton(self.stbParam, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Emails_exp.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_envoi_pressepapiers = wx.BitmapButton(self.stbParam, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Clipboard.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_historique = wx.BitmapButton(self.stbParam, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Historique.png"), wx.BITMAP_TYPE_ANY))
 
         # Paramètres divers
-        self.staticBox_divers = wx.StaticBox(self, -1, _("Paramètres divers"))
-        self.ctrl_parametres = CTRL_Parametres(self, IDfamille=IDfamille)
+        self.stbDivers = wx.StaticBox(self, -1, _("Paramètres divers"))
+        self.ctrl_parametres = CTRL_Parametres(self.stbDivers, IDfamille=IDfamille)
         
         self.__set_properties()
         self.__do_layout()
@@ -308,7 +308,7 @@ class Panel(wx.Panel):
         grid_sizer_base = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
 
         # Compte internet
-        sizer_staticBox_param = wx.StaticBoxSizer(self.staticBox_param, wx.VERTICAL)
+        sizer_staticBox_param = wx.StaticBoxSizer(self.stbParam, wx.VERTICAL)
         grid_sizer_param = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_param.Add(self.ctrl_compte_internet, 0, wx.EXPAND, 0)
 
@@ -326,7 +326,7 @@ class Panel(wx.Panel):
         grid_sizer_base.Add(sizer_staticBox_param, 1, wx.ALL|wx.EXPAND, 5)
 
         # Paramètres divers
-        sizer_staticBox_divers = wx.StaticBoxSizer(self.staticBox_divers, wx.VERTICAL)
+        sizer_staticBox_divers = wx.StaticBoxSizer(self.stbDivers, wx.VERTICAL)
         sizer_staticBox_divers.Add(self.ctrl_parametres, 1, wx.ALL|wx.EXPAND, 5)
         grid_sizer_base.Add(sizer_staticBox_divers, 1, wx.RIGHT|wx.BOTTOM|wx.TOP|wx.EXPAND, 5)
 
