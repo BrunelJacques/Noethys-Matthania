@@ -17,6 +17,8 @@ from hashlib import sha256
 #class CTRL(wx.SearchCtrl):
 class CTRL(wx.TextCtrl):
     def __init__(self, parent, listeUtilisateurs=[], size=(-1, -1), modeDLG=False):
+        if parent and "StaticBox" in str(type(parent)):
+            parent = parent.Parent
         #wx.SearchCtrl.__init__(self, parent, size=size, style=wx.TE_PROCESS_ENTER | wx.TE_PASSWORD)
         wx.TextCtrl.__init__(self, parent, size=size, style=wx.TE_PROCESS_ENTER | wx.TE_PASSWORD)
         self.parent = parent
@@ -83,7 +85,7 @@ class CTRL(wx.TextCtrl):
             dlg.Destroy()
             # Version pour la DLG du dessous
             if self.modeDLG == True :
-                self.GrandParent.ChargeUtilisateur(dictUtilisateur)
+                self.parent.ChargeUtilisateur(dictUtilisateur)
             # Version pour la barre Identification de la page d'accueil
             if self.modeDLG == False :
                 mainFrame = self.GetGrandParent()
@@ -109,13 +111,14 @@ class Dialog(wx.Dialog):
         
         if self.nomFichier != None :
             self.SetTitle("Ouverture du fichier %s" % self.nomFichier)
-            
-        self.staticbox = wx.StaticBox(self, -1, "")
+
         self.label = wx.StaticText(self, -1, "Veuillez saisir votre code d'identification personnel :")
-        self.ctrl_mdp = CTRL(self.staticbox, listeUtilisateurs=self.listeUtilisateurs, modeDLG=True)
+
+        self.stbIdent = wx.StaticBox(self, -1, "")
+        self.ctrl_mdp = CTRL(self.stbIdent, listeUtilisateurs=self.listeUtilisateurs, modeDLG=True)
         
         # Texte pour rappeller mot de passe du fichier Exemple
-        self.label_exemple = wx.StaticText(self.staticbox, -1, "Le mot de passe des fichiers exemples est 'aze'")
+        self.label_exemple = wx.StaticText(self.stbIdent, -1, "Le mot de passe des fichiers exemples est 'aze'")
         self.label_exemple.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL))
         self.label_exemple.SetForegroundColour((130, 130, 130))
         if nomFichier == None or nomFichier.startswith("EXEMPLE_") == False :

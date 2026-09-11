@@ -80,39 +80,39 @@ class MyDialog(wx.Dialog):
         self.SetTitle(titre)
         
         # Radio Local/Réseau
-        self.sizer_type_staticbox = wx.StaticBox(self, -1, _("Type de fichier"))
-        self.radio_local = wx.RadioButton(self, -1, _("Local"), style = wx.RB_GROUP )
-        self.radio_reseau = wx.RadioButton(self, -1, _("Réseau") )
-        self.radio_internet = wx.RadioButton(self, -1, _("Serveur internet") )
+        self.stbType = wx.StaticBox(self, -1, _("Type de fichier"))
+        self.radio_local = wx.RadioButton(self.stbType, -1, _("Local"), style = wx.RB_GROUP )
+        self.radio_reseau = wx.RadioButton(self.stbType, -1, _("Réseau") )
+        self.radio_internet = wx.RadioButton(self.stbType, -1, _("Serveur internet") )
         
         # Nom Fichier
-        self.sizer_contenu_staticbox = wx.StaticBox(self, -1, _("Nom du fichier"))
-        self.label_nomFichier = wx.StaticText(self, -1, _("Nom de fichier :"))
-        self.text_nomFichier = wx.TextCtrl(self, -1, "")
+        self.stbContenu = wx.StaticBox(self, -1, _("Nom du fichier"))
+        self.label_nomFichier = wx.StaticText(self.stbContenu, -1, _("Nom de fichier :"))
+        self.text_nomFichier = wx.TextCtrl(self.stbContenu, -1, "")
         self.text_nomFichier.SetMinSize((350, -1)) 
         
         # Identité Administrateur
-        self.staticbox_identite_staticbox = wx.StaticBox(self, -1, _("Identité administrateur"))
-        self.label_sexe = wx.StaticText(self, -1, _("Sexe :"))
-        self.ctrl_sexe = wx.Choice(self, -1, choices=[_("Homme"), _("Femme")])
+        self.stbIdentite = wx.StaticBox(self, -1, _("Identité administrateur"))
+        self.label_sexe = wx.StaticText(self.stbIdentite, -1, _("Sexe :"))
+        self.ctrl_sexe = wx.Choice(self.stbIdentite, -1, choices=[_("Homme"), _("Femme")])
         self.ctrl_sexe.Select(0)
-        self.label_nom = wx.StaticText(self, -1, _("Nom :"))
-        self.ctrl_nom = wx.TextCtrl(self, -1, "")
-        self.label_prenom = wx.StaticText(self, -1, _("Prénom :"))
-        self.ctrl_prenom = wx.TextCtrl(self, -1, "")
-        self.label_mdp = wx.StaticText(self, -1, _("Mot de passe :"))
-        self.ctrl_mdp = wx.TextCtrl(self, -1, "", style=wx.TE_PASSWORD)
-        self.label_confirmation = wx.StaticText(self, -1, _("Confirmation :"))
-        self.ctrl_confirmation = wx.TextCtrl(self, -1, "", style=wx.TE_PASSWORD)
+        self.label_nom = wx.StaticText(self.stbIdentite, -1, _("Nom :"))
+        self.ctrl_nom = wx.TextCtrl(self.stbIdentite, -1, "")
+        self.label_prenom = wx.StaticText(self.stbIdentite, -1, _("Prénom :"))
+        self.ctrl_prenom = wx.TextCtrl(self.stbIdentite, -1, "")
+        self.label_mdp = wx.StaticText(self.stbIdentite, -1, _("Mot de passe :"))
+        self.ctrl_mdp = wx.TextCtrl(self.stbIdentite, -1, "", style=wx.TE_PASSWORD)
+        self.label_confirmation = wx.StaticText(self.stbIdentite, -1, _("Confirmation :"))
+        self.ctrl_confirmation = wx.TextCtrl(self.stbIdentite, -1, "", style=wx.TE_PASSWORD)
         
         # Sélection des tables à importer
-        self.checkbox_details = wx.CheckBox(self, -1, _("Importer les données par défaut"))
+        self.checkbox_details = wx.CheckBox(self.stbContenu, -1, _("Importer les données par défaut"))
         self.checkbox_details.SetValue(True)
         self.hyperlink_details = self.Build_Hyperlink()
         
         # Panel Fichier RESEAU
-        self.sizer_reseau_staticbox = wx.StaticBox(self, -1, _("Connexion au réseau"))
-        self.panelReseau = PanelReseau(self)
+        self.stbReseau = wx.StaticBox(self, -1, _("Connexion au réseau"))
+        self.panelReseau = PanelReseau(self.stbReseau)
         self.panelReseau.Enable(False)
         
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -150,7 +150,7 @@ class MyDialog(wx.Dialog):
         grid_sizer_base.Add(self.ctrl_bandeau, 1, wx.EXPAND, 0)
         
         # Radios Local/réseau
-        sizer_type = wx.StaticBoxSizer(self.sizer_type_staticbox, wx.VERTICAL)
+        sizer_type = wx.StaticBoxSizer(self.stbType, wx.VERTICAL)
         grid_sizer_radio = wx.FlexGridSizer(rows=1, cols=3, vgap=5, hgap=5)
         grid_sizer_radio.Add(self.radio_local, 1, wx.EXPAND | wx.TOP|wx.BOTTOM, 5)
         grid_sizer_radio.Add(self.radio_reseau, 1, wx.EXPAND | wx.TOP|wx.BOTTOM, 5)
@@ -158,7 +158,7 @@ class MyDialog(wx.Dialog):
         sizer_type.Add(grid_sizer_radio, 1, wx.LEFT|wx.RIGHT, 10)
         grid_sizer_base.Add(sizer_type, 1, wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         
-        sizer_contenu = wx.StaticBoxSizer(self.sizer_contenu_staticbox, wx.VERTICAL)
+        sizer_contenu = wx.StaticBoxSizer(self.stbContenu, wx.VERTICAL)
         grid_sizer_contenu = wx.FlexGridSizer(rows=2, cols=2, vgap=10, hgap=10)
                 
         grid_sizer_contenu.Add(self.label_nomFichier, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
@@ -175,7 +175,7 @@ class MyDialog(wx.Dialog):
         grid_sizer_base.Add(sizer_contenu, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 10)
         
         # Identité Administrateur
-        staticbox_identite = wx.StaticBoxSizer(self.staticbox_identite_staticbox, wx.VERTICAL)
+        staticbox_identite = wx.StaticBoxSizer(self.stbIdentite, wx.VERTICAL)
         grid_sizer_identite = wx.FlexGridSizer(rows=5, cols=2, vgap=5, hgap=5)
         
         grid_sizer_identite.Add(self.label_sexe, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
@@ -198,7 +198,7 @@ class MyDialog(wx.Dialog):
         grid_sizer_base.Add(staticbox_identite, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 10)
         
         # Réseau
-        sizer_reseau = wx.StaticBoxSizer(self.sizer_reseau_staticbox, wx.VERTICAL)
+        sizer_reseau = wx.StaticBoxSizer(self.stbReseau, wx.VERTICAL)
         sizer_reseau.Add(self.panelReseau, 1, wx.ALL|wx.EXPAND, 10)
         grid_sizer_base.Add(sizer_reseau, 1, wx.RIGHT|wx.LEFT|wx.BOTTOM|wx.EXPAND, 10)
         
@@ -228,7 +228,7 @@ class MyDialog(wx.Dialog):
     def Build_Hyperlink(self) :
         """ Construit un hyperlien """
         self.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False))
-        hyper = hl.HyperLinkCtrl(self, -1, _("(Détails)"), URL="")
+        hyper = hl.HyperLinkCtrl(self.stbContenu, -1, _("(Détails)"), URL="")
         hyper.Bind(hl.EVT_HYPERLINK_LEFT, self.OnLeftLink)
         hyper.AutoBrowse(False)
         hyper.SetColours("BLUE", "BLUE", "BLUE")
@@ -458,7 +458,6 @@ class MyDialog(wx.Dialog):
         dictTemp = { "sexe":sexe, "nom":nom, "prenom":prenom, "mdp":mdp, "mdpcrypt":mdpcrypt, "profil":profil, "actif":actif, "image":None }
         return dictTemp
 
-
 class CTRL_ChoixTables(CT.CustomTreeCtrl):
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
                  size=wx.DefaultSize, style=wx.SIMPLE_BORDER):
@@ -627,10 +626,10 @@ class DlgAjoutTables(wx.Dialog):
                                                  texte=intro, hauteurHtml=60,
                                                  nomImage="Images/32x32/Fichier_nouveau.png")
 
-        self.sizer_type_staticbox = wx.StaticBox(self, -1, _("Choix tables"))
+        self.stbType = wx.StaticBox(self, -1, _("Choix tables"))
 
         # Sélection des tables à importer
-        self.ctrlChoixTables = CTRL_ChoixTables(self)
+        self.ctrlChoixTables = CTRL_ChoixTables(self.stbType)
         self.ctrlChoixTables.MAJ()
 
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"),
@@ -656,7 +655,7 @@ class DlgAjoutTables(wx.Dialog):
         grid_sizer_base.Add(self.ctrl_bandeau, 1, wx.EXPAND, 0)
 
         # Radios Local/réseau
-        sizer_contenu = wx.StaticBoxSizer(self.sizer_type_staticbox, wx.VERTICAL)
+        sizer_contenu = wx.StaticBoxSizer(self.stbType, wx.VERTICAL)
 
         grid_sizer_contenu = wx.FlexGridSizer(rows=2, cols=2, vgap=10, hgap=10)
 
@@ -748,7 +747,7 @@ class DlgAjoutTables(wx.Dialog):
 
 if __name__ == "__main__":
     app = wx.App(0)
-    #frame_1 = MyDialog(None)
-    frame_1 = DlgAjoutTables(None)
+    frame_1 = MyDialog(None)
+    #frame_1 = DlgAjoutTables(None)
     frame_1.ShowModal()
     app.MainLoop()

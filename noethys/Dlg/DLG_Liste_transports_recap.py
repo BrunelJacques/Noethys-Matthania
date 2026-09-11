@@ -30,12 +30,12 @@ class Parametres(wx.Panel):
         self.parent = parent
                 
         # Calendrier
-        self.staticbox_calendrier_staticbox = wx.StaticBox(self, -1, _("Calendrier"))
-        self.ctrl_calendrier = CTRL_Calendrier.CTRL(self, afficheBoutonAnnuel=False, multiSelections=True)
+        self.stbCalendrier = wx.StaticBox(self, -1, _("Calendrier"))
+        self.ctrl_calendrier = CTRL_Calendrier.CTRL(self.stbCalendrier, afficheBoutonAnnuel=False, multiSelections=True)
         
         # Filtres
-        self.staticbox_filtres_staticbox = wx.StaticBox(self, -1, _("Filtres"))
-        self.ctrl_filtres = CTRL_Filtres_transports.CTRL(self)
+        self.stbFiltres = wx.StaticBox(self, -1, _("Filtres"))
+        self.ctrl_filtres = CTRL_Filtres_transports.CTRL(self.stbFiltres)
         self.ctrl_filtres.SetMinSize((250, -1))
         
 
@@ -51,12 +51,12 @@ class Parametres(wx.Panel):
         grid_sizer_base = wx.FlexGridSizer(rows=2, cols=1, vgap=10, hgap=10)
                         
         # Calendrier
-        staticbox_calendrier = wx.StaticBoxSizer(self.staticbox_calendrier_staticbox, wx.VERTICAL)
+        staticbox_calendrier = wx.StaticBoxSizer(self.stbCalendrier, wx.VERTICAL)
         staticbox_calendrier.Add(self.ctrl_calendrier, 1, wx.ALL|wx.EXPAND, 5)
         grid_sizer_base.Add(staticbox_calendrier, 1, wx.RIGHT|wx.EXPAND, 5)
 
         # Filtres
-        staticbox_filtres = wx.StaticBoxSizer(self.staticbox_filtres_staticbox, wx.VERTICAL)
+        staticbox_filtres = wx.StaticBoxSizer(self.stbFiltres, wx.VERTICAL)
         staticbox_filtres.Add(self.ctrl_filtres, 1, wx.ALL|wx.EXPAND, 5)
         grid_sizer_base.Add(staticbox_filtres, 1, wx.RIGHT|wx.EXPAND, 5)
 

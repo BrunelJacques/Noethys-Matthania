@@ -46,7 +46,9 @@ def Formate(mot):
 class MyHtml(html.HtmlWindow):
     def __init__(self, parent, texte="", hauteur=25):
         html.HtmlWindow.__init__(self, parent, -1, style=wx.html.HW_NO_SELECTION | wx.html.HW_SCROLLBAR_NEVER | wx.NO_FULL_REPAINT_ON_RESIZE)
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else: self.parent = parent
         if "gtk2" in wx.PlatformInfo:
             self.SetStandardFonts()
         self.SetBorders(0)
@@ -62,7 +64,9 @@ class MyHtml(html.HtmlWindow):
 class CtrlRecherche(wx.TextCtrl):
     def __init__(self, parent, numColonne):
         wx.TextCtrl.__init__(self, parent, -1, "", size=(-1,-1), style=wx.TE_PROCESS_ENTER)
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else: self.parent = parent
         self.listView = self.parent.ctrl_propositions
         nbreColonnes = self.listView.GetColumnCount()
         self.listView.SetFilter(Filter.TextSearch(self.listView, self.listView.columns[1:1]))
@@ -98,11 +102,11 @@ class Dialog(wx.Dialog):
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Famille.png")
         
         # Categorie
-        self.staticbox_categorie_staticbox = wx.StaticBox(self, -1, _("1. Sélection de la catégorie de rattachement"))
-        self.bouton_categorie_1 = wx.ToggleButton(self, 1, _("Représentant"))
-        self.bouton_categorie_2 = wx.ToggleButton(self, 2, _("Enfant"))
-        self.bouton_categorie_3 = wx.ToggleButton(self, 3, _("Contact"))
-        self.ctrl_titulaire = wx.CheckBox(self, -1, _("Titulaire du dossier famille"))
+        self.stbCategorie = wx.StaticBox(self, -1, _("1. Sélection de la catégorie de rattachement"))
+        self.bouton_categorie_1 = wx.ToggleButton(self.stbCategorie, 1, _("Représentant"))
+        self.bouton_categorie_2 = wx.ToggleButton(self.stbCategorie, 2, _("Enfant"))
+        self.bouton_categorie_3 = wx.ToggleButton(self.stbCategorie, 3, _("Contact"))
+        self.ctrl_titulaire = wx.CheckBox(self.stbCategorie, -1, _("Titulaire du dossier famille"))
         self.selection_categorie = None
         
         if not self.nbreTitulaires:
@@ -110,13 +114,13 @@ class Dialog(wx.Dialog):
             self.bouton_categorie_3.Enable(False)
 
         # Sélection individu
-        self.staticbox_selection_staticbox = wx.StaticBox(self, -1, _("2. Saisie du nom de l'individu"))
-        self.ctrl_propositions = OL_Individus.ListView(self, id=-1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
+        self.stbSelection = wx.StaticBox(self, -1, _("2. Saisie du nom de l'individu"))
+        self.ctrl_propositions = OL_Individus.ListView(self.stbSelection, id=-1, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         self.ctrl_propositions.dictParametres["archives"] = True
-        self.label_nom = wx.StaticText(self, -1, _("Nom :"))
-        self.ctrl_nom = CtrlRecherche(self, numColonne=1)
-        self.label_prenom = wx.StaticText(self, -1, _("Prénom :"))
-        self.ctrl_prenom = wx.TextCtrl(self, -1, "") #CtrlRecherche(self, numColonne=2)
+        self.label_nom = wx.StaticText(self.stbSelection, -1, _("Nom :"))
+        self.ctrl_nom = CtrlRecherche(self.stbSelection, numColonne=1)
+        self.label_prenom = wx.StaticText(self.stbSelection, -1, _("Prénom :"))
+        self.ctrl_prenom = wx.TextCtrl(self.stbSelection, -1, "") #CtrlRecherche(self, numColonne=2)
         
         # Txt remarque
         chemin = Chemins.GetStaticPath("Images")
@@ -129,7 +133,7 @@ class Dialog(wx.Dialog):
         pour créer une nouvelle fiche individuelle.
         </FONT>
         """%chemin
-        self.ctrl_html = MyHtml(self, texte=txtRemarque, hauteur=31)
+        self.ctrl_html = MyHtml(self.stbSelection, texte=txtRemarque, hauteur=31)
         
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -167,10 +171,10 @@ class Dialog(wx.Dialog):
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
         grid_sizer_boutons = wx.FlexGridSizer(rows=1, cols=4, vgap=10, hgap=10)
-        staticbox_selection = wx.StaticBoxSizer(self.staticbox_selection_staticbox, wx.VERTICAL)
+        staticbox_selection = wx.StaticBoxSizer(self.stbSelection, wx.VERTICAL)
         grid_sizer_selection = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
         grid_sizer_nom = wx.FlexGridSizer(rows=1, cols=4, vgap=5, hgap=5)
-        staticbox_categorie = wx.StaticBoxSizer(self.staticbox_categorie_staticbox, wx.VERTICAL)
+        staticbox_categorie = wx.StaticBoxSizer(self.stbCategorie, wx.VERTICAL)
         grid_sizer_categorie = wx.FlexGridSizer(rows=1, cols=3, vgap=10, hgap=10)
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
         grid_sizer_categorie.Add(self.bouton_categorie_1, 0, wx.EXPAND, 0)

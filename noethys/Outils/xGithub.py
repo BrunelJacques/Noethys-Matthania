@@ -13,7 +13,7 @@ import traceback
 mess = "lancement gitPython"
 MessError = """Necessaire pour git:\n\n
     - client git à installer (https://git-scm.com/download/win)\n
-    - variable Path contient 'c:\Program Files\Git\cmd'
+    - variable Path contient 'c:\\Program Files\\Git\\cmd'
     - git config --global --add safe.directory '*'
     - pip install GitPython"""
 
@@ -144,23 +144,23 @@ class DLG(wx.Dialog):
         self.InitSizer()
 
     def Controls(self):
-        self.staticboxAppli = wx.StaticBox(self, label=" Choix de l'application ")
-        self.staticboxDir = wx.StaticBox(self,
+        self.stbAppli = wx.StaticBox(self, label=" Choix de l'application ")
+        self.stbDir = wx.StaticBox(self,
                                          label=" Répertoire de l'application (parcourir avec BROWSE)")
         choices = []
         for x in self.lstApplis:
             if x not in choices:
                 choices.append(x)
-        self.cmbAppli = wx.ComboBox(self, value=self.initChoixAppli, choices=choices)
-        self.radPull = wx.RadioButton(self, label=self.lblPull, style=wx.RB_GROUP)
-        self.radClone = wx.RadioButton(self, label=self.lblClone)
+        self.cmbAppli = wx.ComboBox(self.stbAppli, value=self.initChoixAppli, choices=choices)
+        self.radPull = wx.RadioButton(self.stbAppli, label=self.lblPull, style=wx.RB_GROUP)
+        self.radClone = wx.RadioButton(self.stbAppli, label=self.lblClone)
 
-        self.dirPicker = wx.DirPickerCtrl(self,
+        self.dirPicker = wx.DirPickerCtrl(self.stbDir,
                                           message="Choisir le répertoire d'installation:",
                                           path=self.initialPath,
                                           style=wx.DIRP_USE_TEXTCTRL,
                                           name="dirPicker")
-        self.checkForce = wx.CheckBox(self, label="Forcer l'opération sans contrôle")
+        self.checkForce = wx.CheckBox(self.stbDir, label="Forcer l'opération sans contrôle")
         self.btnOk = wx.Button(self, label="Action")
 
     def Proprietes(self):
@@ -182,7 +182,7 @@ class DLG(wx.Dialog):
 
     def InitSizer(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizerAppli = wx.StaticBoxSizer(self.staticboxAppli)
+        sizerAppli = wx.StaticBoxSizer(self.stbAppli)
         sizerAppli.Add(self.cmbAppli, 0, wx.ALL, 5)
         sizerAppli.Add((10, 10), 1, wx.EXPAND, 0)
         sizerRadio = wx.BoxSizer(wx.VERTICAL)
@@ -190,7 +190,7 @@ class DLG(wx.Dialog):
         sizerRadio.Add(self.radClone, 1, wx.BOTTOM | wx.EXPAND, 5)
         sizerAppli.Add(sizerRadio, 15, wx.EXPAND, 0)
         sizer.Add(sizerAppli, 1, wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, 10)
-        sizerDir = wx.StaticBoxSizer(self.staticboxDir, orient=wx.VERTICAL)
+        sizerDir = wx.StaticBoxSizer(self.stbDir, orient=wx.VERTICAL)
         sizerDir.Add(self.dirPicker, 1, wx.EXPAND | wx.ALL, 5)
         sizerDir.Add(self.checkForce, 0, wx.LEFT, 15)
         sizer.Add(sizerDir, 1, wx.EXPAND | wx.ALL, 10)
