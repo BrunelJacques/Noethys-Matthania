@@ -25,11 +25,11 @@ class Dialog(wx.Dialog):
         self.IDgroupe_activite = IDgroupe_activite
         
         # Identité
-        self.staticbox_identite_staticbox = wx.StaticBox(self, -1, _("Type de groupe d'activités"))
-        self.label_nom = wx.StaticText(self, -1, _("Nom du groupe :"))
-        self.ctrl_nom = wx.TextCtrl(self, -1, "")
-        self.label_observations = wx.StaticText(self, -1, _("observations :"))
-        self.ctrl_observations = wx.TextCtrl(self, -1, "",size=(50,50),style=wx.TE_MULTILINE)
+        self.stbIdentite = wx.StaticBox(self, -1, _("Type de groupe d'activités"))
+        self.label_nom = wx.StaticText(self.stbIdentite, -1, _("Nom du groupe :"))
+        self.ctrl_nom = wx.TextCtrl(self.stbIdentite, -1, "")
+        self.label_observations = wx.StaticText(self.stbIdentite, -1, _("observations :"))
+        self.ctrl_observations = wx.TextCtrl(self.stbIdentite, -1, "",size=(50,50),style=wx.TE_MULTILINE)
 
         # Commandes
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"), cheminImage="Images/32x32/Valider.png")
@@ -58,7 +58,7 @@ class Dialog(wx.Dialog):
         grid_sizer_haut = wx.FlexGridSizer(rows=1, cols=1, vgap=10, hgap=10)
 
         # Identité
-        staticbox_identite = wx.StaticBoxSizer(self.staticbox_identite_staticbox, wx.VERTICAL)
+        staticbox_identite = wx.StaticBoxSizer(self.stbIdentite, wx.VERTICAL)
         grid_sizer_identite = wx.FlexGridSizer(rows=2, cols=2, vgap=15, hgap=10)
         grid_sizer_identite.Add(self.label_nom, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_identite.Add(self.ctrl_nom, 0, wx.EXPAND, 0)

@@ -26,7 +26,10 @@ from Ctrl import CTRL_Synthese_ventilation
 class Hyperlien(Hyperlink.HyperLinkCtrl):
     def __init__(self, parent, id=-1, label="", infobulle="", URL=""):
         Hyperlink.HyperLinkCtrl.__init__(self, parent, id, label, URL=URL)
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
 
         self.URL = URL
         self.AutoBrowse(False)
@@ -204,31 +207,31 @@ class Dialog(wx.Dialog):
         self.SetTitle(titre)
         
         # Panel Paramètres
-        self.staticbox_parametres = wx.StaticBox(self, -1, _("Paramètres"))
-        self.ctrl_parametres = CTRL_Parametres(self)
+        self.stbParams = wx.StaticBox(self, -1, _("Paramètres"))
+        self.ctrl_parametres = CTRL_Parametres(self.stbParams)
         self.ctrl_parametres.SetMinSize((280, -1))
-        self.bouton_actualiser = CTRL_Bouton_image.CTRL(self, texte=_("Rafraîchir la liste"), cheminImage="Images/32x32/Actualiser.png")
+        self.bouton_actualiser = CTRL_Bouton_image.CTRL(self.stbParams, texte=_("Rafraîchir la liste"), cheminImage="Images/32x32/Actualiser.png")
         self.bouton_actualiser.SetMinSize((-1, 50))
 
         # CTRL Résultats
-        self.staticbox_resultats_staticbox = wx.StaticBox(self, -1, _("Résultats"))
-        self.ctrl_resultats = CTRL_Synthese_ventilation.CTRL(self)
+        self.stbResult = wx.StaticBox(self, -1, _("Résultats"))
+        self.ctrl_resultats = CTRL_Synthese_ventilation.CTRL(self.stbResult)
         
         # Commandes de liste
-        self.bouton_apercu = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Apercu.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_excel = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Excel.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_apercu = wx.BitmapButton(self.stbResult, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Apercu.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_excel = wx.BitmapButton(self.stbResult, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Excel.png"), wx.BITMAP_TYPE_ANY))
 
         # Commandes de résultats
-        self.label_mode_affichage = wx.StaticText(self, -1, _("Mode d'affichage :"))
-        self.radio_mois = wx.RadioButton(self, -1, _("Mois"), style=wx.RB_GROUP)
-        self.radio_annee = wx.RadioButton(self, -1, _("Année"))
+        self.label_mode_affichage = wx.StaticText(self.stbResult, -1, _("Mode d'affichage :"))
+        self.radio_mois = wx.RadioButton(self.stbResult, -1, _("Mois"), style=wx.RB_GROUP)
+        self.radio_annee = wx.RadioButton(self.stbResult, -1, _("Année"))
         
-        self.check_details = wx.CheckBox(self, -1, _("Afficher détails"))
+        self.check_details = wx.CheckBox(self.stbResult, -1, _("Afficher détails"))
         self.check_details.SetValue(True) 
         
-        self.hyper_developper = Hyperlien(self, label=_("Développer"), infobulle=_("Cliquez ici pour développer l'arborescence"), URL="developper")
-        self.label_barre = wx.StaticText(self, -1, "|")
-        self.hyper_reduire = Hyperlien(self, label=_("Réduire"), infobulle=_("Cliquez ici pour réduire l'arborescence"), URL="reduire")
+        self.hyper_developper = Hyperlien(self.stbResult, label=_("Développer"), infobulle=_("Cliquez ici pour développer l'arborescence"), URL="developper")
+        self.label_barre = wx.StaticText(self.stbResult, -1, "|")
+        self.hyper_reduire = Hyperlien(self.stbResult, label=_("Réduire"), infobulle=_("Cliquez ici pour réduire l'arborescence"), URL="reduire")
         
         # Commandes
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -266,13 +269,13 @@ class Dialog(wx.Dialog):
         grid_sizer_contenu = wx.FlexGridSizer(rows=1, cols=2, vgap=10, hgap=10)
 
         # Paramètres
-        staticbox_param = wx.StaticBoxSizer(self.staticbox_parametres, wx.VERTICAL)
+        staticbox_param = wx.StaticBoxSizer(self.stbParams, wx.VERTICAL)
         staticbox_param.Add(self.ctrl_parametres, 1, wx.ALL|wx.EXPAND, 5)
         staticbox_param.Add(self.bouton_actualiser, 0, wx.ALL | wx.EXPAND, 5)
         grid_sizer_contenu.Add(staticbox_param, 1, wx.EXPAND, 0)
 
         # Résultats
-        staticbox_resultats= wx.StaticBoxSizer(self.staticbox_resultats_staticbox, wx.VERTICAL)
+        staticbox_resultats= wx.StaticBoxSizer(self.stbResult, wx.VERTICAL)
         grid_sizer_resultats = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         
         grid_sizer_resultats.Add(self.ctrl_resultats, 1, wx.EXPAND, 0)

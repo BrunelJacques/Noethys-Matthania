@@ -24,7 +24,12 @@ import copy
 
 class CTRL_Parametres(CTRL_Propertygrid.CTRL) :
     def __init__(self, parent, categorie=""):
-        self.categorie = categorie
+        if hasattr(parent,"categorie"):
+            self.categorie = parent.categorie
+        elif categorie:
+            self.categorie = categorie
+        else:
+            self.categorie = None
         CTRL_Propertygrid.CTRL.__init__(self, parent)
 
     

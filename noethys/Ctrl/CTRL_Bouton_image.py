@@ -10,7 +10,6 @@
 
 
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 import time
@@ -218,7 +217,6 @@ if __name__ == "__main__":
 ##    ModifieFichiers() 
     
     app = wx.App(0)
-    #wx.InitAllImageHandlers()
     dialog_1 = Dialog(None)
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()

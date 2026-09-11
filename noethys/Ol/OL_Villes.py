@@ -469,7 +469,6 @@ class MyFrame(wx.Frame):
 
 if __name__ == '__main__':
     app = wx.App(0)
-    #wx.InitAllImageHandlers()
     frame_1 = MyFrame(None, -1, "OL TEST")
     app.SetTopWindow(frame_1)
     frame_1.Show()

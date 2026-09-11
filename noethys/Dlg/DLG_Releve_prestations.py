@@ -30,7 +30,7 @@ from Utils import UTILS_Impression_tableau
 
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "€")
 
-COULEUR_FOND_TITRE = (0.8, 0.8, 1)
+COULEUR_FOND_TITRE = (204, 204, 255)
 
 LISTE_MOIS = (_("Janvier"), _("Février"), _("Mars"), _("Avril"), _("Mai"), _("Juin"), _("Juillet"), _("Août"), _("Septembre"), _("Octobre"), _("Novembre"), _("Décembre"))
 
@@ -86,20 +86,20 @@ class Dialog(wx.Dialog):
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Euro.png")
                 
         # Périodes
-        self.staticbox_periodes_staticbox = wx.StaticBox(self, -1, _("Périodes"))
-        self.ctrl_periodes = OL_Releve_prestations.ListView(self, id=-1, IDfamille=self.IDfamille,
+        self.stbPeriondes = wx.StaticBox(self, -1, _("Périodes"))
+        self.ctrl_periodes = OL_Releve_prestations.ListView(self.stbPeriondes, id=-1, IDfamille=self.IDfamille,
                                                             style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
-        self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter = wx.BitmapButton(self.stbPeriondes, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier = wx.BitmapButton(self.stbPeriondes, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer = wx.BitmapButton(self.stbPeriondes, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
 
         # Options
-        self.staticbox_options_staticbox = wx.StaticBox(self, -1, _("Options"))
-        self.check_memoriser_parametres = wx.CheckBox(self, -1, _("Mémoriser les périodes"))
+        self.stbOptions = wx.StaticBox(self, -1, _("Options"))
+        self.check_memoriser_parametres = wx.CheckBox(self.stbOptions, -1, _("Mémoriser les périodes"))
         self.check_memoriser_parametres.SetValue(True) 
         
-        self.checkbox_couleur = wx.CheckBox(self, -1, _("Couleur de fond de titre :"))
-        self.ctrl_couleur = csel.ColourSelect(self, -1, "", COULEUR_FOND_TITRE, size=(60, 18))
+        self.checkbox_couleur = wx.CheckBox(self.stbOptions, -1, _("Couleur de fond de titre :"))
+        self.ctrl_couleur = csel.ColourSelect(self.stbOptions, -1, "", COULEUR_FOND_TITRE, size=(60, 18))
         
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage=Chemins.GetStaticPath("Images/32x32/Aide.png"))
@@ -148,7 +148,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
         
         # Périodes
-        staticbox_periodes = wx.StaticBoxSizer(self.staticbox_periodes_staticbox, wx.VERTICAL)
+        staticbox_periodes = wx.StaticBoxSizer(self.stbPeriondes, wx.VERTICAL)
         grid_sizer_periodes = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_boutons_periodes = wx.FlexGridSizer(rows=4, cols=1, vgap=5, hgap=5)
         grid_sizer_periodes.Add(self.ctrl_periodes, 1, wx.EXPAND, 0)
@@ -162,7 +162,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(staticbox_periodes, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         
         # Options
-        staticbox_options = wx.StaticBoxSizer(self.staticbox_options_staticbox, wx.VERTICAL)
+        staticbox_options = wx.StaticBoxSizer(self.stbOptions, wx.VERTICAL)
         grid_sizer_options = wx.FlexGridSizer(rows=1, cols=6, vgap=2, hgap=2)
         grid_sizer_options.Add(self.check_memoriser_parametres, 0, wx.EXPAND, 0)
         grid_sizer_options.Add( (20, 10), 0, wx.EXPAND, 0)

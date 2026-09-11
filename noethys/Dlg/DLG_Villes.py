@@ -35,11 +35,11 @@ class Dialog(wx.Dialog):
 
         self.ctrl_barreRecherche = OL_Villes.CTRL_Outils(self, listview=self.ctrl_villes)
 
-        self.staticbox_saisie_staticbox = wx.StaticBox(self.panel_saisie, -1, _("Forcer une ville dans l'Adresse sans sauvegarde en modèle"))
-        self.label_cp = wx.StaticText(self.panel_saisie, -1, "Code postal :")
-        self.ctrl_cp = wx.TextCtrl(self.panel_saisie, -1, "")
-        self.label_ville = wx.StaticText(self.panel_saisie, -1, "Ville :")
-        self.ctrl_ville = wx.TextCtrl(self.panel_saisie, -1, "")
+        self.stbSaisie = wx.StaticBox(self.panel_saisie, -1, _("Forcer une ville dans l'Adresse sans sauvegarde en modèle"))
+        self.label_cp = wx.StaticText(self.stbSaisie, -1, "Code postal :")
+        self.ctrl_cp = wx.TextCtrl(self.stbSaisie, -1, "")
+        self.label_ville = wx.StaticText(self.stbSaisie, -1, "Ville :")
+        self.ctrl_ville = wx.TextCtrl(self.stbSaisie, -1, "")
 
         self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
         self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
@@ -80,7 +80,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
         
         grid_sizer_saisie = wx.GridSizer(rows=1, cols=1, vgap=0, hgap=0)
-        staticbox_saisie = wx.StaticBoxSizer(self.staticbox_saisie_staticbox, wx.VERTICAL)
+        staticbox_saisie = wx.StaticBoxSizer(self.stbSaisie, wx.VERTICAL)
         
         grid_sizer_recherche = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         grid_sizer_recherche.Add(self.ctrl_villes, 0, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 0)
@@ -176,7 +176,6 @@ class Dialog(wx.Dialog):
 
 if __name__ == "__main__":
     app = wx.App(0)
-    #wx.InitAllImageHandlers()
     dialog_1 = Dialog(None, modeImportation=True)
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()

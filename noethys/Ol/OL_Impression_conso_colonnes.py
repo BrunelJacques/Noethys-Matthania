@@ -258,7 +258,9 @@ class ListView(FastObjectListView):
 class CTRL_Choix(wx.Choice):
     def __init__(self, parent, listeData=[]):
         wx.Choice.__init__(self, parent, -1)
-        self.parent = parent
+        if parent and 'StaticBox' in str(type(parent)):
+            self.parent = parent.Parent
+        else: self.parent = parent
         self.listeData = listeData
         self.SetListe()
 
@@ -289,12 +291,12 @@ class DLG_Saisie_colonne(wx.Dialog):
         self.parent = parent
 
         # Généralités
-        self.staticbox_generalites_staticbox = wx.StaticBox(self, -1, _("Généralités"))
+        self.stbGeneral = wx.StaticBox(self, -1, _("Généralités"))
 
-        self.label_nom = wx.StaticText(self, -1, _("Nom :"))
-        self.ctrl_nom = wx.TextCtrl(self, -1, "")
+        self.label_nom = wx.StaticText(self.stbGeneral, -1, _("Nom :"))
+        self.ctrl_nom = wx.TextCtrl(self.stbGeneral, -1, "")
 
-        self.label_donnee = wx.StaticText(self, -1, _("Donnée :"))
+        self.label_donnee = wx.StaticText(self.stbGeneral, -1, _("Donnée :"))
         liste_choix = [
             ("aucun", _("Aucune")),
             ("genre", _("Genre (M/F)")),
@@ -324,15 +326,15 @@ class DLG_Saisie_colonne(wx.Dialog):
                 code = "question_%s_%d" % (public, dictTemp["IDquestion"])
                 liste_choix.append((code, label))
 
-        self.ctrl_donnee = CTRL_Choix(self, liste_choix)
+        self.ctrl_donnee = CTRL_Choix(self.stbGeneral, liste_choix)
 
         # Options
-        self.staticbox_options_staticbox = wx.StaticBox(self, -1, _("Options"))
-        self.label_largeur = wx.StaticText(self, -1, _("Largeur :"))
+        self.stbOptions = wx.StaticBox(self, -1, _("Options"))
+        self.label_largeur = wx.StaticText(self.stbOptions, -1, _("Largeur :"))
         liste_choix = [("automatique", _("Automatique")),]
         for x in range(5, 205, 5):
             liste_choix.append((str(x), "%d pixels" % x))
-        self.ctrl_largeur = CTRL_Choix(self, liste_choix)
+        self.ctrl_largeur = CTRL_Choix(self.stbOptions, liste_choix)
 
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -362,7 +364,7 @@ class DLG_Saisie_colonne(wx.Dialog):
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
 
         # Généralités
-        staticbox_generalites = wx.StaticBoxSizer(self.staticbox_generalites_staticbox, wx.VERTICAL)
+        staticbox_generalites = wx.StaticBoxSizer(self.stbGeneral, wx.VERTICAL)
 
         grid_sizer_generalites = wx.FlexGridSizer(rows=2, cols=2, vgap=10, hgap=10)
         grid_sizer_generalites.Add(self.label_nom, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
@@ -375,7 +377,7 @@ class DLG_Saisie_colonne(wx.Dialog):
         grid_sizer_base.Add(staticbox_generalites, 1, wx.LEFT | wx.RIGHT | wx.TOP | wx.EXPAND, 10)
 
         # Options
-        staticbox_options = wx.StaticBoxSizer(self.staticbox_options_staticbox, wx.VERTICAL)
+        staticbox_options = wx.StaticBoxSizer(self.stbOptions, wx.VERTICAL)
 
         grid_sizer_options = wx.FlexGridSizer(rows=2, cols=2, vgap=10, hgap=10)
         grid_sizer_options.Add(self.label_largeur, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)

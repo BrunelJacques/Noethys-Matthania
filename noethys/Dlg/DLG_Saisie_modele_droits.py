@@ -28,15 +28,15 @@ class Dialog(wx.Dialog):
         self.IDmodele = IDmodele
         
         # Généralités
-        self.staticbox_generalites_staticbox = wx.StaticBox(self, -1, _("Généralités"))
-        self.label_nom = wx.StaticText(self, -1, _("Nom :"))
-        self.ctrl_nom = wx.TextCtrl(self, -1, "")
-        self.label_description = wx.StaticText(self, -1, _("Description :"))
-        self.ctrl_description = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE)
+        self.stbGeneral = wx.StaticBox(self, -1, _("Généralités"))
+        self.label_nom = wx.StaticText(self.stbGeneral, -1, _("Nom :"))
+        self.ctrl_nom = wx.TextCtrl(self.stbGeneral, -1, "")
+        self.label_description = wx.StaticText(self.stbGeneral, -1, _("Description :"))
+        self.ctrl_description = wx.TextCtrl(self.stbGeneral, -1, "", style=wx.TE_MULTILINE)
         
         # Droits
-        self.staticbox_droits_staticbox = wx.StaticBox(self, -1, _("Droits"))
-        self.ctrl_droits = CTRL_Droits.CTRL(self, IDmodele=IDmodele)
+        self.stbDroits = wx.StaticBox(self, -1, _("Droits"))
+        self.ctrl_droits = CTRL_Droits.CTRL(self.stbDroits, IDmodele=IDmodele)
         self.ctrl_droits.MAJ() 
         
         # Commandes
@@ -71,7 +71,7 @@ class Dialog(wx.Dialog):
         grid_sizer_contenu = wx.FlexGridSizer(rows=1, cols=2, vgap=10, hgap=10)
         
         # Généralités
-        staticbox_generalites = wx.StaticBoxSizer(self.staticbox_generalites_staticbox, wx.VERTICAL)
+        staticbox_generalites = wx.StaticBoxSizer(self.stbGeneral, wx.VERTICAL)
         grid_sizer_generalites = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         
         grid_sizer_generalites.Add(self.label_nom, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
@@ -84,7 +84,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(staticbox_generalites, 1, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 10)
 
         # Droits
-        staticbox_droits = wx.StaticBoxSizer(self.staticbox_droits_staticbox, wx.VERTICAL)
+        staticbox_droits = wx.StaticBoxSizer(self.stbDroits, wx.VERTICAL)
         staticbox_droits.Add(self.ctrl_droits, 1, wx.ALL|wx.EXPAND, 10)
         grid_sizer_base.Add(staticbox_droits, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
         

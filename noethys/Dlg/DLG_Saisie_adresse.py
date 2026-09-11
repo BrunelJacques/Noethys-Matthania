@@ -26,11 +26,11 @@ class Dialog(wx.Dialog):
         
         self.label_nom = wx.StaticText(self, -1, _("Nom :"))
         self.ctrl_nom = wx.TextCtrl(self, -1, "")
-        self.staticbox_coords_staticbox = wx.StaticBox(self, -1, "")
-        self.label_rue = wx.StaticText(self, -1, _("Rue :"))
-        self.ctrl_rue = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE)
-        self.label_ville = wx.StaticText(self, -1, _("C.P. :"))
-        self.ctrl_ville = CTRL_Saisie_adresse.Adresse(self)
+        self.stbCoords = wx.StaticBox(self, -1, "")
+        self.label_rue = wx.StaticText(self.stbCoords, -1, _("Rue :"))
+        self.ctrl_rue = wx.TextCtrl(self.stbCoords, -1, "", style=wx.TE_MULTILINE)
+        self.label_ville = wx.StaticText(self.stbCoords, -1, _("C.P. :"))
+        self.ctrl_ville = CTRL_Saisie_adresse.Adresse(self.stbCoords)
         
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"), cheminImage="Images/32x32/Valider.png")
@@ -54,7 +54,7 @@ class Dialog(wx.Dialog):
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=0, hgap=0)
         grid_sizer_boutons = wx.FlexGridSizer(rows=1, cols=4, vgap=10, hgap=10)
-        staticbox_coords = wx.StaticBoxSizer(self.staticbox_coords_staticbox, wx.VERTICAL)
+        staticbox_coords = wx.StaticBoxSizer(self.stbCoords, wx.VERTICAL)
         grid_sizer_coords = wx.FlexGridSizer(rows=4, cols=2, vgap=10, hgap=10)
         grid_sizer_coords.Add(self.label_nom, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_coords.Add(self.ctrl_nom, 0, wx.EXPAND, 0)
@@ -115,10 +115,8 @@ class Dialog(wx.Dialog):
         UTILS_Aide.Aide("Transports1")
 
 
-
 if __name__ == "__main__":
     app = wx.App(0)
-    #wx.InitAllImageHandlers()
     dialog_1 = Dialog(None)
     app.SetTopWindow(dialog_1)
     dialog_1.ShowModal()

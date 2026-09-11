@@ -327,17 +327,17 @@ class Saisie(wx.Dialog):
         self.parent = parent
         self.type = type
 
-        self.staticBox_staticbox = wx.StaticBox(self, -1, "")
-        self.label_nom = wx.StaticText(self, -1, _("Nom :"))
-        self.text_ctrl_nom = wx.TextCtrl(self, -1, "")
-        self.label_jour_fixe = wx.StaticText(self, -1, _("Jour :"))
+        self.stbParams = wx.StaticBox(self, -1, "")
+        self.label_nom = wx.StaticText(self.stbParams, -1, _("Nom :"))
+        self.text_ctrl_nom = wx.TextCtrl(self.stbParams, -1, "")
+        self.label_jour_fixe = wx.StaticText(self.stbParams, -1, _("Jour :"))
         choices=[]
         for x in range(1, 32) : choices.append(str(x))
-        self.choice_jour_fixe = wx.Choice(self, -1, choices=choices)
-        self.label_mois_fixe = wx.StaticText(self, -1, _("Mois :"))
-        self.choice_mois_fixe = wx.Choice(self, -1, choices=[_("Janvier"), _("Février"), _("Mars"), _("Avril"), _("Mai"), _("Juin"), _("Juillet"), _("Août"), _("Septembre"), _("Octobre"), _("Novembre"), _("Décembre")])
-        self.label_date_variable = wx.StaticText(self, -1, _("Date :"))
-        self.datepicker_date_variable = MyDatePickerCtrl(self)
+        self.choice_jour_fixe = wx.Choice(self.stbParams, -1, choices=choices)
+        self.label_mois_fixe = wx.StaticText(self.stbParams, -1, _("Mois :"))
+        self.choice_mois_fixe = wx.Choice(self.stbParams, -1, choices=[_("Janvier"), _("Février"), _("Mars"), _("Avril"), _("Mai"), _("Juin"), _("Juillet"), _("Août"), _("Septembre"), _("Octobre"), _("Novembre"), _("Décembre")])
+        self.label_date_variable = wx.StaticText(self.stbParams, -1, _("Date :"))
+        self.datepicker_date_variable = MyDatePickerCtrl(self.stbParams)
         
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"), cheminImage="Images/32x32/Valider.png")
@@ -378,7 +378,7 @@ class Saisie(wx.Dialog):
         # Layout
         grid_sizer_base = wx.FlexGridSizer(rows=2, cols=1, vgap=0, hgap=0)
         grid_sizer_boutons = wx.FlexGridSizer(rows=1, cols=4, vgap=10, hgap=10)
-        staticBox = wx.StaticBoxSizer(self.staticBox_staticbox, wx.VERTICAL)
+        staticBox = wx.StaticBoxSizer(self.stbParams, wx.VERTICAL)
         grid_sizer_staticBox = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
         grid_sizer_variable = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_fixe = wx.FlexGridSizer(rows=1, cols=5, vgap=5, hgap=5)

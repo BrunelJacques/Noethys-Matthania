@@ -27,15 +27,15 @@ class Dialog(wx.Dialog):
         self.parent = parent
 
         # Inscrits et présents
-        self.staticbox_activites = wx.StaticBox(self, -1, _("Activités"))
-        self.radio_tous = wx.RadioButton(self, -1, _("Tous les individus"))
-        self.radio_inscrits = wx.RadioButton(self, -1, _("Uniquement les inscrits aux activités suivantes :"))
-        self.ctrl_activites = CTRL_Selection_activites_groupes.CTRL(self)
+        self.stbActivites = wx.StaticBox(self, -1, _("Activités"))
+        self.radio_tous = wx.RadioButton(self.stbActivites, -1, _("Tous les individus"))
+        self.radio_inscrits = wx.RadioButton(self.stbActivites, -1, _("Uniquement les inscrits aux activités suivantes :"))
+        self.ctrl_activites = CTRL_Selection_activites_groupes.CTRL(self.stbActivites)
         
-        self.check_presents = wx.CheckBox(self, -1, _("Et présents du"))
-        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self)
-        self.label_au = wx.StaticText(self, -1, _("au"))
-        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self)
+        self.check_presents = wx.CheckBox(self.stbActivites, -1, _("Et présents du"))
+        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self.stbActivites)
+        self.label_au = wx.StaticText(self.stbActivites, -1, _("au"))
+        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self.stbActivites)
         
         if afficherPresents == False :
             self.check_presents.Show(False)
@@ -44,12 +44,12 @@ class Dialog(wx.Dialog):
             self.ctrl_date_fin.Show(False)
 
         # Archivés et effaces
-        self.staticbox_options = wx.StaticBox(self, -1, _("Options"))
-        self.check_archives = wx.CheckBox(self, -1, _("Afficher les individus archivés"))
-        self.check_effaces = wx.CheckBox(self, -1, _("Afficher les individus effacés"))
+        self.stbOptions = wx.StaticBox(self, -1, _("Options"))
+        self.check_archives = wx.CheckBox(self.stbOptions, -1, _("Afficher les individus archivés"))
+        self.check_effaces = wx.CheckBox(self.stbOptions, -1, _("Afficher les individus effacés"))
 
         # RFID
-        self.check_rfid = wx.CheckBox(self, -1, _("Activer la détection des badges RFID"))
+        self.check_rfid = wx.CheckBox(self.stbOptions, -1, _("Activer la détection des badges RFID"))
 
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"), cheminImage="Images/32x32/Valider.png")
         self.bouton_annuler = CTRL_Bouton_image.CTRL(self, texte=_("Annuler"), cheminImage="Images/32x32/Annuler.png")
@@ -84,7 +84,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base = wx.FlexGridSizer(rows=5, cols=1, vgap=10, hgap=10)
 
         # Activités
-        staticbox_activites = wx.StaticBoxSizer(self.staticbox_activites, wx.VERTICAL)
+        staticbox_activites = wx.StaticBoxSizer(self.stbActivites, wx.VERTICAL)
         staticbox_activites.Add(self.radio_tous, 0, wx.ALL|wx.EXPAND, 10)
         staticbox_activites.Add(self.radio_inscrits, 0, wx.LEFT|wx.RIGHT, 10)
 
@@ -105,7 +105,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(staticbox_activites, 1, wx.TOP | wx.LEFT | wx.RIGHT | wx.EXPAND, 10)
 
         # Options
-        staticbox_options = wx.StaticBoxSizer(self.staticbox_options, wx.VERTICAL)
+        staticbox_options = wx.StaticBoxSizer(self.stbOptions, wx.VERTICAL)
         grid_sizer_options = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
         grid_sizer_options.Add(self.check_archives, 0, 0, 0)
         grid_sizer_options.Add(self.check_effaces, 0, 0, 0)

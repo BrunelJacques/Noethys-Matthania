@@ -152,30 +152,30 @@ class Dialog(wx.Dialog):
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Remboursement.png")
 
         # Généralités
-        self.staticbox_generalites_staticbox = wx.StaticBox(self, -1, _("Généralités"))
+        self.stbGeneralites = wx.StaticBox(self, -1, _("Généralités"))
 
-        self.label_montant = wx.StaticText(self, -1, _("Montant :"))
-        self.ctrl_montant = CTRL_Saisie_euros.CTRL(self)
+        self.label_montant = wx.StaticText(self.stbGeneralites, -1, _("Montant :"))
+        self.ctrl_montant = CTRL_Saisie_euros.CTRL(self.stbGeneralites)
 
-        self.label_observations = wx.StaticText(self, -1, _("Observations :"))
-        self.ctrl_observations = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE)
+        self.label_observations = wx.StaticText(self.stbGeneralites, -1, _("Observations :"))
+        self.ctrl_observations = wx.TextCtrl(self.stbGeneralites, -1, "", style=wx.TE_MULTILINE)
 
         # Options
-        self.staticbox_options_staticbox = wx.StaticBox(self, -1, _("Paramètres"))
+        self.stbOptions = wx.StaticBox(self, -1, _("Paramètres"))
 
-        self.label_compte = wx.StaticText(self, -1, _("Compte bancaire :"))
-        self.ctrl_compte = CTRL_Compte(self)
+        self.label_compte = wx.StaticText(self.stbOptions, -1, _("Compte bancaire :"))
+        self.ctrl_compte = CTRL_Compte(self.stbOptions)
 
-        self.label_payeur = wx.StaticText(self, -1, _("Nom du payeur :"))
-        self.ctrl_payeur = CTRL_Payeurs(self, self.IDcompte_payeur)
-        self.bouton_payeurs = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_ANY))
+        self.label_payeur = wx.StaticText(self.stbOptions, -1, _("Nom du payeur :"))
+        self.ctrl_payeur = CTRL_Payeurs(self.stbOptions, self.IDcompte_payeur)
+        self.bouton_payeurs = wx.BitmapButton(self.stbOptions, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_ANY))
 
-        self.label_mode = wx.StaticText(self, -1, _("Mode de règlement :"))
-        self.ctrl_mode = CTRL_Mode(self)
+        self.label_mode = wx.StaticText(self.stbOptions, -1, _("Mode de règlement :"))
+        self.ctrl_mode = CTRL_Mode(self.stbOptions)
         self.ctrl_mode.SetMinSize((200, -1))
-        self.bouton_modes = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modes = wx.BitmapButton(self.stbOptions, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Mecanisme.png"), wx.BITMAP_TYPE_ANY))
 
-        self.hyper_creer_mode = Hyperlien(self, label=_("Créer un mode 'Remboursement'"), infobulle=_("Si vous n'avez pas de mode 'Remboursement' dans la liste des modes, cliquez ici pour en créer automatiquement."), URL="creer_mode")
+        self.hyper_creer_mode = Hyperlien(self.stbOptions, label=_("Créer un mode 'Remboursement'"), infobulle=_("Si vous n'avez pas de mode 'Remboursement' dans la liste des modes, cliquez ici pour en créer automatiquement."), URL="creer_mode")
 
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
@@ -216,7 +216,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
 
         # Généralités
-        staticbox_generalites = wx.StaticBoxSizer(self.staticbox_generalites_staticbox, wx.VERTICAL)
+        staticbox_generalites = wx.StaticBoxSizer(self.stbGeneralites, wx.VERTICAL)
 
         grid_sizer_generalites = wx.FlexGridSizer(rows=2, cols=2, vgap=10, hgap=10)
         grid_sizer_generalites.Add(self.label_montant, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
@@ -229,7 +229,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(staticbox_generalites, 1, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 10)
 
         # Options
-        staticbox_options = wx.StaticBoxSizer(self.staticbox_options_staticbox, wx.VERTICAL)
+        staticbox_options = wx.StaticBoxSizer(self.stbOptions, wx.VERTICAL)
         grid_sizer_options = wx.FlexGridSizer(rows=3, cols=2, vgap=10, hgap=10)
 
         grid_sizer_options.Add(self.label_compte, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)

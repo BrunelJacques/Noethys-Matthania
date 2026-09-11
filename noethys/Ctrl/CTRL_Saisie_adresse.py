@@ -328,7 +328,7 @@ class Adresse(wx.Panel):
 
     def OnOptionsVille(self, event): 
         from Dlg import DLG_Villes
-        dlg = DLG_Villes.Dialog(None, modeImportation=True)
+        dlg = DLG_Villes.Dialog(self, modeImportation=True)
         if dlg.ShowModal() == wx.ID_OK:
             ret = dlg.GetVille()
             cp, ville = ret[0], ret[1]
@@ -361,7 +361,6 @@ class MyFrame(wx.Frame):
 
 if __name__ == '__main__':
     app = wx.App(0)
-    #wx.InitAllImageHandlers()
     frame_1 = MyFrame(None, -1, "TEST", size=(800, 400))
     app.SetTopWindow(frame_1)
     frame_1.Show()

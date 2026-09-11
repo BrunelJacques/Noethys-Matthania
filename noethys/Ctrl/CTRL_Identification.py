@@ -17,11 +17,13 @@ from hashlib import sha256
 #class CTRL(wx.SearchCtrl):
 class CTRL(wx.TextCtrl):
     def __init__(self, parent, listeUtilisateurs=[], size=(-1, -1), modeDLG=False):
-        if parent and "StaticBox" in str(type(parent)):
-            parent = parent.Parent
+
         #wx.SearchCtrl.__init__(self, parent, size=size, style=wx.TE_PROCESS_ENTER | wx.TE_PASSWORD)
         wx.TextCtrl.__init__(self, parent, size=size, style=wx.TE_PROCESS_ENTER | wx.TE_PASSWORD)
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
         self.listeUtilisateurs = listeUtilisateurs
         self.modeDLG = modeDLG
 
@@ -112,11 +114,10 @@ class Dialog(wx.Dialog):
         if self.nomFichier != None :
             self.SetTitle("Ouverture du fichier %s" % self.nomFichier)
 
-        self.label = wx.StaticText(self, -1, "Veuillez saisir votre code d'identification personnel :")
-
         self.stbIdent = wx.StaticBox(self, -1, "")
+        self.label = wx.StaticText(self, -1, "Veuillez saisir votre code d'identification personnel :")
         self.ctrl_mdp = CTRL(self.stbIdent, listeUtilisateurs=self.listeUtilisateurs, modeDLG=True)
-        
+
         # Texte pour rappeller mot de passe du fichier Exemple
         self.label_exemple = wx.StaticText(self.stbIdent, -1, "Le mot de passe des fichiers exemples est 'aze'")
         self.label_exemple.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL))
@@ -142,10 +143,10 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(self.label, 0, wx.ALL, 10)
         
         # Staticbox
-        staticbox = wx.StaticBoxSizer(self.staticbox, wx.HORIZONTAL)
-        grid_sizer_contenu = wx.FlexGridSizer(rows=2, cols=1, vgap=2, hgap=2)
-        grid_sizer_contenu.Add(self.ctrl_mdp, 1, wx.EXPAND, 0)
-        grid_sizer_contenu.Add(self.label_exemple, 1, wx.ALIGN_RIGHT, 0)
+        staticbox = wx.StaticBoxSizer(self.stbIdent, wx.HORIZONTAL)
+        grid_sizer_contenu = wx.FlexGridSizer(rows=3, cols=1, vgap=2, hgap=2)
+        grid_sizer_contenu.Add(self.ctrl_mdp, 1, wx.EXPAND, 5)
+        grid_sizer_contenu.Add(self.label_exemple, 1,wx.TOP|wx.ALIGN_RIGHT, 5)
         grid_sizer_contenu.AddGrowableCol(0)
         staticbox.Add(grid_sizer_contenu, 1, wx.ALL|wx.EXPAND, 10)
         grid_sizer_base.Add(staticbox, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)

@@ -27,18 +27,18 @@ class Dialog(wx.Dialog):
         self.IDcategorie = IDcategorie
         
         # Nom
-        self.staticbox_nom_staticbox = wx.StaticBox(self, -1, _("Nom"))
-        self.label_nom = wx.StaticText(self, -1, _("Nom :"))
-        self.ctrl_nom = wx.TextCtrl(self, -1, "")
+        self.stbNom = wx.StaticBox(self, -1, _("Nom"))
+        self.label_nom = wx.StaticText(self.stbNom, -1, _("Nom :"))
+        self.ctrl_nom = wx.TextCtrl(self.stbNom, -1, "")
 
         # Options
-        self.staticbox_options_staticbox = wx.StaticBox(self, -1, _("Options par défaut"))
+        self.stbOptions = wx.StaticBox(self, -1, _("Options par défaut"))
         
-        self.ctrl_afficher_accueil = wx.CheckBox(self, -1, _("Afficher sur la page d'accueil"))
-        self.ctrl_afficher_liste = wx.CheckBox(self, -1, _("Afficher sur la liste des consommations"))
+        self.ctrl_afficher_accueil = wx.CheckBox(self.stbOptions, -1, _("Afficher sur la page d'accueil"))
+        self.ctrl_afficher_liste = wx.CheckBox(self.stbOptions, -1, _("Afficher sur la liste des consommations"))
         
-        self.label_priorite = wx.StaticText(self, -1, _("Priorité :"))
-        self.ctrl_priorite = wx.Choice(self, -1, choices=[_("Normale"), _("Haute")])
+        self.label_priorite = wx.StaticText(self.stbOptions, -1, _("Priorité :"))
+        self.ctrl_priorite = wx.Choice(self.stbOptions, -1, choices=[_("Normale"), _("Haute")])
         self.ctrl_priorite.SetSelection(0)
         
         # Commandes
@@ -72,7 +72,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base = wx.FlexGridSizer(rows=4, cols=1, vgap=10, hgap=10)
                 
         # Texte
-        staticbox_nom = wx.StaticBoxSizer(self.staticbox_nom_staticbox, wx.VERTICAL)
+        staticbox_nom = wx.StaticBoxSizer(self.stbNom, wx.VERTICAL)
         grid_sizer_nom = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         grid_sizer_nom.Add(self.label_nom, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_nom.Add(self.ctrl_nom, 0, wx.EXPAND, 0)
@@ -81,7 +81,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(staticbox_nom, 1, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 10)
         
         # Options
-        staticbox_options = wx.StaticBoxSizer(self.staticbox_options_staticbox, wx.VERTICAL)
+        staticbox_options = wx.StaticBoxSizer(self.stbOptions, wx.VERTICAL)
         grid_sizer_options = wx.FlexGridSizer(rows=2, cols=3, vgap=5, hgap=5)
         grid_sizer_options.Add(self.ctrl_afficher_accueil, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_options.Add(self.label_priorite, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
