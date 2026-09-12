@@ -1601,17 +1601,23 @@ class MainFrame(wx.Frame):
         # les deux premiers indices sont égaux, test sur les niveaux (3? indice)
         elif versionData[:3] < versionLogiciel[:3]:
             mess = "Base de donnée d'un niveau inférieur\n\n"
+            mess += f"Base de données: {versionData[:3]} < Logiciel: {versionLogiciel[:3]}\n\n"
+            dlgAttente = wx.BusyInfo(mess, None)
             mess += "Faut-il mettre à jour la base de données pointée?"
+            time.sleep(3)
+            del dlgAttente
             reponse = wx.MessageBox(mess,"", wx.YES_NO |wx.ICON_WARNING)
             if reponse == wx.YES and UTILS_Utilisateurs.IsAdmin(afficheMessage=True):
-                self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(False)
+                import UpgradeDB
+                UpgradeDB.MAJ_TablesEtChamps(self, mode='ctrl')
                 return True
             elif reponse == wx.NO:
-                mess = "UPGRADE BASE conseillée\n\n"
+                mess = "UPGRADE BASE peut-être nécessaire...\n\n"
                 mess += "Version logiciel '%s' - Version base de donnée '%s'\n" % (
                     versionLogiciel[:3],versionData[:3])
-                mess += "La version que vous utilisez peut nécessiter une mise à jour de la base\n"
-                mess += "Une base non à jour peut être à l'origine de bugs."
+                mess += "La version que vous utilisez n'a pas été diffusée avec MAJ de la base\n"
+                mess += "La mise à jour doit être lancée lors de la diffusion\n\n"
+                mess += "L'upgrade se fait par le menu outils, admin"
                 wx.MessageBox(mess, "", style=wx.ICON_INFORMATION)
                 return True
             # Upgrade demandé
@@ -1620,6 +1626,7 @@ class MainFrame(wx.Frame):
                 mess += "Version logiciel '%s' - Version base de donnée '%s'\n" % (
                     versionLogiciel[:3],versionData[:3])
                 mess += "On peut quand même travailler, malgré quelques risques de bug!"
+
                 wx.MessageBox(mess, "", style=wx.ICON_INFORMATION)
                 return True
             #else un admin a demandé l'upgrade
