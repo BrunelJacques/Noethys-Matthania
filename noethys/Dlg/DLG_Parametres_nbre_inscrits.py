@@ -42,22 +42,22 @@ class DlgGroupes(wx.Dialog):
         self.parent = parent
 
         # Activités
-        self.box_activites_staticbox = wx.StaticBox(self, wx.ID_ANY, _("Sélection des activités"))
-        self.ctrl_activites = CTRL_SelectionActivites.CTRL(self)
+        self.stbActivites = wx.StaticBox(self, wx.ID_ANY, _("Sélection des activités"))
+        self.ctrl_activites = CTRL_SelectionActivites.CTRL(self.stbActivites)
 
         # Options
-        self.box_options_staticbox = wx.StaticBox(self, wx.ID_ANY, _("Options d'affichage"))
-        self.label_tri = wx.StaticText(self, wx.ID_ANY, _("Critère de tri :"))
+        self.stbOptions = wx.StaticBox(self, wx.ID_ANY, _("Options d'affichage"))
+        self.label_tri = wx.StaticText(self.stbOptions, wx.ID_ANY, _("Critère de tri :"))
         lstChoix = [x for (x,y) in CHOICES_TRI_GROUPES]
-        self.ctrl_tri = wx.Choice(self, wx.ID_ANY, choices=lstChoix)
+        self.ctrl_tri = wx.Choice(self.stbOptions, wx.ID_ANY, choices=lstChoix)
         self.ctrl_tri.SetSelection(0)
 
-        self.label_sens = wx.StaticText(self, wx.ID_ANY, _("Sens de tri :"))
-        self.ctrl_sens = wx.Choice(self, wx.ID_ANY, choices=[_("Croissant"), _("Décroissant")])
+        self.label_sens = wx.StaticText(self.stbOptions, wx.ID_ANY, _("Sens de tri :"))
+        self.ctrl_sens = wx.Choice(self.stbOptions, wx.ID_ANY, choices=[_("Croissant"), _("Décroissant")])
         self.ctrl_sens.SetSelection(0)
 
-        self.label_alerte = wx.StaticText(self, wx.ID_ANY, _("Seuil d'alerte en % :"))
-        self.ctrl_alerte = wx.SpinCtrl(self, wx.ID_ANY, "", min=0, max=100)
+        self.label_alerte = wx.StaticText(self.stbOptions, wx.ID_ANY, _("Seuil d'alerte en % :"))
+        self.ctrl_alerte = wx.SpinCtrl(self.stbOptions, wx.ID_ANY, "", min=0, max=100)
 
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage=Chemins.GetStaticPath("Images/32x32/Aide.png"))
@@ -87,11 +87,11 @@ class DlgGroupes(wx.Dialog):
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(3, 1, 0, 0)
 
-        box_activites = wx.StaticBoxSizer(self.box_activites_staticbox, wx.VERTICAL)
+        box_activites = wx.StaticBoxSizer(self.stbActivites, wx.VERTICAL)
         box_activites.Add(self.ctrl_activites, 1, wx.TOP | wx.EXPAND, 0)
         grid_sizer_base.Add(box_activites, 1, wx.LEFT | wx.RIGHT | wx.TOP | wx.EXPAND, 10)
 
-        box_options = wx.StaticBoxSizer(self.box_options_staticbox, wx.VERTICAL)
+        box_options = wx.StaticBoxSizer(self.stbOptions, wx.VERTICAL)
         grid_sizer_options = wx.FlexGridSizer(3, 2, 10, 10)
         grid_sizer_options.Add(self.label_tri, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_options.Add(self.ctrl_tri, 0, wx.EXPAND, 0)
@@ -172,22 +172,22 @@ class DlgActivites(wx.Dialog):
         self.parent = parent
         
         # Activités
-        self.box_activites_staticbox = wx.StaticBox(self, wx.ID_ANY, _("Sélection des activités"))
-        self.ctrl_activites = CTRL_SelectionActivites.CTRL(self)
+        self.stbActivites = wx.StaticBox(self, wx.ID_ANY, _("Sélection des activités"))
+        self.ctrl_activites = CTRL_SelectionActivites.CTRL(self.stbActivites)
         
         # Options
-        self.box_options_staticbox = wx.StaticBox(self, wx.ID_ANY, _("Options d'affichage"))
-        self.label_tri = wx.StaticText(self, wx.ID_ANY, _("Critère de tri :"))
+        self.stbOptions = wx.StaticBox(self, wx.ID_ANY, _("Options d'affichage"))
+        self.label_tri = wx.StaticText(self.stbOptions, wx.ID_ANY, _("Critère de tri :"))
         lstChoix = [x for (x,y) in CHOICES_TRI_ACTIVITES]
-        self.ctrl_tri = wx.Choice(self, wx.ID_ANY, choices=lstChoix)
+        self.ctrl_tri = wx.Choice(self.stbOptions, wx.ID_ANY, choices=lstChoix)
         self.ctrl_tri.SetSelection(0)
 
-        self.label_sens = wx.StaticText(self, wx.ID_ANY, _("Sens de tri :"))
-        self.ctrl_sens = wx.Choice(self, wx.ID_ANY, choices=[_("Croissant"), _("Décroissant")])
+        self.label_sens = wx.StaticText(self.stbOptions, wx.ID_ANY, _("Sens de tri :"))
+        self.ctrl_sens = wx.Choice(self.stbOptions, wx.ID_ANY, choices=[_("Croissant"), _("Décroissant")])
         self.ctrl_sens.SetSelection(0)
 
-        self.label_alerte = wx.StaticText(self, wx.ID_ANY, _("Seuil d'alerte :"))
-        self.ctrl_alerte = wx.SpinCtrl(self, wx.ID_ANY, "", min=0, max=100)
+        self.label_alerte = wx.StaticText(self.stbOptions, wx.ID_ANY, _("Seuil d'alerte :"))
+        self.ctrl_alerte = wx.SpinCtrl(self.stbOptions, wx.ID_ANY, "", min=0, max=100)
         
         # Boutons
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage=Chemins.GetStaticPath("Images/32x32/Aide.png"))
@@ -217,11 +217,11 @@ class DlgActivites(wx.Dialog):
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(3, 1, 0, 0)
         
-        box_activites = wx.StaticBoxSizer(self.box_activites_staticbox, wx.VERTICAL)
+        box_activites = wx.StaticBoxSizer(self.stbActivites, wx.VERTICAL)
         box_activites.Add(self.ctrl_activites, 1, wx.TOP | wx.EXPAND, 0)
         grid_sizer_base.Add(box_activites, 1, wx.LEFT | wx.RIGHT | wx.TOP | wx.EXPAND, 10)
 
-        box_options = wx.StaticBoxSizer(self.box_options_staticbox, wx.VERTICAL)
+        box_options = wx.StaticBoxSizer(self.stbOptions, wx.VERTICAL)
         grid_sizer_options = wx.FlexGridSizer(3, 2, 10, 10)
         grid_sizer_options.Add(self.label_tri, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_options.Add(self.ctrl_tri, 0, wx.EXPAND, 0)
