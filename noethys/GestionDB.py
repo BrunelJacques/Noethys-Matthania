@@ -10,8 +10,6 @@ import datetime
 import wx
 import os, sys
 
-
-
 MODE_TEAMWORKS = False
 DICT_CONNEXIONS = {}
 IX_CONNEXION = {"ix":0,"pointeurs":{}}
