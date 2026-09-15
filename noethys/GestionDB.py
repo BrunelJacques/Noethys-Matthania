@@ -16,7 +16,8 @@ IX_CONNEXION = {"ix":0,"pointeurs":{}}
 
 IMPORT_PYMYSQL_OK = False
 IMPORT_MYSQLCONNECTOR_OK = False
-
+INTERFACE_MYSQL = None
+mess = "Tentatives de connexion:\n"
 try :
     import MySQLdb # paquet officiel en C, install mysqlclient
     from MySQLdb.constants import FIELD_TYPE
@@ -24,6 +25,7 @@ try :
     IMPORT_MYSQLDB_OK = True
     INTERFACE_MYSQL = "mysqldb"
 except Exception as err :
+    mess += f"Echec lancement mysqldb: {err}\n"
     IMPORT_MYSQLDB_OK = False
 
 # Interface pour Mysql = "mysqldb" en C ou "mysql.connector" en python
@@ -40,6 +42,7 @@ if v >= (3,9):
         IMPORT_MYSQLCONNECTOR_OK = True
         INTERFACE_MYSQL = "mysql.connector"
     except Exception as err :
+        mess += f"Echec lancement mysql.connector: {err}\n"
         IMPORT_MYSQLCONNECTOR_OK = False
 else:
     # import pymysql ok sous windows seven et python 8
@@ -48,6 +51,7 @@ else:
         IMPORT_PYMYSQL_OK = True
         INTERFACE_MYSQL = "pymysql"
     except Exception as err:
+        mess += f"Echec lancement pymysql: {err}\n"
         IMPORT_PYMYSQL_OK = False
 
 # INTERFACE_MYSQL usage
@@ -56,6 +60,8 @@ Peut être également modifié manuellement ici dans le cadre de tests sur des f
 """
 POOL_MYSQL = 12
 print("Connexion direct: ", INTERFACE_MYSQL, POOL_MYSQL)
+if not INTERFACE_MYSQL:
+    print(mess)
 
 def SetInterfaceMySQL(nom="mysqldb", pool_mysql=5):
     """ Permet de sélectionner une interface MySQL """
