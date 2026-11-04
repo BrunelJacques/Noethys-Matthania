@@ -997,13 +997,13 @@ class Facturation():
         #appel des prestations
         condition = " WHERE prestations.IDprestation in ( %s ) "% str(self.lstIDprestations)[1:-1]
         req = """
-            SELECT prestations.IDprestation, prestations.IDcompte_payeur, prestations.Date, prestations.montant, matPieces.pieNature, matPieces.pieDateFacturation, matPieces.pieDateAvoir
+            SELECT prestations.IDprestation, prestations.IDcompte_payeur, prestations.date, prestations.montant, matPieces.pieNature, matPieces.pieDateFacturation, matPieces.pieDateAvoir
             FROM prestations
             LEFT JOIN matPieces ON prestations.IDcontrat = matPieces.pieIDnumPiece
             %s
             ORDER BY prestations.date
             ;""" % condition
-        retour = self.DB.ExecuterReq(req,"GetVentilations appel prestations")
+        retour = self.DB.ExecuterReq(req,MsgBox="GetVentilations appel prestations")
         if retour != "ok" :
             return
         recordset = self.DB.ResultatReq()

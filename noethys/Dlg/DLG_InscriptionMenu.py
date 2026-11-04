@@ -92,9 +92,8 @@ class DlgMenu(wx.Dialog):
                     mess += "Un transport Retour a été envisagé pour %6.2f¤, mais son détail a disparu!\n" % float(Nz(prixAller))
             if len(mess) > 0:
                 mess1 = "Perte d'info constatée\n\n" + mess
-                mess1 += "\nMémorisez votre action et décrivez-là dans le rapport de bug que nous allons provoquer"
-                ret = wx.MessageBox(mess1,"Erreur provoquée",style=wx.ICON_ERROR)
-                raise Exception("IDinscription %d, IDtransport dans pièce non trouvé dans table transports" % IDinscription)
+                mess1 += "\nMémorisez votre action et décrivez-là"
+                ret = wx.MessageBox(mess1,"Incoherence pièce",style=wx.ICON_ERROR)
 
     def GetPiece_Supprimer(self, parent, IDinscription, IDindividu, IDactivite):
         #retourne False pour abandon, None pour suppression sans piece, True pour self.dictPiece alimentée
