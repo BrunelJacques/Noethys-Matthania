@@ -625,7 +625,7 @@ class CTRL_Graphique(wx.ScrolledWindow, GestCompo):
         IDindividu = self.RechercheCadre(x, y)
         self.ActiveTooltip(False)
         if IDindividu != None:
-            self.Modifier(IDindividu)
+            self.Modifier(IDindividu,IDfamille = self.IDfamille)
 
     def OnMotion(self, event):
         x, y = event.GetPosition()

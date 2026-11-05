@@ -49,8 +49,6 @@ class DlgMenu(wx.Dialog):
         for IDfamille, dictFamille in self.dictFamillesRattachees.items() :
             self.listeFamille.append(IDfamille)
             self.listeNoms.append(dictFamille["nomsTitulaires"])
-        if not self.IDfamille:
-            self.IDfamille = IDfamille
 
         droitCreation = UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_inscriptions", "creer")
         if mode == "modifier":

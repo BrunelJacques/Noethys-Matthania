@@ -1005,10 +1005,12 @@ class GestCompo:
         else:
             self.Supprimer(IDindividu)
 
-    def Modifier(self, IDindividu=None):
+    def Modifier(self, IDindividu=None, IDfamille=None):
+        if not IDfamille:
+            IDfamille = self.IDfamille
         if UTILS_Utilisateurs.VerificationDroitsUtilisateurActuel("individus_fiche",
                                                                   "modifier") == False: return
-        dlg = DLG_Individu.Dialog(None, IDindividu=IDindividu, IDfamille=self.IDfamille)
+        dlg = DLG_Individu.Dialog(None, IDindividu=IDindividu, IDfamille=IDfamille)
         ret = dlg.ShowModal()
         if ret != wx.ID_OK:
             return

@@ -416,6 +416,7 @@ class Forfaits():
         dblocal = False
         if not DB:
             DB = GestionDB.DB()
+            self.DB = DB
             dblocal = True
         transports = Nz(dictDonnees["prixTranspAller"])+Nz(dictDonnees["prixTranspRetour"])
         montant = 0.00
@@ -461,7 +462,7 @@ class Forfaits():
         dictDonnees["IDnumAvoir"] = IDnumAvoir
         dictDonnees["noAvoir"] = numero
         dictDonnees["etat"] = dictDonnees["etat"][0:4]+"1"
-        commentaire = Decod(dictDonnees["commentaire"])
+        commentaire = dictDonnees["commentaire"][:128]
         commentaire = "%s Generation Avoir Piece\n%s" %(datetime.date.today().strftime("%d/%m/%y : "), commentaire)
         dictDonnees["commentaire"] = commentaire
 
@@ -495,7 +496,8 @@ class Forfaits():
                 lstChamps.remove("compta")
                 listeDonnees = GestionInscription.DictToListeTuples(lstChamps,DictPrest)
                 ret = DB.ReqInsert("prestations",listeDonnees,retourID=True,)
-            else: GestionDB.MessageBox(self,"La Prestation associée à la pièce est introuvable,\n impossible de générer la prestation d'avoir")
+            else:
+                GestionDB.MessageBox(self,"La Prestation associée à la pièce est introuvable,\n impossible de générer la prestation d'avoir")
         # Suppression ventilations
         DB.ReqDEL("deductions", "IDprestation", IDprestation)
         DB.ReqDEL("ventilation", "IDprestation", IDprestation)
@@ -1116,7 +1118,7 @@ class Forfaits():
             GestionDB.MessageBox(parent,retour)
             DB.Close()
             return None
-        self.fGest.Historise(dictDonnees['IDindividu'],dictDonnees['IDfamille'],'Facturation',ajout)
+        #//self.fGest.Historise(dictDonnees['IDindividu'],dictDonnees['IDfamille'],'Facturation',ajout)
         if prest:
             # Modif de la prestation associée à la piece
             if dictDonnees['IDprestation'] == None:

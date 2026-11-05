@@ -514,8 +514,11 @@ class DB():
                 req = "DELETE FROM %s WHERE %s = %s;" % (nomTable, nomChampID, ID)
             try:
                 ret = self.cursor.execute(req)
-                if commit == True :
-                    self.Commit()
+                if commit == True and hasattr(self,"Commit") :
+                    try:
+                        self.Commit()
+                    except:
+                        pass
             except Exception as err:
                 mess = self.ErrCursor(req,err)
                 if isinstance(MsgBox,str):
@@ -560,7 +563,6 @@ class DB():
         # Enregistrement
         try:
             self.cursor.execute(req)
-            self.Commit()
         except Exception as err:
             self.retourReq= ("Requete ReqSelect incorrecte :\n%s\nErreur detectee:\n%s") % (req, err)
             mess = self.ErrCursor(req, err)
@@ -619,6 +621,8 @@ class DB():
                 wx.MessageBox(f"Erreur ExecuteMany Ping-reconnect: {err}", "Erreur", wx.OK | wx.ICON_ERROR)
         """
         try:
+            if str(self.cursor).startswith("USE"):
+                print(self.connexion, self.cursor,listeDonnees)
             self.cursor.executemany(req, listeDonnees)
             if commit == True:
                 self.connexion.commit()
@@ -1343,13 +1347,11 @@ def GetConnexionReseau(nomFichier=""):
             cursor = connexion.cursor()
             # Tentative d'Utilisation de la base
             etape = " Tentative d'accès à '%s'" %nomFichier
-            ret = cursor.execute("USE %s;" % nomFichier)
-            connexion.commit()
-            echec = 0
-            erreur = str(ret)
+            cursor.execute("USE %s;" % nomFichier)
+            #connexion.commit()
         except Exception as err:
-            erreur = "%s\n\nEtape: %s"%(err,etape)
-            echec = 1
+            print('erreur:',"%s\n\nEtape: %s"%(err,etape))
+
     return connexion, nomFichier
 
 def ConvertConditionChaine(liste=[]):
@@ -1552,13 +1554,16 @@ def Decod(valeur):
 # ------------- Affichages à remplacer par wx.MessageBox -------------------
 
 def MessageBox(self,mess,titre = "Erreur Bloquante !",YesNo = False):
-    if YesNo :
-        dlg = wx.MessageDialog(self, mess,titre , wx.YES_NO|wx.NO_DEFAULT|wx.CANCEL| wx.ICON_EXCLAMATION)
-    else :
-        dlg = wx.MessageDialog(self, mess,titre, wx.OK | wx.ICON_EXCLAMATION)
-    ret = dlg.ShowModal()
-    dlg.Destroy()
-    return ret
+    try:
+        if YesNo :
+            dlg = wx.MessageDialog(self, mess,titre , wx.YES_NO|wx.NO_DEFAULT|wx.CANCEL| wx.ICON_EXCLAMATION)
+        else :
+            dlg = wx.MessageDialog(self, mess,titre, wx.OK | wx.ICON_EXCLAMATION)
+        ret = dlg.ShowModal()
+        dlg.Destroy()
+        return ret
+    except:
+        return wx.MessageBox(mess,"oups: "+titre,wx.OK | wx.ICON_ERROR)
 
 class Messages(wx.Frame):
     def __init__(self):

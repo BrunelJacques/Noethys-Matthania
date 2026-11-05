@@ -154,6 +154,9 @@ class Panel(wx.Panel):
     def __init__(self, parent, IDindividu=None, dictFamillesRattachees={}):
         wx.Panel.__init__(self, parent, id=-1, name="panel_inscriptions", style=wx.TAB_TRAVERSAL)
         self.parent = parent
+        if hasattr(parent, "IDfamille"):
+            self.IDfamille = parent.IDfamille
+        else: self.IDfamille = None
         self.module = "DLG_Individu_inscriptions.Panel"
         self.IDindividu = IDindividu
         self.dictFamillesRattachees = dictFamillesRattachees

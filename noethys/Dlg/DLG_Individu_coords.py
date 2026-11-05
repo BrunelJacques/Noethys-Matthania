@@ -337,7 +337,9 @@ class Panel_3StateCheckBoxes(wx.Panel):
 class Panel_contact(wx.Panel):
     def __init__(self, parent, IDindividu=None,IDfamille=None,cat="individu"):
         wx.Panel.__init__(self, parent, id=-1, name="panel_coords",style=wx.TAB_TRAVERSAL)
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)) :
+            self.parent = parent.Parent
+        else: self.parent = parent
         self.IDindividu = IDindividu
         if not self.IDindividu and hasattr(self.parent,"IDindividu"):
             self.IDindividu = self.parent.IDindividu

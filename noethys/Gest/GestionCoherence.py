@@ -62,7 +62,7 @@ def Corr_ptnPrinc(parent,IDfamille, dLigne, **kw):
         # l'Inscription prime sur les pièces
         tc = dLigne["tblCible"] == "inscriptions"
         c = dLigne["cleOrig"] == "pieIDinscription"
-        sst = dLigne["ssType"] in ("NoAtt")
+        sst = dLigne["ssType"] in ("NoAtt") # NoAtt signifie l'attendu n'est pas trouvé
         if tc & c & sst:
             return parent.SynchroPieceToInscription(dLigne)
 
@@ -74,6 +74,9 @@ def Corr_ptnPrinc(parent,IDfamille, dLigne, **kw):
             return parent.RebuildConsommations(IDfamille,dLigne)
 
     def actionFacture():
+        if (dLigne["champ"],dLigne["champCible"])  == ("total","SUM(montant)"):
+            dLigne['mess']= f"Facture sans prestation: {dLigne['mess']}"
+            return False
         return parent.RebuildFacture(IDfamille,dLigne)
 
     corr = False
@@ -125,7 +128,8 @@ DICT_PARAMS = {
 }
 
 # paramétrage des pointeurs de tables principales:[tblOrig,cleOrig,champOrig,tblCible,champCible,flou]
-def GET_PARAMS_POINTEURS(dictPieces,dictPrestations,dictConsommations,dictInscriptions,dictFactures,dictNumeros):
+def GET_PARAMS_POINTEURS(dictPieces,dictPrestations,dictConsommations,dictInscriptions,
+                         dictFactures,dictNumeros,dictTransports ):
     """ table origine: qui pointe une table cible
         cleOrig: Champ de la table d'origine qui contient la clé premier champ de la table cible
         champOrig: champ de la table d'origine qui contient la valeur à rechercher dans la cible,
@@ -148,6 +152,8 @@ def GET_PARAMS_POINTEURS(dictPieces,dictPrestations,dictConsommations,dictInscri
         [dictPieces,"pieIDinscription","pieIDcategorie_tarif", dictInscriptions,"IDcategorie_tarif"],
         [dictPieces,"pieIDinscription","pieNature", dictInscriptions,"natures"],
         [dictPieces,"pieIDinscription","consos", dictInscriptions,"nbreConsos"],
+        [dictPieces, "pieIDtranspAller", "pieIDtranspAller", dictTransports, "IDtransport"],
+        [dictPieces, "pieIDtranspRetour", "pieIDtranspRetour", dictTransports, "IDtransport"],
 
         [dictPieces,"pieNoFacture","pieNoFacture", dictNumeros,"numero"],
         [dictPieces,"pieNoAvoir","pieNoAvoir", dictNumeros,"numero"],
@@ -310,7 +316,8 @@ class DiagDonnees():
         lstChamps = ["pieIDnumPiece","pieIDfamille","pieIDcompte_payeur","pieIDprestation","pieIDactivite",
                      "pieIDindividu","pieIDinscription","pieIDcategorie_tarif","pieIDgroupe","pieNature",
                      "pieNoFacture","pieNoAvoir","pieComptaFac","pieComptaAvo",
-                     "piePrixTranspAller","piePrixTranspRetour","SUM(ligMontant)","COUNT(ligIDnumLigne)"]
+                     "pieIDtranspAller","pieIDtranspRetour","piePrixTranspAller","piePrixTranspRetour",
+                     "SUM(ligMontant)","COUNT(ligIDnumLigne)"]
         leftJoin = "LEFT JOIN matPiecesLignes ON matPieces.pieIDnumPiece = matPiecesLignes.ligIDnumPiece"
         groupBy = "GROUP BY %s"%(", ".join(lstChamps[:-2]))
 
@@ -353,6 +360,7 @@ class DiagDonnees():
         dddPieces = self.GetDictUneTable(table,lstChamps,where,leftJoin,groupBy)
         self.lstIDinscriptions = []
         dictPieces = {"nomTable":"matPieces"}
+        self.lstIDtransports = []
         for IDfamille, ddPieces in dddPieces.items():
             if IDfamille == "nomTable": continue
             dictPieces[IDfamille] = {"dictDon":ddPieces,}
@@ -365,6 +373,11 @@ class DiagDonnees():
                 # l'IDinscription pour la famille (IDindividu == 0) est l'année, ce n'est pas un ID
                 if dPiece["pieIDindividu"] > 0:
                     self.lstIDinscriptions.append(dPiece["pieIDinscription"])
+                if dPiece["pieIDtranspAller"] and dPiece["pieIDtranspAller"] > 0:
+                    self.lstIDtransports.append(dPiece["pieIDtranspAller"])
+                if dPiece["pieIDtranspRetour"] and dPiece["pieIDtranspRetour"] > 0:
+                    self.lstIDtransports.append(dPiece["pieIDtranspRetour"])
+                self.lstIDtransports.append(IDpiece)
                 # harmonisation utile pour comparer les familles lors des tests pointeurs
                 HarmonisationPiece(dPiece)
         return dictPieces,dictPiecesMax
@@ -400,7 +413,6 @@ class DiagDonnees():
                                           }
             # composition des listes dans dictPrestations[IDfamille]
             for IDprestation, dPrestation in dictPrestations[IDfamille]["dictDon"].items():
-                #self.lstIDpieces.append(dPrestation["IDcontrat"])
                 if dPrestation["IDfacture"] and not (dPrestation["IDfacture"] in self.lstIDfactures):
                     self.lstIDfactures.append(dPrestation["IDfacture"])
         return dictPrestations
@@ -426,15 +438,16 @@ class DiagDonnees():
                 condNo = f"(numero in ({str(self.lstNoFactures)[1:-1]}))"
             else: condNo = True
             where = f"""
-            WHERE   ({whereFamille})
+            WHERE ( 
+                {whereFamille})
                 AND ({whereCompta})
                 AND ( 
                     ({condOrphan})
                     OR
                     ({condID})
                     OR
-                    ({condNo}))
-                AND (prestations.montant <> 0)
+                    ({condNo})                    
+            )
                 """
             return where
         where = setFiltreFactures()
@@ -444,7 +457,8 @@ class DiagDonnees():
         dictFactures = {"nomTable":"factures"}
         dictNumeros = {"nomTable":"numeros"}
         for IDfamille, ddFactures in dddFactures.items():
-            if IDfamille == "nomTable": continue
+            if IDfamille == "nomTable":
+                continue
             dictFactures[IDfamille] = {"dictDon":ddFactures,}
             ddNumeros = {}
             for IDfacture,dFacture in ddFactures.items():
@@ -500,6 +514,26 @@ class DiagDonnees():
             dictConsommations[IDfamille] = {"dictDon":ddConsommations,}
         return dictConsommations
 
+    def GetTransports(self):
+        # ----------- préparation et l'appel de consommations ------------------------------------------------------
+        table = "transports"
+        lstChamps = ["transports.IDtransport","transports.IDindividu",
+                     "matPieces.pieIDfamille","transports.categorie"]
+        leftJoin = "LEFT JOIN matPieces ON transports.IDindividu = matPieces.pieIDindividu"
+        # Gestion du filtre de consommations sur envoyé à la compta s'appuie sur les inscriptions dans matPieces
+        dddTransports = {}
+        # appel des consommations
+        if len(self.lstIDinscriptions) > 0:
+            where = "WHERE IDtransport in ( %s )"%str(self.lstIDtransports)[1:-1]
+            # appel des consommations
+            dddTransports = self.GetDictUneTable(table,lstChamps,where,leftJoin)
+        dictTransports = {"nomTable":"transports"}
+        for IDfamille, ddTransports in dddTransports.items():
+            if IDfamille == "nomTable":
+                continue
+            dictTransports[IDfamille] = {"dictDon":ddTransports,}
+        return dictTransports
+
     def GetTables(self):
         if not self.famille:
             attente = wx.BusyInfo("Lecture matPieces...")
@@ -521,7 +555,9 @@ class DiagDonnees():
             attente = wx.BusyInfo("Lecture consommations...")
         dictConsommations = self.GetConsommations()
         if self.echecGet != "ok": return self.echecGet
-        return [dictPieces,dictPrestations,dictFactures,dictNumeros,dictConsommations,dictInscriptions,dictPiecesMax]
+        dictTransports = self.GetTransports()
+        return [dictPieces,dictPrestations,dictFactures,dictNumeros,dictConsommations,
+                dictInscriptions,dictPiecesMax, dictTransports]
 
 # Diagnostic de cohérence des données principales de facturation
 class Diagnostic():
@@ -734,7 +770,7 @@ class Diagnostic():
             if len(dPrest) == 0:
                 # si la prestation a disparu c'est qu'il y a dèjà eu une correction induite par matPiece
                 return True
-            # Verif nature
+            # Verif nature, sur attendu non trouvé AVO absent ds prestattions
             if dPiece["pieNature"] == "AVO" and dLigne["ssType"] == "NoAtt":
                 if dPrest["categorie"] != "consoavoir":
                     return self.ReqMAJ(dLigne,"prestations",[("categorie","consoavoir")],
@@ -1142,6 +1178,8 @@ class Diagnostic():
             if not (dLigne["type"] in DICT_PARAMS):
                 mess = "Pb: GET_PARAMS_POINTEURS  presence type '%s' non present dans DICT_PARAMS"%dLigne["type"]
                 raise Exception(mess)
+
+            # Traitement d'une anomalie
             fn = DICT_PARAMS[dLigne["type"]]
             if not fn:
                 continue
@@ -1268,7 +1306,8 @@ class Diagnostic():
                 nomCible = None
                 if champ  == "pieIDprestation": nomCible = "prestations"
                 elif champ == "pieIDinscription": nomCible = "inscriptions"
-                elif champ in ("pieNoFacture","pieNoAvoir"): nomCible = "factures"
+                elif champ in ("pieNoFacture","pieNoAvoir"):
+                    nomCible = "factures"
                 if nomCible and valeur:
                     lstTuplesTblCle.append((nomCible,valeur))
 
@@ -1291,7 +1330,8 @@ class Diagnostic():
 
             # balayage des pièces
             for IDfamille, ddPieces in self.dictPieces.items():
-                if IDfamille == "nomTable": continue
+                if IDfamille == "nomTable":
+                    continue
                 for ID, dictPiece in ddPieces["dictDon"].items():
                     if ("matPieces",ID) in lstTuplesTblCle:
                         # pb déjà rencontré et signalé
@@ -1324,8 +1364,8 @@ class Diagnostic():
 
             def messNonAttendu(ID,IDcible,attendu,trouve):
                 # valeur trouvée dans une autre ligne
-                mess1 = "La '%s' '%d' pointe l'%s "%(str(nomOrig)[:-1],ID,champCible,)
-                mess2 = "de la %s %s.\n"%(nomCible[:-1],IDcible)
+                mess1 = "L'ID '%s' '%d' pointe l'%s "%(str(nomOrig)[:-1],ID,champCible,)
+                mess2 = "de %s %s.\n"%(nomCible[:-1],IDcible)
                 mess3 = "Attendu '%s', Trouvé: '%s'"%(str(attendu),str(trouve))
                 return mess1 + mess2 + "ptnPrinc=>" + mess3
             def messNoCle(ID,IDcible):
@@ -1378,7 +1418,7 @@ class Diagnostic():
                 else:
                     tblCible = None
 
-                # pour chaque ligne dans l'origine
+                # pour chaque ligne de table origine traite seulement le premier concluant
                 for ID, dict in ddTblOrig["dictDon"].items():
                     # définit la clé cible
                     if cleOrig:
@@ -1395,12 +1435,8 @@ class Diagnostic():
                         dictCible = rechercheElargie(nomCible,IDcible)
                     elif IDcible and nomCible == 'numeros':
                         dictCible = None
-                        where = "factures.numero = %d"%IDcible
-                        temp = DATA_Tables.GetDdRecords(self.DB,"factures",where,mess= "recherche numero facture ")
-                        for key in temp.keys():
-                            # prend la première clé
-                            dictCible = temp[key]
-                            break
+                        if IDcible in tblCible['dictDon'].keys():
+                            dictCible = tblCible['dictDon'][IDcible]
                     else:
                         dictCible = None
 
@@ -1428,7 +1464,8 @@ class Diagnostic():
                     if (nomOrig,ID) in lstTuplesTblCle:
                         continue
 
-                    # ----------------------------- Exceptions de traitement -------------------------------------------
+                    # ------------------- Exceptions de traitement ----------------------
+
                     piece = (nomOrig == "matPieces") and ("pieIDindividu" in dict)
                     pieNivFamille = (piece and dict["pieIDindividu"] == 0)
                     # exception pour l'IDinscription d'une pièce famille qui est l'année et non l'inscription
@@ -1533,8 +1570,29 @@ class Diagnostic():
                             mess += f"pourtant présent dans {nomOrig}"
                             ajoutAnomalie("NoFact", None, attendu,mess)
                         continue
+                    # exception pour transports
+                    if nomCible == "transports" and nomOrig == "matPieces":
+                        if dictCible:
+                            valTrouvee = dictCible[champCible]
+                        else:
+                            valTrouvee = 0
+                        # les avoirs ont supprimé dans transports mais gardés ID et montant
+                        if dict["pieNature"] == "AVO":
+                            if valTrouvee == 0:
+                                continue
+                            else:
+                                attendu = "absent car avoir"
 
-                    # ---- Fin des exceptions - analyse des accès -----------------------------------------------------
+                        else:
+                            if valTrouvee == attendu :
+                                continue
+                        ajoutAnomalie("NoAtt", IDcible, attendu,
+                                      messNonAttendu(ID, IDcible, attendu,
+                                             valTrouvee))
+
+                    # ---- Fin des exceptions traitement basique des pointeurs -----------
+
+                    attendu = dict[champOrig]
                     if not dictCible:
                         if not tblCible:
                             ajoutAnomalie("NoTbl",IDcible,attendu,messNoTbl(ID,IDcible))
@@ -1570,7 +1628,7 @@ class Diagnostic():
                             if trouve == attendu:
                                 continue
                         ajoutAnomalie("NoAtt",IDcible,attendu,messNonAttendu(ID,IDcible,attendu,trouve))
-                        continue
+
 
                     # ========  la valeur attendue n'a pas été trouvée cas de recherche floue ==========================
                     IDtrouve = None
@@ -1621,9 +1679,11 @@ class Diagnostic():
             attente = wx.BusyInfo("Vérification des pointeurs entre tables...")
 
         # test des pointeurs autres que clé des tables
-        paramsPtnPrinc = GET_PARAMS_POINTEURS(self.dictPieces,self.dictPrestations,self.dictConsommations,
-                                              self.dictInscriptions,self.dictFactures,self.dictNumeros)
+        paramsPtnPrinc = GET_PARAMS_POINTEURS(self.dictPieces,self.dictPrestations,
+                                              self.dictConsommations,self.dictInscriptions,
+                                              self.dictFactures,self.dictNumeros,self.dictTransports)
         for args in paramsPtnPrinc:
+            # déroule les tests pointeurs
             tblOrig,cleOrig,champOrig,tblCible,champCible = args[:5]
             mess = "Vérifie pointeurs entre tables...\n\n"
             mess += "%s.%s => %s.%s"%(tblOrig["nomTable"],cleOrig,tblCible["nomTable"],champCible)
@@ -1648,7 +1708,8 @@ class Diagnostic():
             ret = self.diagDonnees.echecGet
         else:
             (self.dictPieces,self.dictPrestations,self.dictFactures,
-             self.dictNumeros,self.dictConsommations,self.dictInscriptions,self.dictPiecesMax) = lstTables
+             self.dictNumeros,self.dictConsommations,self.dictInscriptions,
+             self.dictPiecesMax,self.dictTransports) = lstTables
             ret = "ok"
         return ret# fin GetDonnees
 
@@ -1659,7 +1720,8 @@ class Diagnostic():
             ret = wx.MessageBox(mess,"Confirmation traitement complet",wx.YES_NO)
             if not ret == wx.YES:
                 return False
-            else: return True
+            else:
+                return True
         return True
 
     # retoune la seule propriété self.coherence

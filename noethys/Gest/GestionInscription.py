@@ -1001,7 +1001,7 @@ class Forfaits():
                 if recordset[0] and len(recordset[0]) >0:
                     nbre = recordset[0][0]
             if nbre <=1:
-                retour = self.DB.ReqDEL("transports","IDtransport",IDtransport,MsgBox = "SupprimeTransport")
+                retour = self.DB.ReqDEL("transports","IDtransport",IDtransport,MsgBox = "Supprime transports")
                 if retour != "ok" :
                     GestionDB.MessageBox(self.parent,retour)
             else:
