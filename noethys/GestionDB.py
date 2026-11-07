@@ -63,7 +63,7 @@ print("Connexion direct: ", INTERFACE_MYSQL, POOL_MYSQL)
 if not INTERFACE_MYSQL:
     print(mess)
 
-def SetInterfaceMySQL(nom="mysqldb", pool_mysql=5):
+def SetInterfaceMySQL(nom="mysqldb", pool_mysql=11):
     """ Permet de sélectionner une interface MySQL """
     global INTERFACE_MYSQL, POOL_MYSQL
 
@@ -172,6 +172,16 @@ class DB():
         if self.isNetwork == False :
             return None
         return self.GetParamConnexionReseau()["user"]
+
+    def CreeCursor(self):
+        try:
+            if self.isNetwork == True:
+                return self.connexion.cursor(buffered=True)
+            else:
+                return self.connexion.cursor()
+        except Exception as err:
+            print("GestionDB CreeCursor",err)
+
         
     def OuvertureFichierLocal(self, nomFichier):
         """ Version LOCALE avec SQLITE """
@@ -185,9 +195,9 @@ class DB():
         # Initialisation de la connexion
         try :
             import sqlite3
-            self.connexion = sqlite3.connect(nomFichier.encode('utf-8'))
-            self.cursor = self.connexion.cursor()
             self.isNetwork = False
+            self.connexion = sqlite3.connect(nomFichier.encode('utf-8'))
+            self.cursor = self.CreeCursor()
             self.echec = 0
         except Exception as err:
             print("La connexion avec la base de donnees SQLITE a echouee : \nErreur detectee :%s" % err)
@@ -209,8 +219,9 @@ class DB():
         self.echec = 0
         self.typeDB = 'mysql'
         try :
+            self.isNetwork = True
             self.connexion, nomFichier = GetConnexionReseau(nomFichier)
-            self.cursor = self.connexion.cursor()
+            self.cursor = self.CreeCursor()
         except Exception as err:
             print(f"La connexion a MYSQL {INTERFACE_MYSQL} a échouée.")
             print(" Erreur : ",(err,))
@@ -235,7 +246,7 @@ class DB():
                 self.cursor.execute("USE %s;" % nomFichier)
             except Exception as err:
                 print("L'ouverture de la base MYSQL a echouee. Erreur :")
-                print((err,))
+                print(self.cursor,(err,))
                 self.erreur = err
                 self.echec = 1
                 self.Close()
@@ -345,6 +356,20 @@ class DB():
             except Exception as err:
                 pass
         del self
+
+    def IsConnected(self):
+        try:
+            mess = "DB.connection._cnx KO"
+            if not self.connexion._cnx:
+                return False
+            mess = "DB.connection.cursor() KO"
+            cursor = self.connexion.cursor()
+            mess = "DB.connection.cursor.close() KO"
+            cursor.close()  # On referme immédiatement le curseur de test
+            return True
+        except Exception as err:
+            print(f"GestionDB.IsConnected error {mess}: {err}")
+            return False
 
     def InsertPhoto(self, IDindividu=None, blobPhoto=None):
         if self.isNetwork == True :
@@ -612,14 +637,6 @@ class DB():
             # Version Sqlite
             req = req.replace("%s", "?")
         # Executemany
-        """
-        if self.connexion:
-            try:
-                if INTERFACE_MYSQL == "pymysql":
-                    self.connexion.ping(reconnect=True)
-            except Exception as err:
-                wx.MessageBox(f"Erreur ExecuteMany Ping-reconnect: {err}", "Erreur", wx.OK | wx.ICON_ERROR)
-        """
         try:
             if str(self.cursor).startswith("USE"):
                 print(self.connexion, self.cursor,listeDonnees)
@@ -633,7 +650,8 @@ class DB():
 
     def ResultatReq(self):
         if self.echec and self.echec >= 1 : return []
-        if not self.cursor: return []
+        if not self.cursor:
+            self.CreeCursor()
         resultat = self.cursor.fetchall()
         try :
             # Pour contrer MySQL qui fournit des tuples alors que SQLITE fournit des listes
@@ -641,6 +659,7 @@ class DB():
                 resultat = list(resultat)
         except :
             pass
+
         return resultat
 
     def Modifier(self, table, ID, champs, valeurs, dicoDB, commit=True):

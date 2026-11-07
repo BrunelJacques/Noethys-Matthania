@@ -159,7 +159,7 @@ class MainFrame(wx.Frame):
             if "pool_mysql" in self.userConfig:
                 pool_mysql = self.userConfig["pool_mysql"]
             else:
-                pool_mysql = 5
+                pool_mysql = 11
             GestionDB.SetInterfaceMySQL(interface_mysql, pool_mysql)
 
         # Affiche le titre du fichier en haut de la frame

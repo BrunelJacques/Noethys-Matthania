@@ -51,18 +51,17 @@ def DateDDEnFr(date):
     return DateEngFr(str(date))
 
 def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    if dateEng in (None, "", "None") : return None
-    if len(dateEng) < 10:
-        ds = dateEng.split("-")
-        if len(ds) == 3:
-            return datetime.date(int(ds[0]),int(ds[1]),int(ds[2]))
-        if len(dateEng) == 8:
-            return datetime.date(int(dateEng[:4]), int(dateEng[4:6]), int(dateEng[6:8]))
-
-    if len(dateEng) < 10: return None
-    if type(dateEng) == datetime.date : return dateEng
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
+    if not isinstance(dateEng,str):
+        dateEng = str(dateEng)
+    if dateEng in (None, "", "None") :
+        return None
+    ds = dateEng[:10].split("-")
+    if len(ds) == 3:
+        return datetime.date(int(ds[0]),int(ds[1]),int(ds[2]))
+    if len(ds) == 1 and len(dateEng) == 8:
+        return datetime.date(int(dateEng[:4]), int(dateEng[4:6]), int(dateEng[6:8]))
+    if len(dateEng) == 10:
+        return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 def DateDDEnDateEng(datedd):
     if not isinstance(datedd, datetime.date):

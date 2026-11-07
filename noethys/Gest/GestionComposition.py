@@ -835,7 +835,7 @@ class GestCompo:
         DB = GestionDB.DB()
         date_creation = str(datetime.date.today())
         listeDonnees = [
-            ("date_creation", date_creation),
+            ("date_creation", str(date_creation)),
             ("nom", self.dictRattach["nom"]),
             ("prenom", self.dictRattach["prenom"]),
             ]

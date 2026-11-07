@@ -236,8 +236,8 @@ class Forfaits():
             self.DB = GestionDB.DB()
         else:
             self.DB = DB
+
         self.user = self.DB.UtilisateurActuel()
-        self.fGest = self
         self.dictPiece = {}
         
     def GetActivite(self,IDactivite):
@@ -422,7 +422,8 @@ class Forfaits():
                     retDel = self.DelConsommations(parent,dictOldPiece)
                     if retDel != "ok": ret = retDel
                 retDel = self.DelPrestations(parent,dictDonnees=dictOldPiece)
-                if retDel != "ok": ret = retDel
+                if retDel != "ok":
+                    ret = retDel
     
         if natureNew == "RES":
             self.DelPrestations(parent,dictDonnees=dictOldPiece)
@@ -969,6 +970,8 @@ class Forfaits():
         # conserve les montants facturés
         listeDonnees = []
         def Raz(listeDonnees,IDnumPiece,IDtransport):
+            self.DB.Close()
+            self.DB = GestionDB.DB()
             self.SupprimeTransport(IDtransport)
             retour = self.DB.ReqMAJ("matPieces", listeDonnees,"pieIDnumPiece",IDnumPiece,MsgBox="RazTransports/matPiece")
             if retour != "ok" :
@@ -1314,6 +1317,7 @@ class Forfaits():
             if ret != "ok":
                 GestionDB.MessageBox(parent,self.DB.retour)
                 return None
+
             if 'dicParrainages' in list(dictDonnees.keys()):
                 for IDinscription, dicParr in dictDonnees['dicParrainages'].items():
                     if dicParr['codeArticle'] == ligne['codeArticle']:
@@ -1717,7 +1721,7 @@ class Forfaits():
             else:
                 # Modification du montant de la facture
                 mtt = Nz(dictDonnees["total"])+ Nz(dictDonnees["prixTranspAller"]) +  Nz(dictDonnees["prixTranspRetour"])
-                pGest.ReduitFacture(dictDonnees["noAvoir"],-mtt,dictDonnees["IDprestation"])
+                pGest.ReduitFacture(dictDonnees["noAvoir"],-mtt,dictDonnees["IDprestation"],self.DB)
                 ligneComm = " Rétrogradation %s " % dictDonnees['nature']
                 action = "ModificationFacturation"
             commentaire = datetime.date.today().strftime("%d/%m/%y : ") + ligneComm + "\n" + commentaire
@@ -1751,7 +1755,7 @@ class Forfaits():
             dlg = GestionDB.MessageBox(self.parent,  _("Souhaitez-vous neutraliser cette inscriptions pour la refaire ?"), titre = "NeutraliseReport", YesNo = True)
         # Gestion des inscriptions importées qui ne permettront pas de calculer les réductions
         if dlg != wx.ID_YES:
-            print("KO !")
+            print("GestionInscription.NeutraliseReport KO!")
             return
         #Suppresion des consommations et inscriptions
         req = """SELECT inscriptions.IDinscription, activites.date_debut,activites.date_fin

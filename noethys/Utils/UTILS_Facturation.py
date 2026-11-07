@@ -31,6 +31,7 @@ import GestionDB
 from Gest import GestionArticle
 from Ctrl import CTRL_Saisie_transport
 from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
+from Utils.UTILS_Dates import DateEngEnDateDD, DateEngFr
 
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 MONNAIE_SINGULIER = UTILS_Config.GetParametre("monnaie_singulier", _("Euro"))
@@ -105,18 +106,6 @@ def Nz(valeur):
     except:
         valeur = 0.0
     return valeur
-
-def DateEngEnDateDD(dateEng):
-    if dateEng == None or dateEng == "" : return ""
-    if not isinstance(dateEng,str):
-        dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-
-def DateEngFr(textDate):
-    if textDate == None: return ""
-    textDate = str(textDate)
-    text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
-    return text
 
 def RecordsetToListe(recordset):
     myListe = []

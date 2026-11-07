@@ -961,7 +961,6 @@ class PanelAvecFooter(wx.Panel):
         
         # Contrôles
         kwargs["parent"] = self
-##        if kwargs.has_key("parent") == False : kwargs["parent"] = self # BUG ICI
         if ("id" in kwargs) == False : kwargs["id"] = -1
         if ("style" in kwargs) == False : kwargs["style"] = wx.LC_REPORT|wx.NO_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES
         

@@ -267,7 +267,6 @@ def InserArticles(listeOLV=[], articles=[], dictDonnees={}):
                 ligne.montant = ligne.montantCalcul
             # match article déja présent et corrige les montants calculés dans ligne
             insertArt, supprLigne, brkParr = GestionArticle.ArticlePreExist(article, ligne, dictDonnees)
-            #print(article.codeArticle, ligne.codeArticle, insertArt)
             if supprLigne:
                 lstSupprimer.append(ligne)
             if brkParr:

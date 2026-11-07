@@ -58,13 +58,19 @@ class Forfaits():
     def __init__(self,parent,DB=None):
         self.parent = parent
         dblocal = False
-        if not DB and hasattr(self.parent,"DB"):
+        if DB and hasattr(DB,"connexion") and DB.IsConnected():
+            pass
+        if hasattr(self.parent,"DB"):
             DB = self.parent.DB
+        elif hasattr(self.parent.Parent,"DB"):
+            DB = self.parent.Parent.DB
+        elif hasattr(self.parent.GrandParent,"DB"):
+            DB = self.parent.GrandParent.DB
+        else:
+            DB = GestionDB.DB()
+            dblocal = True
         self.DB = DB
 
-        if not DB:
-            dblocal = True
-            DB = GestionDB.DB()
         self.fGest = GestionInscription.Forfaits(self.parent,DB=DB)
         self.IDuser = DB.IDutilisateurActuel()
         if dblocal: DB.Close()
@@ -100,7 +106,7 @@ class Forfaits():
             ("IDgroupe",  dictDonnees["IDgroupe"]),
             ("IDcategorie_tarif",  dictDonnees["IDcategorie_tarif"]),
             ("IDcompte_payeur",  dictDonnees["IDcompte_payeur"]),
-            ("date_inscription",  dictDonnees["dateCreation"]),
+            ("date_inscription",  str(dictDonnees["dateCreation"])),
             ("parti", 0)
             ]
         # Insertion des données
@@ -439,16 +445,16 @@ class Forfaits():
         listeDonnees = [
             ("numero",numero ),
             ("IDcompte_payeur", dictDonnees["IDcompte_payeur"]),
-            ("date_edition", dictDonnees["dateAvoir"]),
-            ("date_echeance", dictDonnees["dateAvoir"]),
+            ("date_edition", str(dictDonnees["dateAvoir"])),
+            ("date_echeance", str(dictDonnees["dateAvoir"])),
             ("IDutilisateur", self.IDuser),
             ("IDlot", 2),
             ("prestations", "consoavoir"),
             ("etat", None),
             ("activites",listeChaine(activites)),
             ("individus",listeChaine(individus)),
-            ("date_debut",datetime.date.today()),
-            ("date_fin",datetime.date.today()),
+            ("date_debut",str(datetime.date.today())),
+            ("date_fin",str(datetime.date.today())),
             ("total",montant),
             ("regle",0.0),
             ("solde",montant),
@@ -572,7 +578,7 @@ class Forfaits():
     def FactureMonoPiece(self,numero,IDnumPiece):
         DB = self.DB
         dblocal = False
-        if not DB:
+        if not DB or not DB.IsConnected():
             DB = GestionDB.DB()
             dblocal = True
         # ctrl de présence d'autre pieces pointant la même facture
@@ -591,11 +597,12 @@ class Forfaits():
         return retFin
         #fin FactureMonoPiece
 
-    def ReduitFacture(self,numero,montant,IDprestation):
+    def ReduitFacture(self,numero,montant,IDprestation,DB=None):
         # diminue le montant de la facture et supprime la ventilation de la prestation (contexte mono piece dans la facture)
-        DB = self.DB
-        dblocal = False
         if not DB:
+            DB = self.DB
+        dblocal = False
+        if not DB.IsConnected():
             DB = GestionDB.DB()
             dblocal = True
         req = """SELECT total, regle, solde
@@ -875,7 +882,7 @@ class Forfaits():
         listeDonnees = [
             ("numero",numero ),
             ("IDcompte_payeur", IDcomptePayeur),
-            ("date_edition", dateFacturation),
+            ("date_edition", str(dateFacturation)),
             ("date_echeance", str(echeance)),
             ("IDutilisateur", IDuser),
             ("IDlot", 1),
@@ -883,8 +890,8 @@ class Forfaits():
             ("etat", None),
             ("activites",listeChaine(activites)),
             ("individus",listeChaine(individus)),
-            ("date_debut",date_debut),
-            ("date_fin",date_fin),
+            ("date_debut",str(date_debut)),
+            ("date_fin",str(date_fin)),
             ("total",total),
             ("regle",regle),
             ("solde",(total-regle)),
@@ -1026,7 +1033,7 @@ class Forfaits():
             ("pieNoFacture", numero ),
             ("pieNature", "FAC"),
             ("pieEtat", etat),
-            ("pieDateFacturation", dictDonnees["dateModif"]),
+            ("pieDateFacturation", str(dictDonnees["dateModif"])),
             ("pieCommentaire", commentaire),
             ]
         retour = DB.ReqMAJ("matPieces", listeDonnees,"pieIDnumPiece",dictDonnees["IDnumPiece"],MsgBox = "GestionPiece.CompleteAvoir")
@@ -1061,9 +1068,9 @@ class Forfaits():
             ("pieUtilisateurModif",DB.UtilisateurActuel()),
             ("pieNature","FAC"),
             ("pieEtat",etat),
-            ("pieDateFacturation", dateFacture),
+            ("pieDateFacturation", str(dateFacture)),
             ("pieNoFacture",dictFacture["numero"]),
-            ("pieDateEcheance", dictFacture["date_echeance"]),
+            ("pieDateEcheance", str(dictFacture["date_echeance"])),
             ("pieCommentaire", commentaire),
             ]
         retour = DB.ReqMAJ("matPieces", listeDonnees,"pieIDnumPiece",dictPiece['IDnumPiece'])
@@ -1080,7 +1087,7 @@ class Forfaits():
             return None
         listeDonnees = [
             ("IDfacture", IDnumFacture),
-            ("date", dateFacture)
+            ("date", str(dateFacture))
             ]
         #("date", dateFacture)
         retour = DB.ReqMAJ("prestations", listeDonnees,"IDprestation",dictPiece['IDprestation'])
@@ -1108,9 +1115,9 @@ class Forfaits():
             ("pieUtilisateurModif",DB.UtilisateurActuel()),
             ("pieNature","AVO"),
             ("pieEtat",etat),
-            ("pieDateAvoir", dictDonnees["dateAvoir"]),
+            ("pieDateAvoir", str(dictDonnees["dateAvoir"])),
             ("pieNoAvoir",dictDonnees["noAvoir"]),
-            ("pieDateEcheance", dictDonnees["dateEcheance"]),
+            ("pieDateEcheance", str(dictDonnees["dateEcheance"])),
             ("pieCommentaire", commentaire),
             ]
         retour = DB.ReqMAJ("matPieces", listeDonnees,"pieIDnumPiece",dictDonnees['IDnumPiece'])
@@ -1145,7 +1152,10 @@ class Forfaits():
         for champ in lstChampsMatPieces:
             idx = lstChampsMatPieces.index(champ)
             donnee = champsDonnees[idx]
-            listeDonnees.append((champ,dictPiece[donnee]))
+            if isinstance(dictPiece[donnee],(datetime.date)):
+                listeDonnees.append((champ,str(dictPiece[donnee])))
+            else:
+                listeDonnees.append((champ, dictPiece[donnee]))
         DB = self.DB
         dblocal = False
         if not DB:

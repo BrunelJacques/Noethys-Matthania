@@ -16,7 +16,7 @@ import wx
 import copy
 import datetime
 from Data import DATA_Tables
-from Utils import UTILS_Dates
+from Utils.UTILS_Dates import DateEngEnDateDD
 
 def Nz(valeur):
     if not valeur:
@@ -102,10 +102,6 @@ LISTEtypeLigne = [
         ]
 
 # Fonctions paramétrables
-
-def DateEngEnDateDD(dateEng):
-    if dateEng == None : return datetime.date(1900, 1, 1)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 def DebutOuvertures(DB,IDactivite, IDgroupe = None):
     date = None

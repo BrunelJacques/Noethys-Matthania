@@ -82,17 +82,15 @@ class ListView(ObjectListView):
         self.IDpayeur =  kwds.pop("IDpayeur", None)
         self.listeActivites = kwds.pop("activites", None)
         self.factures = kwds.pop("factures", None)
-        self.parent = kwds.pop("parent", None)
         self.dictOptions = {}
         ObjectListView.__init__(self, parent, *args, **kwds)
-
-        if hasattr(parent,'DB'):
-            self.DB = parent.DB
-        elif hasattr(self.GrandParent,'DB'):
-            self.DB = self.GrandParent.DB
+        self.parent = kwds.pop("parent", parent)
+        if hasattr(self.parent.Parent,'DB'):
+            self.DB = self.parent.Parent.DB
+        elif hasattr(self.parent.GrandParent,'DB'):
+            self.DB = self.parent.GrandParent.DB
         else:
             self.DB = GestionDB.DB()
-
         self.pointe = None
         if self.IDpayeur == None:
             self.multi = True
@@ -226,7 +224,6 @@ class ListView(ObjectListView):
             GestionDB.MessageBox(self,retour)
             return None
         recordset = self.DB.ResultatReq()
-
         listeRecords = []
         listePieces = []
         listePayeurs = []
@@ -682,7 +679,7 @@ class ListView(ObjectListView):
             dictDonnees =  obj.__dict__
             fGest = GestionInscription.Forfaits(self,self.DB)
             if dictDonnees['nature'] in ('FAC'):
-                fGest.RetroFact(self.parent,dictDonnees)
+                fGest.RetroFact(self,dictDonnees)
             elif dictDonnees['nature'] in ('AVO'):
                 fGest.RetroAvo(self.parent,dictDonnees)
             else:
@@ -757,13 +754,11 @@ class BarreRecherche(wx.SearchCtrl):
 class ListviewAvecFooter(PanelAvecFooter):
     def __init__(self, parent, kwargs={}):
         dictColonnes = {
-
             "label" : {"mode" : "nombre", "singulier" : _("pièce :"), "pluriel" : _("pièces :"), "alignement" : wx.ALIGN_RIGHT},
             "montant" : {"mode" : "total"},
             "mttRegle" : {"mode" : "total"},
             }
         PanelAvecFooter.__init__(self, parent, ListView, kwargs, dictColonnes)
-
 
 # ----------------- FRAME DE TEST ----------------------------------------------------------------
 

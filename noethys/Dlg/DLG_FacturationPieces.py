@@ -113,7 +113,6 @@ class Hyperlien(Hyperlink.HyperLinkCtrl):
 class PnlFactures(wx.Panel):
     def __init__(self, parent,IDpayeur=None):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
-        self.DB = self.GrandParent.DB
         self.parent = self.GrandParent
         self.IDpayeur = IDpayeur
         self.listviewAvecFooter = OL_FacturationPieces.ListviewAvecFooter(self, kwargs={"IDpayeur" : IDpayeur, "factures" : True, "parent" : self.parent})
@@ -127,9 +126,6 @@ class PnlFactures(wx.Panel):
         gridsizer_base.AddGrowableRow(0)
         self.Layout()
         self.olv_piecesFiltrees.CocheRien()
-        #
-        #self.olv_piecesFiltrees.MAJ()
-        #self.Refresh()
 
 class Dialog(wx.Dialog):
     def __init__(self, parent, IDpayeur=None):
@@ -150,16 +146,21 @@ class Dialog(wx.Dialog):
         self.SetTitle("DLG_FacturationPieces")
         self.IDpayeur = IDpayeur
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=self.titre, texte=intro,  hauteurHtml=15, nomImage="Images/22x22/Smiley_nul.png")
+
+        # OL Pièces facturées
         self.stbFactures = wx.StaticBox(self, -1, _("Factures de l'exercice"))
         self.ctrl_factures = PnlFactures(self.stbFactures,self.IDpayeur)
         self.ctrl_factures.SetMinSize((-1, 80))
+        self.ctrl_factures.olv_piecesFiltrees.DB = self.DB
 
-        self.stbPieces = wx.StaticBox(self, -1, _("Pieces non facturées"))
         # OL Pieces
+        self.stbPieces = wx.StaticBox(self, -1, _("Pieces non facturées"))
         self.listviewAvecFooter = OL_FacturationPieces.ListviewAvecFooter(self.stbPieces, kwargs={"IDpayeur" : IDpayeur,
                                                                                         "factures" : False,
                                                                                         "parent" : self})
         self.olv_piecesFiltrees = self.listviewAvecFooter.GetListview()
+        self.olv_piecesFiltrees.DB = self.DB
+
         self.ctrl_recherche = OL_FacturationPieces.CTRL_Outils(self.stbPieces, listview=self.olv_piecesFiltrees, afficherCocher=True)
         self.ctrl_recherche.SetBackgroundColour((255, 255, 255))
 

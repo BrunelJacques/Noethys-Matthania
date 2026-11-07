@@ -27,7 +27,10 @@ class Adresse_auto(wx.Choice):
     def __init__(self, parent,IDindividu=None, IDfamille=None):
         # si famille renseignée les choix seront limité à cette famille, sinon à toutes les familles de l'individu
         wx.Choice.__init__(self, parent, -1)
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
         self.lstIndividusAffiches = []
         self.IDindividu = IDindividu
         self.IDfamille = IDfamille
@@ -164,10 +167,9 @@ class Adresse_auto(wx.Choice):
 
     def GetDonnee(self):
         """ return l'IDindividu sélectionné SI adresse_auto est TRUE sinon renvoie None """
-        if isinstance(self.parent.radio_adresse_auto,wx.StaticText):
-            return self.GetID()
-        elif self.parent.radio_adresse_auto.GetValue() == True :
-            return self.GetID()
+        id = self.GetID()
+        if hasattr(self.parent, "radio_adresse_auto"):
+            return id
         else:
             return None
 

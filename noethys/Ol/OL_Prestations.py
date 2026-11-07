@@ -62,6 +62,7 @@ class Track(object):
         self.nomTarif = donnees["nomTarif"]
         self.nomCategorieTarif = donnees["nomCategorieTarif"]
         self.IDfacture = donnees["IDfacture"]
+        self.noFacture = donnees["num_facture"]
         self.compta = donnees["compta"]
         if self.IDfacture == None :
             self.label_facture = ""
@@ -536,9 +537,9 @@ class ListView(ObjectListView):
             dlg.Destroy()
             return
 
-        if track.IDfacture != None:
+        if track.noFacture != None:
             dlg = wx.MessageDialog(self, _(
-                "Cette prestation apparaît sur une facture. Il est donc impossible de la %s sans la rétrograder."%(verbe)),
+                "Cette prestation est associée à la facture %d. Il est donc impossible de la %s sans la rétrograder."%(track.noFacture,verbe)),
                                    impossible, wx.OK | wx.ICON_EXCLAMATION)
             dlg.ShowModal()
             dlg.Destroy()
