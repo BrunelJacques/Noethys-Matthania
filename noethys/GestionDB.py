@@ -16,6 +16,7 @@ IX_CONNEXION = {"ix":0,"pointeurs":{}}
 
 IMPORT_PYMYSQL_OK = False
 IMPORT_MYSQLCONNECTOR_OK = False
+global INTERFACE_MYSQL
 INTERFACE_MYSQL = None
 mess = "Tentatives de connexion:\n"
 try :
@@ -63,7 +64,20 @@ print("Connexion direct: ", INTERFACE_MYSQL, POOL_MYSQL)
 if not INTERFACE_MYSQL:
     print(mess)
 
-def SetInterfaceMySQL(nom="mysqldb", pool_mysql=11):
+# Vérifie si les certificats SSL sont présents dans le répertoire utilisateur
+def GetCertificatsSSL():
+    dict_certificats = {}
+    liste_fichiers = [("ca", "ca-cert.pem"), ("key", "client-key.pem"), ("cert", "client-cert.pem"),]
+    from Utils import UTILS_Fichiers
+    for nom, fichier in liste_fichiers :
+        chemin_fichier = UTILS_Fichiers.GetRepUtilisateur(fichier)
+        if os.path.isfile(chemin_fichier):
+            dict_certificats[nom] = chemin_fichier
+    return dict_certificats
+
+CERTIFICATS_SSL = GetCertificatsSSL()
+
+def SetInterfaceMySQL(nom="mysql.connector", pool_mysql=11):
     """ Permet de sélectionner une interface MySQL """
     global INTERFACE_MYSQL, POOL_MYSQL
 
@@ -87,19 +101,6 @@ def SetInterfaceMySQL(nom="mysqldb", pool_mysql=11):
     if pool_mysql > 0:
         POOL_MYSQL = pool_mysql
     print("Connexion Noethys: ", INTERFACE_MYSQL, "/ pooling: ",POOL_MYSQL)
-
-# Vérifie si les certificats SSL sont présents dans le répertoire utilisateur
-def GetCertificatsSSL():
-    dict_certificats = {}
-    liste_fichiers = [("ca", "ca-cert.pem"), ("key", "client-key.pem"), ("cert", "client-cert.pem"),]
-    from Utils import UTILS_Fichiers
-    for nom, fichier in liste_fichiers :
-        chemin_fichier = UTILS_Fichiers.GetRepUtilisateur(fichier)
-        if os.path.isfile(chemin_fichier):
-            dict_certificats[nom] = chemin_fichier
-    return dict_certificats
-
-CERTIFICATS_SSL = GetCertificatsSSL()
 
 class DB():
     def __init__(self, suffixe="DATA", nomFichier="", modeCreation=False, IDconnexion=None, **kwd):
@@ -175,14 +176,14 @@ class DB():
 
     def CreeCursor(self):
         try:
-            if self.isNetwork == True:
+            if INTERFACE_MYSQL == "mysql.connector":
                 return self.connexion.cursor(buffered=True)
             else:
                 return self.connexion.cursor()
-        except Exception as err:
-            print("GestionDB CreeCursor",err)
 
-        
+        except Exception as err:
+            wx.MessageBox(f"GestionDB CreeCursor {err}","Connexion échouée")
+
     def OuvertureFichierLocal(self, nomFichier):
         """ Version LOCALE avec SQLITE """
         # Vérifie que le fichier sqlite existe bien
@@ -222,6 +223,7 @@ class DB():
             self.isNetwork = True
             self.connexion, nomFichier = GetConnexionReseau(nomFichier)
             self.cursor = self.CreeCursor()
+
         except Exception as err:
             print(f"La connexion a MYSQL {INTERFACE_MYSQL} a échouée.")
             print(" Erreur : ",(err,))
@@ -314,7 +316,6 @@ class DB():
             self.connexion.commit()
 
     def ErrCursor(self,req,err):
-
         if not hasattr(self.cursor, "connection"):
             self.retourReq = ("Requete sqlite incorrecte :\n%s\npas de connection:\n%s") % (
             req, err)
@@ -336,11 +337,7 @@ class DB():
         #if self.IDconnexion == 30:# 'debug connexions ouvertes' etape off
         #    print("debug Close")
         try :
-            if self.isNetwork and hasattr(self.connexion,"open"):
-                if self.connexion.open != 0:
-                    self.connexion.close()
-            elif hasattr(self.connexion,"is_connected"):
-                if self.connexion.is_connected():
+            if self.IsConnected():
                     self.connexion.close()
             if self.IDconnexion in DICT_CONNEXIONS:
                 del DICT_CONNEXIONS[self.IDconnexion]
@@ -359,14 +356,18 @@ class DB():
 
     def IsConnected(self):
         try:
-            mess = "DB.connection._cnx KO"
-            if not self.connexion._cnx:
-                return False
-            mess = "DB.connection.cursor() KO"
-            cursor = self.connexion.cursor()
-            mess = "DB.connection.cursor.close() KO"
-            cursor.close()  # On referme immédiatement le curseur de test
-            return True
+            mess = "is_connected() du connecteur"
+            if INTERFACE_MYSQL == "mysql.connector":
+                return self.connexion.is_connected()
+            elif INTERFACE_MYSQL == "pymsql":
+                return self.connexion.open
+            elif hasattr(self.connexion,"cursor"):
+                mess = "DB.connection.cursor() KO"
+                cursor = self.connexion.cursor()
+                mess = "DB.connection.cursor.close() KO"
+                cursor.close()  # On referme immédiatement le curseur de test
+                return True
+            return False
         except Exception as err:
             print(f"GestionDB.IsConnected error {mess}: {err}")
             return False

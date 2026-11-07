@@ -107,9 +107,10 @@ class Interface(wx.Panel):
 class Interface_mysql(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
-        self.listeLabels = [u"MySQLdb de mysqlclient (par défaut)",
+        self.listeLabels = ["mysql.connector de mysql-connector-python (par défaut)",
+                            "MySQLdb de mysqlclient ",
                             "PyMySQL de mysql-connector-python"]
-        self.listeCodes = ["mysqldb", "pymysql"]
+        self.listeCodes = ["mysql.connector","mysqldb", "pymysql"]
         
         self.staticbox_staticbox = wx.StaticBox(self, -1, _("MySQL"))
         self.label_interface = wx.StaticText(self, -1, _("Interface :"))

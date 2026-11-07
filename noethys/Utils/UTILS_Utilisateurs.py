@@ -157,11 +157,12 @@ def IsAdmin(afficheMessage=True):
     if nomWindow == "general" :
         # Si la frame 'General' est chargée, on y récupère le dict de config
         dictUtilisateur = topWindow.dictUtilisateur
-        resultat = dictUtilisateur["profil"] == "administrateur"
-        if resultat == False and afficheMessage == True :
-            AfficheDLGInterdiction()
-        return resultat
-    return True
+        if dictUtilisateur:
+            resultat = dictUtilisateur["profil"] == "administrateur"
+            if resultat == False and afficheMessage == True :
+                AfficheDLGInterdiction()
+            return resultat
+    return False
 
 def AfficheDLGInterdiction():
     import wx.lib.dialogs as dialogs
