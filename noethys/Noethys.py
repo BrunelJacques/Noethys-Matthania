@@ -1411,7 +1411,8 @@ class MainFrame(wx.Frame):
         # Confirmation de succès
         if "[RESEAU]" in nomFichier:
             nomFichier = nomFichier[nomFichier.index("[RESEAU]"):]
-        self.mess += " Le fichier '%s' a été ouvert avec succès." % (nomFichier)
+        self.mess += " Le fichier '%s' a été ouvert avec succès," % (nomFichier)
+        self.mess += " par le connecteur '%s'" % (GestionDB.INTERFACE_MYSQL)
         self.SetStatusText(self.mess)
 
         # Mémorise dans l'historique l'ouverture du fichier

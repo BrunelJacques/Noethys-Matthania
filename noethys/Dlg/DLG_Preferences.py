@@ -109,7 +109,7 @@ class Interface_mysql(wx.Panel):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
         self.listeLabels = ["mysql.connector de mysql-connector-python (par défaut)",
                             "MySQLdb de mysqlclient ",
-                            "PyMySQL de mysql-connector-python"]
+                            "PyMySQL de mysql-connector-python (pour Python<=8)"]
         self.listeCodes = ["mysql.connector","mysqldb", "pymysql"]
         
         self.staticbox_staticbox = wx.StaticBox(self, -1, _("MySQL"))
@@ -165,6 +165,7 @@ class Interface_mysql(wx.Panel):
             topWindow.userConfig["interface_mysql"] = interface_mysql
             topWindow.userConfig["pool_mysql"] = pool_mysql
             GestionDB.SetInterfaceMySQL(interface_mysql, pool_mysql)
+            topWindow.SetStatusText(f"Interface MySQL active: {GestionDB.INTERFACE_MYSQL}")
         except Exception as err :
             print("Erreur dans changement de l'interface mySQL depuis les preferences :", err)
 

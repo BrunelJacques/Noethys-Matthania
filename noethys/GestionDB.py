@@ -16,7 +16,8 @@ IX_CONNEXION = {"ix":0,"pointeurs":{}}
 
 IMPORT_PYMYSQL_OK = False
 IMPORT_MYSQLCONNECTOR_OK = False
-global INTERFACE_MYSQL
+global INTERFACE_MYSQL, POOL_MYSQL
+
 INTERFACE_MYSQL = None
 mess = "Tentatives de connexion:\n"
 try :
@@ -74,17 +75,18 @@ def GetCertificatsSSL():
         if os.path.isfile(chemin_fichier):
             dict_certificats[nom] = chemin_fichier
     return dict_certificats
-
 CERTIFICATS_SSL = GetCertificatsSSL()
+# Fin de chargement du module
 
-def SetInterfaceMySQL(nom="mysql.connector", pool_mysql=11):
+# appelé au lancement de Noethys
+def SetInterfaceMySQL(interface="mysql.connector", pool_mysql=11):
     """ Permet de sélectionner une interface MySQL """
     global INTERFACE_MYSQL, POOL_MYSQL
-
+    INTERFACE_MYSQL
     # cas ou un choix à été fait
-    if nom == "mysqldb" and IMPORT_MYSQLDB_OK == True :
+    if interface == "mysqldb" and IMPORT_MYSQLDB_OK == True :
         INTERFACE_MYSQL = "mysqldb"
-    elif nom == "mysql.connector" and IMPORT_MYSQLCONNECTOR_OK == True :
+    elif interface == "mysql.connector" and IMPORT_MYSQLCONNECTOR_OK == True :
         INTERFACE_MYSQL = "mysql.connector"
     # cas automatiques
     elif IMPORT_PYMYSQL_OK == True:
