@@ -1597,7 +1597,6 @@ class MainFrame(wx.Frame):
                 self.Fermer(sauvegarde_auto=False)
                 return False
             self.dictInfosMenu["upgrade_modules"]["ctrl"].Enable(True)
-            self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(True)
             resultat = True
         # les deux premiers indices sont égaux, test sur les niveaux (3? indice)
         elif versionData[:3] < versionLogiciel[:3]:
@@ -1669,7 +1668,6 @@ class MainFrame(wx.Frame):
                         self.halt = True
                         self.Close()
                 else:
-                    self.dictInfosMenu["upgrade_base"]["ctrl"].Enable(False)
                     message = "La mise à jour n'est pas faite"
                     titre = "La version affichée reste active"
         if resultat != True:
