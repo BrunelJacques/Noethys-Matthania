@@ -176,8 +176,6 @@ class CTRL_Choix_unites(HTL.HyperTreeList):
         return dictUnites
 
 
-
-
 class CTRL_Saisie_prog(wx.Panel):
     def __init__(self, parent, IDtransport=None, IDindividu=None):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
@@ -764,9 +762,6 @@ class CTRL_Saisie_multiple(wx.Panel):
         return True
         
 
-
-
-
 class Dialog_prog(wx.Dialog):
     def __init__(self, parent, IDtransport=None, IDindividu=None):
         wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
@@ -865,8 +860,6 @@ class Dialog_prog(wx.Dialog):
 
     def AffichageDates(self, etat=True):
         self.ctrl_saisie.AffichageDates(etat)
-
-
 
 
 class Dialog_multiple(wx.Dialog):
@@ -969,7 +962,6 @@ class Dialog_multiple(wx.Dialog):
         self.ctrl_saisie.AffichageDates(etat)
 
 
-
 class Dialog(wx.Dialog):
     def __init__(self, parent, IDtransport=None, IDindividu=None, modeVirtuel=False, dictDonnees={}, verrouilleBoutons=False):
         wx.Dialog.__init__(self, parent, -1, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX)
@@ -1066,6 +1058,7 @@ class Dialog(wx.Dialog):
         ctrl_date_heure.SetDate(date)
         ctrl_date_heure.ctrl_date.Enable(False)
         ctrl_date_heure = self.ctrl_saisie.GetControle("date_heure", "arrivee")
+
         ctrl_date_heure.SetDate(date)
         ctrl_date_heure.ctrl_date.Enable(False)
     

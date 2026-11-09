@@ -279,7 +279,8 @@ def Naissance(DB,IDindividu):
     req = """SELECT date_naiss FROM individus WHERE IDindividu= %s ;""" % (IDindividu)
     DB.ExecuterReq(req,MsgBox="Naissance")
     recordset = DB.ResultatReq()
-    if len(recordset) != 1: naissance = None
+    if len(recordset) != 1 or not recordset[0][0]:
+        naissance = datetime.date(1900,1,1)
     else: naissance = recordset[0][0]
     return DateEngEnDateDD(naissance)
 

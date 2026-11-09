@@ -655,8 +655,10 @@ class DB():
         if self.echec and self.echec >= 1 : return []
         if not self.cursor:
             self.CreeCursor()
-        resultat = self.cursor.fetchall()
+        resultat = []
+
         try :
+            resultat = self.cursor.fetchall()
             # Pour contrer MySQL qui fournit des tuples alors que SQLITE fournit des listes
             if self.isNetwork == True and type(resultat) == tuple :
                 resultat = list(resultat)
@@ -1372,7 +1374,7 @@ def GetConnexionReseau(nomFichier=""):
             cursor.execute("USE %s;" % nomFichier)
             #connexion.commit()
         except Exception as err:
-            print('erreur:',"%s\n\nEtape: %s"%(err,etape))
+            wx.MessageBox('erreur:',"%s\n\nEtape: %s"%(err,etape),"NonBloquant")
 
     return connexion, nomFichier
 
@@ -1432,13 +1434,13 @@ class GestionBase(wx.Frame):
     def __init__(self,suffixe='_data',nomBase=None):
         """Constructor"""
         #wx.Frame.__init__(self, parent=None, size=(550, 400))
-        self.db = DB()
         if nomBase:
             nomFichier = self.db.nomFichier
             pos = nomFichier("[RESEAU]")
             nomFichier = nomFichier[:pos]+"[RESEAU]"+nomBase
             self.db = DB(suffixe=suffixe,nomFichier=nomFichier)
-        self.db.Close()
+        else:
+            self.db = DB()
 
     def GetOccupations(self):
         # pointer base: 'information_schema' valeurs plus hautes
@@ -1457,6 +1459,7 @@ class GestionBase(wx.Frame):
             """
         ret = self.db.ExecuterReq(req,MsgBox="GestionDB.GestionBase.GetOccupation")
         lstOccupations = self.db.ResultatReq()
+        self.db.Close()
         return lstOccupations
 
 def ImporterFichierDonnees() :

@@ -112,10 +112,12 @@ class Informations():
 
         listeTemp = gb.GetOccupations()
 
+
         for labelTable, occupation in listeTemp :
                 listeItems.append((labelTable, "%14.2f Mo"%occupation))
 
         return nomCategorie, listeItems
+
 
     def Categorie_stats(self):
         nomCategorie = _("Statistiques")
