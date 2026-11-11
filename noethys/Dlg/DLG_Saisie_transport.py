@@ -8,7 +8,6 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
 import Chemins
 from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
@@ -185,43 +184,43 @@ class CTRL_Saisie_prog(wx.Panel):
         self.liste_jours = ("lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche")
         
         # Validité
-        self.box_validite_staticbox = wx.StaticBox(self, -1, _("Validité"))
-        self.label_date_debut = wx.StaticText(self, -1,u"Du :")
-        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self)
-        self.label_date_fin = wx.StaticText(self, -1,_("Au :"))
-        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self)
-        self.label_actif = wx.StaticText(self, -1,_("Actif :"))
-        self.ctrl_actif = wx.CheckBox(self, -1, "")
+        self.boxValide = wx.StaticBox(self, -1, _("Validité"))
+        self.label_date_debut = wx.StaticText(self.boxValide, -1,u"Du :")
+        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self.boxValide)
+        self.label_date_fin = wx.StaticText(self.boxValide, -1,_("Au :"))
+        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self.boxValide)
+        self.label_actif = wx.StaticText(self.boxValide, -1,_("Actif :"))
+        self.ctrl_actif = wx.CheckBox(self.boxValide, -1, "")
         self.ctrl_actif.SetValue(True) 
         
         # Conditions
-        self.box_conditions_staticbox = wx.StaticBox(self, -1, _("Conditions"))
+        self.stbCond = wx.StaticBox(self, -1, _("Conditions"))
 
         # Périodes scolaires
-        self.label_periodes_scolaires = wx.StaticText(self, -1,_("Périodes scolaires :"))
-        self.check_scolaire_lundi = wx.CheckBox(self, -1,u"L")
-        self.check_scolaire_mardi = wx.CheckBox(self, -1,u"M")
-        self.check_scolaire_mercredi = wx.CheckBox(self, -1,u"M")
-        self.check_scolaire_jeudi = wx.CheckBox(self, -1,u"J")
-        self.check_scolaire_vendredi = wx.CheckBox(self, -1,u"V")
-        self.check_scolaire_samedi = wx.CheckBox(self, -1,u"S")
-        self.check_scolaire_dimanche = wx.CheckBox(self, -1,u"D")
+        self.label_periodes_scolaires = wx.StaticText(self.stbCond, -1,_("Périodes scolaires :"))
+        self.check_scolaire_lundi = wx.CheckBox(self.stbCond, -1,u"L")
+        self.check_scolaire_mardi = wx.CheckBox(self.stbCond, -1,u"M")
+        self.check_scolaire_mercredi = wx.CheckBox(self.stbCond, -1,u"M")
+        self.check_scolaire_jeudi = wx.CheckBox(self.stbCond, -1,u"J")
+        self.check_scolaire_vendredi = wx.CheckBox(self.stbCond, -1,u"V")
+        self.check_scolaire_samedi = wx.CheckBox(self.stbCond, -1,u"S")
+        self.check_scolaire_dimanche = wx.CheckBox(self.stbCond, -1,u"D")
         self.CheckJours("scolaire")
         
         # Périodes de vacances
-        self.label_periodes_vacances = wx.StaticText(self, -1,_("Périodes de vacances :"))
-        self.check_vacances_lundi = wx.CheckBox(self, -1,u"L")
-        self.check_vacances_mardi = wx.CheckBox(self, -1,u"M")
-        self.check_vacances_mercredi = wx.CheckBox(self, -1,u"M")
-        self.check_vacances_jeudi = wx.CheckBox(self, -1,u"J")
-        self.check_vacances_vendredi = wx.CheckBox(self, -1,u"V")
-        self.check_vacances_samedi = wx.CheckBox(self, -1,u"S")
-        self.check_vacances_dimanche = wx.CheckBox(self, -1,u"D")
+        self.label_periodes_vacances = wx.StaticText(self.stbCond, -1,_("Périodes de vacances :"))
+        self.check_vacances_lundi = wx.CheckBox(self.stbCond, -1,u"L")
+        self.check_vacances_mardi = wx.CheckBox(self.stbCond, -1,u"M")
+        self.check_vacances_mercredi = wx.CheckBox(self.stbCond, -1,u"M")
+        self.check_vacances_jeudi = wx.CheckBox(self.stbCond, -1,u"J")
+        self.check_vacances_vendredi = wx.CheckBox(self.stbCond, -1,u"V")
+        self.check_vacances_samedi = wx.CheckBox(self.stbCond, -1,u"S")
+        self.check_vacances_dimanche = wx.CheckBox(self.stbCond, -1,u"D")
         self.CheckJours("vacances")
         
         # Unités
-        self.label_unites = wx.StaticText(self, -1,_("Unités de consommation :"))
-        self.ctrl_unites = CTRL_Choix_unites(self, IDindividu=self.IDindividu)
+        self.label_unites = wx.StaticText(self.stbCond, -1,_("Unités de consommation :"))
+        self.ctrl_unites = CTRL_Choix_unites(self.stbCond, IDindividu=self.IDindividu)
         
         self.__set_properties()
         self.__do_layout()
@@ -250,7 +249,7 @@ class CTRL_Saisie_prog(wx.Panel):
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
         
         # Validité
-        box_validite = wx.StaticBoxSizer(self.box_validite_staticbox, wx.VERTICAL)
+        box_validite = wx.StaticBoxSizer(self.boxValide, wx.VERTICAL)
         grid_sizer_validite = wx.FlexGridSizer(rows=3, cols=2, vgap=5, hgap=5)
         grid_sizer_validite.Add(self.label_date_debut, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_validite.Add(self.ctrl_date_debut, 0, 0, 0)
@@ -262,7 +261,7 @@ class CTRL_Saisie_prog(wx.Panel):
         grid_sizer_base.Add(box_validite, 1, wx.EXPAND, 0)
         
         # Conditions
-        box_conditions = wx.StaticBoxSizer(self.box_conditions_staticbox, wx.VERTICAL)
+        box_conditions = wx.StaticBoxSizer(self.stbCond, wx.VERTICAL)
         grid_sizer_conditions = wx.FlexGridSizer(rows=6, cols=1, vgap=5, hgap=5)
         
         # Périodes scolaires

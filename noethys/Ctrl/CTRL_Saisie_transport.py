@@ -466,7 +466,10 @@ class MenuTransports(object):
 class CTRL_Choix_arrets(wx.Choice):
     def __init__(self, parent, categorie="bus", IDligne=0):
         wx.Choice.__init__(self, parent, -1, size=(170, -1))
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
         self.categorie = categorie
         self.IDligne = IDligne
         self.MAJ()
@@ -530,7 +533,10 @@ class CTRL_Arrets(wx.Panel):
 
     def __init__(self, parent, categorie="bus"):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
         self.categorie = categorie
 
         self.ctrl_arrets = CTRL_Choix_arrets(self, categorie=categorie)
@@ -611,7 +617,10 @@ class CTRL_Arrets(wx.Panel):
 class CTRL_Choix_lignes(wx.Choice):
     def __init__(self, parent, categorie="bus"):
         wx.Choice.__init__(self, parent, -1, size=(170, -1))
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
         self.categorie = categorie
         self.MAJ()
         self.Select(0)
@@ -662,7 +671,12 @@ class CTRL_Lignes(wx.Panel):
 
     def __init__(self, parent, categorie="bus"):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
-        self.parent = parent
+
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
+
         self.categorie = categorie
 
         self.ctrl_lignes = CTRL_Choix_lignes(self, categorie=categorie)
@@ -731,34 +745,13 @@ class CTRL_Localisation_domicile(wx.Panel):
 
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
-        self.parent = parent
-        rue_resid = ""
-        cp_resid = ""
-        ville_resid = ""
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
+
 
         # Recherche de l'adresse de l'individu
-
-    ##        DB = GestionDB.DB()
-    ##        req = """SELECT adresse_auto, rue_resid, cp_resid, ville_resid FROM individus WHERE IDindividu=%d;""" % IDindividu
-    ##        DB.ExecuterReq(req,MsgBox="ExecuterReq")
-    ##        listeDonnees = DB.ResultatReq()
-    ##        if len(listeDonnees) > 0  :
-    ##            adresse_auto, rue_resid, cp_resid, ville_resid = listeDonnees[0]
-    ##            if adresse_auto != None :
-    ##                req = """SELECT rue_resid, cp_resid, ville_resid FROM individus WHERE IDindividu=%d;""" % adresse_auto
-    ##                DB.ExecuterReq(req,MsgBox="ExecuterReq")
-    ##                listeDonnees = DB.ResultatReq()
-    ##                if len(listeDonnees) > 0  :
-    ##                    rue_resid, cp_resid, ville_resid = listeDonnees[0]
-    ##        DB.Close()
-    ##
-    ##        if rue_resid == None : rue_resid = ""
-    ##        if cp_resid == None : cp_resid = ""
-    ##        if ville_resid == None : ville_resid = ""
-    ##
-    ##        # Affichage
-    ##        texte = "%s\n%s %s" % (rue_resid, cp_resid, ville_resid)
-    ##        self.label_heure = wx.StaticText(self, -1, texte)
 
     def GetLocalisation(self):
         return "DOMI"
@@ -773,7 +766,10 @@ class CTRL_Localisation_domicile(wx.Panel):
 class CTRL_Choix_activite(wx.Choice):
     def __init__(self, parent):
         wx.Choice.__init__(self, parent, -1, size=(-1, -1))
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
         self.MAJ()
         self.Select(0)
         self.SetToolTip(_("Sélectionnez ici une activité"))
@@ -823,7 +819,10 @@ class CTRL_Localisation_activite(wx.Panel):
 
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
 
         self.label_activite = wx.StaticText(self, -1, _("Activité :"))
         self.ctrl_activite = CTRL_Choix_activite(self)
@@ -861,7 +860,10 @@ class CTRL_Localisation_activite(wx.Panel):
 class CTRL_Choix_ecole(wx.Choice):
     def __init__(self, parent):
         wx.Choice.__init__(self, parent, -1, size=(-1, -1))
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
         self.MAJ()
         self.Select(0)
         self.SetToolTip(_("Sélectionnez ici une école"))
@@ -910,7 +912,10 @@ class CTRL_Localisation_ecole(wx.Panel):
 
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
 
         self.label_ecole = wx.StaticText(self, -1, _("Ecole :"))
         self.ctrl_ecole = CTRL_Choix_ecole(self)
@@ -950,7 +955,10 @@ class CTRL_Localisation_autre(wx.Panel):
 
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
 
         self.nom = ""
         self.rue = ""
@@ -1017,7 +1025,11 @@ class CTRL_Localisation(wx.Choicebook):
 
     def __init__(self, parent):
         wx.Choicebook.__init__(self, parent, id=-1)
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
+
         self.SetToolTip(wx.ToolTip(_("Sélectionnez ici une localisation")))
 
         self.listePanels = [
@@ -1069,7 +1081,10 @@ class CTRL_DateHeure(wx.Panel):
 
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
 
         self.ctrl_heure = CTRL_Saisie_heure.Heure(self)
         self.label_date = wx.StaticText(self, -1, _("Date :"))
@@ -1167,7 +1182,10 @@ class CTRL_Date(wx.Panel):
 
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
 
         self.ctrl_date = CTRL_Saisie_date.Date2(self)
         grid_sizer_base = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
@@ -1260,7 +1278,10 @@ class CTRL_Date(wx.Panel):
 class CTRL_Details(wx.TextCtrl):
     def __init__(self, parent):
         wx.TextCtrl.__init__(self, parent, -1, size=(170, -1))
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
         self.SetToolTip(wx.ToolTip(
             _("Saisissez ici les détails concernant ce transport (Ex : numéro de place, classe, etc...)")))
 
@@ -1289,7 +1310,10 @@ class CTRL_Details(wx.TextCtrl):
 class CTRL_Observations(wx.TextCtrl):
     def __init__(self, parent):
         wx.TextCtrl.__init__(self, parent, -1, size=(170, -1), style=wx.TE_MULTILINE)
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
         self.SetToolTip(wx.ToolTip(_("Saisissez ici des observations")))
 
     def SetObservations(self, observations=""):
@@ -1317,7 +1341,10 @@ class CTRL_Observations(wx.TextCtrl):
 class CTRL_Numero(wx.TextCtrl):
     def __init__(self, parent, categorie="avion"):
         wx.TextCtrl.__init__(self, parent, -1, size=(170, -1))
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
         if categorie == "avion": self.SetToolTip(
             wx.ToolTip(_("Saisissez ici le numéro du vol")))
         if categorie == "train": self.SetToolTip(
@@ -1350,7 +1377,11 @@ class CTRL_Numero(wx.TextCtrl):
 class CTRL_Choix_compagnies(wx.Choice):
     def __init__(self, parent, categorie="car"):
         wx.Choice.__init__(self, parent, -1, size=(170, -1))
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
+
         self.categorie = categorie
         self.MAJ()
         self.Select(0)
@@ -1401,7 +1432,11 @@ class CTRL_Compagnies(wx.Panel):
 
     def __init__(self, parent, categorie="car"):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
+
         self.categorie = categorie
 
         self.ctrl_compagnies = CTRL_Choix_compagnies(self, categorie=categorie)
@@ -1459,7 +1494,11 @@ class CTRL_Compagnies(wx.Panel):
 class CTRL_Choix_lieux(wx.Choice):
     def __init__(self, parent, categorie="gare"):
         wx.Choice.__init__(self, parent, -1, size=(170, -1))
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
+
         self.categorie = categorie
         self.MAJ()
         self.Select(0)
@@ -1510,7 +1549,11 @@ class CTRL_Lieux(wx.Panel):
 
     def __init__(self, parent, categorie="gare"):
         wx.Panel.__init__(self, parent, id=-1, style=wx.TAB_TRAVERSAL)
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
+
         self.categorie = categorie
 
         self.ctrl_lieux = CTRL_Choix_lieux(self, categorie=categorie)
@@ -1574,7 +1617,11 @@ class CTRL_Lieux(wx.Panel):
 class CTRL_Categorie(BitmapComboBox):
     def __init__(self, parent, size=(-1, -1)):
         BitmapComboBox.__init__(self, parent, -1, size=size, style=wx.CB_READONLY)
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
+
         self.MAJlisteDonnees()
         if len(self.dictDonnees) > 0:
             self.SetSelection(0)
@@ -1691,21 +1738,21 @@ class CTRL(wx.Panel):
         else:
             self.ImportationVirtuelle()
 
-    def CreationControles(self, rubrique="generalites", label=_("Généralités")):
+    def CreationControles(self, rubrique="generalites", label="Généralités"):
         # Crée tous les contrôles possibles, seuls ceux du
-        box = wx.StaticBox(self, -1, label)
-        boxSizer = wx.StaticBoxSizer(box, wx.VERTICAL)
+        self.box = wx.StaticBox(self, -1, label)
+        boxSizer = wx.StaticBoxSizer(self.box, wx.VERTICAL)
         grid_sizer = wx.FlexGridSizer(rows=18, cols=2, vgap=10, hgap=10)
 
         for dictControle in GetDic_rub_ctrl_Utiles()[rubrique]:
             code = dictControle["code"]
             # Label
             label = dictControle["label"]
-            ctrl_label = wx.StaticText(self, -1, "%s :" % label)
+            ctrl_label = wx.StaticText(self.box, -1, "%s :" % label)
             grid_sizer.Add(ctrl_label, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
             ctrl = None
             # contrôle
-            command = dictControle["ctrl"]
+            command = dictControle["ctrl"].replace("self","self.box")
             # ctrlTest = CTRL_Compagnies(self, categorie='avion')
             ctrl = eval(command)
             ctrl.SetName(code)

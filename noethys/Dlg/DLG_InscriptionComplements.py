@@ -60,20 +60,20 @@ class DlgTransports(wx.Dialog):
         # Contenu
         self.dictDonnees = dictDonnees
         self.__setData()
-        self.staticbox_aller = wx.StaticBox(self, -1, _("Transport    ALLER"))
-        self.staticbox_retour = wx.StaticBox(self, -1, _("Transport    RETOUR"))
+        self.stbAller = wx.StaticBox(self, -1, _("Transport    ALLER"))
+        self.stbRetour = wx.StaticBox(self, -1, _("Transport    RETOUR"))
         self.dictDonnees.update({"depart_date":self.allerDepartDate,
                                 "arrivee_date": self.allerArriveeDate})
-        self.ctrl_saisie_aller = CTRL_Saisie_transport.CTRL(self, IDtransport=self.IDtranspAller, IDindividu=self.IDindividu,
-                                                             dictDonnees=self.dictDonnees,verrouilleBoutons=self.modeVirtuel,ar="aller")
+        self.ctrl_saisie_aller = CTRL_Saisie_transport.CTRL(self.stbAller, IDtransport=self.IDtranspAller, IDindividu=self.IDindividu,
+                                                             dictDonnees=self.dictDonnees,verrouilleBoutons=False,ar="aller")
         self.dictDonnees.update({"depart_date":self.retourDepartDate,
                                 "arrivee_date": self.retourArriveeDate})
-        self.ctrl_saisie_retour = CTRL_Saisie_transport.CTRL(self, IDtransport=self.IDtranspRetour,IDindividu=self.IDindividu,
-                                                              dictDonnees=self.dictDonnees, verrouilleBoutons=self.modeVirtuel,ar="retour")
-        self.label_prixAller = wx.StaticText(self, -1, _("Prix du transport ALLER:"))
-        self.ctrl_prixAller = CTRL_Saisie_nombre.CTRL(self, verif=False)
-        self.label_prixRetour = wx.StaticText(self, -1, _("Prix du transport RETOUR:"))
-        self.ctrl_prixRetour = CTRL_Saisie_nombre.CTRL(self,verif=False)
+        self.ctrl_saisie_retour = CTRL_Saisie_transport.CTRL(self.stbRetour, IDtransport=self.IDtranspRetour,IDindividu=self.IDindividu,
+                                                              dictDonnees=self.dictDonnees, verrouilleBoutons=False,ar="retour")
+        self.label_prixAller = wx.StaticText(self.stbAller, -1, _("Prix du transport ALLER:"))
+        self.ctrl_prixAller = CTRL_Saisie_nombre.CTRL(self.stbAller, verif=False)
+        self.label_prixRetour = wx.StaticText(self.stbRetour, -1, _("Prix du transport RETOUR:"))
+        self.ctrl_prixRetour = CTRL_Saisie_nombre.CTRL(self.stbRetour,verif=False)
         self.ctrl_prixAller.SetValue(str(self.prixTranspAller))
         self.ctrl_prixRetour.SetValue(str(self.prixTranspRetour))
         self.ctrl_prixAller.SetValue(str(self.prixTranspAller))
@@ -84,12 +84,13 @@ class DlgTransports(wx.Dialog):
         self.bouton_swap = CTRL_Bouton_image.CTRL(self, texte=_("Copie Retour"), cheminImage=Chemins.GetStaticPath("Images/16x16/Actualiser.png"))
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Valider"), cheminImage=Chemins.GetStaticPath("Images/32x32/Suivant.png"))
         self.bouton_annuler = CTRL_Bouton_image.CTRL(self, id=wx.ID_CANCEL, texte=_("Ignorer"), cheminImage=Chemins.GetStaticPath("Images/32x32/Annuler.png"))
+        """
         if self.modeVirtuel:
             self.ctrl_prixAller.Enable(False)
             self.ctrl_prixRetour.Enable(False)
             self.bouton_ok.Enable(False)
             self.bouton_swap.Enable(False)
-
+        """
         self.__set_properties()
         self.VerifDatesActivite()
         self.__do_layout()
@@ -236,9 +237,6 @@ class DlgTransports(wx.Dialog):
         self.bouton_ok.SetToolTip(_("Cliquez ici pour valider"))
         self.bouton_annuler.SetToolTip(_("Cliquez ici pour annuler"))
         self.SetMinSize((850, 750))
-        if self.modeVirtuel:
-            self.ctrl_saisie_aller.Enable(False)
-            self.ctrl_saisie_retour.Enable(False)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonSwap, self.bouton_swap)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonOk, self.bouton_ok)
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAide, self.bouton_aide)
@@ -250,7 +248,7 @@ class DlgTransports(wx.Dialog):
 
         grid_sizer_transports = wx.FlexGridSizer(rows=1, cols=2, vgap=0, hgap=0)
 
-        staticsizer_aller = wx.StaticBoxSizer(self.staticbox_aller, wx.VERTICAL)
+        staticsizer_aller = wx.StaticBoxSizer(self.stbAller, wx.VERTICAL)
         grid_sizer_aller = wx.FlexGridSizer(rows=2, cols=1, vgap=0, hgap=0)
         grid_sizer_aller.Add(self.ctrl_saisie_aller, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
 
@@ -265,7 +263,7 @@ class DlgTransports(wx.Dialog):
 
         grid_sizer_transports.Add(staticsizer_aller, 0,wx.ALL|wx.EXPAND, 3)
 
-        staticsizer_retour = wx.StaticBoxSizer(self.staticbox_retour, wx.VERTICAL)
+        staticsizer_retour = wx.StaticBoxSizer(self.stbRetour, wx.VERTICAL)
         grid_sizer_retour = wx.FlexGridSizer(rows=2, cols=1, vgap=0, hgap=0)
         grid_sizer_retour.Add(self.ctrl_saisie_retour, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
 
