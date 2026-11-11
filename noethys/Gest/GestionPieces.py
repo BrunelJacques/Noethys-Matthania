@@ -776,8 +776,8 @@ class Forfaits():
             else:
                 inscription = ligne.IDinscription
                 activite = 0
-            date, exercice = DB.GetDateFacture(inscription, activite,
-                                               datetime.date.today(), alertes=False,
+            date, exercice = DB.GetDateFacture(inscription, activite,datetime.date.today(),
+                                               alertes=True,
                                                retourExercice=True)
             if (exercice == (None, None)) or exercice == False :
                 # l'exercice n'est pas encore ouvert pour cette ligne

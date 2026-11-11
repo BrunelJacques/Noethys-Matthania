@@ -1012,7 +1012,6 @@ class CTRL_Localisation_autre(wx.Panel):
     def Validation(self):
         return True
 
-
 class CTRL_Localisation(wx.Choicebook):
     """ Contrôle Localisation """
 
@@ -1063,8 +1062,7 @@ class CTRL_Localisation(wx.Choicebook):
             if key == "%s_localisation" % self.rubrique:
                 self.SetLocalisation(valeur)
 
-
-# ------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------
 
 class CTRL_DateHeure(wx.Panel):
     """ Contrôle Date et Heure """
@@ -1257,7 +1255,7 @@ class CTRL_Date(wx.Panel):
                 self.SetHeure(valeur)
 
 
-# ------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------
 
 class CTRL_Details(wx.TextCtrl):
     def __init__(self, parent):
@@ -1614,7 +1612,6 @@ class CTRL_Categorie(BitmapComboBox):
         if index == -1: return None
         return self.dictDonnees[index]["categorie"]
 
-
 # -----------------------------------------------------------------------------------------------------------------------
 
 class CTRL(wx.Panel):
@@ -1937,7 +1934,6 @@ class CTRL(wx.Panel):
         for ctrl in self.GetChildren():
             if hasattr(ctrl, 'bouton_gestion'):
                 ctrl.bouton_gestion.Show(False)
-
 
 # ------------------------------------------------------------------------------------------------------
 

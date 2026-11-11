@@ -561,6 +561,8 @@ class CTRL(wx.Panel):
         self.ctrl_groupes_activites.MAJ()
 
     def SetActivites(self, lstActivites=[]):
+        if not lstActivites:
+            return
         self.ctrl_activites.SetActivites(lstActivites)
         if self.modeGroupes:
             self.ctrl_tarifs.SetActivites(lstActivites)

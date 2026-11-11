@@ -397,10 +397,8 @@ class CTRL_Saisie_prog(wx.Panel):
         self.SetJours("scolaire", jours_scolaires)
         self.SetJours("vacances", jours_vacances)
         self.ctrl_unites.SetUnites(unites)
-        
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------
-
 
 class CTRL_Planning(wx.Panel):
     def __init__(self, parent):

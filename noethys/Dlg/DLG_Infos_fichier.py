@@ -112,7 +112,6 @@ class Informations():
 
         listeTemp = gb.GetOccupations()
 
-
         for labelTable, occupation in listeTemp :
                 listeItems.append((labelTable, "%14.2f Mo"%occupation))
 

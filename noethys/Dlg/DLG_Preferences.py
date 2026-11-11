@@ -8,8 +8,6 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
-
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
@@ -948,7 +946,6 @@ class Dialog(wx.Dialog):
         
         # Fermeture de la fenêtre
         self.EndModal(wx.ID_OK)
-        
     
 if __name__ == "__main__":
     app = wx.App(0)

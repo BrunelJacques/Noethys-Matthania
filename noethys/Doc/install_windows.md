@@ -18,9 +18,14 @@ ouvrir une fenêtre shell en mode administrateur (clic droit  sur la proposition
 - pip -V
   - py -V
   - py -3.11 -m pip install package
+  # alternative possible
+  - py -m ensurepip --default-pip
+- py -m pip install --upgrade pip
   
 # installer les bibiliothèques à partir du fichier requirements
 - pip install -r requirements.txt
+
+# si l'install des paquets en admin fonctionne et pas pour les users, ajouter les paths en variable environnement
 
 # Installez un raccourci sur le bureau
 - cible: "C:/Program Files/Python311/python.exe" Noethys.py
@@ -33,8 +38,12 @@ ouvrir une fenêtre shell en mode administrateur (clic droit  sur la proposition
 vérifier les versions python installées: py -0
 version active : py -V
 
-Pour installation en copier coller:
-- aller à l'adresse : https://github.com/BrunelJacques/Noethys-Matthania pour copier/coller
+# Pour installation en environnement:
+=====================================
+> python -m venv .venv
+-  .\.venv\Scripts\Activate.ps1
+- pip install -r requirements.txt
+
 
 
 Liste des modules qui ont dû être chargés par pip install

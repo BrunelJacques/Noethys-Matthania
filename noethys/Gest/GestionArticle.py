@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-15 -*-
-#----------------------------------------------------------
+#---------------------------------------------------------------
 # Application :    Matthania
 # Auteur:          Jacques BRUNEL
 # Licence:         Licence GNU GPL
 # Fonctions calculs prix articles et application des conditions
 # Contient aussi les listes descriptives des calculs et conditions
-#-----------------------------------------------------------
+#---------------------------------------------------------------
 
 import GestionDB
 from Gest import GestionInscription
