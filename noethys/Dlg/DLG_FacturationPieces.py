@@ -355,7 +355,6 @@ class Dialog(wx.Dialog):
         #fin OnBoutonModif
 
     def OnBoutonAnnuler(self,event):
-        self.listviewAvecFooter.ctrl_footer.listview.DB.Close()
         self.DB.Close()
         if self.IsModal():
             self.EndModal(wx.ID_OK)

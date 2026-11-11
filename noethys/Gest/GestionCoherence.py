@@ -22,7 +22,7 @@ def Corr_ptnPrinc(parent,IDfamille, dLigne, **kw):
 
     def actionPrestation():
         # Changements incomplets: réalignement des données sur la pièce mère
-        if dLigne["champ"] in ("IDactivite", "IDcategorie_tarif","IDindividu"):
+        if dLigne["champ"] in ("IDactivite", "IDcategorie_tarif","IDindividu","montant"):
             return parent.RebuildPrestation(IDfamille,dLigne)
         if dLigne["cleOrig"] == "IDcontrat":
             return parent.CheckPrestationToPiece(dLigne)
@@ -909,7 +909,8 @@ class Diagnostic():
                         # l'autre prestation est cohérente, avec la pièce, on la supprime
                         ret = self.fGest.DelPrestations(self,{"IDprestation":IDprestation,'IDnumPiece': None})
                         dLigne["mess"] += "\nReqDEL('prestations'.%d"%(IDprestation)
-                        if ret == "ok": return True
+                        if ret == "ok":
+                            return True
                     return False
         # cas: cle piece non trouvée on cherche une éventuelle sansEnf pour la prestation orpheline
         mess = "DLGFacPie.Corr_ptnPrinc GetDdRecords matPieces"
@@ -956,7 +957,8 @@ class Diagnostic():
             return False
         ret = self.fGest.DelPrestations(self,{"IDprestation":IDprestation,'IDnumPiece': None})
         dLigne["mess"] += "\nReqDEL('prestations'.%d"%(IDprestation)
-        if ret == "ok": return True
+        if ret == "ok":
+            return True
 
     def RebuildFacture(self,IDfamille,dLigne):
         mess = "DLGFactPiece.RebuildFacture"
@@ -1014,8 +1016,11 @@ class Diagnostic():
         if dLigne["table"] == "prestations":
             dPrestation = self.dictPrestations[IDfamille]["dictDon"][dLigne["ID"]]
             dPiece = self.dictPieces[IDfamille]["dictDon"][dPrestation["IDcontrat"]]
-            if len(dPiece)>0 and dPiece["pieNature"] in ("FAC","COM"):
-                dPrestation["categorie"] = "consommation"
+            if len(dPiece)>0 and dPiece["pieNature"] in ("FAC","COM","AVO"):
+                if dPiece["pieNature"] == "AVO":
+                    dPrestation["categorie"] = "consoavoir"
+                else:
+                    dPrestation["categorie"] = "consommation"
             IDprestation = dLigne["ID"]
         elif dLigne["table"] == "matPieces":
             dPiece = self.dictPieces[IDfamille]["dictDon"][dLigne["ID"]]
