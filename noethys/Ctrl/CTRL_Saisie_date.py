@@ -670,7 +670,7 @@ class MyFrame(wx.Frame):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_1.Add(panel, 1, wx.ALL | wx.EXPAND)
         self.SetSizer(sizer_1)
-        self.ctrl1 = Date2(panel)
+        self.ctrl1 = Date(panel)
         self.ctrl1.SetDate(datetime.date.today())
         self.ctrl2 = Date2(panel, heure=True)
         self.bouton1 = wx.Button(panel, -1, "Tester la validité du ctrl 1")
@@ -684,6 +684,7 @@ class MyFrame(wx.Frame):
         self.Layout()
         self.CentreOnScreen()
         self.Bind(wx.EVT_BUTTON, self.OnBouton1, self.bouton1)
+
 
     def OnBouton1(self, event):
         print(self.ctrl1.Validation())

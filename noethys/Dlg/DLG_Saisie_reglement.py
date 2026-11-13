@@ -27,6 +27,7 @@ from Utils import UTILS_Historique
 from Utils import UTILS_Identification
 from Utils import UTILS_Config
 from Utils import UTILS_Titulaires
+from Utils.UTILS_Dates import DateEngEnDateDD
 import GestionDB
 
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
@@ -52,10 +53,6 @@ def DateComplete(dateDD):
     listeMois = (_("janvier"), _("février"), _("mars"), _("avril"), _("mai"), _("juin"), _("juillet"), _("août"), _("septembre"), _("octobre"), _("novembre"), _("décembre"))
     dateComplete = listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
     return dateComplete
-
-def DateEngEnDateDD(dateEng):
-    if dateEng and not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 def DateFREnDateDD(dateFR):
     try:
@@ -687,8 +684,10 @@ class Dialog(wx.Dialog):
         self.ctrl_ventilation.ctrl_ventilation.bloquer_ventilation = UTILS_Config.GetParametre("ventilation_bloquer", True)
         
         # Focus
-        self.ctrl_date.SetFocus() 
+        if self.ctrl_date.IsEnabled():
+            self.ctrl_date.SetFocus()
         wx.CallAfter(self.ctrl_date.SetInsertionPoint, 0)
+
 
     def __set_properties(self):
         self.ctrl_date.SetToolTip(_("Saisissez la date d'émission du règlement"))

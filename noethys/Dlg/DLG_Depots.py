@@ -110,22 +110,22 @@ class Dialog(wx.Dialog):
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Banque.png")
         
         # Reglements disponibles
-        self.staticbox_reglements = wx.StaticBox(self, -1, _("Règlements disponibles"))
+        self.stbRegl = wx.StaticBox(self, -1, _("Règlements disponibles"))
         kw = {"inclus" : False, "selectionPossible" : False, "size" : (-1, 180) }
-        self.listviewAvecFooter1 = OL_Reglements_depots.ListviewAvecFooter(self,kwargs=kw)
+        self.listviewAvecFooter1 = OL_Reglements_depots.ListviewAvecFooter(self.stbRegl,kwargs=kw)
         self.ctrl_reglements = self.listviewAvecFooter1.GetListview()
         self.ctrl_reglements.SetMinSize((600, 150))
 
         # Dépôts
-        self.staticbox_depots = wx.StaticBox(self, -1, _("Dépôts"))
-        self.listviewAvecFooter2 = OL_Depots.ListviewAvecFooter(self, kwargs={}) 
+        self.stbDep = wx.StaticBox(self, -1, _("Dépôts"))
+        self.listviewAvecFooter2 = OL_Depots.ListviewAvecFooter(self.stbDep, kwargs={})
         self.ctrl_depots = self.listviewAvecFooter2.GetListview()
-        self.ctrl_recherche = OL_Depots.CTRL_Outils(self, listview=self.ctrl_depots)
+        self.ctrl_recherche = OL_Depots.CTRL_Outils(self.stbDep, listview=self.ctrl_depots)
 
-        self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_imprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter = wx.BitmapButton(self.stbDep, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier = wx.BitmapButton(self.stbDep, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer = wx.BitmapButton(self.stbDep, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_imprimer = wx.BitmapButton(self.stbDep, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
         
         # Options
         self.check_images = wx.CheckBox(self, -1, _("Afficher les images des modes et émetteurs"))
@@ -174,7 +174,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(self.ctrl_bandeau, 0, wx.EXPAND, 0)
 
         # Règlements
-        staticbox_reglements = wx.StaticBoxSizer(self.staticbox_reglements, wx.VERTICAL)
+        staticbox_reglements = wx.StaticBoxSizer(self.stbRegl, wx.VERTICAL)
         grid_sizer_reglements = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         
         grid_sizer_reglements.Add(self.listviewAvecFooter1, 1, wx.EXPAND | wx.ALL, 0)
@@ -185,7 +185,7 @@ class Dialog(wx.Dialog):
         grid_sizer_base.Add(staticbox_reglements, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 10)
 
         # Dépôts
-        staticbox_depots = wx.StaticBoxSizer(self.staticbox_depots, wx.VERTICAL)
+        staticbox_depots = wx.StaticBoxSizer(self.stbDep, wx.VERTICAL)
         grid_sizer_depots = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         
         grid_sizer_gauche = wx.FlexGridSizer(rows=3, cols=1, vgap=0, hgap=10)
@@ -245,7 +245,7 @@ class Dialog(wx.Dialog):
         tracks = self.GetTracks()
         self.ctrl_reglements.MAJ(tracks)
         # Label de staticbox
-        self.staticbox_reglements.SetLabel(self.ctrl_reglements.GetLabelListe(_("règlements disponibles")))
+        self.stbRegl.SetLabel(self.ctrl_reglements.GetLabelListe(_("règlements disponibles")))
 
     def GetTracks(self):
         """ Récupération des données """

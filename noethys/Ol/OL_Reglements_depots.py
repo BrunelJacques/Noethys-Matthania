@@ -20,6 +20,7 @@ import os
 from Utils import UTILS_Titulaires
 from Utils import UTILS_Config
 from Utils import UTILS_Interface
+from Utils.UTILS_Dates import DateEngEnDateDD
 from Ctrl.CTRL_ObjectListView import (FastObjectListView, ColumnDefn, PanelAvecFooter)
 import Olv.Filter as Filter
 
@@ -35,10 +36,6 @@ def DateComplete(dateDD):
     listeMois = (_("janvier"), _("février"), _("mars"), _("avril"), _("mai"), _("juin"), _("juillet"), _("août"), _("septembre"), _("octobre"), _("novembre"), _("décembre"))
     dateComplete = listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
     return dateComplete
-
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 # ---------------------------------------------------------------------------------------------------------------------------------------
 
@@ -126,6 +123,13 @@ class ListView(FastObjectListView):
         FastObjectListView.__init__(self, *args, **kwds)
         self.Name = "OL_Reglements_depots"
 
+        # test Python14
+        gdParent = self.GetGrandParent()
+        if gdParent and "StaticBox" in str(type(gdParent)):
+            self.grandParent = gdParent.Parent
+        else:
+            self.grandParent = gdParent
+
         # Binds perso
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
         self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
@@ -186,11 +190,11 @@ class ListView(FastObjectListView):
     def OnClickColonne(self, indexColonne=None, ascendant=True):
         if self.inclus == False :
             try :
-                self.GetGrandParent().ctrl_tri.Select(indexColonne)
+                self.grandParent.ctrl_tri.Select(indexColonne)
                 if ascendant :
-                    self.GetGrandParent().ctrl_ordre.Select(0)
+                    self.grandParent.ctrl_ordre.Select(0)
                 else :
-                    self.GetGrandParent().ctrl_ordre.Select(1)
+                    self.grandParent.ctrl_ordre.Select(1)
             except :
                 pass
 
@@ -234,7 +238,9 @@ class ListView(FastObjectListView):
                 nextTrack = None
         else:
             nextTrack = self.GetObjectAt(index+1)
-        self.GetGrandParent().MAJListes(self.tracks, selectionTrack=tracks, nextTrack=nextTrack)
+
+
+        self.grandParent.MAJListes(self.tracks, selectionTrack=tracks, nextTrack=nextTrack)
         
     def InitModel(self, tracks=None, IDcompte=None, IDmode=None, date=None):
         if tracks != None :
@@ -514,8 +520,8 @@ class ListView(FastObjectListView):
         menuPop.Destroy()
 
     def GetParametresImpression(self):
-        if self.GetGrandParent().GetName() == "DLG_Saisie_depot" :
-            intro = self.GetGrandParent().GetLabelParametres()
+        if self.grandParent.GetName() == "DLG_Saisie_depot" :
+            intro = self.grandParent.GetLabelParametres()
         else :
             intro = ""
         # Récupère le total
@@ -591,7 +597,7 @@ class ListView(FastObjectListView):
             DB.ReqDEL("reglements", "IDreglement", IDreglement)
             DB.ReqDEL("ventilation", "IDreglement", IDreglement)
             DB.Close() 
-            self.GetGrandParent().MAJListes(self.tracks)
+            self.grandParent.MAJListes(self.tracks)
         dlg.Destroy()
 
     def GetListeIDreglement(self):

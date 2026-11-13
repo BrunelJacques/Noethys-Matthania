@@ -27,20 +27,20 @@ class PanelMessages(wx.Panel):
         self.IDindividu = IDindividu
         self.dictFamillesRattachees = dictFamillesRattachees
 
-        self.staticbox_infos = wx.StaticBox(self, -1, _("Messages individu à diffuser"))
+        self.stbInfos = wx.StaticBox(self, -1, _("Messages individu à diffuser"))
 
         # HTL
-        self.ctrl_infos = CTRL_Informations.CTRL(self.staticbox_infos, IDfamille=None,
+        self.ctrl_infos = CTRL_Informations.CTRL(self.stbInfos, IDfamille=None,
                                                  IDindividu=self.IDindividu,
                                                  dictFamillesRattachees=self.dictFamillesRattachees)
         self.ctrl_infos.SetMinSize((20, 20))
 
         # Commandes boutons
-        self.bouton_ajouter = wx.BitmapButton(self.staticbox_infos, -1, wx.Bitmap(
+        self.bouton_ajouter = wx.BitmapButton(self.stbInfos, -1, wx.Bitmap(
             Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self.staticbox_infos, -1, wx.Bitmap(
+        self.bouton_modifier = wx.BitmapButton(self.stbInfos, -1, wx.Bitmap(
             Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self.staticbox_infos, -1, wx.Bitmap(
+        self.bouton_supprimer = wx.BitmapButton(self.stbInfos, -1, wx.Bitmap(
             Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
 
         # Binds
@@ -58,7 +58,7 @@ class PanelMessages(wx.Panel):
 
         # Layout
         grid_sizer_base = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
-        staticbox_infos = wx.StaticBoxSizer(self.staticbox_infos, wx.VERTICAL)
+        staticbox_infos = wx.StaticBoxSizer(self.stbInfos, wx.VERTICAL)
         grid_sizer_infos = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
 
         grid_sizer_infos.Add(self.ctrl_infos, 1, wx.EXPAND, 0)
@@ -162,17 +162,17 @@ class Panel(wx.Panel):
         self.dictFamillesRattachees = dictFamillesRattachees
         
         # Inscriptions
-        self.staticbox_inscriptions = wx.StaticBox(self, -1, _("Inscriptions"))
+        self.stb = wx.StaticBox(self, -1, _("Inscriptions"))
         self.ctrl_inscriptions = OL_IndividuInscriptions.ListView(self,self, IDindividu=IDindividu, dictFamillesRattachees=self.dictFamillesRattachees, id=-1, name="OL_inscriptions", style=wx.LC_HRULES|wx.LC_VRULES|wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL)
         self.ctrl_inscriptions.SetMinSize((150, 50))
         
-        self.bouton_ajouter_inscription = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier_inscription = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer_inscription = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_imprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_forfait = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Forfait.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter_inscription = wx.BitmapButton(self.stb, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier_inscription = wx.BitmapButton(self.stb, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer_inscription = wx.BitmapButton(self.stb, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_imprimer = wx.BitmapButton(self.stb, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_forfait = wx.BitmapButton(self.stb, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Forfait.png"), wx.BITMAP_TYPE_ANY))
 
-        self.panelMessages = PanelMessages(self.staticbox_inscriptions,self.IDindividu,self.dictFamillesRattachees)
+        self.panelMessages = PanelMessages(self,self.IDindividu,self.dictFamillesRattachees)
 
         # Binds
         self.Bind(wx.EVT_BUTTON, self.ctrl_inscriptions.Ajouter, self.bouton_ajouter_inscription)
@@ -192,7 +192,7 @@ class Panel(wx.Panel):
         grid_sizer_base = wx.BoxSizer(wx.VERTICAL) # préférable pour growing différencié
 
         # Inscriptions
-        staticbox_inscriptions = wx.StaticBoxSizer(self.staticbox_inscriptions, wx.VERTICAL)
+        staticbox_inscriptions = wx.StaticBoxSizer(self.stb, wx.VERTICAL)
         grid_sizer_inscriptions = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         
         grid_sizer_inscriptions.Add(self.ctrl_inscriptions, 1, wx.EXPAND, 0)
