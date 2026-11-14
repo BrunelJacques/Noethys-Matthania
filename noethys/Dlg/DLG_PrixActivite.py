@@ -622,7 +622,8 @@ class DlgTarification(wx.Dialog):
         self.dDonneesOrig.update(self.dictDonnees)
 
     def Sortie(self, endModal):
-        self.DB.Close()
+        if self.DB.IsConnected():
+            self.DB.Close()
         if self.codeNature and endModal == wx.ID_OK and len(self.codeNature)>0:
             self.SauveDonnees()
         self.EndModal(endModal)

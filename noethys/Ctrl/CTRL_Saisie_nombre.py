@@ -59,9 +59,6 @@ class CTRL(wx.TextCtrl):
         else:
             return None
         
-        
-        
-
 
 class MyFrame(wx.Frame):
     def __init__(self, *args, **kwds):

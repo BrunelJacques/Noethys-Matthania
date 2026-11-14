@@ -983,6 +983,8 @@ class Facturation():
 
     # Alimente le fichier self.dictVentilations des paiements
     def GetVentilations(self):
+        if len(self.lstIDprestations) == 0:
+            return
         #appel des prestations
         condition = " WHERE prestations.IDprestation in ( %s ) "% str(self.lstIDprestations)[1:-1]
         req = """
@@ -1056,8 +1058,7 @@ class Facturation():
             dictAllReglements[IDcompte_payeur][IDreglement]["mode"] = mode[:4]"""
             
         # complète les ventilations par les règlements affectés aux prestations ou libres de ventilation
-        if len(self.lstIDprestations) > 0:
-            self.GetReglementsAffectes()
+        self.GetReglementsAffectes()
         self.GetImpayes()
         self.GetReglementsLibres()
         #fin GetVentilations

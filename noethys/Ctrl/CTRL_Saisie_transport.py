@@ -88,15 +88,15 @@ DICT_CONTROLES = {
         {"code": "date", "label": _("Date"), "ctrl": "CTRL_Date(self)"},
         {"code": "date_heure", "label": _("Heure"), "ctrl": "CTRL_DateHeure(self)"},
 
-        {"code": "arret_intercamp", "label": _("Finit intercamp"),
-         "ctrl": "CTRL_Arrets(self, categorie='intercamp')"},
-        {"code": "arret_navette", "label": _("Info sur pièce"),
-         "ctrl": "CTRL_Arrets(self, categorie='navette')"},
+        {"code": "arret_intercamp",  "label": _("Finit intercamp"),   "ctrl": "CTRL_Arrets(self, categorie='intercamp')"},
+        {"code": "arret_navette","label": _("Info sur pièce"), "ctrl": "CTRL_Arrets(self, categorie='navette')"},
 
         {"code": "aeroport", "label": _("Aéroport"),
          "ctrl": "CTRL_Lieux(self, categorie='aeroport')"},
+
         {"code": "gare", "label": _("Gare/Lieu"),
          "ctrl": "CTRL_Lieux(self, categorie='gare')"},
+
         {"code": "localisation", "label": _("Localisation"),
          "ctrl": "CTRL_Localisation(self)"},
     ],
@@ -119,7 +119,6 @@ DICT_CONTROLES = {
     ],
 }
 
-
 # le lancement des actions menus est dans 'MenuTransports.dict_actions', qui pointe les fonctions idoines A GERER
 
 def GetDic_rub_ctrl_Utiles():
@@ -140,7 +139,6 @@ def GetDic_ctrl_Utiles():
     dicControles = {}
     for rubrique, lstCtrl in GetDic_rub_ctrl_Utiles().items():
         for ctrl in lstCtrl:
-            cle = ctrl["code"]
             dicControles[cle] = ctrl
     return dicControles
 
@@ -155,10 +153,11 @@ def DateEngEnDateDD(dateEng):
 class MenuTransports(object):
     # Penser à gérer les lancements bind du menu dans self.dict_actions
     def __init__(self, parent):
-        if hasattr(parent, "parent"):
+        if parent and hasattr(parent, "parent"):
             self.parent = parent.parent
         else:
             self.parent = parent
+
         self.dict_actions = {"lignes": {
             "train": self.On_param_lignes_train,
             "pedibus": self.On_param_lignes_pedibus,
@@ -466,10 +465,7 @@ class MenuTransports(object):
 class CTRL_Choix_arrets(wx.Choice):
     def __init__(self, parent, categorie="bus", IDligne=0):
         wx.Choice.__init__(self, parent, -1, size=(170, -1))
-        if parent and "StaticBox" in str(type(parent)):
-            self.parent = parent.Parent
-        else:
-            self.parent = parent
+
         self.categorie = categorie
         self.IDligne = IDligne
         self.MAJ()
@@ -1741,6 +1737,7 @@ class CTRL(wx.Panel):
     def CreationControles(self, rubrique="generalites", label="Généralités"):
         # Crée tous les contrôles possibles, seuls ceux du
         self.box = wx.StaticBox(self, -1, label)
+        self.box.SetName("CtrlBox")
         boxSizer = wx.StaticBoxSizer(self.box, wx.VERTICAL)
         grid_sizer = wx.FlexGridSizer(rows=18, cols=2, vgap=10, hgap=10)
 
@@ -1750,7 +1747,6 @@ class CTRL(wx.Panel):
             label = dictControle["label"]
             ctrl_label = wx.StaticText(self.box, -1, "%s :" % label)
             grid_sizer.Add(ctrl_label, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL, 0)
-            ctrl = None
             # contrôle
             command = dictControle["ctrl"].replace("self","self.box")
             # ctrlTest = CTRL_Compagnies(self, categorie='avion')
@@ -1792,7 +1788,7 @@ class CTRL(wx.Panel):
             resultat = self.RechercheControle(codeControle, self.categorie)
             ctrl.Show(resultat)
             ctrl_label.Show(resultat)
-            # Ajustement des sizers
+        # Ajustement des sizers
         for sizer in self.listeSizers:
             sizer.Layout()
         self.Layout()
@@ -1809,9 +1805,9 @@ class CTRL(wx.Panel):
     def GetControles(self, texteNom="", controleActuel=None):
         """ Retrouve les contrôles du panel dont le nom comporte le texte texteNom """
         listeControlesTrouves = []
-        for children in self.GetChildren():
-            if texteNom in children.GetName() and children != controleActuel:
-                listeControlesTrouves.append(children)
+        for (code, ctrl, ctrl_label) in self.listeControles:
+                if texteNom in ctrl.GetName() and ctrl != controleActuel:
+                    listeControlesTrouves.append(ctrl)
         return listeControlesTrouves
 
     def GetControle(self, code="date_heure", rubrique="depart"):
@@ -1873,7 +1869,6 @@ class CTRL(wx.Panel):
             resultat = self.RechercheControle(codeControle, self.categorie)
             if resultat == True:
                 if ctrl.Validation() == False:
-                    # print "ca coince sur le contrôle", codeControle, ctrl.rubrique
                     return False
         if not self.ValideLocalisation():
             return False

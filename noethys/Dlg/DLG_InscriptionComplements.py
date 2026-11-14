@@ -12,19 +12,13 @@ from Utils.UTILS_Traduction import _
 import wx
 import Chemins
 from Utils import UTILS_Utilisateurs
+from Utils.UTILS_Dates import DateEngEnDateDD
 from Ctrl import CTRL_Bouton_image
 from Ctrl import CTRL_Bandeau
 from Ctrl import CTRL_Saisie_nombre
 from Gest import GestionArticle
 from Ctrl import CTRL_Saisie_transport
 import GestionDB
-import datetime
-
-def DateEngEnDateDD(dateEng):
-    if isinstance(dateEng,datetime.date): return dateEng
-    if dateEng == None:
-        dateEng = '1900-01-01'
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 def Nz(valeur):
     if valeur == None:
@@ -64,8 +58,12 @@ class DlgTransports(wx.Dialog):
         self.stbRetour = wx.StaticBox(self, -1, _("Transport    RETOUR"))
         self.dictDonnees.update({"depart_date":self.allerDepartDate,
                                 "arrivee_date": self.allerArriveeDate})
-        self.ctrl_saisie_aller = CTRL_Saisie_transport.CTRL(self.stbAller, IDtransport=self.IDtranspAller, IDindividu=self.IDindividu,
-                                                             dictDonnees=self.dictDonnees,verrouilleBoutons=False,ar="aller")
+        self.ctrl_saisie_aller = CTRL_Saisie_transport.CTRL(self.stbAller,
+                                                            IDtransport=self.IDtranspAller,
+                                                            IDindividu=self.IDindividu,
+                                                            dictDonnees=self.dictDonnees,
+                                                            verrouilleBoutons=False,
+                                                            ar="aller")
         self.dictDonnees.update({"depart_date":self.retourDepartDate,
                                 "arrivee_date": self.retourArriveeDate})
         self.ctrl_saisie_retour = CTRL_Saisie_transport.CTRL(self.stbRetour, IDtransport=self.IDtranspRetour,IDindividu=self.IDindividu,
@@ -84,13 +82,12 @@ class DlgTransports(wx.Dialog):
         self.bouton_swap = CTRL_Bouton_image.CTRL(self, texte=_("Copie Retour"), cheminImage=Chemins.GetStaticPath("Images/16x16/Actualiser.png"))
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Valider"), cheminImage=Chemins.GetStaticPath("Images/32x32/Suivant.png"))
         self.bouton_annuler = CTRL_Bouton_image.CTRL(self, id=wx.ID_CANCEL, texte=_("Ignorer"), cheminImage=Chemins.GetStaticPath("Images/32x32/Annuler.png"))
-        """
+
         if self.modeVirtuel:
             self.ctrl_prixAller.Enable(False)
             self.ctrl_prixRetour.Enable(False)
-            self.bouton_ok.Enable(False)
             self.bouton_swap.Enable(False)
-        """
+
         self.__set_properties()
         self.VerifDatesActivite()
         self.__do_layout()
@@ -330,9 +327,11 @@ class DlgTransports(wx.Dialog):
         if self.Validation() == False :
             return
         # Fermeture sans sauvegarde
+        """
         if self.modeVirtuel == True :
             self.EndModal(wx.ID_OK)
             return
+        """
         # Sauvegarde
         DB = GestionDB.DB()
         resultat = True
@@ -449,7 +448,7 @@ if __name__ == "__main__":
         listeChamps.append(champ)
         listeValeurs.append(valeur)
 
-    dlg = DlgTransports(dictDonnees)
+    dlg = DlgTransports(dictDonnees, modeVirtuel=True)
     app.SetTopWindow(dlg)
     dlg.ShowModal()
     app.MainLoop()

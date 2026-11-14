@@ -10,20 +10,30 @@ rechercher et installer les bibliothèques suivantes.
 
 # installer git  par https://git-scm.com/download/win  (ou équivalent standalone)
 ouvrir une fenêtre shell en mode administrateur (clic droit  sur la proposition windows)
-- cd c:/MatthProgram
-- git clone https://github.com/BrunelJacques/Noethys-Matthania
-- cd Noethys-Matthania
+> cd c:/MatthProgram
+> git clone https://github.com/BrunelJacques/Noethys-Matthania
+> cd Noethys-Matthania
 
 # verifier si pip est installé, sinon version py et installer pip par py:  
-- pip -V
-  - py -V
-  - py -3.11 -m pip install package
+> pip -V
+  > py -V
+  > py -3.11 -m pip install package
   # alternative possible
-  - py -m ensurepip --default-pip
-- py -m pip install --upgrade pip
+  > py -m ensurepip --default-pip
+> py -m pip install --upgrade pip
+
+# Pour installation en environnement:
+=====================================
+Powershell en mode administrateur
+> cd c:\MatthProgram 
+> python -m venv .venv11
+# Permettre les scripts ps1 pour activer venv, 
+#   sinon pour python et pip: toujours spécifier le chemin c:\MatthProgram\.venv11\Sripts
+> Set-ExecutionPolicy RemoteSigned -Scope CurrentUser 
+> .\.venv11\Scripts\Activate.ps1
   
 # installer les bibiliothèques à partir du fichier requirements
-- pip install -r requirements.txt
+> pip install -r requirements.txt
 
 # si l'install des paquets en admin fonctionne et pas pour les users, ajouter les paths en variable environnement
 
@@ -37,14 +47,7 @@ ouvrir une fenêtre shell en mode administrateur (clic droit  sur la proposition
 # Compléments
 vérifier les versions python installées: py -0
 version active : py -V
-
-# Pour installation en environnement:
-=====================================
-> python -m venv .venv
--  .\.venv\Scripts\Activate.ps1
-- pip install -r requirements.txt
-
-
+pip freeze # Afiche les modules chargés
 
 Liste des modules qui ont dû être chargés par pip install
 - dateutil (http://pypi.python.org/pypi/python-dateutil)
@@ -66,9 +69,7 @@ Liste des modules qui ont dû être chargés par pip install
 - pystrich (https://pypi.org/project/pyStrich/)
 - etc...
 
-Avec PyCharm Community Edition, on peut facilement créer un environnement particulier
-et vérifier les modules qui ont été chargés ou manquant en mode débug.
-
 pour connaître la version de wxPython:
+> python
 >>> import wx
 >>> print(wx.__version__)
