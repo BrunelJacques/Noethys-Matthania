@@ -33,11 +33,11 @@ class Dialog(wx.Dialog):
             self.dlgFamille = self.GrandParent.dlgFamille
         self.IDindividu = IDindividu
         self.IDfamille = IDfamille
-        self.staticbox_staticbox = wx.StaticBox(self, -1, "")
-        self.label_intro = wx.StaticText(self, -1, _("Souhaitez-vous détacher ou supprimer cette fiche ?"))
+        self.stb = wx.StaticBox(self, -1, "")
+        self.label_intro = wx.StaticText(self.stb, -1, _("Souhaitez-vous détacher ou supprimer cette fiche ?"))
         
-        self.bouton_detacher = wx.BitmapButton(self, ID_BOUTON_DETACHER, wx.Bitmap(Chemins.GetStaticPath("Images/BoutonsImages/Detacher_fiche.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self, ID_BOUTON_SUPPRIMER, wx.Bitmap(Chemins.GetStaticPath("Images/BoutonsImages/Supprimer_fiche.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_detacher = wx.BitmapButton(self.stb, ID_BOUTON_DETACHER, wx.Bitmap(Chemins.GetStaticPath("Images/BoutonsImages/Detacher_fiche.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer = wx.BitmapButton(self.stb, ID_BOUTON_SUPPRIMER, wx.Bitmap(Chemins.GetStaticPath("Images/BoutonsImages/Supprimer_fiche.png"), wx.BITMAP_TYPE_ANY))
         
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
         self.bouton_annuler = CTRL_Bouton_image.CTRL(self, id=wx.ID_CANCEL, texte=_("Annuler"), cheminImage="Images/32x32/Annuler.png")
@@ -63,7 +63,7 @@ class Dialog(wx.Dialog):
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
         grid_sizer_boutons = wx.FlexGridSizer(rows=1, cols=3, vgap=10, hgap=10)
-        staticbox = wx.StaticBoxSizer(self.staticbox_staticbox, wx.VERTICAL)
+        staticbox = wx.StaticBoxSizer(self.stb, wx.VERTICAL)
         grid_sizer_contenu = wx.FlexGridSizer(rows=2, cols=1, vgap=10, hgap=10)
         grid_sizer_commandes = wx.FlexGridSizer(rows=1, cols=2, vgap=10, hgap=10)
         grid_sizer_contenu.Add(self.label_intro, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)

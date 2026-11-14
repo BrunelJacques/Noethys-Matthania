@@ -275,7 +275,7 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL) :
         # Jours de la semaine
         nom = "jours_semaine"
         liste_jours = [(0, _("Lundi")), (1, _("Mardi")), (2, _("Mercredi")), (3, _("Jeudi")), (4, _("Vendredi")), (5, _("Samedi")), (6, _("Dimanche"))]
-        propriete = CTRL_Propertygrid.Propriete_multichoix(label=_("Jours de la semaine"), name=nom, liste_choix=liste_jours, liste_selections=[0, 1, 2, 3, 4])
+        propriete = CTRL_Propertygrid.Propriete_multichoix(label=_("Jours de la semaine"), liste_choix=liste_jours, liste_selections=[0, 1, 2, 3, 4])
         propriete.SetHelpString(_("Sélectionnez les jours de la semaine à inclure. Cliquez sur le bouton à droite du champ de saisie pour accéder à la fenêtre de sélection."))
         propriete.SetAttribute("obligatoire", True)
         self.Append(propriete)
@@ -293,7 +293,7 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL) :
             liste_choix.append((IDcategorie, nom))
 
         nom = "categories_menus"
-        propriete = CTRL_Propertygrid.Propriete_multichoix(label=_("Catégories à afficher"), name=nom, liste_choix=liste_choix, liste_selections=[0,])
+        propriete = CTRL_Propertygrid.Propriete_multichoix(label=_("Catégories à afficher"),  liste_choix=liste_choix, liste_selections=[0,])
         propriete.SetHelpString(_("Sélectionnez les catégories de menus à afficher."))
         propriete.SetAttribute("obligatoire", True)
         self.Append(propriete)
@@ -904,8 +904,8 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL) :
         # Envoie les paramètres dans le contrôle
         for nom, valeur in dictParametres.items() :
             propriete = self.GetPropertyByName(nom)
-            ancienneValeur = propriete.GetValue() 
-            propriete.SetValue(valeur)
+            if propriete:
+                propriete.SetValue(valeur)
     
     def Sauvegarde(self, forcer=False):
         """ Mémorisation des valeurs du contrôle """
@@ -918,8 +918,8 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL) :
     def SetValeurs(self, dictDonnees={}):
         for nom, valeur in dictDonnees.items() :
             propriete = self.GetPropertyByName(nom)
-            if propriete != None :
-                propriete.SetValue(valeur)
+            #if propriete:
+            #    propriete.SetValue(valeur)
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -940,7 +940,10 @@ class Track_modele(CTRL_Vignettes_documents.Track):
 class CTRL_Modeles(CTRL_Vignettes_documents.CTRL):
     def __init__(self, parent):
         CTRL_Vignettes_documents.CTRL.__init__(self, parent, type_donnee=None, tailleVignette=256,style=wx.BORDER_SUNKEN, afficheLabels=True)
-        self.parent = parent
+        if parent and "StaticBox" in str(type(parent)):
+            self.parent = parent.Parent
+        else:
+            self.parent = parent
         self.ImportationModeles()
         self.SetMinSize((330, -1))
         self.SetPopupMenu(None)
@@ -987,26 +990,26 @@ class CTRL(wx.Panel):
         self.parent = parent
 
         # Période
-        self.staticbox_periode_staticbox = wx.StaticBox(self, -1, _("Période à afficher"))
-        self.label_date_debut = wx.StaticText(self, -1, "Du")
-        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self)
-        self.label_date_fin = wx.StaticText(self, -1, _("Au"))
-        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self)
+        self.stbPer = wx.StaticBox(self, -1, _("Période à afficher"))
+        self.label_date_debut = wx.StaticText(self.stbPer, -1, "Du")
+        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self.stbPer)
+        self.label_date_fin = wx.StaticText(self.stbPer, -1, _("Au"))
+        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self.stbPer)
 
         self.ctrl_date_debut.SetToolTip(wx.ToolTip(_("Saisissez la date de début de période")))
         self.ctrl_date_fin.SetToolTip(wx.ToolTip(_("Saisissez la date de fin de période")))
 
         # Paramètres généraux
-        self.box_options_staticbox = wx.StaticBox(self, -1, _("Options d'impression"))
-        self.ctrl_parametres = CTRL_Parametres(self, categorie="impression_menu")
+        self.stbOpt = wx.StaticBox(self, -1, _("Options d'impression"))
+        self.ctrl_parametres = CTRL_Parametres(self.stbOpt, categorie="impression_menu")
         self.ctrl_parametres.Importation()
-        self.bouton_reinit = CTRL_Propertygrid.Bouton_reinit(self, self.ctrl_parametres)
-        self.bouton_sauve = CTRL_Propertygrid.Bouton_sauve(self, self.ctrl_parametres)
+        self.bouton_reinit = CTRL_Propertygrid.Bouton_reinit(self.stbOpt, self.ctrl_parametres)
+        self.bouton_sauve = CTRL_Propertygrid.Bouton_sauve(self.stbOpt, self.ctrl_parametres)
         self.ctrl_parametres.SetMinSize((50, 50)) 
 
         # Modèles
-        self.box_modeles_staticbox = wx.StaticBox(self, -1, _("Modèles prédéfinis"))
-        self.ctrl_modeles = CTRL_Modeles(self)
+        self.stbMod = wx.StaticBox(self, -1, _("Modèles prédéfinis"))
+        self.ctrl_modeles = CTRL_Modeles(self.stbMod)
 
         self.__do_layout()
 
@@ -1020,7 +1023,7 @@ class CTRL(wx.Panel):
         grid_sizer_gauche = wx.FlexGridSizer(rows=2, cols=1, vgap=5, hgap=5)
 
         # Période de référence
-        staticbox_periode = wx.StaticBoxSizer(self.staticbox_periode_staticbox, wx.VERTICAL)
+        staticbox_periode = wx.StaticBoxSizer(self.stbPer, wx.VERTICAL)
         grid_sizer_periode = wx.FlexGridSizer(rows=2, cols=5, vgap=5, hgap=5)
         grid_sizer_periode.Add(self.label_date_debut, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_periode.Add(self.ctrl_date_debut, 0, wx.ALIGN_CENTER_VERTICAL, 0)
@@ -1030,7 +1033,7 @@ class CTRL(wx.Panel):
         grid_sizer_gauche.Add(staticbox_periode, 1, wx.RIGHT|wx.EXPAND, 0)
 
         # Paramètres généraux
-        box_options = wx.StaticBoxSizer(self.box_options_staticbox, wx.VERTICAL)
+        box_options = wx.StaticBoxSizer(self.stbOpt, wx.VERTICAL)
         grid_sizer_parametres = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_parametres.Add(self.ctrl_parametres, 1, wx.EXPAND, 0)
 
@@ -1049,7 +1052,7 @@ class CTRL(wx.Panel):
         grid_sizer_base.Add(grid_sizer_gauche, 1, wx.EXPAND, 0)
 
         # Modèles
-        box_modeles = wx.StaticBoxSizer(self.box_modeles_staticbox, wx.VERTICAL)
+        box_modeles = wx.StaticBoxSizer(self.stbMod, wx.VERTICAL)
         box_modeles.Add(self.ctrl_modeles, 1, wx.EXPAND|wx.ALL, 10)
         grid_sizer_base.Add(box_modeles, 1, wx.EXPAND, 0)
 

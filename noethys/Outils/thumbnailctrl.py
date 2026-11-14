@@ -1188,8 +1188,8 @@ class ScrolledThumbnail(wx.ScrolledWindow):
         self._tWidth = width 
         self._tHeight = height
         self._tBorder = border
-        self.SetScrollRate((self._tWidth + self._tBorder)/4,
-                           (self._tHeight + self._tBorder)/4)
+        self.SetScrollRate(int((self._tWidth + self._tBorder)/4),
+                           int((self._tHeight + self._tBorder)/4))
         self.SetSizeHints(self._tWidth + self._tBorder*2 + 16,
                           self._tHeight + self._tBorder*2 + 8)
 
@@ -1700,8 +1700,8 @@ class ScrolledThumbnail(wx.ScrolledWindow):
         if 'phoenix' not in wx.PlatformInfo:
             dc.BeginDrawing()
         
-        x = self._tBorder/2
-        y = self._tBorder/2
+        x = int(self._tBorder/2)
+        y = int(self._tBorder/2)
 
         # background
         dc.SetPen(wx.Pen(wx.BLACK, 0, wx.TRANSPARENT))
@@ -1717,8 +1717,8 @@ class ScrolledThumbnail(wx.ScrolledWindow):
             factor = 1.5
             img = self._imageHandler.HighlightImage(img.ConvertToImage(), factor).ConvertToBitmap()
         
-        imgRect = wx.Rect(x + (self._tWidth - img.GetWidth())/2,
-                          y + (self._tHeight - img.GetHeight())/2,
+        imgRect = wx.Rect(int(x + (self._tWidth - img.GetWidth())/2),
+                          int(y + (self._tHeight - img.GetHeight())/2),
                           img.GetWidth(), img.GetHeight())
 
         if not thumb._alpha:
@@ -1749,11 +1749,11 @@ class ScrolledThumbnail(wx.ScrolledWindow):
             txtcolour = "#7D7D7D"
             dc.SetTextForeground(txtcolour) 
             
-            tx = x + (self._tWidth - sw)//2
+            tx = int(x + (self._tWidth - sw)//2)
             if hh >= self._tHeight:
-                ty = y + self._tHeight + (self._tTextHeight - sh)//2 + 3
+                ty = int(y + self._tHeight + (self._tTextHeight - sh)//2 + 3)
             else:
-                ty = y + hh + (self._tHeight-hh)//2 + (self._tTextHeight - sh)//2 + 3
+                ty = int(y + hh + (self._tHeight-hh)//2 + (self._tTextHeight - sh)//2 + 3)
 
             dc.DrawText(mycaption, tx, ty)
             
@@ -1842,32 +1842,29 @@ class ScrolledThumbnail(wx.ScrolledWindow):
             if col == 0:
                 row = row + 1
                 
-            xwhite = ((w - self._cols*(self._tWidth + self._tBorder)))/(self._cols+1)
-            tx = xwhite + col*(self._tWidth + self._tBorder)
+            xwhite = int(((w - self._cols*(self._tWidth + self._tBorder)))/(self._cols+1))
 
-            ty = self._tBorder/2 + row*(self._tHeight + self._tBorder) + \
-                 self.GetCaptionHeight(0, row)
-            tw = self._tWidth + self._tBorder
-            th = self._tHeight + self.GetCaptionHeight(row) + self._tBorder
+            tx = int(xwhite + col*(self._tWidth + self._tBorder))
+            ty = int(self._tBorder/2 + row*(self._tHeight + self._tBorder) + \
+                 self.GetCaptionHeight(0, row))
+            tw = int(self._tWidth + self._tBorder)
+            th = int(self._tHeight + self.GetCaptionHeight(row) + self._tBorder)
             # visible?
             if not paintRect.Intersects(wx.Rect(tx, ty, tw, th)):
                 continue
 
-            if 'phoenix' in wx.PlatformInfo:
-                thmb = wx.Bitmap(tw, th)
-            else :
-                thmb = wx.EmptyBitmap(tw, th)
+            thmb = wx.Bitmap(tw, th)
 
             self.DrawThumbnail(thmb, self._items[ii], ii)
             dc.DrawBitmap(thmb, tx, ty)
   
-        rect = wx.Rect(xwhite, self._tBorder/2,
-                       self._cols*(self._tWidth + self._tBorder),
-                       self._rows*(self._tHeight + self._tBorder) + \
-                       self.GetCaptionHeight(0, self._rows))
+        rect = wx.Rect(xwhite, int(self._tBorder/2),
+                       int(self._cols*(self._tWidth + self._tBorder)),
+                       int(self._rows*(self._tHeight + self._tBorder) + \
+                       int(self.GetCaptionHeight(0, self._rows))))
         
-        w = max(self.GetClientSize().GetWidth(), rect.width)
-        h = max(self.GetClientSize().GetHeight(), rect.height)
+        w = int(max(self.GetClientSize().GetWidth(), rect.width))
+        h = int(max(self.GetClientSize().GetHeight(), rect.height))
         dc.DrawRectangle(0, 0, w, rect.y)
         dc.DrawRectangle(0, 0, rect.x, h)
         dc.DrawRectangle(rect.GetRight(), 0, w - rect.GetRight(), h + 50)

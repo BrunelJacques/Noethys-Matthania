@@ -28,18 +28,18 @@ class Panel(wx.Panel):
         self.majEffectuee = False
         
         # Questionnaire
-        self.staticbox_questionnaire = wx.StaticBox(self, -1, _("Questionnaire"))
-        self.ctrl_questionnaire = CTRL_Questionnaire.CTRL(self.staticbox_questionnaire, type="famille", IDdonnee=IDfamille)
+        self.stbQuest = wx.StaticBox(self, -1, _("Questionnaire"))
+        self.ctrl_questionnaire = CTRL_Questionnaire.CTRL(self.stbQuest, type="famille", IDdonnee=IDfamille)
         self.ctrl_questionnaire.SetMinSize((620, -1))
 
         # Mémo
-        self.staticbox_memo = wx.StaticBox(self, -1, _("Mémo"))
-        self.ctrl_memo = wx.TextCtrl(self.staticbox_memo, -1, "", style=wx.TE_MULTILINE)
+        self.stbMemo = wx.StaticBox(self, -1, _("Mémo"))
+        self.ctrl_memo = wx.TextCtrl(self.stbMemo, -1, "", style=wx.TE_MULTILINE)
         
         # Layout
         grid_sizer_base = wx.FlexGridSizer(rows=1, cols=2, vgap=0, hgap=0)
         
-        staticbox_questionnaire = wx.StaticBoxSizer(self.staticbox_questionnaire, wx.VERTICAL)
+        staticbox_questionnaire = wx.StaticBoxSizer(self.stbQuest, wx.VERTICAL)
         grid_sizer_questionnaire = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_questionnaire.Add(self.ctrl_questionnaire, 1, wx.EXPAND, 0)
         grid_sizer_questionnaire.AddGrowableCol(0)
@@ -47,7 +47,7 @@ class Panel(wx.Panel):
         staticbox_questionnaire.Add(grid_sizer_questionnaire, 1, wx.EXPAND|wx.ALL, 5)
         grid_sizer_base.Add(staticbox_questionnaire, 1, wx.EXPAND|wx.ALL, 5)
 
-        staticbox_memo = wx.StaticBoxSizer(self.staticbox_memo, wx.VERTICAL)
+        staticbox_memo = wx.StaticBoxSizer(self.stbMemo, wx.VERTICAL)
         grid_sizer_memo = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_memo.Add(self.ctrl_memo, 1, wx.EXPAND, 0)
         grid_sizer_memo.AddGrowableCol(0)
