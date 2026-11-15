@@ -139,6 +139,7 @@ def GetDic_ctrl_Utiles():
     dicControles = {}
     for rubrique, lstCtrl in GetDic_rub_ctrl_Utiles().items():
         for ctrl in lstCtrl:
+            cle = ctrl["code"]
             dicControles[cle] = ctrl
     return dicControles
 
