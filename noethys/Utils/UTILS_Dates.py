@@ -71,7 +71,7 @@ def DateDDEnDateEng(datedd):
     jj = ('00'+str(datedd.day))[-2:]
     return aaaa+'-'+mm+'-'+jj
 
-def DateComplete(dateDD, abrege=False):
+def DateComplete(dateDD, abrege=True):
     """ Transforme une date DD en date complète : Ex : lundi 15 janvier 2008 """
     if dateDD == None : return ""
     if abrege == False :

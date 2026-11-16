@@ -229,13 +229,13 @@ class Dialog(wx.Dialog):
         UTILS_Linux.AdaptePolice(self)
 
         # Composition
-        self.sizer_composition_staticbox = wx.StaticBox(self, -1, _("Composition de la famille"))
-        self.ctrl_composition = CTRL_Composition.Notebook(self.sizer_composition_staticbox, IDfamille=self.IDfamille)
-        self.bouton_ajouter = wx.BitmapButton(self.sizer_composition_staticbox, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self.sizer_composition_staticbox, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self.sizer_composition_staticbox, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_calendrier = wx.BitmapButton(self.sizer_composition_staticbox, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Calendrier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_liens_famille = wx.BitmapButton(self.sizer_composition_staticbox, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Composition.png"), wx.BITMAP_TYPE_ANY))
+        self.stb = wx.StaticBox(self, -1, _("Composition de la famille"))
+        self.ctrl_composition = CTRL_Composition.Notebook(self.stb, IDfamille=self.IDfamille)
+        self.bouton_ajouter = wx.BitmapButton(self.stb, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier = wx.BitmapButton(self.stb, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer = wx.BitmapButton(self.stb, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_calendrier = wx.BitmapButton(self.stb, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Calendrier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_liens_famille = wx.BitmapButton(self.stb, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Composition.png"), wx.BITMAP_TYPE_ANY))
         
         # Notebook
         self.notebook = Notebook(self, IDfamille=self.IDfamille)
@@ -316,7 +316,7 @@ class Dialog(wx.Dialog):
     def __do_layout(self):
         grid_sizer_base = wx.FlexGridSizer(rows=3, cols=1, vgap=10, hgap=10)
         
-        sizer_composition = wx.StaticBoxSizer(self.sizer_composition_staticbox, wx.VERTICAL)
+        sizer_composition = wx.StaticBoxSizer(self.stb, wx.VERTICAL)
         grid_sizer_composition = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
         grid_sizer_composition.Add(self.ctrl_composition, 0, wx.EXPAND, 0)
         

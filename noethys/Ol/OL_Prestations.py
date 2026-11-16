@@ -14,6 +14,7 @@ import Chemins
 import wx
 import GestionDB as GestionDB
 from Gest import GestionInscription
+from Utils.UTILS_Dates import DateEngEnDateDD, DateComplete
 import datetime
 import copy
 
@@ -25,25 +26,6 @@ from Utils import UTILS_Utilisateurs
 from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
 
 from Ctrl.CTRL_ObjectListView import ObjectListView, ColumnDefn, Filter, CTRL_Outils, PanelAvecFooter
-
-def DateEngFr(textDate):
-    if textDate == None: return ""
-    textDate = str(textDate)
-    text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
-    return text
-
-def DateComplete(dateDD):
-    """ Transforme une date DD en date complète : Ex : 15 janv 2008 """
-    listeMois = ("janv", "fév", "mars", "avr", "mai", "juin", "juil", "août", "sept",
-                 "oct", "nov", "déc")
-    dateComplete = str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
-    return dateComplete
-
-def DateEngEnDateDD(dateEng):
-    try:
-        dt = datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-    except: dt = datetime.date(1900, 1, 1)
-    return dt
 
 # ---------------------------------------- LISTVIEW DATES -----------------------------------------------------------------------
 
@@ -64,7 +46,8 @@ class Track(object):
         self.IDfacture = donnees["IDfacture"]
         self.noFacture = donnees["num_facture"]
         self.compta = donnees["compta"]
-        if self.IDfacture == None :
+        self.user = donnees["user"]
+        if not self.IDfacture :
             self.label_facture = ""
         else:
             num_facture = donnees["num_facture"]
@@ -84,8 +67,6 @@ class Track(object):
         else :
             self.nomCompletIndividu = self.nomIndividu
         self.montant_ventilation = donnees["montant_ventilation"]
-        self.montant_deduction = donnees["montant_deduction"]
-        self.nbre_deductions = donnees["nbre_deductions"]
         self.forfait = donnees["forfait"]
         self.reglement_frais = donnees["reglement_frais"]
 
@@ -152,15 +133,15 @@ class ListView(ObjectListView):
         prestations.IDtarif, noms_tarifs.nom, categories_tarifs.nom, prestations.IDfacture, 
         factures.numero, factures.date_edition,
         prestations.forfait, prestations.IDcategorie_tarif,IDfamille, prestations.IDindividu,
-        individus.nom, individus.prenom, SUM(deductions.montant),
-        COUNT(deductions.IDdeduction), reglement_frais,prestations.compta
+        individus.nom, individus.prenom, reglement_frais,prestations.compta,
+        matPieces.pieUtilisateurCreateur, matPieces.pieUtilisateurModif
         FROM ((((((prestations
         LEFT JOIN activites ON prestations.IDactivite = activites.IDactivite)
         LEFT JOIN individus ON prestations.IDindividu = individus.IDindividu)
         LEFT JOIN tarifs ON prestations.IDtarif = tarifs.IDtarif)
         LEFT JOIN noms_tarifs ON tarifs.IDnom_tarif = noms_tarifs.IDnom_tarif)
         LEFT JOIN categories_tarifs ON prestations.IDcategorie_tarif = categories_tarifs.IDcategorie_tarif)
-        LEFT JOIN deductions ON deductions.IDprestation = prestations.IDprestation)
+        LEFT JOIN matPieces ON matPieces.pieIDnumPiece = prestations.IDcontrat)
         LEFT JOIN factures ON prestations.IDfacture = factures.IDfacture
         WHERE %s %s %s %s
         GROUP BY prestations.IDprestation, prestations.IDcompte_payeur, prestations.date, categorie,
@@ -204,8 +185,10 @@ class ListView(ObjectListView):
         for (IDprestation, IDcompte_payeur, date, categorie, label, montant, IDactivite,
              nomActivite, nomAbregeActivite, IDtarif, nomTarif, nomCategorieTarif,
              IDfacture, num_facture, date_facture, forfait, IDcategorie_tarif, IDfamille,
-             IDindividu, nomIndividu, prenomIndividu, montant_deduction, nbre_deductions,
-             reglement_frais, compta) in listeDonnees :
+             IDindividu, nomIndividu, prenomIndividu, reglement_frais, compta,createur, user
+             ) in listeDonnees :
+            if not user:
+                user = createur
             date = DateEngEnDateDD(date)  
             if IDprestation in dictVentilation :
                 montant_ventilation = FloatToDecimal(dictVentilation[IDprestation])
@@ -215,13 +198,16 @@ class ListView(ObjectListView):
                 montant = 0.0 
                 
             dictTemp = {
-                "IDprestation" : IDprestation,  "IDcompte_payeur" : IDcompte_payeur, "date" : date, "categorie" : categorie,
-                "label" : label, "montant" : FloatToDecimal(montant), "IDactivite" : IDactivite, "nomActivite" : nomActivite, "nomAbregeActivite" : nomAbregeActivite, "IDtarif" : IDtarif, "nomTarif" : nomTarif, 
-                "nomCategorieTarif" : nomCategorieTarif, "IDfacture" : IDfacture, "num_facture" : num_facture, "date_facture" : date_facture, "forfait" : forfait,
-                "IDfamille" : IDfamille, "IDindividu" : IDindividu, "nomIndividu" : nomIndividu, "prenomIndividu" : prenomIndividu,
-                "montant_ventilation" : FloatToDecimal(montant_ventilation), "montant_deduction" : FloatToDecimal(montant_deduction), 
-                "nbre_deductions" : nbre_deductions, "reglement_frais" : reglement_frais,
-                "compta":compta
+                "IDprestation" : IDprestation,  "IDcompte_payeur" : IDcompte_payeur,
+                "date" : date, "categorie" : categorie, "label" : label,
+                "montant" : FloatToDecimal(montant), "IDactivite" : IDactivite,
+                "nomActivite" : nomActivite, "nomAbregeActivite" : nomAbregeActivite,
+                "IDtarif" : IDtarif, "nomTarif" : nomTarif, "nomCategorieTarif" : nomCategorieTarif,
+                "IDfacture" : IDfacture, "num_facture" : num_facture, "date_facture" : date_facture,
+                "forfait" : forfait,"IDfamille" : IDfamille, "IDindividu" : IDindividu,
+                "nomIndividu" : nomIndividu, "prenomIndividu" : prenomIndividu,
+                "montant_ventilation" : FloatToDecimal(montant_ventilation),
+                "reglement_frais" : reglement_frais, "compta":compta, "user":user
                 }
             listePrestations.append(dictTemp)
             
@@ -296,28 +282,28 @@ class ListView(ObjectListView):
         if self.IDfamille != None :
             listeColonnes = ["case","IDprestation", "categorie_prestation", "date",
                              "prenom_individu", "nom_activite", "label", "montant",
-                             "regle", "categorie_tarif", "num_facture","compta"]
+                             "regle", "categorie_tarif", "num_facture","compta","user"]
         else :
             listeColonnes = ["case","IDprestation", "categorie_prestation", "date",
                              "nom_complet_individu", "nom_activite", "label", "montant",
-                             "regle", "categorie_tarif", "num_facture","compta"]
+                             "regle", "categorie_tarif", "num_facture","compta","user"]
         
         dictColonnes = {
             "case" : ColumnDefn("", "left", 10, "case", typeDonnee="entier"),
-            "IDprestation" : ColumnDefn("ID", "left", 50, "IDprestation", typeDonnee="entier"),
-            "date" : ColumnDefn(_("Date"), "left", 80, "date", typeDonnee="date", stringConverter=FormateDate),
+            "IDprestation" : ColumnDefn("ID", "left", 60, "IDprestation", typeDonnee="entier"),
+            "date" : ColumnDefn(_("Date"), "left", 110, "date", typeDonnee="date", stringConverter=FormateDate),
             "categorie_prestation" : ColumnDefn(_("Catégorie"), "left", 100, "categorie", typeDonnee="texte"),
             "prenom_individu" : ColumnDefn(_("Individu"), "left", 100, "prenomIndividu", typeDonnee="texte"),
             "nom_complet_individu" : ColumnDefn(_("Individu"), "left", 100, "nomCompletIndividu", typeDonnee="texte"),
             "nom_activite" : ColumnDefn(_("Activité"), "left", 70, "nomAbregeActivite", typeDonnee="texte"),
-            "label" : ColumnDefn(_("Label"), "left", 280, "label", typeDonnee="texte"),
+            "label" : ColumnDefn(_("Label"), "left", 280, "label", typeDonnee="texte",isSpaceFilling = True),
             "montant" : ColumnDefn(_("Montant"), "right", 65, "montant", typeDonnee="montant", stringConverter=FormateMontant),
             "regle" : ColumnDefn(_("Réglé"), "right", 75, "montant_ventilation", typeDonnee="montant", stringConverter=FormateMontant, imageGetter=GetImageVentilation),
-            "deductions" : ColumnDefn(_("Déduc."), "right", 55, "montant_deduction", typeDonnee="montant", stringConverter=FormateMontant),
             "nom_tarif" : ColumnDefn(_("Tarif"), "left", 140, "nomTarif", typeDonnee="texte"),
             "categorie_tarif" : ColumnDefn(_("Catégorie de tarif"), "left", 100, "nomCategorieTarif", typeDonnee="texte"),
             "num_facture" : ColumnDefn(_("N° Facture"), "left", 70, "label_facture", typeDonnee="texte"),
-            "compta" : ColumnDefn(_("Compta"), "right", 70, "compta", typeDonnee="entier")
+            "compta" : ColumnDefn(_("Compta"), "right", 70, "compta", typeDonnee="entier"),
+            "user": ColumnDefn(_("User"), "left", 70, "user", typeDonnee="texte")
         }
         
         self.SetColumns([dictColonnes[code] for code in listeColonnes])
@@ -902,7 +888,6 @@ class ListviewAvecFooter(PanelAvecFooter):
             "date" : {"mode" : "nombre", "singulier" : _("prestation"), "pluriel" : _("prestations"), "alignement" : wx.ALIGN_CENTER},
             "montant" : {"mode" : "total"},
             "montant_ventilation" : {"mode" : "total"},
-            "montant_deduction" : {"mode" : "total"},
             }
 
         PanelAvecFooter.__init__(self, parent, ListView, kwargs, dictColonnes)

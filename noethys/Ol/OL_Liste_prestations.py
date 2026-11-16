@@ -99,7 +99,9 @@ class Track(object):
         self.montant_detail = donnees["montant_detail"]
         self.forfait = donnees["forfait"]
         self.reglement_frais = donnees["reglement_frais"]
-        
+        if "user" in donnees.keys():
+            self.user = donnees["user"]
+        else: user = None
                                 
 class ListView(GroupListView):
     def __init__(self, *args, **kwds):
@@ -150,7 +152,6 @@ class ListView(GroupListView):
     def GetListePrestations(self, ):
         DB = GestionDB.DB()
         listeDetail = []
-        listeDonnees = []
 
         # Filtres de l'utilisateur
         filtreSQL = 'WHERE '+ self.GetWhere()
@@ -164,7 +165,8 @@ class ListView(GroupListView):
         IDfamille, prestations.IDindividu,
         individus.nom, individus.prenom,
         0 AS montant_detail,
-        reglement_frais
+        reglement_frais,
+        matPieces.pieUtilisateurCreateur, matPieces.pieUtilisateurModif
         FROM prestations
         LEFT JOIN matPieces ON prestations.IDcontrat = matPieces.pieIDnumPiece
         LEFT JOIN activites ON prestations.IDactivite = activites.IDactivite
@@ -185,6 +187,7 @@ class ListView(GroupListView):
             for item in listeDonnees:
                 serieIDprestations += (str(item[0])+ ", ")
                 serieIDfamilles += (str(item[1])+ ", ")
+
             serieIDprestations = serieIDprestations[:-2]+" )"
             serieIDfamilles = serieIDfamilles[:-2]+" )"
 
@@ -273,7 +276,12 @@ class ListView(GroupListView):
                     listePrestations.append(dictTransp)
 
         #   IDprestation, IDcompte_payeur, date, categorie,label ,montant, IDactivite, nom,         abrege,             nom,                IDfacture, numero,  date_edition,    forfait, IDcategorie_tarif,IDfamille, IDindividu, nom,         prenom,         montant_detail, reglement_frais
-        for IDprestation, IDcompte_payeur, date, categorie, label, montant, IDactivite, nomActivite, nomAbregeActivite, nomCategorieTarif, IDfacture, num_facture, date_facture, forfait, IDcategorie_tarif, IDfamille, IDindividu, nomIndividu, prenomIndividu, montant_detail, reglement_frais in listeDonnees :
+        for (IDprestation, IDcompte_payeur, date, categorie, label, montant, IDactivite,
+             nomActivite, nomAbregeActivite, nomCategorieTarif, IDfacture, num_facture,
+             date_facture, forfait, IDcategorie_tarif, IDfamille, IDindividu, nomIndividu,
+             prenomIndividu, montant_detail, reglement_frais, createur, userModif) in listeDonnees :
+            if not userModif:
+                userModif = createur
             date = DateEngEnDateDD(date)
             if IDprestation in dictVentilation :
                 montant_ventilation = FloatToDecimal(dictVentilation[IDprestation])
@@ -288,7 +296,7 @@ class ListView(GroupListView):
                 "nomCategorieTarif" : nomCategorieTarif, "IDfacture" : IDfacture, "num_facture" : num_facture, "date_facture" : date_facture, "forfait" : forfait,
                 "IDfamille" : IDfamille, "IDindividu" : IDindividu, "nomIndividu" : nomIndividu, "prenomIndividu" : prenomIndividu,
                 "montant_ventilation" : FloatToDecimal(montant_ventilation), "montant_detail" : FloatToDecimal(montant_detail),
-                "reglement_frais" : reglement_frais,
+                "reglement_frais" : reglement_frais,"user" : userModif
                 }
             if dictTemp["nomIndividu"]== None :
                 dictTemp["nomIndividu"] = dictFamilles[dictTemp["IDfamille"]][0]
@@ -358,7 +366,9 @@ class ListView(GroupListView):
         if self.IDfamille != None :
             listeColonnes = ["IDprestation", "date","categorie_prestation","IDfamille", "prenom_individu", "nom_activite", "label", "montant", "regle", "detail", "categorie_tarif", "num_facture"]
         else :
-            listeColonnes = ["IDprestation", "date","categorie_prestation","IDfamille", "nom_complet_individu", "nom_activite", "label", "montant", "regle", "detail", "categorie_tarif", "num_facture"]
+            listeColonnes = ["IDprestation", "date","categorie_prestation","IDfamille",
+                             "nom_complet_individu", "nom_activite", "label", "montant",
+                             "regle", "detail", "categorie_tarif", "num_facture", "user"]
         
         dictColonnes = {
             "IDprestation" : ColumnDefn("", "left", 0, "IDprestation", typeDonnee="entier"),
@@ -375,6 +385,8 @@ class ListView(GroupListView):
             "nom_tarif" : ColumnDefn(_("Tarif"), "left", 140, "nomTarif", typeDonnee="texte"),
             "categorie_tarif" : ColumnDefn(_("Type de ligne"), "left", 100, "nomCategorieTarif", typeDonnee="texte"),
             "num_facture" : ColumnDefn(_("N° Facture"), "left", 70, "label_facture", typeDonnee="texte"),
+            "user": ColumnDefn(_("User"), "left", 50, "user",
+                                      typeDonnee="texte"),
         }
         
         self.SetColumns([dictColonnes[code] for code in listeColonnes])
