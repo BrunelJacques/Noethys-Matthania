@@ -69,7 +69,7 @@ class Dialog(wx.Dialog):
         self.stbCampG = wx.StaticBox(self, -1, _("Activite"))
         self.label_activite = wx.StaticText(self.stbCampG, -1, _("Activité (hors cotisation et transport):"))
         self.ctrl_nom_activite = wx.TextCtrl(self.stbCampG, -1, "",size=(50, 20))
-        self.bouton_activite = wx.Button(self.stbCampG, -1, "...", size=(20, 20))
+        self.bouton_activite = wx.Button(self, -1, "...", size=(20, 20))
         self.label_groupe = wx.StaticText(self.stbCampG, -1,  _("Groupe :"))
         self.ctrl_nom_groupe = wx.TextCtrl(self.stbCampG, -1, "",size=(50, 20))
         self.label_tarif = wx.StaticText(self.stbCampG, -1, _("Catégorie Tarif:"))
@@ -86,7 +86,7 @@ class Dialog(wx.Dialog):
         self.stbPieceGauche = wx.StaticBox(self, -1, _("Pièce"))
         self.label_nature = wx.StaticText(self.stbPieceGauche, -1, _("Nature :"))
         self.ctrl_nom_nature = wx.TextCtrl(self.stbPieceGauche, -1, "",size=(150, 20))
-        self.bouton_piece = wx.Button(self.stbPieceGauche, -1, "...", size=(20, 20))
+        self.bouton_piece = wx.Button(self, -1, "...", size=(20, 20))
         self.label_etat = wx.StaticText(self.stbPieceGauche, -1,  _("Etat pièce :"))
         self.ctrl_nom_etat = wx.TextCtrl(self.stbPieceGauche, -1, "",size=(150, 20))
 
