@@ -183,27 +183,27 @@ class Panel(wx.Panel):
         self.IDfamille = IDfamille
         self.IDcompte_payeur = None
         
-        self.staticbox_reglements = wx.StaticBox(self, -1, _("Règlements"))
+        self.stb = wx.StaticBox(self, -1, _("Règlements"))
         
         # OL Prestations
         self.listviewAvecFooter = OL_Reglements.ListviewAvecFooter(self, kwargs={}) 
         self.ctrl_reglements = self.listviewAvecFooter.GetListview()
-        self.ctrl_recherche = OL_Reglements.CTRL_Outils(self.staticbox_reglements, listview=self.ctrl_reglements)
+        self.ctrl_recherche = OL_Reglements.CTRL_Outils(self.stb, listview=self.ctrl_reglements)
         self.ctrl_recherche.SetBackgroundColour((255, 255, 255))
         
         # Commandes boutons
-        self.bouton_ajouter = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_modifier = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_supprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_dupliquer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Dupliquer.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_imprimer = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_ventilationAuto = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Magique.png"), wx.BITMAP_TYPE_ANY))
-        self.bouton_email = wx.BitmapButton(self, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Emails_exp.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ajouter = wx.BitmapButton(self.stb, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_modifier = wx.BitmapButton(self.stb, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Modifier.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_supprimer = wx.BitmapButton(self.stb, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_dupliquer = wx.BitmapButton(self.stb, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Dupliquer.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_imprimer = wx.BitmapButton(self.stb, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Imprimante.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_ventilationAuto = wx.BitmapButton(self.stb, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Magique.png"), wx.BITMAP_TYPE_ANY))
+        self.bouton_email = wx.BitmapButton(self.stb, -1, wx.Bitmap(Chemins.GetStaticPath(u"Images/16x16/Emails_exp.png"), wx.BITMAP_TYPE_ANY))
 
         # Abonnements
-        self.ctrl_prelevement = CTRL_Prelevement(self.staticbox_reglements, IDfamille)
-        self.ctrl_recu = CTRL_Recu(self.staticbox_reglements, IDfamille)
-        self.ctrl_depot = CTRL_Depot(self.staticbox_reglements, IDfamille)
+        self.ctrl_prelevement = CTRL_Prelevement(self.stb, IDfamille)
+        self.ctrl_recu = CTRL_Recu(self.stb, IDfamille)
+        self.ctrl_depot = CTRL_Depot(self.stb, IDfamille)
         
         # Binds
         self.Bind(wx.EVT_BUTTON, self.OnBoutonAjouter, self.bouton_ajouter)
@@ -226,7 +226,7 @@ class Panel(wx.Panel):
 
         # Layout
         grid_sizer_base = wx.FlexGridSizer(rows=1, cols=2, vgap=5, hgap=5)
-        staticbox_reglements = wx.StaticBoxSizer(self.staticbox_reglements, wx.VERTICAL)
+        staticbox_reglements = wx.StaticBoxSizer(self.stb, wx.VERTICAL)
         grid_sizer_reglements = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         
         grid_sizer_reglements.Add(self.listviewAvecFooter, 1, wx.EXPAND, 0)
@@ -397,12 +397,13 @@ class Panel(wx.Panel):
 
 class MyFrame(wx.Frame):
     def __init__(self, *args, **kwds):
+        IDfamille = kwds.pop("IDfamille",1)
         wx.Frame.__init__(self, *args, **kwds)
         panel = wx.Panel(self, -1)
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_1.Add(panel, 1, wx.ALL|wx.EXPAND)
         self.SetSizer(sizer_1)
-        self.ctrl= Panel(panel, IDfamille=1)
+        self.ctrl= Panel(panel, IDfamille=IDfamille)
         self.ctrl.MAJ() 
         sizer_2 = wx.BoxSizer(wx.VERTICAL)
         sizer_2.Add(self.ctrl, 1, wx.ALL|wx.EXPAND, 4)
@@ -413,7 +414,7 @@ class MyFrame(wx.Frame):
 if __name__ == '__main__':
     app = wx.App(0)
     #wx.InitAllImageHandlers()
-    frame_1 = MyFrame(None, -1, _("TEST"), size=(800, 400))
+    frame_1 = MyFrame(None, -1, _("TEST"), size=(1400, 600),IDfamille = 7468)
     app.SetTopWindow(frame_1)
     frame_1.Show()
     app.MainLoop()
