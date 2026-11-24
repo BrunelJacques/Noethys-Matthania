@@ -85,6 +85,7 @@ class Track(object):
 class ListView(FastObjectListView):
     def __init__(self, *args, **kwds):
         # Récupération des paramètres perso
+
         self.selectionID = None
         self.selectionTrack = None
         self.criteres = ""
@@ -96,6 +97,11 @@ class ListView(FastObjectListView):
         # Initialisation du listCtrl
         self.nom_fichier_liste = __file__
         FastObjectListView.__init__(self, *args, **kwds)
+        gdParent = self.GetGrandParent()
+        if gdParent and "StaticBox" in str(type(gdParent)):
+            self.grandParent = gdParent.Parent
+        else:
+            self.grandParent = gdParent
         # Binds perso
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
         self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
@@ -335,7 +341,7 @@ class ListView(FastObjectListView):
         if ret == wx.ID_OK:
             IDdepot = dlg.GetIDdepot()
             self.MAJ(IDdepot)
-            self.GetGrandParent().MAJreglements()
+            self.grandParent().MAJreglements()
         dlg.Destroy()
 
     def Modifier(self, event):
@@ -350,7 +356,7 @@ class ListView(FastObjectListView):
         ret = dlg.ShowModal()
         if ret == wx.ID_OK:
             self.MAJ(IDdepot)
-            self.GetGrandParent().MAJreglements()
+            self.grandParent().MAJreglements()
         dlg.Destroy() 
 
     def Supprimer(self, event):
@@ -380,7 +386,7 @@ class ListView(FastObjectListView):
             DB.ReqDEL("depots", "IDdepot", IDdepot)
             DB.Close() 
             self.MAJ()
-            self.GetGrandParent().MAJreglements()
+            self.grandParent().MAJreglements()
         dlg.Destroy()
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
