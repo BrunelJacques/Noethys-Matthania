@@ -284,6 +284,9 @@ class ObjectListView(wx.ListCtrl):
         self.oddRowsBackColor = wx.Colour(255, 250, 205)  # LEMON CHIFFON
 
         wx.ListCtrl.__init__(self, *args, **kwargs)
+        self.grandParent = self.GetGrandParent()
+        self.parent = self.GetParent()
+
 
         if self.sortable:
             self.EnableSorting()
@@ -328,6 +331,18 @@ class ObjectListView(wx.ListCtrl):
 
     # --------------------------------------------------------------#000000#FFFFFF
     # Setup
+
+    def GetGrandParent(self):
+        gd_parent = super().GetGrandParent()
+        if gd_parent and isinstance(gd_parent, wx.StaticBox):
+            return gd_parent.GetParent()
+        return gd_parent
+
+    def GetParent(self):
+        parent = super().GetParent()
+        if parent and isinstance(parent, wx.StaticBox):
+            return parent.GetParent()
+        return parent
 
     def SetColumns(self, columns, repopulate=True):
         """
@@ -675,7 +690,15 @@ class ObjectListView(wx.ListCtrl):
         The html will be written in accordance with strange "HTML Format" as specified
         in http://msdn.microsoft.com/library/en-us/winui/winui/windowsuserinterface/dataexchange/clipboard/htmlclipboardformat.asp
         """
-        import win32clipboard
+
+        from importlib.metadata import PackageNotFoundError, distribution
+
+        try:
+            dist = distribution("win32clipboard")
+            print(f"Installé via pip : {dist.metadata['Name']} ({dist.version})")
+            import win32clipboard
+        except PackageNotFoundError:
+            print("win32clipboard absent dans cet environnement. > Pip install win32clipboard")
 
         MARKER_BLOCK_OUTPUT = \
             "Version:1.3\r\n" \

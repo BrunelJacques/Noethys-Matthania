@@ -8,7 +8,6 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
 import Chemins
 from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
@@ -22,6 +21,8 @@ SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 
 from Utils import UTILS_Gestion
 from Utils import UTILS_Interface
+from Utils.UTILS_Dates import DateEngEnDateDD
+
 from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, PanelAvecFooter, CTRL_Outils # utilisé par parent
 import Olv.Filter as Filter
 from Utils import UTILS_Utilisateurs
@@ -40,11 +41,6 @@ def DateComplete(dateDD):
     listeMois = ("janv", "fév", "mars", "avr", "mai", "juin", "juil", "août", "sept", "oct", "nov", "déc")
     dateComplete = listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
     return dateComplete
-
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-
         
 class Track(object):
     def __init__(self, donnees):
@@ -85,7 +81,6 @@ class Track(object):
 class ListView(FastObjectListView):
     def __init__(self, *args, **kwds):
         # Récupération des paramètres perso
-
         self.selectionID = None
         self.selectionTrack = None
         self.criteres = ""
@@ -97,11 +92,6 @@ class ListView(FastObjectListView):
         # Initialisation du listCtrl
         self.nom_fichier_liste = __file__
         FastObjectListView.__init__(self, *args, **kwds)
-        gdParent = self.GetGrandParent()
-        if gdParent and "StaticBox" in str(type(gdParent)):
-            self.grandParent = gdParent.Parent
-        else:
-            self.grandParent = gdParent
         # Binds perso
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
         self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
@@ -341,7 +331,7 @@ class ListView(FastObjectListView):
         if ret == wx.ID_OK:
             IDdepot = dlg.GetIDdepot()
             self.MAJ(IDdepot)
-            self.grandParent().MAJreglements()
+            self.GetGrandParent().MAJreglements()
         dlg.Destroy()
 
     def Modifier(self, event):
@@ -356,7 +346,7 @@ class ListView(FastObjectListView):
         ret = dlg.ShowModal()
         if ret == wx.ID_OK:
             self.MAJ(IDdepot)
-            self.grandParent().MAJreglements()
+            self.GetGrandParent().MAJreglements()
         dlg.Destroy() 
 
     def Supprimer(self, event):
@@ -386,7 +376,7 @@ class ListView(FastObjectListView):
             DB.ReqDEL("depots", "IDdepot", IDdepot)
             DB.Close() 
             self.MAJ()
-            self.grandParent().MAJreglements()
+            self.GetGrandParent().MAJreglements()
         dlg.Destroy()
 
 # -------------------------------------------------------------------------------------------------------------------------------------------
