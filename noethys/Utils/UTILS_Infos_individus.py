@@ -919,7 +919,7 @@ class Informations() :
         listeDonnees = []
         for ID, dictTemp in dictValeurs.items() :
             for champ, valeur in dictTemp.items() :
-                if type(valeur) in (str, str) and valeur not in ("", None) :
+                if type(valeur) in (str) and valeur not in ("", None) :
                     listeDonnees.append((ID, champ, valeur))
         
         Enregistre(nomTable="informations", listeChamps=["IDindividu", "champ", "valeur"], listeDonnees=listeDonnees)

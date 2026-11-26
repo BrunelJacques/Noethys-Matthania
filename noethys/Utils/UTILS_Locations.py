@@ -135,14 +135,14 @@ class Location():
             date_debut = item[4]
             date_fin = item[5]
 
-            if isinstance(date_debut, str) or isinstance(date_debut, six.text_type):
+            if isinstance(date_debut, str) or isinstance(date_debut, str):
                 date_debut = datetime.datetime.strptime(date_debut, "%Y-%m-%d %H:%M:%S")
             date_debut_texte = datetime.datetime.strftime(date_debut, "%d/%m/%Y")
             heure_debut_texte = datetime.datetime.strftime(date_debut, "%Hh%M")
 
             date_fin_texte = ""
             heure_fin_texte = ""
-            if isinstance(date_fin, str) or isinstance(date_fin, six.text_type):
+            if isinstance(date_fin, str) or isinstance(date_fin, str):
                 date_fin = datetime.datetime.strptime(date_fin, "%Y-%m-%d %H:%M:%S")
                 date_fin_texte = datetime.datetime.strftime(date_fin, "%d/%m/%Y")
                 heure_fin_texte = datetime.datetime.strftime(date_fin, "%Hh%M")

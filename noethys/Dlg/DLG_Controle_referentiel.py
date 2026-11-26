@@ -190,7 +190,7 @@ class Dialog(wx.Dialog):
         try :
             reponse = requests.get(url)
         except Exception as error :
-            self.ctrl_resultats.SetTexte(six.text_type(error))
+            self.ctrl_resultats.SetTexte(str(error))
             return
 
         # Si erreur

@@ -287,7 +287,7 @@ class ListView(FastObjectListView):
                 return ""
             if type(duree) == datetime.timedelta :
                 return UTILS_Dates.DeltaEnStr(duree, separateur="h")
-            if type(duree) in (str, six.text_type) :
+            if type(duree) in (str) :
                 duree = duree.replace(' ','')
                 duree = duree.replace(":", "h")
                 return duree

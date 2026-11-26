@@ -17,8 +17,6 @@ from Ctrl import CTRL_Bouton_image
 import GestionDB
 import datetime
 
-
-from Utils import UTILS_Interface
 from Ctrl.CTRL_ObjectListView import ObjectListView, FastObjectListView, ColumnDefn, Filter, CTRL_Outils
 
 from Utils import UTILS_Interface
@@ -27,11 +25,6 @@ from Utils import UTILS_Interface
 from Utils import UTILS_Config
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 
-
-
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 
 #-----------INDIVIDUS-----------

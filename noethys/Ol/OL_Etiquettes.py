@@ -21,9 +21,6 @@ from Utils import UTILS_Questionnaires
 from Data import DATA_Civilites as Civilites
 from Ctrl.CTRL_ObjectListView import ObjectListView, ColumnDefn, CTRL_Outils
 
-def DateEngEnDateDD(dateEng):
-    if dateEng and not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 def FormateStr(valeur=""):
     try :

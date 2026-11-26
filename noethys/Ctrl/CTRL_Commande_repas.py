@@ -155,7 +155,7 @@ class Case():
         valeur = self.grid.GetCellValue(self.numLigne, self.numColonne)
         if valeur == None :
             valeur = "Aucune valeur"
-        texte = six.text_type(valeur)
+        texte = str(valeur)
         texte = texte.replace("<b>", "")
         texte = texte.replace("</b>", "")
         # Ajoute la suggestion au texte
@@ -426,7 +426,7 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
         listeDonnees = DB.ResultatReq()
         if len(listeDonnees) > 0:
             nom_modele, IDrestaurateur, parametres, restaurateur_nom, restaurateur_tel, restaurateur_mail = listeDonnees[0]
-            if type(parametres) in (str, six.text_type):
+            if type(parametres) in (str):
                 parametres = eval(parametres)
 
             dictDonnees["modele_nom"] = nom_modele
@@ -448,7 +448,7 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
         if len(listeDonnees) > 0:
             index = 0
             for IDcolonne, ordre, nom_colonne, largeur, categorie, parametres in listeDonnees:
-                if type(parametres) in (str, six.text_type):
+                if type(parametres) in (str):
                     parametres = eval(parametres)
                 dictColonne = {"IDcolonne": IDcolonne, "ordre": ordre, "nom_colonne": nom_colonne, "largeur": largeur, "categorie": categorie, "parametres": parametres}
                 dictDonnees["liste_colonnes"].append(dictColonne)
@@ -750,7 +750,7 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
                     self.dictCases[(numLigne, numColonne)] = case
 
                 # Ligne de total
-                if type(date) in (str, six.text_type):
+                if type(date) in (str):
 
                     # Création de la case
                     case = Case(self, numLigne=numLigne, numColonne=numColonne, IDcolonne=dictColonne["IDcolonne"], date=date, categorieColonne=dictColonne["categorie"], ouvert=False, valeur=None)
@@ -790,11 +790,11 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
                     if (numLigne, numColonne) in self.dictCases:
                         case = self.dictCases[(numLigne, numColonne)]
                         if case.ouvert == True :
-                            if six.text_type(case.GetValeur()) not in ("", "0"):
+                            if str(case.GetValeur()) not in ("", "0"):
                                 if case.IDvaleur == None :
-                                    listeAjouts.append((self.IDcommande, str(case.date), case.IDcolonne, six.text_type(case.GetValeur())))
+                                    listeAjouts.append((self.IDcommande, str(case.date), case.IDcolonne, str(case.GetValeur())))
                                 else :
-                                    listeModifications.append((str(case.date), case.IDcolonne, six.text_type(case.GetValeur()), case.IDvaleur))
+                                    listeModifications.append((str(case.date), case.IDcolonne, str(case.GetValeur()), case.IDvaleur))
                             else :
                                 if case.IDvaleur != None :
                                     listeSuppressions.append(case.IDvaleur)
@@ -963,7 +963,7 @@ class DLG_Saisie_valeur(wx.Dialog):
         # Init
         self.ctrl_valeur.SetValue(valeur)
         self.ctrl_valeur.SetFocus()
-        self.ctrl_valeur.SetSelection(0, len(six.text_type(valeur)))
+        self.ctrl_valeur.SetSelection(0, len(str(valeur)))
 
 
     def __set_properties(self):

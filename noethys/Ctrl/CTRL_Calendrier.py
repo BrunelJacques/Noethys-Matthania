@@ -615,7 +615,7 @@ class Calendrier(wx.ScrolledWindow):
 
 
         # Dessin texte
-        if six.text_type(texteDate) in self.listeJoursAvecPresents :
+        if str(texteDate) in self.listeJoursAvecPresents :
             dc.SetTextForeground(self.couleurFontJoursAvecPresents)
         else:
             dc.SetTextForeground(self.couleurFontJours)

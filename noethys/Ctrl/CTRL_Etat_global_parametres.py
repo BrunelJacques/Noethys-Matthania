@@ -745,7 +745,7 @@ class CTRL(HTL.HyperTreeList):
             return
         # Envoi des paramètres au Ctrl
         for IDunite, dictParametresTrack in dictParametres.items():
-            if type(IDunite) in (str, six.text_type) and IDunite.startswith("parametres_unite_"):
+            if type(IDunite) in (str) and IDunite.startswith("parametres_unite_"):
                 IDunite = int(IDunite.replace("parametres_unite_", ""))
             for track in self.listeTracks:
                 if IDunite == track.IDunite :

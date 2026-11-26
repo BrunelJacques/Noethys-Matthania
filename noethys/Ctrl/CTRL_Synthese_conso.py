@@ -24,28 +24,16 @@ import GestionDB
 from Utils import UTILS_Fichiers
 from Utils import UTILS_Organisateur
 import wx.lib.agw.pybusyinfo as PBI
+from Utils.UTILS_Dates import  DateEngEnDateDD, DateComplete, DateEngFr
 
 LISTE_MOIS = (_("janvier"), _("février"), _("mars"), _("avril"), _("mai"), _("juin"), _("juillet"), _("août"), _("septembre"), _("octobre"), _("novembre"), _("décembre"))
 
-def DateComplete(dateDD):
-    """ Transforme une date DD en date complète : Ex : lundi 15 janvier 2008 """
-    listeJours = (_("Lundi"), _("Mardi"), _("Mercredi"), _("Jeudi"), _("Vendredi"), _("Samedi"), _("Dimanche"))
-    dateComplete = listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + LISTE_MOIS[dateDD.month-1] + " " + str(dateDD.year)
-    return dateComplete
+LARGEUR_COLONNE_UNITE = 50
 
 def FormateMois(xxx_todo_changeme):
     (annee, mois) = xxx_todo_changeme
     return "%s %d" % (LISTE_MOIS[mois-1].capitalize(), annee)
     
-def DateEngEnDateDD(dateEng):
-    if dateEng and not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-
-def DateEngFr(textDate):
-    if textDate == None: return ""
-    textDate = str(textDate)
-    text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
-    return text
 
 def HeureStrEnTime(heureStr):
     if heureStr == None or heureStr == "" : return datetime.time(0, 0)

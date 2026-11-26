@@ -17,7 +17,7 @@ from Ctrl import CTRL_Bouton_image
 import os
 import wx.lib.agw.hypertreelist as HTL
 import datetime
-import copy
+
 import sys
 import FonctionsPerso
 
@@ -30,24 +30,8 @@ from Utils import UTILS_Organisateur
 from Utils import UTILS_Utilisateurs
 
 from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
+from Utils.UTILS_Dates import  DateEngEnDateDD, DateEngFr
 
-
-
-def DateEngFr(textDate):
-    text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
-    return text
-
-def DateComplete(dateDD):
-    """ Transforme une date DD en date complète : Ex : lundi 15 janvier 2008 """
-    listeJours = (_("Lundi"), _("Mardi"), _("Mercredi"), _("Jeudi"), _("Vendredi"), _("Samedi"), _("Dimanche"))
-    listeMois = (_("janvier"), _("février"), _("mars"), _("avril"), _("mai"), _("juin"), _("juillet"), _("août"), _("septembre"), _("octobre"), _("novembre"), _("décembre"))
-    dateComplete = listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
-    return dateComplete
-
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-        
 def PeriodeComplete(mois, annee):
     listeMois = (_("Jan"), _("Fév"), _("Mars"), _("Avr"), _("Mai"), _("Juin"), _("Juil"), _("Août"), _("Sept"), _("Oct"), _("Nov"), _("Déc"))
     periodeComplete = "%s %d" % (listeMois[mois-1], annee)

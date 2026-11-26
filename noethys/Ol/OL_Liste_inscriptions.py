@@ -20,6 +20,8 @@ from Data import DATA_Civilites as Civilites
 from Utils import UTILS_Config
 from Ctrl.CTRL_ParamListeInscriptions import DLD_CHAMPS, DD_SELECT
 from Ctrl.CTRL_ObjectListView import GroupListView, ColumnDefn, Filter, CTRL_Outils, PanelAvecFooter
+from Utils.UTILS_Dates import DateEngFr
+
 
 DICT_CIVILITES = Civilites.GetDictCivilites()
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
@@ -30,22 +32,6 @@ def Nz(valeur):
         valeur = 0
     return valeur
 
-def DateEngFr(textDate):
-    if textDate == None: return ""
-    textDate = str(textDate)
-    text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
-    return text
-
-def DateComplete(dateDD):
-    """ Transforme une date DD en date complète : Ex : lundi 15 janvier 2008 """
-    listeJours = (_("Lundi"), _("Mardi"), _("Mercredi"), _("Jeudi"), _("Vendredi"), _("Samedi"), _("Dimanche"))
-    listeMois = (_("janvier"), _("février"), _("mars"), _("avril"), _("mai"), _("juin"), _("juillet"), _("août"), _("septembre"), _("octobre"), _("novembre"), _("décembre"))
-    dateComplete = listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
-    return dateComplete
-
-def DateEngEnDateDD(dateEng):
-    if dateEng and not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 def InitListeChamps():
     global LISTE_CHAMPS

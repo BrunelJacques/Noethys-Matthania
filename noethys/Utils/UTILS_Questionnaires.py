@@ -15,12 +15,7 @@ import datetime
 from Utils import UTILS_Dates
 from Ctrl import CTRL_Questionnaire
 from Ctrl.CTRL_ObjectListView import ColumnDefn
-
-def DateEngEnDateDD(date):
-    if date in (None, "") : return None
-    if type(date) == datetime.date :
-        return UTILS_Dates.DateDDEnFr(date)
-    return datetime.date(int(date[:4]), int(date[5:7]), int(date[8:10]))
+from Utils.UTILS_Dates import DateEngEnDateDD
 
 def FormateStr(valeur=""):
     try :

@@ -13,11 +13,11 @@ import Chemins
 from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
-from Ctrl import CTRL_Bouton_image
+
 import wx.lib.agw.hypertreelist as HTL
 from wx.lib.agw.customtreectrl import EVT_TREE_ITEM_CHECKED
 import datetime
-import copy
+
 import sys
 from Utils import UTILS_Organisateur
 from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
@@ -27,7 +27,7 @@ SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 
 import GestionDB
 from Data import DATA_Civilites as Civilites
-from Ctrl import CTRL_Saisie_euros
+
 import FonctionsPerso
 from Ctrl import CTRL_Attestations_options
 
@@ -36,29 +36,13 @@ from Utils import UTILS_Utilisateurs
 DICT_CIVILITES = Civilites.GetDictCivilites()
 
 from Utils import UTILS_Infos_individus
-from Utils import UTILS_Dates
+from Utils.UTILS_Dates import  DateEngEnDateDD, DateEngFr, DateComplete
 
 
 COULEUR_FOND_REGROUPEMENT = (200, 200, 200)
 COULEUR_TEXTE_REGROUPEMENT = (140, 140, 140)
             
-def DateEngFr(textDate):
-    text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
-    return text
 
-def DateComplete(dateDD):
-    """ Transforme une date DD en date complète : Ex : lundi 15 janvier 2008 """
-    if dateDD == None : return ""
-    listeJours = (_("Lundi"), _("Mardi"), _("Mercredi"), _("Jeudi"), _("Vendredi"), _("Samedi"), _("Dimanche"))
-    listeMois = (_("janvier"), _("février"), _("mars"), _("avril"), _("mai"), _("juin"), _("juillet"), _("août"), _("septembre"), _("octobre"), _("novembre"), _("décembre"))
-    dateComplete = listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
-    return dateComplete
-
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    if dateEng == None or dateEng == "" : return None
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-        
 def PeriodeComplete(mois, annee):
     listeMois = (_("Janvier"), _("Février"), _("Mars"), _("Avril"), _("Mai"), _("Juin"), _("Juillet"), _("Août"), _("Septembre"), _("Octobre"), _("Novembre"), _("Décembre"))
     periodeComplete = "%s %d" % (listeMois[mois-1], annee)
@@ -397,7 +381,7 @@ def Importation(liste_activites=[], date_debut=None, date_fin=None, date_edition
                 "IDtarif" : IDtarif, "nomTarif" : nomTarif, "nomCategorieTarif" : nomCategorieTarif, 
                 "montant_ventilation" : montant_ventilation,
                 "listeDatesConso" : listeDates,
-                "deductions" : deductions, "forfait_date_debut": UTILS_Dates.DateEngEnDateDD(forfait_date_debut), "forfait_date_fin": UTILS_Dates.DateEngEnDateDD(forfait_date_fin),
+                "deductions" : deductions, "forfait_date_debut": DateEngEnDateDD(forfait_date_debut), "forfait_date_fin": DateEngEnDateDD(forfait_date_fin),
                 }
 
             dictComptes[IDcompte_payeur]["individus"][IDindividu]["activites"][IDactivite]["presences"][date]["unites"].append(dictPrestation)

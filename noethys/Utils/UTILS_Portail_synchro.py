@@ -148,7 +148,7 @@ class Synchro():
         ]
 
         def Ecrit_ligne(key="", valeur="", type_valeur=None):
-            if type_valeur == six.text_type :
+            if type_valeur == str :
                 valeur = u'u"%s"' % valeur
             elif type_valeur == str :
                 valeur = u'"%s"' % valeur
@@ -235,7 +235,7 @@ class Synchro():
                 if MAIL_PASSWORD in ("", None):
                     liste_lignes.append(Ecrit_ligne("MAIL_PASSWORD", None))
                 else :
-                    liste_lignes.append(Ecrit_ligne("MAIL_PASSWORD", MAIL_PASSWORD, type_valeur=six.text_type))
+                    liste_lignes.append(Ecrit_ligne("MAIL_PASSWORD", MAIL_PASSWORD, type_valeur=str))
 
             else :
                 self.dict_parametres["mdp_autoriser_reinitialisation"] = False

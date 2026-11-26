@@ -412,10 +412,10 @@ class Panel(wx.Panel):
             if self.lock.acquire(block) == True:
                 try :
                     texte += "[%s] %s" % (horodatage, message)
-                    file_log.write(six.text_type(texte).encode('UTF-8'))
+                    file_log.write(str(texte).encode('UTF-8'))
                 except :
                     texte += "[%s] %s" % (horodatage, str(message).decode('cp1252'))
-                    file_log.write(six.text_type(texte).encode('UTF-8'))
+                    file_log.write(str(texte).encode('UTF-8'))
 
                 file_log.close()
                 self.lock.release()

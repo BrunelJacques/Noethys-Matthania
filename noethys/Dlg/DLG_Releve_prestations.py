@@ -9,30 +9,22 @@
 #------------------------------------------------------------------------
 
 
-from Utils.UTILS_Traduction import _
-from Utils import UTILS_Dates as ut
 import Chemins
 import wx
-from Ctrl import CTRL_Bouton_image
-import copy
-import datetime
 import wx.lib.colourselect as csel
 
 import GestionDB
-from Ctrl import CTRL_Bandeau
-from Ol import OL_Releve_prestations
-import FonctionsPerso
-from Utils import UTILS_Titulaires
-from Utils import UTILS_Envoi_email
-from Utils import UTILS_Organisateur
+from Ctrl import CTRL_Bouton_image
+
 from Utils import UTILS_Config
 from Utils import UTILS_Impression_tableau
+from Utils.UTILS_Dates import  DateDDEnDateEng, DateEngFr
+from Ctrl import CTRL_Bandeau
+from Ol import OL_Releve_prestations
 
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "€")
 
 COULEUR_FOND_TITRE = (204, 204, 255)
-
-LISTE_MOIS = (_("Janvier"), _("Février"), _("Mars"), _("Avril"), _("Mai"), _("Juin"), _("Juillet"), _("Août"), _("Septembre"), _("Octobre"), _("Novembre"), _("Décembre"))
 
 def Nz(valeur):
     try:
@@ -40,24 +32,6 @@ def Nz(valeur):
     except:
         u = 0.0
     return u
-
-def DateEngFr(textDate):
-    if textDate == None: return ""
-    textDate = str(textDate)
-    text = str(textDate)[8:10] + "/" + str(textDate)[5:7] + "/" + str(textDate)[:4]
-    return text
-
-def DateComplete(dateDD):
-    """ Transforme une date DD en date complète : Ex : lundi 15 janvier 2008 """
-    listeJours = (_("Lundi"), _("Mardi"), _("Mercredi"), _("Jeudi"), _("Vendredi"), _("Samedi"), _("Dimanche"))
-    listeMois = (_("janvier"), _("février"), _("mars"), _("avril"), _("mai"), _("juin"), _("juillet"), _("août"), _("septembre"), _("octobre"), _("novembre"), _("décembre"))
-    dateComplete = listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
-    return dateComplete
-
-def DateEngEnDateDD(dateEng):
-    if dateEng == None or dateEng == "" : return None
-    dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 def FormateMontant(montant,lgmini = 7,tab="_",ent=False):
     if montant == None : txt = ""
@@ -80,13 +54,13 @@ class Dialog(wx.Dialog):
         self.IDfamille = IDfamille
         
         # Bandeau
-        intro = _("Vous pouvez éditer ici un état des prestations ou de la situation comptable pour la ou les périodes souhaitées.")
-        titre = _("Edition d'un relevé des prestations")
+        intro = "Vous pouvez éditer ici un état des prestations ou de la situation comptable pour la ou les périodes souhaitées."
+        titre = "Edition d'un relevé des prestations"
         self.SetTitle(titre)
         self.ctrl_bandeau = CTRL_Bandeau.Bandeau(self, titre=titre, texte=intro, hauteurHtml=30, nomImage="Images/32x32/Euro.png")
                 
         # Périodes
-        self.stbPeriondes = wx.StaticBox(self, -1, _("Périodes"))
+        self.stbPeriondes = wx.StaticBox(self, -1, "Périodes")
         self.ctrl_periodes = OL_Releve_prestations.ListView(self.stbPeriondes, id=-1, IDfamille=self.IDfamille,
                                                             style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_HRULES|wx.LC_VRULES)
         self.bouton_ajouter = wx.BitmapButton(self.stbPeriondes, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Ajouter.png"), wx.BITMAP_TYPE_ANY))
@@ -94,18 +68,18 @@ class Dialog(wx.Dialog):
         self.bouton_supprimer = wx.BitmapButton(self.stbPeriondes, -1, wx.Bitmap(Chemins.GetStaticPath("Images/16x16/Supprimer.png"), wx.BITMAP_TYPE_ANY))
 
         # Options
-        self.stbOptions = wx.StaticBox(self, -1, _("Options"))
-        self.check_memoriser_parametres = wx.CheckBox(self.stbOptions, -1, _("Mémoriser les périodes"))
+        self.stbOptions = wx.StaticBox(self, -1, "Options")
+        self.check_memoriser_parametres = wx.CheckBox(self.stbOptions, -1, "Mémoriser les périodes")
         self.check_memoriser_parametres.SetValue(True) 
         
-        self.checkbox_couleur = wx.CheckBox(self.stbOptions, -1, _("Couleur de fond de titre :"))
+        self.checkbox_couleur = wx.CheckBox(self.stbOptions, -1, "Couleur de fond de titre :")
         self.ctrl_couleur = csel.ColourSelect(self.stbOptions, -1, "", COULEUR_FOND_TITRE, size=(60, 18))
         
         # Boutons
-        self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage=Chemins.GetStaticPath("Images/32x32/Aide.png"))
-        self.bouton_email = CTRL_Bouton_image.CTRL(self, texte=_("Envoyer par Email"), cheminImage=Chemins.GetStaticPath("Images/32x32/Emails_exp.png"))
-        self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Aperçu"), cheminImage=Chemins.GetStaticPath("Images/32x32/Apercu.png"))
-        self.bouton_annuler = CTRL_Bouton_image.CTRL(self, texte=_("Fermer"), cheminImage=Chemins.GetStaticPath("Images/32x32/Fermer.png"))
+        self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte="Aide", cheminImage=Chemins.GetStaticPath("Images/32x32/Aide.png"))
+        self.bouton_email = CTRL_Bouton_image.CTRL(self, texte="Envoyer par Email", cheminImage=Chemins.GetStaticPath("Images/32x32/Emails_exp.png"))
+        self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte="Aperçu", cheminImage=Chemins.GetStaticPath("Images/32x32/Apercu.png"))
+        self.bouton_annuler = CTRL_Bouton_image.CTRL(self, texte="Fermer", cheminImage=Chemins.GetStaticPath("Images/32x32/Fermer.png"))
 
         self.__set_properties()
         self.__do_layout()
@@ -132,15 +106,15 @@ class Dialog(wx.Dialog):
         self.ctrl_periodes.MAJ(listePeriodes)
 
     def __set_properties(self):
-        self.bouton_ajouter.SetToolTip(_("Cliquez ici pour ajouter une période"))
-        self.bouton_modifier.SetToolTip(_("Cliquez ici pour modifier la période sélectionnée dans la liste"))
-        self.bouton_supprimer.SetToolTip(_("Cliquez ici pour supprimer la période sélectionnée dans la liste"))
-        self.checkbox_couleur.SetToolTip(_("Cochez cette case pour insérer une couleur"))
-        self.check_memoriser_parametres.SetToolTip(_("Cochez cette case pour mémoriser les périodes"))
-        self.bouton_aide.SetToolTip(_("Cliquez ici pour obtenir de l'aide"))
-        self.bouton_email.SetToolTip(_("Cliquez ici pour envoyer ce document par Email"))
-        self.bouton_ok.SetToolTip(_("Cliquez ici pour créer un aperçu du document PDF"))
-        self.bouton_annuler.SetToolTip(_("Cliquez ici pour annuler"))
+        self.bouton_ajouter.SetToolTip("Cliquez ici pour ajouter une période")
+        self.bouton_modifier.SetToolTip("Cliquez ici pour modifier la période sélectionnée dans la liste")
+        self.bouton_supprimer.SetToolTip("Cliquez ici pour supprimer la période sélectionnée dans la liste")
+        self.checkbox_couleur.SetToolTip("Cochez cette case pour insérer une couleur")
+        self.check_memoriser_parametres.SetToolTip("Cochez cette case pour mémoriser les périodes")
+        self.bouton_aide.SetToolTip("Cliquez ici pour obtenir de l'aide")
+        self.bouton_email.SetToolTip("Cliquez ici pour envoyer ce document par Email")
+        self.bouton_ok.SetToolTip("Cliquez ici pour créer un aperçu du document PDF")
+        self.bouton_annuler.SetToolTip("Cliquez ici pour annuler")
         self.SetMinSize((850, 400))
 
     def __do_layout(self):
@@ -260,7 +234,7 @@ class Dialog(wx.Dialog):
     def OnBoutonEmail(self, event): 
         """ Envoi par mail """
         from Utils import UTILS_Fichiers
-        nomDoc = UTILS_Fichiers.GetRepTemp("RELEVE%s.pdf" % FonctionsPerso.GenerationIDdoc())
+        nomDoc = UTILS_Fichiers.GetRepTemp("RELEVE%s.pdf" %(FonctionsPerso.GenerationIDdoc()))
         UTILS_Envoi_email.EnvoiEmailFamilles(parent=self, IDfamille=self.IDfamille, nomDoc=nomDoc, categorie="releve_prestations")
 
 class Composition():
@@ -550,7 +524,7 @@ class Composition():
         dictTableau["dataLignes"] = dataTableau
         dictTableau["largeursCol"] =  [self.largeurContenu-200, 200]
         dictTableau["gridStyle"] = "tete"
-        lstTableaux.append(copy.deepcopy(dictTableau))
+        lstTableaux.append( copy.deepcopy(dictTableau))
 
 
         #déroulé des différentes périodes demandées, pour faire un tableau par période
@@ -582,7 +556,7 @@ class Composition():
             if "impayes" in dictOptions and dictOptions["impayes"] == True :
                 impayesSeuls = True
             else: impayesSeuls = False
-            periode = (ut.DateDDEnDateEng(date_debut), ut.DateDDEnDateEng(date_fin))
+            periode = (DateDDEnDateEng(date_debut), DateDDEnDateEng(date_fin))
 
             # Initialisation des variables 'regroupement'
             regroupement = None

@@ -59,13 +59,13 @@ class Barre(object):
             self.quantite = 1
 
         # Période
-        if isinstance(self.date_debut, str) or isinstance(self.date_debut, six.text_type) :
+        if isinstance(self.date_debut, str) or isinstance(self.date_debut, str) :
             self.date_debut = datetime.datetime.strptime(self.date_debut, "%Y-%m-%d %H:%M:%S")
 
         if self.date_fin == None:
             self.date_fin = datetime.datetime(2999, 1, 1)
 
-        if isinstance(self.date_fin, str) or isinstance(self.date_fin, six.text_type) :
+        if isinstance(self.date_fin, str) or isinstance(self.date_fin, str) :
             self.date_fin = datetime.datetime.strptime(self.date_fin, "%Y-%m-%d %H:%M:%S")
 
         # Récupération des réponses des questionnaires

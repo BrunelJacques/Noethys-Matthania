@@ -45,11 +45,7 @@ from Utils.UTILS_TL_data import Category
 from Utils.UTILS_TL_data import time_period_center
 from Utils.UTILS_TL_data import get_event_data_plugins
 from Utils.UTILS_TL_data import get_event_data_plugin
-
-
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
+from Utils.UTILS_Dates import DateEngEnDateDD
 
 def DateEngFr(textDate):
     text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])

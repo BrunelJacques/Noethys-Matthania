@@ -343,7 +343,7 @@ class PAGE_Unites(wx.Panel):
         return {"unites" : listeUnites}
 
     def SetParametres(self, dictParametres={}):
-        if type(dictParametres) in (six.text_type, str) :
+        if type(dictParametres) in (str) :
             dictParametres = eval(dictParametres)
         self.ctrl_unites.SetCoches(dictParametres["unites"])
 
@@ -423,7 +423,7 @@ class PAGE_Informations(wx.Panel):
         return dictParametres
 
     def SetParametres(self, dictParametres={}):
-        if type(dictParametres) in (six.text_type, str) :
+        if type(dictParametres) in (str) :
             dictParametres = eval(dictParametres)
         if ("infos_medicales" in dictParametres) == True :
             self.check_infos_medicales.SetValue(True)
@@ -482,7 +482,7 @@ class PAGE_Total(wx.Panel):
         return dictParametres
 
     def SetParametres(self, dictParametres={}):
-        if type(dictParametres) in (six.text_type, str) :
+        if type(dictParametres) in (str) :
             dictParametres = eval(dictParametres)
         if ("colonnes" in dictParametres) == True :
             self.radio_colonnes_choix.SetValue(True)
@@ -687,7 +687,7 @@ class Dialog(wx.Dialog):
         self.dictDonnees["largeur"] = self.ctrl_largeur.GetValue()
         self.dictDonnees["categorie"] = self.ctrl_parametres.GetCodePageActive()
         self.dictDonnees["parametres"] = self.ctrl_parametres.GetParametres()
-        if type(self.dictDonnees["parametres"]) in (six.text_type, str):
+        if type(self.dictDonnees["parametres"]) in (str):
             self.dictDonnees['parametres'] = eval(self.dictDonnees["parametres"])
         return self.dictDonnees
 
@@ -704,7 +704,7 @@ class Dialog(wx.Dialog):
             self.ctrl_largeur.SetValue(self.dictDonnees["largeur"])
         if "parametres" in self.dictDonnees :
             self.ctrl_parametres.SetPageByCode(self.dictDonnees["categorie"])
-            if type(self.dictDonnees["parametres"]) in (str, six.text_type) :
+            if type(self.dictDonnees["parametres"]) in (str) :
                 self.dictDonnees['parametres'] = eval(self.dictDonnees["parametres"])
             self.ctrl_parametres.SetParametres(self.dictDonnees["parametres"])
 

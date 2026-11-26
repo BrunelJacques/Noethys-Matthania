@@ -8,14 +8,13 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-import Chemins
-from Utils import UTILS_Adaptations
+
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
 import wx.lib.agw.hypertreelist as HTL
 from wx.lib.agw.customtreectrl import EVT_TREE_ITEM_CHECKED
-import datetime
+from Utils.UTILS_Dates import  DateEngEnDateDD
 
 from Ctrl import CTRL_Bandeau
 from Ctrl import CTRL_Calendrier
@@ -29,10 +28,6 @@ def MelangeDictionnaires(d1={}, d2={}):
         d1[key] = value
     return d1
     
-    
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 
 class CTRL_Choix_unites(HTL.HyperTreeList):

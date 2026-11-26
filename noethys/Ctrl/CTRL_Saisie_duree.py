@@ -129,7 +129,7 @@ class CTRL(wx.TextCtrl):
         """ duree = float, str ou timedelta """
         if type(duree) == float :
             td = datetime.timedelta(hours=duree)
-        elif type(duree) in (str, six.text_type):
+        elif type(duree) in (str):
             td = UTILS_Dates.HeureStrEnDelta(duree)
         elif type(duree) == datetime.timedelta :
             td = duree

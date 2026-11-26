@@ -1502,7 +1502,7 @@ class CTRL_Champs(wx.TreeCtrl):
                 titre = colonne.title
                 if titre == "" :
                     titre = codeColonne
-                if type(titre) in (str, six.text_type) :
+                if type(titre) in (str) :
                     self.dictChamps["colonnes"].append({"code" : codeColonne, "typeDonnee" : typeDonnee, "titre" : titre})
 
         # Remplissage
@@ -1587,7 +1587,7 @@ class CTRL_Champs_archive(wx.ListBox):
                 titre = colonne.title
                 if titre == "" :
                     titre = codeColonne
-                if type(titre) in (str, str) :
+                if type(titre) in (str) :
                     self.listeChamps.append({"code" : codeColonne, "typeDonnee" : typeDonnee, "titre" : titre})
                     self.listeLabels.append(titre)
 

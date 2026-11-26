@@ -21,10 +21,6 @@ from Utils import UTILS_Interface
 from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, CTRL_Outils
 
 
-def DateEngEnDateDD(dateEng):
-    if dateEng and not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-
 def GetListe(listeActivites=None, presents=None):
     if listeActivites == None : return {} 
     

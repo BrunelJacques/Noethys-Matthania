@@ -15,20 +15,9 @@ import wx
 from Ctrl import CTRL_Bouton_image
 import wx.lib.agw.hypertreelist as HTL
 import wx.lib.agw.hyperlink as Hyperlink
-import datetime
+from Utils.UTILS_Dates import  DateEngFr
 from Ctrl.CTRL_Tarification_calcul import LISTE_METHODES
 import GestionDB
-
-
-def DateEngEnDateDD(dateEng):
-    if dateEng and not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-
-def DateEngFr(textDate):
-    if textDate == None: return ""
-    textDate = str(textDate)
-    text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
-    return text
 
 
 class Hyperlien(Hyperlink.HyperLinkCtrl):

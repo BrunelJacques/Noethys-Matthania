@@ -25,25 +25,7 @@ from Utils import UTILS_Utilisateurs
 from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
 
 from Ctrl.CTRL_ObjectListView import ObjectListView, ColumnDefn, Filter, CTRL_Outils, PanelAvecFooter
-
-def DateEngFr(textDate):
-    if textDate == None: return ""
-    textDate = str(textDate)
-    text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
-    return text
-
-def DateComplete(dateDD):
-    """ Transforme une date DD en date complète : Ex : 15 janv 2008 """
-    listeMois = ("janv", "fév", "mars", "avr", "mai", "juin", "juil", "août", "sept",
-                 "oct", "nov", "déc")
-    dateComplete = str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
-    return dateComplete
-
-def DateEngEnDateDD(dateEng):
-    try:
-        dt = datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-    except: dt = datetime.date(1900, 1, 1)
-    return dt
+from Utils.UTILS_Dates import DateEngEnDateDD, DateComplete
 
 # ---------------------------------------- LISTVIEW DATES -----------------------------------------------------------------------
 

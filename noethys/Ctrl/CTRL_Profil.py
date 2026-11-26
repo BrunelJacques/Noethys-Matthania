@@ -225,12 +225,12 @@ def SetParametres(categorie="", dictParametres={}, IDprofil=None):
     listeModifications = []
     for nom, valeur in dictParametres.items():
         type_donnee = type(valeur)
-        if type_donnee in (str, six.text_type) :
+        if type_donnee in (str) :
             type_donnee = "texte"
             valeur = valeur
         else :
             type_donnee = "autre"
-            valeur = six.text_type(valeur)
+            valeur = str(valeur)
 
         if nom in dictDonnees:
             # Si valeur existe déjà dans DB
@@ -274,7 +274,7 @@ def GetParametres(IDprofil=None):
         if type_donnee == "texte":
             parametre = parametre
         else :
-            parametre = eval(six.text_type(parametre))
+            parametre = eval(str(parametre))
         dictResultats[nom] = parametre
 
     return dictResultats

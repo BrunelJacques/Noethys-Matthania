@@ -68,7 +68,7 @@ class Gestion():
         liste_problemes = []
 
         # Formate les données reçues
-        if type(donnees) in (datetime.date, str, six.text_type) :
+        if type(donnees) in (datetime.date, str) :
             listeDonnees = [{"date" : donnees},]
         elif type(donnees) == dict :
             listeDonnees = [donnees,]
@@ -92,11 +92,11 @@ class Gestion():
             # Recherche le format de la donnée
             if type(donnees) == datetime.date:
                 date = donnees
-            elif type(donnees) in (str, six.text_type):
+            elif type(donnees) in (str):
                 date = UTILS_Dates.DateEngEnDateDD(donnees)
             elif type(donnees) == dict:
                 date = donnees["date"]
-                if type(date) in (str, six.text_type):
+                if type(date) in (str):
                     date = UTILS_Dates.DateEngEnDateDD(date)
 
             # Vérifie que la date n'est pas dans une période de gestion

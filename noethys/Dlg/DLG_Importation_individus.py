@@ -192,7 +192,7 @@ class Importation_Excel() :
                         valeur = datetime.date(*dateTuple[:3])
                     # Nombre
                     if case.ctype == 2 :
-                        valeur = six.text_type(valeur)[:-2]
+                        valeur = str(valeur)[:-2]
                     ligne.append(valeur)
                 listeDonnees.append(ligne)
         except :

@@ -30,6 +30,8 @@ import wx.lib.agw.pybusyinfo as PBI
 import wx.propgrid as wxpg
 from Ctrl import CTRL_Propertygrid
 from Data import DATA_Types_prestations
+from Utils.UTILS_Dates import DateEngEnDateDD
+
 
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "?")
 CPTCLIENTS = "pas de compte client"
@@ -37,14 +39,6 @@ CONTEXT = "choix logiciel à faire"
 
 def TakeFirst(item):
     return item[0]
-
-def DateEngEnDateDD(dateEng):
-    if dateEng and not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-
-def DateDDenEng(dateDD):
-    if dateDD == None: return None
-    return dateDD.strftime("%Y-%m-%d")
 
 def DateStrenQuad(date):
     if date == None: return None
@@ -112,7 +106,7 @@ class DataType(object):
             data = ""
 
         if self.cat == int:                        #si l'on veux des entier
-            if data!="":
+            if data != "":
                 try:                                #on vérifie qu'il s'agit bien d'un nombre
                     data=int(data)
                 except ValueError as e:

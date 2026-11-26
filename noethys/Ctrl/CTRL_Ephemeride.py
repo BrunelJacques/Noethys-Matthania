@@ -9,8 +9,7 @@
 #-----------------------------------------------------------
 
 
-import Chemins
-from Utils import UTILS_Adaptations
+
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
@@ -34,17 +33,9 @@ except Exception as err :
     
 from Utils import UTILS_Meteo
 
+from Utils.UTILS_Dates import  DateEngEnDateDD, DateDDEnFr
 
-def DateDDEnDateFR(dateDD):
-    """ Transforme une datetime.date en date complète FR """
-    listeJours = ("Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche")
-    listeMois = (_("janvier"), _("février"), _("mars"), _("avril"), _("mai"), _("juin"), _("juillet"), _("août"), _("septembre"), _("octobre"), _("novembre"), _("décembre"))
-    return listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
 
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    if dateEng == None or dateEng == "" : return None
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 def Concatenation(listeTextes=[]):
     if len(listeTextes) == 0 : 
@@ -83,7 +74,7 @@ class CTRL(wx.Panel):
         self.ctrl_horloge.SetTickSize(12, target=clock.HOUR)
         
         # Date du jour
-        self.ctrl_date = wx.StaticText(self, -1, DateDDEnDateFR(self.dateJour))
+        self.ctrl_date = wx.StaticText(self, -1, DateDDEnFr(self.dateJour))
         
         # Newsticker
         self.ctrl_ticker = CTRL_Newsticker.Newsticker(self, pauseTime=10000, start=False, size=(-1, 100))   

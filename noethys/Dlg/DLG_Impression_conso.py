@@ -1340,12 +1340,12 @@ class Dialog(wx.Dialog):
                     if isinstance(valeur, Paragraph) :
                         valeur = valeur.text
                     # Largeur colonne
-                    if type(valeur) == six.text_type and (_("Nom - ") in valeur or valeur == "Informations") :
+                    if type(valeur) == str and (_("Nom - ") in valeur or valeur == "Informations") :
                         feuille.set_column(numColonne, numColonne, 50)
                     # Valeur case
-                    if type(valeur) in (str, six.text_type, int) :
+                    if type(valeur) in (str, int) :
                         # Formatage des heures
-                        if type(valeur) == six.text_type and len(valeur) == 11 and valeur[2] == "h" and valeur[8] == "h" :
+                        if type(valeur) == str and len(valeur) == 11 and valeur[2] == "h" and valeur[8] == "h" :
                             valeur = valeur.replace(u"\n", "-")
                         feuille.write(numLigne, numColonne, valeur)
                     # Si c'est une liste
@@ -2400,7 +2400,7 @@ class Dialog(wx.Dialog):
                                                 donnee = ""
 
                                         if type_donnee == "unicode" :
-                                            ligne.append(Paragraph(six.text_type(donnee), styleNormal))
+                                            ligne.append(Paragraph(str(donnee), styleNormal))
                                         else :
                                             ligne.append(donnee)
 

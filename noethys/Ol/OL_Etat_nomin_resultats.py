@@ -15,7 +15,6 @@ from Utils.UTILS_Traduction import _
 import wx
 import datetime
 import time
-import six
 import math
 import GestionDB
 from Utils import UTILS_Interface
@@ -23,6 +22,7 @@ from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, CTR
 from Ctrl.CTRL_Questionnaire import LISTE_CONTROLES
 from Utils import UTILS_Titulaires
 from Data import DATA_Civilites as Civilites
+from Utils.UTILS_Dates import DateEngEnDateDD, DateEngFr
 
 
 def ArrondirHeureSup(heures, minutes, pas): 
@@ -31,16 +31,6 @@ def ArrondirHeureSup(heures, minutes, pas):
         if x >= minutes :
             return (heures, x)
     return (heures+1, 0)
-
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    if dateEng == None or dateEng == "" : return None
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-
-def DateEngFr(textDate):
-    if textDate == None or textDate == "" : return ""
-    text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
-    return text
 
 def FormateValeur(valeur, mode="decimal"):
     if mode == "decimal" :
@@ -644,8 +634,7 @@ class ListView(FastObjectListView):
             # Texte
             if isinstance(valeur, str) : 
                 return valeur
-            if isinstance(valeur, six.text_type) :
-                return valeur
+
             # Nombre
             if isinstance(valeur, int) : 
                 if valeur == 0 : valeur = ""

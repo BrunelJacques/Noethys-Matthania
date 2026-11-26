@@ -136,10 +136,10 @@ class MyEncoder(json.JSONEncoder):
     def default(self, objet):
         # Si datetime.date
         if isinstance(objet, datetime.date):
-            return six.text_type(objet)
+            return str(objet)
         # Si datetime.datetime
         elif isinstance(objet, datetime.datetime):
-            return six.text_type(objet)
+            return str(objet)
         return json.JSONEncoder.default(self, objet)
 
 

@@ -25,26 +25,9 @@ SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, CTRL_Outils, PanelAvecFooter
 
 from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
+from Utils.UTILS_Dates import DateEngEnDateDD, DateEngFr, DateComplete
 
 
-def DateEngFr(textDate):
-    if textDate == None:
-        return " "
-    text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
-    return text
-
-def DateComplete(dateDD):
-    """ Transforme une date DD en date complète : Ex : Lun 15 janv 2008 """
-    listeJours = ("Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim")
-    listeMois = ("janv", "fév", "mars", "avr", "mai", "juin", "juil", "août", "sept", "oct", "nov", "déc")
-    dateComplete = listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
-    return dateComplete
-
-def DateEngEnDateDD(dateEng):
-    if not dateEng:
-        return
-    if dateEng and not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 class Track(object):
     def __init__(self, donnees):

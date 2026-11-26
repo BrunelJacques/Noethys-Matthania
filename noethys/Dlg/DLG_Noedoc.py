@@ -5810,7 +5810,7 @@ class ModeleDoc():
                 # Traitement d'une formule
                 texte = DLG_Saisie_formule.ResolveurTexte(texte=texte, listeChamps=list(dictChamps.keys()), dictValeurs=dictChamps)
                 # Remplacement des mos-clés par les valeurs
-                if type(nomChamp) in (str, six.text_type) and nomChamp.startswith("{") :
+                if type(nomChamp) in (str) and nomChamp.startswith("{") :
                     if valeur == None : valeur = ""
                     if type(valeur) == int : valeur = str(valeur)
                     if type(valeur) == float : valeur = u"%.02f %s" % (valeur, SYMBOLE)

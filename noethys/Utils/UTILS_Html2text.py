@@ -243,7 +243,7 @@ class _html2text(HTMLParser.HTMLParser):
         else: self.out = out
         self.outtextlist = [] # empty list to store output characters before they are  "joined"
         try:
-            self.outtext = six.text_type()
+            self.outtext = str()
         except NameError: # Python3
             self.outtext = str()
         self.quiet = 0

@@ -1277,8 +1277,8 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL) :
                     propriete = self.GetPropertyByName(cle)
                     if propriete != None :
                         type_propriete = type(VALEURS_DEFAUT[cle])
-                        if type_propriete in (str, six.text_type) :
-                            valeur = six.text_type(valeur)
+                        if type_propriete in (str) :
+                            valeur = str(valeur)
                         if type_propriete == bool :
                             if valeur == "True" :
                                 valeur = True
@@ -1329,7 +1329,7 @@ class CTRL_Parametres(CTRL_Propertygrid.CTRL) :
         fichier = codecs.open(cheminFichier, encoding='utf-8', mode='w')
         dictValeurs = copy.deepcopy(self.GetPropertyValues())
         for cle, valeur in dictValeurs.items() :
-            if type(valeur) in (str, six.text_type) :
+            if type(valeur) in (str) :
                 valeur = valeur.replace("\n", "#!#")
             ligne = "%s = %s\n" % (cle, valeur)
             fichier.write(ligne)

@@ -395,7 +395,7 @@ class Dialog(wx.Dialog):
         listeDonnees = DB.ResultatReq()
         if len(listeDonnees) > 0:
             nom_modele, IDrestaurateur, parametres, restaurateur_nom, restaurateur_tel, restaurateur_mail = listeDonnees[0]
-            if type(parametres) in (str, six.text_type) :
+            if type(parametres) in (str) :
                 parametres = eval(parametres)
 
             self.dictDonnees["modele_nom"] = nom_modele
@@ -415,7 +415,7 @@ class Dialog(wx.Dialog):
         listeColonnes = []
         if len(listeDonnees) > 0:
             for IDcolonne, ordre, nom, largeur, categorie, parametres in listeDonnees :
-                if type(parametres) in (str, six.text_type):
+                if type(parametres) in (str):
                     parametres = eval(parametres)
                 listeColonnes.append({"IDcolonne" : IDcolonne, "ordre" : ordre, "nom" : nom, "largeur" : largeur, "categorie" : categorie, "parametres" : parametres})
         self.dictDonnees["colonnes"] = listeColonnes
@@ -657,7 +657,7 @@ class Dialog(wx.Dialog):
                         else :
                             style = style_texte
                             valeur = valeur.replace("\n", "<br/>")
-                    ligne.append(Paragraph(six.text_type(valeur), style))
+                    ligne.append(Paragraph(str(valeur), style))
                     numColonne += 1
 
                 # Ajout de la ligne au tableau

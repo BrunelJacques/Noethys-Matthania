@@ -15,19 +15,10 @@ from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
 import wx.lib.agw.hypertreelist as HTL
-import datetime
 import GestionDB
 
+from Utils.UTILS_Dates import  DateEngEnDateDD, DateEngFr
 from Utils import UTILS_Utilisateurs
-
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-
-def DateEngFr(textDate):
-    text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
-    return text
-
 
     
 class CTRL(HTL.HyperTreeList):

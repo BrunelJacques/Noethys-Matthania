@@ -34,6 +34,8 @@ from Utils import UTILS_Parametres
 from Ctrl import CTRL_Editeur_email
 
 from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
+from Utils.UTILS_Dates import DateEngEnDateDD, DateEngFr, DateFrEng, DateComplete
+
 
 
 DICT_CIVILITES = Civilites.GetDictCivilites()
@@ -59,29 +61,6 @@ TEXTE_INTRO = "Je soussigné{GENRE} {NOM}, {FONCTION}, certifie avoir reçu pour l
 
 DICT_DONNEES = {}
 
-
-def DateComplete(dateDD):
-    """ Transforme une date DD en date complète : Ex : lundi 15 janvier 2008 """
-    if dateDD == None or dateDD == "" : return ""
-    listeJours = (_("Lundi"), _("Mardi"), _("Mercredi"), _("Jeudi"), _("Vendredi"), _("Samedi"), _("Dimanche"))
-    listeMois = (_("janvier"), _("février"), _("mars"), _("avril"), _("mai"), _("juin"), _("juillet"), _("août"), _("septembre"), _("octobre"), _("novembre"), _("décembre"))
-    dateComplete = listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
-    return dateComplete
-
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    if dateEng == None or dateEng == "" : return ""
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-
-def DateEngFr(textDate):
-    if textDate == None or textDate == "" : return ""
-    text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
-    return text
-
-def DateFrEng(textDate):
-    if textDate == None or textDate == "" : return ""
-    text = str(textDate[6:10]) + "-" + str(textDate[3:5]) + "-" + str(textDate[:2])
-    return text
 
 class CTRL_Signataires(wx.ComboBox):
     def __init__(self, parent):
@@ -728,7 +707,7 @@ class Dialog(wx.Dialog):
         dictValeurs["{NUM_PIECE}"] = dictValeurs["numPiece"]
         dictValeurs["{MONTANT_REGLEMENT}"] = "%.2f %s" % (dictValeurs["montant"], SYMBOLE)
         dictValeurs["{NOM_PAYEUR}"] = dictValeurs["nomPayeur"]
-        dictValeurs["{NUM_QUITTANCIER}"] = six.text_type(dictValeurs["numQuittancier"])
+        dictValeurs["{NUM_QUITTANCIER}"] = str(dictValeurs["numQuittancier"])
         dictValeurs["{DATE_SAISIE}"] = DateEngFr(dictValeurs["date_saisie"])
         dictValeurs["{OBSERVATIONS}"] = "%s" % dictValeurs["observations"]
 

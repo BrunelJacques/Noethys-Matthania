@@ -10,26 +10,21 @@
 
 
 import Chemins
-from Utils import UTILS_Adaptations
+
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
-import os, sys
-import datetime
-import GestionDB
+
 from Data import DATA_Civilites as Civilites
 from Ctrl import CTRL_Photo
 
 import wx.lib.agw.ultimatelistctrl as ULC
-    
+
 import wx.html as html
 
 
 DICT_CIVILITES = Civilites.GetDictCivilites()
 
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 def CalculeAge(dateReference, date_naiss):
     # Calcul de l'age de la personne

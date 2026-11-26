@@ -119,7 +119,7 @@ class Panel(wx.Panel):
             return
         
         # Demande de confirmation
-        txtMessage = six.text_type((_("Voulez-vous vraiment supprimer cet utilisateur ? \n\n> %s@%s") % (nom, hote)))
+        txtMessage = str((_("Voulez-vous vraiment supprimer cet utilisateur ? \n\n> %s@%s") % (nom, hote)))
         dlgConfirm = wx.MessageDialog(self, txtMessage, _("Confirmation de suppression"), wx.YES_NO|wx.NO_DEFAULT|wx.ICON_QUESTION)
         reponse = dlgConfirm.ShowModal()
         dlgConfirm.Destroy()

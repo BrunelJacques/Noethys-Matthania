@@ -9,8 +9,6 @@
 #-----------------------------------------------------------
 
 
-import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 """
 IMPORTANT :
@@ -26,19 +24,12 @@ import datetime
 import FonctionsPerso
 import sys
 import traceback
-import six
 import GestionDB
 from Utils import UTILS_Organisateur
 from Utils import UTILS_Infos_individus
-from Utils import UTILS_Dates
+from Utils.UTILS_Dates import  DateEngEnDateDDT, DateComplete, DateEngFr
 
 LISTE_MOIS = (_("janvier"), _("février"), _("mars"), _("avril"), _("mai"), _("juin"), _("juillet"), _("août"), _("septembre"), _("octobre"), _("novembre"), _("décembre"))
-
-def DateComplete(dateDD):
-    """ Transforme une date DD en date complète : Ex : lundi 15 janvier 2008 """
-    listeJours = (_("Lundi"), _("Mardi"), _("Mercredi"), _("Jeudi"), _("Vendredi"), _("Samedi"), _("Dimanche"))
-    dateComplete = listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + LISTE_MOIS[dateDD.month-1] + " " + str(dateDD.year)
-    return dateComplete
 
 def FormateMois(donnee):
     if donnee in ("", None):
@@ -46,14 +37,7 @@ def FormateMois(donnee):
     else:
         annee, mois = donnee
         return "%s %d" % (LISTE_MOIS[mois-1].capitalize(), annee)
-    
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
-def DateEngFr(textDate):
-    text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
-    return text
 
 def HeureStrEnTime(heureStr):
     if heureStr == None or heureStr == "" : return datetime.time(0, 0)
@@ -178,8 +162,8 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
         dictResultats = {}
         listeProduits = []
         for IDlocation, IDfamille, date_debut, date_fin, IDproduit, nom_produit, IDcategorie, nom_categorie in listeLocations :
-            date_debut = UTILS_Dates.DateEngEnDateDDT(date_debut)
-            date_fin = UTILS_Dates.DateEngEnDateDDT(date_fin)
+            date_debut = DateEngEnDateDDT(date_debut)
+            date_fin = DateEngEnDateDDT(date_fin)
             mois = date_debut.month
             annee = date_debut.year
             
@@ -318,7 +302,7 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
             elif self.affichage_regroupement == "qf" and type(regroupement) == tuple:
                 label = "%d-%d" % regroupement
             else :
-                label = six.text_type(regroupement)
+                label = str(regroupement)
             
             self.SetRowLabelValue(index, label)
             self.SetRowSize(index, 30)

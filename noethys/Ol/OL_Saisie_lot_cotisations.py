@@ -21,14 +21,10 @@ from Data import DATA_Civilites as Civilites
 from Utils import UTILS_Infos_individus
 from Utils import UTILS_Interface
 from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, CTRL_Outils
-
+from Utils.UTILS_Dates import DateEngEnDateDD
 
 DICT_INFOS_INDIVIDUS = {}
 
-
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 def GetDictInfosIndividus():
     global DICT_INFOS_INDIVIDUS

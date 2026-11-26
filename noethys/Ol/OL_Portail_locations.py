@@ -166,7 +166,7 @@ class ListView(FastObjectListView):
             date_debut = UTILS_Dates.DateEngEnDateDDT(date_debut)
             date_fin = UTILS_Dates.DateEngEnDateDDT(date_fin)
             dict_temp = {"IDlocation": IDlocation, "date_debut": date_debut, "date_fin": date_fin, "IDproduit": IDproduit, "nom_produit": nom_produit}
-            self.dict_locations_existantes[six.text_type(IDlocation)] = dict_temp
+            self.dict_locations_existantes[str(IDlocation)] = dict_temp
             if IDlocation_portail:
                 self.dict_locations_existantes[IDlocation_portail] = dict_temp
 

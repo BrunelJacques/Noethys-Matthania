@@ -36,10 +36,6 @@ def Decod(valeur):
     return GestionDB.Decod(valeur)
 
 
-def DateEngEnDateDD(dateEng):
-    if dateEng and not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-
 # -----------------------------------------------------------------------------------------------------------------
 class Dialog(wx.Dialog):
     def __init__(self, parent, dictPiece,dictFamillesRattachees):
@@ -132,7 +128,7 @@ class Dialog(wx.Dialog):
         for champ in self.listeChamps:
             self.dictDonnees[champ] = self.dictDonneesOrigine[champ]
             tip = type(self.dictDonneesOrigine[champ])
-            if tip in ( str, str):
+            if tip in ( str):
                 valeur = self.dictDonneesOrigine[champ]
             elif tip in (int, float):
                 valeur = str(self.dictDonneesOrigine[champ])

@@ -16,22 +16,15 @@ import wx
 from Ctrl import CTRL_Bouton_image
 import GestionDB
 import datetime
-from Utils import UTILS_Titulaires
 from Data import DATA_Civilites as Civilites
 from Utils import UTILS_Historique
+from Utils.UTILS_Dates import DateEngEnDateDD, DateEngFr
+
 
 
 from Utils import UTILS_Interface
 from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, CTRL_Outils
 
-
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-
-def DateEngFr(textDate):
-    text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
-    return text
 
 
 def GetListe(IDclasse=None, IDindividu=None):

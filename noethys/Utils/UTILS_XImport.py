@@ -34,7 +34,7 @@ class DataType(object):
         if type(data) is str:
             if six.PY2:
                 data = data.decode('cp1252')
-            data = six.text_type(data)
+            data = str(data)
 
         # si l'on veux des entiers
         if self.type == int:
@@ -175,35 +175,35 @@ class XImportLine(object):
         Renvois la liste des donnée et leur valeur (appelé lors d'un print ou d'une convertion str)
         """
         return "LigneXImport : \n\t"+\
-               "num_mvnt :" + six.text_type(self.num_mvnt)+"\n\t"+\
-               "journal :" + six.text_type(self.journal)+"\n\t"+\
-               "date_ecriture :" + six.text_type(self.date_ecriture)+"\n\t"+\
-               "date_echeance :" + six.text_type(self.date_echeance)+"\n\t"+\
-               "num_piece :" + six.text_type(self.num_piece)+"\n\t"+\
-               "compte :" + six.text_type(self.compte)+"\n\t"+\
-               "libelle :" + six.text_type(self.libelle)+"\n\t"+\
-               "montant :" + six.text_type(self.montant)+"\n\t"+\
-               "isDebit :" + six.text_type(self.isDebit)+"\n\t"+\
-               "numPointage :" + six.text_type(self.numPointage)+"\n\t"+\
-               "code_analyt :" + six.text_type(self.code_analyt)+"\n\t"+\
-               "libelle_compte :" + six.text_type(self.libelle_compte)+"\n\t"+\
-               "devise :" + six.text_type(self.devise)+"\n"
+               "num_mvnt :" + str(self.num_mvnt)+"\n\t"+\
+               "journal :" + str(self.journal)+"\n\t"+\
+               "date_ecriture :" + str(self.date_ecriture)+"\n\t"+\
+               "date_echeance :" + str(self.date_echeance)+"\n\t"+\
+               "num_piece :" + str(self.num_piece)+"\n\t"+\
+               "compte :" + str(self.compte)+"\n\t"+\
+               "libelle :" + str(self.libelle)+"\n\t"+\
+               "montant :" + str(self.montant)+"\n\t"+\
+               "isDebit :" + str(self.isDebit)+"\n\t"+\
+               "numPointage :" + str(self.numPointage)+"\n\t"+\
+               "code_analyt :" + str(self.code_analyt)+"\n\t"+\
+               "libelle_compte :" + str(self.libelle_compte)+"\n\t"+\
+               "devise :" + str(self.devise)+"\n"
     
     def getData(self):
         """
         Retourne la ligne telle qu'elle doit être enregistré dans le fichier XImport
         """
-        return six.text_type(self.num_mvnt)+\
-                six.text_type(self.journal)+\
-                six.text_type(self.date_ecriture)+\
-                six.text_type(self.date_echeance)+\
-                six.text_type(self.num_piece)+\
-                six.text_type(self.compte)+\
-                six.text_type(self.libelle)+\
-                six.text_type(self.montant)+\
-                six.text_type(self.isDebit)+\
-                six.text_type(self.numPointage)+\
-                six.text_type(self.code_analyt)+\
-                six.text_type(self.libelle_compte)+\
-                six.text_type(self.devise)
+        return str(self.num_mvnt)+\
+                str(self.journal)+\
+                str(self.date_ecriture)+\
+                str(self.date_echeance)+\
+                str(self.num_piece)+\
+                str(self.compte)+\
+                str(self.libelle)+\
+                str(self.montant)+\
+                str(self.isDebit)+\
+                str(self.numPointage)+\
+                str(self.code_analyt)+\
+                str(self.libelle_compte)+\
+                str(self.devise)
 

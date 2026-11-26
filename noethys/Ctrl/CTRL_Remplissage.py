@@ -14,7 +14,7 @@ from Utils.UTILS_Traduction import _
 import wx
 import wx.grid as gridlib
 import wx.lib.wordwrap as wordwrap
-#import wx.lib.mixins.gridlabelrenderer as glr
+
 import Outils.gridlabelrenderer as glr
 import datetime
 from wx.grid import GridCellRenderer
@@ -23,7 +23,7 @@ import GestionDB
 from Utils import UTILS_Config
 from Utils import UTILS_Texte
 from Utils.UTILS_Dates import CalculeAge
-
+from Utils.UTILS_Dates import  DateEngEnDateDD, DateComplete
 # Colonnes unités
 LARGEUR_COLONNE_UNITE = 60
 ABREGE_GROUPES = 0
@@ -45,16 +45,6 @@ COULEUR_COMPLET = "#F7ACB2"
 COULEUR_NORMAL = "WHITE"
 COULEUR_FERME = (220, 220, 220)
 
-def DateComplete(dateDD):
-    """ Transforme une date DD en date complète : Ex : lundi 15 janvier 2008 """
-    listeJours = (_("Lundi"), _("Mardi"), _("Mercredi"), _("Jeudi"), _("Vendredi"), _("Samedi"), _("Dimanche"))
-    listeMois = (_("janvier"), _("février"), _("mars"), _("avril"), _("mai"), _("juin"), _("juillet"), _("août"), _("septembre"), _("octobre"), _("novembre"), _("décembre"))
-    dateComplete = listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
-    return dateComplete
-
-def DateEngEnDateDD(dateEng):
-    if dateEng and not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 def HeureStrEnTime(heureStr):
     if heureStr == None or heureStr == "" : return datetime.time(0, 0)

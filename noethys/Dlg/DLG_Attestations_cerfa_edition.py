@@ -26,19 +26,11 @@ from Utils import UTILS_Historique
 from Utils import UTILS_Attestations_cerfa
 from Utils import UTILS_Envoi_email
 import wx.lib.agw.pybusyinfo as PBI
+from Utils.UTILS_Dates import DateEngEnDateDD, DateEngFr
 
 
 TEXTE_INTRO = _("Veuillez trouver ci-dessous le montant réglé à notre organisme au titre des dons ouvrant droit à déduction fiscale :")
 
-def DateEngEnDateDD(dateEng):
-    if dateEng and not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-
-def DateEngFr(textDate):
-    if textDate == None: return ""
-    textDate = str(textDate)
-    text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
-    return text
 
 def GetTexteNoms(listeNoms=[]):
     """ Récupère les noms sous la forme David DUPOND et Maxime DURAND... """

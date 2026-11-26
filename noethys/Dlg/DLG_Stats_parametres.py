@@ -9,8 +9,6 @@
 #------------------------------------------------------------------------
 
 
-import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
@@ -20,15 +18,7 @@ import calendar
 import GestionDB
 from Ctrl import CTRL_Selection_activites_groupes
 from Ctrl import CTRL_Saisie_date
-
-
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-
-def DateEngFr(textDate):
-    text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
-    return text
+from Utils.UTILS_Dates import DateEngEnDateDD, DateEngFr
 
 
 LISTE_MOIS = (_("Janvier"), _("Février"), _("Mars"), _("Avril"), _("Mai"), _("Juin"), _("Juillet"), _("Août"), _("Septembre"), _("Octobre"), _("Novembre"), _("Décembre"))
@@ -346,7 +336,7 @@ class CTRL_Mode(wx.Panel):
             self.radio_presents.SetValue(True)
     
     def SetPeriode(self, dictPeriode=None):
-        if dictPeriode == None :
+        if not dictPeriode :
             return
         
         # Vacances

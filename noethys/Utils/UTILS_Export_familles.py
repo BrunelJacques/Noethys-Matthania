@@ -300,7 +300,7 @@ class Export():
             for key, valeur in infos.dictFamilles[IDfamille].items():
                 if key.startswith("FAMILLE_"):
                     node = doc.createElement(key.replace("FAMILLE_", "").lower())
-                    node.setAttribute("valeur", six.text_type(valeur))
+                    node.setAttribute("valeur", str(valeur))
                     node_famille.appendChild(node)
 
             # Famille : Quotients
@@ -338,7 +338,7 @@ class Export():
                 for dictQuestionnaire in infos.dictFamilles[IDfamille]["questionnaires"]:
                     node = doc.createElement(u"questionnaire")
                     node.setAttribute("question", dictQuestionnaire["label"])
-                    node.setAttribute("reponse", six.text_type(dictQuestionnaire["reponse"]))
+                    node.setAttribute("reponse", str(dictQuestionnaire["reponse"]))
                     node_questionnaires.appendChild(node)
 
             # Famille : Pièces
@@ -443,9 +443,9 @@ class Export():
                     # Individu : données générales
                     for key, champ in infos.GetListeChampsIndividus():
                         valeur = infos.dictIndividus[IDindividu][key]
-                        if isinstance(valeur, (six.text_type, str)):
+                        if isinstance(valeur, (str)):
                             node = doc.createElement(key.replace("INDIVIDU_", "").lower())
-                            node.setAttribute("valeur", six.text_type(valeur))
+                            node.setAttribute("valeur", str(valeur))
                             node_individu.appendChild(node)
 
                     # Individu : Messages
@@ -498,7 +498,7 @@ class Export():
                         for dictQuestionnaire in infos.dictIndividus[IDindividu]["questionnaires"]:
                             node = doc.createElement(u"questionnaire")
                             node.setAttribute("question", dictQuestionnaire["label"])
-                            node.setAttribute("reponse", six.text_type(dictQuestionnaire["reponse"]))
+                            node.setAttribute("reponse", str(dictQuestionnaire["reponse"]))
                             node_questionnaires.appendChild(node)
 
                     # Individu : Scolarité

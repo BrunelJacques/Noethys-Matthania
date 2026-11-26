@@ -128,8 +128,8 @@ def A3687():
     DB.ExecuterReq(req,MsgBox="ExecuterReq")
     listeLignes = DB.ResultatReq()
     for IDligne, qf_min, qf_max in listeLignes :
-        if type(qf_min) == six.text_type or type(qf_min) == str : DB.ReqMAJ("tarifs_lignes", [("qf_min", float(qf_min.replace(",","."))),], "IDligne", IDligne)
-        if type(qf_max) == six.text_type or type(qf_max) == str : DB.ReqMAJ("tarifs_lignes", [("qf_max", float(qf_max.replace(",","."))),], "IDligne", IDligne)
+        if type(qf_min) == str or type(qf_min) == str : DB.ReqMAJ("tarifs_lignes", [("qf_min", float(qf_min.replace(",","."))),], "IDligne", IDligne)
+        if type(qf_max) == str or type(qf_max) == str : DB.ReqMAJ("tarifs_lignes", [("qf_max", float(qf_max.replace(",","."))),], "IDligne", IDligne)
     DB.Close()
 
 def A3688():

@@ -143,12 +143,6 @@ def GetDic_ctrl_Utiles():
             dicControles[cle] = ctrl
     return dicControles
 
-
-def DateEngEnDateDD(dateEng):
-    if dateEng and not isinstance(dateEng, str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-
-
 # ------------------------------------------------------------------------------------------------------
 
 class MenuTransports(object):

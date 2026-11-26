@@ -13,20 +13,9 @@ import datetime
 import decimal
 import json
 import shelve
+from Utils.UTILS_Dates import DateEngEnDateDD
+from Utils.UTILS_Dates import DateEngEnDateDDT
 
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    if dateEng in (None, "", "None") : return None
-    if type(dateEng) == datetime.date : return dateEng
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-
-def DateEngEnDateDDT(dateEng):
-    if dateEng in (None, "", "None") : return None
-    if type(dateEng) == datetime.datetime : return dateEng
-    if len(dateEng) == 19 :
-        return datetime.datetime.strptime(dateEng, "%Y-%m-%d %H:%M:%S")
-    else :
-        return datetime.datetime.strptime(dateEng, "%Y-%m-%d %H:%M:%S.%f")
 
 class MyEncoder(json.JSONEncoder):
     def default(self, objet):

@@ -8,7 +8,6 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
 import Chemins
 from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
@@ -27,14 +26,11 @@ from Utils import UTILS_Dates
 from Utils import UTILS_Parametres
 import wx.lib.agw.supertooltip as STT
 
-if 'phoenix' in wx.PlatformInfo:
-    from wx.grid import GridCellRenderer
-    CURSOR = wx.Cursor
-else :
-    from wx.grid import PyGridCellRenderer as GridCellRenderer
-    CURSOR = wx.StockCursor
-
+from wx.grid import GridCellRenderer
 from Ctrl.CTRL_Tarification_calcul import CHAMPS_TABLE_LIGNES
+from Utils.UTILS_Dates import  DateEngEnDateDD, DateComplete
+
+CURSOR = wx.Cursor
 
 
 
@@ -225,28 +221,12 @@ class Track_evenement(Track):
                 track_filtre.IDfiltre = None
 
 
-
-
-
-
-
 COULEUR_DATE = "#C0C0C0"
 COULEUR_OUVERTURE = "#FFE900" #(0, 230, 0)
 COULEUR_FERMETURE = "#8EA0AA" #"#F7ACB2"
 COULEUR_VACANCES = "#F3FD89"
 COULEUR_FERIE = "#828282"
 
-
-def DateComplete(dateDD):
-    """ Transforme une date DD en date complète : Ex : lundi 15 janvier 2008 """
-    listeJours = (_("Lundi"), _("Mardi"), _("Mercredi"), _("Jeudi"), _("Vendredi"), _("Samedi"), _("Dimanche"))
-    listeMois = (_("janvier"), _("février"), _("mars"), _("avril"), _("mai"), _("juin"), _("juillet"), _("août"), _("septembre"), _("octobre"), _("novembre"), _("décembre"))
-    dateComplete = listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
-    return dateComplete
-
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 def hex_to_rgb(value):
     value = value.lstrip('#')
@@ -502,16 +482,11 @@ class CaseOuvertureRenderer(GridCellRenderer):
         return bmp
 
 
-
-
     def GetBestSize(self, grid, attr, dc, row, col):
         text = grid.GetCellValue(row, col)
         dc.SetFont(attr.GetFont())
         w, h = dc.GetTextExtent(text)
         return wx.Size(w, h)
-
-    def Clone(self):
-        return RendererCase()
 
 
 

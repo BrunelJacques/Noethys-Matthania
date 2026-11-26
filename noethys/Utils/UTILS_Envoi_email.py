@@ -467,7 +467,7 @@ class Message():
                 encoders.encode_base64(part)
             # Set the filename parameter
             nomFichier = os.path.basename(fichier)
-            if type(nomFichier) == six.text_type:
+            if type(nomFichier) == str:
                 nomFichier = FonctionsPerso.Supprime_accent(nomFichier)
             # changement cosmetique pour ajouter les guillements autour du filename
             part.add_header('Content-Disposition', "attachment; filename=\"%s\"" % nomFichier)
@@ -643,7 +643,7 @@ class SmtpV1(Base_messagerie):
                         erreur = err
 
                 if erreur != None:
-                    err = six.text_type(erreur)
+                    err = str(erreur)
                     listeAnomalies.append((message, err))
                     print(("Erreur dans l'envoi d'un mail : %s...", err))
 
@@ -804,7 +804,7 @@ class SmtpV2(Base_messagerie):
                         erreur = err
 
                 if erreur != None:
-                    err = six.text_type(erreur)
+                    err = str(erreur)
                     listeAnomalies.append((message, err))
                     print(("Erreur dans l'envoi d'un mail : %s...", err))
 

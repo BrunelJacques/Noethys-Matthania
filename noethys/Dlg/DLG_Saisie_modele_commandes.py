@@ -120,7 +120,7 @@ class Page_Colonnes(wx.Panel):
         return {"colonnes" : self.ctrl_colonnes.GetParametres()}
 
     def SetParametres(self, dictParametres={}):
-        if type(dictParametres) in (six.text_type, str):
+        if type(dictParametres) in (str):
             dictParametres = eval(dictParametres)
         self.ctrl_colonnes.SetParametres(dictParametres)
 
@@ -281,7 +281,7 @@ class Dialog(wx.Dialog):
         listeColonnes = []
         if len(listeDonnees) > 0:
             for IDcolonne, ordre, nom, largeur, categorie, parametres, nbre_valeurs in listeDonnees :
-                if type(parametres) in (str, six.text_type):
+                if type(parametres) in (str):
                     parametres = eval(parametres)
                 if nbre_valeurs == None :
                     nbre_valeurs = 0
@@ -345,7 +345,7 @@ class Dialog(wx.Dialog):
                 ("nom", dictColonne["nom"]),
                 ("largeur", dictColonne["largeur"]),
                 ("categorie", dictColonne["categorie"]),
-                ("parametres", six.text_type(dictColonne["parametres"])),
+                ("parametres", str(dictColonne["parametres"])),
                 ]
             if IDcolonne == None or IDcolonne < 0 :
                 newIDcolonne = DB.ReqInsert("modeles_commandes_colonnes", listeDonnees)
@@ -368,7 +368,7 @@ class Dialog(wx.Dialog):
                         listeNewID.append(IDcolonne)
                     if listeID != listeNewID :
                         dictColonne["parametres"]["colonnes"] = listeNewID
-                        listeDonnees = [("parametres", six.text_type(dictColonne["parametres"])),]
+                        listeDonnees = [("parametres", str(dictColonne["parametres"])),]
                         DB.ReqMAJ("modeles_commandes_colonnes", listeDonnees, "IDcolonne", dictColonne["IDcolonne"])
 
         # Suppression des colonnes obsolètes

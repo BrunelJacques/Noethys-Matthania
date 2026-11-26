@@ -16,7 +16,7 @@ import traceback
 import datetime
 import copy
 import sys
-import six
+import io
 from Utils import UTILS_Dates
 from Utils import UTILS_Texte
 from Utils import UTILS_Filtres_questionnaires
@@ -175,7 +175,7 @@ class Demande():
             IDlocation = item[8]
 
             # Date de la demande
-            if isinstance(date, str) or isinstance(date, six.text_type):
+            if isinstance(date, str) or isinstance(date, str):
                 date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
             date_texte = datetime.datetime.strftime(date, "%d/%m/%Y")
             heure_texte = datetime.datetime.strftime(date, "%Hh%M")
@@ -358,7 +358,7 @@ class Demande():
                 fichier = open(cheminFichier, "rb")
                 data = fichier.read()
                 fichier.close()
-                buffer = six.BytesIO(data)
+                buffer = io.BytesIO(data)
                 blob = buffer.read()
                 # Recherche l'IDreponse
                 if IDdemande in dictReponses:

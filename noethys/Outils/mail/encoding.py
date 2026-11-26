@@ -70,7 +70,7 @@ def force_text(s, encoding='utf-8', strings_only=False, errors='strict'):
     If strings_only is True, don't convert (some) non-string-like objects.
     """
     # Handle the common case first for performance reasons.
-    if issubclass(type(s), six.text_type):
+    if issubclass(type(s), str):
         return s
     if strings_only and is_protected_type(s):
         return s
@@ -78,15 +78,15 @@ def force_text(s, encoding='utf-8', strings_only=False, errors='strict'):
         if not issubclass(type(s), six.string_types):
             if six.PY3:
                 if isinstance(s, bytes):
-                    s = six.text_type(s, encoding, errors)
+                    s = str(s, encoding, errors)
                 else:
-                    s = six.text_type(s)
+                    s = str(s)
             elif hasattr(s, '__unicode__'):
-                s = six.text_type(s)
+                s = str(s)
             else:
-                s = six.text_type(bytes(s), encoding, errors)
+                s = str(bytes(s), encoding, errors)
         else:
-            # Note: We use .decode() here, instead of six.text_type(s, encoding,
+            # Note: We use .decode() here, instead of str(s, encoding,
             # errors), so that if s is a SafeBytes, it ends up being a
             # SafeText at the end.
             s = s.decode(encoding, errors)
@@ -134,11 +134,11 @@ def force_bytes(s, encoding='utf-8', strings_only=False, errors='strict'):
     # if isinstance(s, six.memoryview):
     #     return bytes(s)
     if isinstance(s, Promise):
-        return six.text_type(s).encode(encoding, errors)
+        return str(s).encode(encoding, errors)
     if not isinstance(s, six.string_types):
         try:
             if six.PY3:
-                return six.text_type(s).encode(encoding)
+                return str(s).encode(encoding)
             else:
                 return bytes(s)
         except UnicodeEncodeError:
@@ -148,7 +148,7 @@ def force_bytes(s, encoding='utf-8', strings_only=False, errors='strict'):
                 # further exception.
                 return b' '.join(force_bytes(arg, encoding, strings_only, errors)
                                  for arg in s)
-            return six.text_type(s).encode(encoding, errors)
+            return str(s).encode(encoding, errors)
     else:
         return s.encode(encoding, errors)
 

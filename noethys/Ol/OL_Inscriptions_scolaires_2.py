@@ -17,16 +17,12 @@ from Ctrl import CTRL_Bouton_image
 import GestionDB
 import datetime
 from Data import DATA_Civilites as Civilites
+from Utils.UTILS_Dates import DateEngEnDateDD
 
 
 from Utils import UTILS_Interface
 from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, CTRL_Outils
 
-
-
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 
 

@@ -9,8 +9,6 @@
 #-----------------------------------------------------------
 
 
-import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 """
 IMPORTANT :
@@ -26,7 +24,7 @@ import datetime
 import FonctionsPerso
 import sys
 import traceback
-import six
+
 import GestionDB
 from Utils import UTILS_Organisateur
 from Utils import UTILS_Infos_individus
@@ -49,9 +47,6 @@ def FormateMois(donnee):
         annee, mois = donnee
         return "%s %d" % (LISTE_MOIS[mois-1].capitalize(), annee)
     
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 def DateEngFr(textDate):
     text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
@@ -322,7 +317,7 @@ class CTRL(gridlib.Grid, glr.GridWithLabelRenderersMixin):
             elif self.affichage_regroupement == "individu":
                 label = dictResultats[regroupement]["individu"]
             else :
-                label = six.text_type(regroupement)
+                label = str(regroupement)
             
             self.SetRowLabelValue(index, label)
             self.SetRowSize(index, 30)

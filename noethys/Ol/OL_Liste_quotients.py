@@ -23,21 +23,11 @@ from Utils import UTILS_Interface
 from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, CTRL_Outils
 
 from Utils import UTILS_Config
+from Utils.UTILS_Dates import DateEngEnDateDD, DateEngFr
+
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 
 DICT_TITULAIRES = {}
-
-
-def DateEngFr(textDate):
-    if textDate == None or textDate == "None" : return ""
-    text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
-    return text
-
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    if dateEng == None : return None
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-
 
 
 class Track(object):

@@ -81,7 +81,7 @@ class Track(object):
                 self.texte_statut = _("En attente")
 
         # Formatage date
-        if isinstance(self.date, str) or isinstance(self.date, six.text_type) :
+        if isinstance(self.date, str) or isinstance(self.date, str) :
             self.date = datetime.datetime.strptime(self.date, "%Y-%m-%d %H:%M:%S")
 
         # Récupération des réponses des questionnaires

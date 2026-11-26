@@ -13,17 +13,18 @@ import Chemins
 from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
-import six
+
 from six.moves import cPickle
 import copy
 from Ctrl import CTRL_Bouton_image
 import wx.grid as gridlib
-import datetime
+
+from Utils.UTILS_Dates import  DateFrEnDateDD, DateEngFr
 from Ctrl import CTRL_Saisie_heure
 from Ctrl import CTRL_Saisie_date
 import GestionDB
 from Utils import UTILS_Questionnaires
-import wx.lib.wordwrap as wordwrap
+
 
 if 'phoenix' in wx.PlatformInfo:
     from wx.grid import GridCellRenderer
@@ -123,19 +124,6 @@ ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 COULEUR_FOND_CASE = (241, 241, 241)
 
-
-def DateFrEnDateDD(dateFr):
-    if dateFr == None or dateFr == "" or dateFr == "  /  /    " : 
-        return None
-    return datetime.date(int(dateFr[6:10]), int(dateFr[3:5]), int(dateFr[:2]))
-
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-
-def DateEngFr(textDate):
-    text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
-    return text
 
 
 class EditeurHeure(GridCellEditor):
@@ -464,7 +452,7 @@ class Tableau(gridlib.Grid):
                 for numColonne in list(dictColonnes.keys()) :
                     if numColonne != "IDligne" :
                         valeur = dictColonnes[numColonne]
-                        valeur = six.text_type(valeur)
+                        valeur = str(valeur)
                         self.SetCellValue(numLigne, numColonne, valeur)
 
         else:

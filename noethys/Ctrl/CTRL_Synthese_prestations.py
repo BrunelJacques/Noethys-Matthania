@@ -342,12 +342,12 @@ class CTRL(HTL.HyperTreeList):
                 # Questionnaires
                 if key_code.startswith("question_") and "famille" in key_code:
                     key = self.dictInfosFamilles[IDfamille]["QUESTION_%s" % key_code[17:]]
-                    key_label = six.text_type(key)
+                    key_label = str(key)
                     key_tri = key_label
 
                 if key_code.startswith("question_") and "individu" in key_code and IDindividu not in (0, None) :
                     key = self.dictInfosIndividus[IDindividu]["QUESTION_%s" % key_code[18:]]
-                    key_label = six.text_type(key)
+                    key_label = str(key)
                     key_tri = key_label
 
                 if key in ("", None) :

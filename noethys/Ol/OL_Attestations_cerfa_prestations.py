@@ -14,21 +14,13 @@ import wx
 import GestionDB
 import datetime
 from Ctrl.CTRL_ObjectListView import ObjectListView, ColumnDefn, CTRL_Outils, PanelAvecFooter
+from Utils.UTILS_Dates import DateEngFr
 
 from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
 from Utils import UTILS_Config
 
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 
-def DateEngEnDateDD(dateEng):
-    if dateEng == None : return datetime.date(1900, 1, 1)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-
-def DateEngFr(textDate):
-    if textDate == None: return ""
-    textDate = str(textDate)
-    text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
-    return text
 
 def FmtEnt(montant):
     # Convert the given montant into a string with zero null

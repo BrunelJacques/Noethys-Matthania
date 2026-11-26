@@ -170,7 +170,7 @@ class Export():
             listeDonnees = []
             for ID, dictTemp in dictValeurs.items() :
                 for champ, valeur in dictTemp.items() :
-                    if type(valeur) in (str, six.text_type) and valeur not in ("", None) :
+                    if type(valeur) in (str) and valeur not in ("", None) :
                         listeDonnees.append((ID, champ, valeur))
             
             self.Enregistrer(dbdest, nomTable="informations", listeChamps=["IDindividu", "champ", "valeur"], listeDonnees=listeDonnees)

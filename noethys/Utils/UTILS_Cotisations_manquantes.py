@@ -9,17 +9,13 @@
 #------------------------------------------------------------------------
 
 
-import Chemins
+
 from Utils.UTILS_Traduction import _
 import GestionDB
 import datetime
+from Utils.UTILS_Dates import  DateEngEnDateDD
 
 from Utils import UTILS_Titulaires
-
-
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 
 def GetListeCotisationsManquantes(dateReference=None, listeActivites=None, presents=None, concernes=False):

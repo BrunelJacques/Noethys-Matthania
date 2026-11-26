@@ -160,11 +160,11 @@ def Supprimer_location(parent, IDlocation=None):
 
         liste_resultats = []
         for IDlocation, IDfamille, date_debut, date_fin, serie, nom_produit, nom_categorie in listeDonnees:
-            if isinstance(date_debut, str) or isinstance(date_debut, six.text_type):
+            if isinstance(date_debut, str) or isinstance(date_debut, str):
                 date_debut = datetime.datetime.strptime(date_debut, "%Y-%m-%d %H:%M:%S")
             if date_fin == None:
                 date_fin = datetime.datetime(2999, 1, 1)
-            if isinstance(date_fin, str) or isinstance(date_fin, six.text_type):
+            if isinstance(date_fin, str) or isinstance(date_fin, str):
                 date_fin = datetime.datetime.strptime(date_fin, "%Y-%m-%d %H:%M:%S")
             periode = _("%s - %s") % (date_debut.strftime("%d/%m/%Y %H:%M:%S"), date_fin.strftime("%d/%m/%Y %H:%M:%S") if (date_fin and date_fin.year != 2999) else _("Illimitée"))
             label_produit = "%s (%s)" % (nom_produit, nom_categorie)
@@ -304,10 +304,10 @@ class Track(object):
             self.quantite = 1
 
         # Période
-        if isinstance(self.date_debut, str) or isinstance(self.date_debut, six.text_type) :
+        if isinstance(self.date_debut, str) or isinstance(self.date_debut, str) :
             self.date_debut = datetime.datetime.strptime(self.date_debut, "%Y-%m-%d %H:%M:%S")
 
-        if isinstance(self.date_fin, str) or isinstance(self.date_fin, six.text_type) :
+        if isinstance(self.date_fin, str) or isinstance(self.date_fin, str) :
             self.date_fin = datetime.datetime.strptime(self.date_fin, "%Y-%m-%d %H:%M:%S")
 
         # Récupération des réponses des questionnaires

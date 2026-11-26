@@ -16,6 +16,7 @@ from Utils import UTILS_Utilisateurs
 from Dlg import DLG_Famille
 from Utils.UTILS_Traduction import _
 from Ctrl.CTRL_ObjectListView import ObjectListView, ColumnDefn, CTRL_Outils, PanelAvecFooter
+from Utils.UTILS_Dates import DateEngFr
 
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 
@@ -23,17 +24,6 @@ FondCyste = wx.Colour(255, 200, 250) # Mauve clair
 FondRose = wx.Colour(255, 117, 117) # Rose clair
 FondSaumon = wx.Colour(255, 186, 151) # Saumon clair
 FondAzur = wx.Colour(200, 236, 255) # bleu clair
-
-
-def DateEngFr(textDate):
-    if textDate == None: return ""
-    textDate = str(textDate)
-    text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
-    return text
-
-def DateEngEnDateDD(dateEng):
-    if dateEng and not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 # ---------------------------------------- LISTVIEW -----------------------------------------------------------------------
 

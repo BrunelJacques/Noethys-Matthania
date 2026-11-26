@@ -10,7 +10,7 @@
 
 
 import Chemins
-from Utils import UTILS_Adaptations
+
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
@@ -35,7 +35,7 @@ SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 DICT_CIVILITES = Civilites.GetDictCivilites()
 
 from Utils import UTILS_Infos_individus
-from Utils import UTILS_Dates
+from Utils.UTILS_Dates import  DateEngFr, DateEngEnDateDD, DateFrEng
 
 LISTE_DONNEES = [
     { "nom" : _("Attestation"), "champs" : [
@@ -59,24 +59,6 @@ TEXTE_INTRO = _("Je soussigné{GENRE} {NOM}, {FONCTION}, atteste avoir accueilli 
 DICT_DONNEES = {}
 
 
-def DateComplete(dateDD):
-    """ Transforme une date DD en date complète : Ex : lundi 15 janvier 2008 """
-    listeJours = (_("Lundi"), _("Mardi"), _("Mercredi"), _("Jeudi"), _("Vendredi"), _("Samedi"), _("Dimanche"))
-    listeMois = (_("janvier"), _("février"), _("mars"), _("avril"), _("mai"), _("juin"), _("juillet"), _("août"), _("septembre"), _("octobre"), _("novembre"), _("décembre"))
-    dateComplete = listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
-    return dateComplete
-
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-
-def DateEngFr(textDate):
-    text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
-    return text
-
-def DateFrEng(textDate):
-    text = str(textDate[6:10]) + "-" + str(textDate[3:5]) + "-" + str(textDate[:2])
-    return text
 
 def RechercheAgrement(listeAgrements, IDactivite, date):
     for IDactiviteTmp, agrement, date_debut, date_fin in listeAgrements :
@@ -1170,7 +1152,7 @@ class Dialog(wx.Dialog):
                 "montant_initial" : montant_initial, "montant" : montant, "tva" : tva, 
                 "IDtarif" : IDtarif, "nomTarif" : nomTarif, "nomCategorieTarif" : nomCategorieTarif, 
                 "montant_ventilation" : montant_ventilation, "listeDatesConso" : listeDates,
-                "deductions" : deductions, "forfait_date_debut": UTILS_Dates.DateEngEnDateDD(forfait_date_debut), "forfait_date_fin": UTILS_Dates.DateEngEnDateDD(forfait_date_fin),
+                "deductions" : deductions, "forfait_date_debut": DateEngEnDateDD(forfait_date_debut), "forfait_date_fin": DateEngEnDateDD(forfait_date_fin),
                 }
 
             dictValeurs[IDcompte_payeur]["individus"][IDindividu]["activites"][IDactivite]["presences"][date]["unites"].append(dictPrestation)

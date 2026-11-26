@@ -14,11 +14,9 @@ from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
-import datetime
 import time
 import wx.lib.agw.aui as aui
 import wx.html as html
-# import wx.lib.agw.hyperlink as Hyperlink
 
 from Utils import UTILS_Config
 from Utils import UTILS_Utilisateurs
@@ -33,32 +31,8 @@ from Ctrl import CTRL_Grille_forfaits2 as CTRL_Grille_forfaits
 from Ctrl import CTRL_Etiquettes
 from Ol import OL_Legende_grille
 from Ol import OL_Raccourcis_grille
+from Utils.UTILS_Dates import  DateComplete
 
-
-
-def DateComplete(dateDD):
-    """ Transforme une date DD en date complète : Ex : lundi 15 janvier 2008 """
-    listeJours = (
-        _("Lundi"), _("Mardi"), _("Mercredi"), _("Jeudi"),
-        _("Vendredi"), _("Samedi"), _("Dimanche"),
-    )
-    listeMois = (
-        _("janvier"), _("février"), _("mars"), _("avril"), _("mai"),
-        _("juin"), _("juillet"), _("août"), _("septembre"),
-        _("octobre"), _("novembre"), _("décembre"),
-    )
-    dateComplete = "{0} {1} {2} {3}".format(
-        listeJours[dateDD.weekday()], str(dateDD.day),
-        listeMois[dateDD.month-1], str(dateDD.year),
-    )
-    return dateComplete
-
-
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(
-        int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]),
-    )
 
 
 def CalculeAge(dateReference, date_naiss):

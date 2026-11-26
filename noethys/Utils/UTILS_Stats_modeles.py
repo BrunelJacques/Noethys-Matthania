@@ -26,16 +26,12 @@ from numpy import arange, sqrt, array, asarray, ones, exp, convolve, linspace
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot
-
+from Utils.UTILS_Dates import DateEngEnDateDD
 
 COULEUR_VERT_POMME = (151, 253, 79)
 COULEUR_BLEU_CIEL = (174, 212, 253)
 LISTE_NOMS_MOIS = (_("Janvier"), _("Février"), _("Mars"), _("Avril"), _("Mai"), _("Juin"), _("Juillet"), _("Août"), _("Septembre"), _("Octobre"), _("Novembre"), _("Décembre"))
 
-
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 def DateEngFr(textDate):
     text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])

@@ -7,23 +7,19 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-
-from Utils.UTILS_Traduction import _
 import datetime
 import time
 import wx
-import six
-from six.moves import range
 
-LISTE_JOURS = (_("Lundi"), _("Mardi"), _("Mercredi"), _("Jeudi"), _("Vendredi"), _("Samedi"), _("Dimanche"))
-LISTE_MOIS = (_("janvier"), _("février"), _("mars"), _("avril"), _("mai"), _("juin"), _("juillet"), _("août"), _("septembre"), _("octobre"), _("novembre"), _("décembre"))
-LISTE_JOURS_ABREGES = (_("Lun."), _("Mar."), _("Mer."), _("Jeu."), _("Ven."), _("Sam."), _("Dim."))
-LISTE_MOIS_ABREGES = (_("janv."), _("fév."), _("mars"), _("avril"), _("mai"), _("juin"), _("juil."), _("août"), _("sept."), _("oct"), _("nov."), _("déc."))
+LISTE_JOURS = ("Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche")
+LISTE_MOIS = ("janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre")
+LISTE_JOURS_ABREGES = ("Lun.", "Mar.", "Mer.", "Jeu.", "Ven.", "Sam.", "Dim.")
+LISTE_MOIS_ABREGES = ("janv.", "fév.", "mars", "avril", "mai", "juin", "juil.", "août", "sept.", "oct", "nov.", "déc.")
 
 # Conversion date
 def ConvertDateWXenDate(datewx=None):
     """ Convertit une date WX.datetime en datetime """
-    if datewx == None :
+    if not datewx :
         return None
     if isinstance(datewx, datetime.datetime):
         return datetime.date(datewx.year, datewx.month, datewx.day)
@@ -73,13 +69,23 @@ def DateDDEnDateEng(datedd):
 
 def DateComplete(dateDD, abrege=False):
     """ Transforme une date DD en date complète : Ex : lundi 15 janvier 2008 """
-    if dateDD == None : return ""
+    if not dateDD : return ""
     if abrege == False :
         listeJours, listeMois = LISTE_JOURS, LISTE_MOIS
     else :
         listeJours, listeMois = LISTE_JOURS_ABREGES, LISTE_MOIS_ABREGES
     dateComplete = listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
     return dateComplete
+
+def DateFrEnDateDD(dateFr):
+    if not isinstance(dateFr, str) or dateFr == "":
+        return None
+    lstDte = dateFr.split("/")
+    if len(lstDte) < 3:
+        return None
+    if len(lstDte[2]) == 2:
+        lstDte[2] = f"20{lstDte[2]}"
+    return datetime.date(int(lstDte[2]), int(lstDte[1]), int(lstDte[0]))
 
 def DateFrEng(textDate):
     if textDate in ("", None):
@@ -90,7 +96,7 @@ def DateFrEng(textDate):
 # Conversions date-time
 def ConvertDateWXenDT(datewx=None):
     """ Convertit une date WX.datetime en datetime """
-    if datewx == None :
+    if not datewx :
         return None
     jour = datewx.GetDay()
     mois = datewx.GetMonth()+1
@@ -102,7 +108,7 @@ def ConvertDateWXenDT(datewx=None):
 
 def ConvertDateDTenWX(date=None):
     """ Convertit une date datetime en WX.datetime """
-    if date == None :
+    if not date :
         return None
     datewx = wx.DateTime()
     datewx.Set(date.day, month=date.month-1, year=date.year)
@@ -141,7 +147,7 @@ def DatetimeTimeEnStr(heure, separateur="h"):
 
 # Autres fonctions date ou deltatime
 def PeriodeComplete(mois, annee):
-    listeMois = (_("Janvier"), _("Février"), _("Mars"), _("Avril"), _("Mai"), _("Juin"), _("Juillet"), _("Août"), _("Septembre"), _("Octobre"), _("Novembre"), _("Décembre"))
+    listeMois = ("Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre")
     periodeComplete = "%s %d" % (listeMois[mois-1], annee)
     return periodeComplete
 
@@ -149,26 +155,10 @@ def CalculeAge(dateReference=None, date_naiss=None):
     """ Calcul de l'age de la personne """
     if dateReference == None :
         dateReference = datetime.date.today()
-    if date_naiss in (None, "") :
+    if not date_naiss or date_naiss == "" :
         return None
     age = (dateReference.year - date_naiss.year) - int((dateReference.month, dateReference.day) < (date_naiss.month, date_naiss.day))
     return age
-
-def HeuresEnDecimal(texteHeure="07:00"):
-    """ Transforme une heure string ou datetime.time en entier de type 2075"""
-    if texteHeure == None :
-        return 0
-    if type(texteHeure) == datetime.time :
-        heures = str(texteHeure.hour)
-        minutes = int(texteHeure.minute)
-    if type(texteHeure) in (str, six.text_type) :
-        posTemp = texteHeure.index(":")
-        heures = str(texteHeure[0:posTemp])
-        minutes = int(texteHeure[posTemp+1:5])
-    minutes = str(minutes * 100 //60)
-    if len(minutes) == 1 : minutes = "0" + minutes
-    heure = str(heures + minutes)
-    return int(heure)
 
 def DeltaEnHeures(valeur=datetime.timedelta(0)):
     """ Convertit une durée timedelta en nombre d'heures"""
@@ -195,6 +185,7 @@ def AdditionHeures(heure1, heure2):
     return heure1 + heure2
 
 def Additionne_intervalles_temps(intervals=[]):
+
     def tparse(timestring):
         return datetime.datetime.strptime(timestring, '%H:%M')
 
@@ -206,6 +197,7 @@ def Additionne_intervalles_temps(intervals=[]):
     times.sort()
 
     started = 0
+    start_time = 0
     result = datetime.timedelta()
     for t, categorie in times:
         if categorie == START:
@@ -237,7 +229,7 @@ def DeltaEnStr(heureDelta, separateur="h"):
     return valeur
 
 def TimeEnDelta(heureTime):
-    if heureTime == None :
+    if not heureTime :
         return datetime.timedelta(0)
     hr = heureTime.hour
     mn = heureTime.minute

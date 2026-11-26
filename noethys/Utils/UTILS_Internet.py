@@ -9,30 +9,21 @@
 #------------------------------------------------------------------------
 
 
-import Chemins
+
 from Utils.UTILS_Traduction import _
 import GestionDB
 from Utils import UTILS_CryptageMD5
-import six
+
 import random
-from six.moves.urllib.request import urlopen
 import datetime
+from urllib.request import urlopen
+from Utils.UTILS_Dates import  DateEngEnDateDD
 import string
 import ftplib
 import FonctionsPerso
 from Utils import UTILS_Cryptage_fichier
 
 
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    """ Tranforme une date anglaise en datetime.date """
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-    
-def DateDDEnDateFR(dateDD):
-    """ Transforme une datetime.date en date complète FR """
-    listeJours = ("Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche")
-    listeMois = (_("janvier"), _("février"), _("mars"), _("avril"), _("mai"), _("juin"), _("juillet"), _("août"), _("septembre"), _("octobre"), _("novembre"), _("décembre"))
-    return listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
 
 
 def CreationIdentifiant(IDfamille=None, IDutilisateur=None, nbreCaract=8):
@@ -434,8 +425,7 @@ def GetPiecesAFournir(dictPieces, dictCotisations, dictTypesPieces, dictEnfants,
                                 # Vérifie si la pièce est valide :
                                 if date_debut <= str(datedujour) <= date_fin : 
                                     etat = "ok"
-                        if six.PY2:
-                            prenom = prenom.decode('cp1252')
+
                         labelPiece = nomTypePiece + " de " + prenom
                         if etat == "pasok" :
                             listeDonnees.append( "%d%d" % (IDtypePiece, IDenfant) ) 
