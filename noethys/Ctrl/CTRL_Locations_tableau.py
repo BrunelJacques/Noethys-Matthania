@@ -18,7 +18,6 @@ import random
 import logging
 import GestionDB
 from dateutil import rrule
-import six
 import wx.lib.wordwrap as wordwrap
 import wx.lib.agw.supertooltip as STT
 from Utils import UTILS_Historique

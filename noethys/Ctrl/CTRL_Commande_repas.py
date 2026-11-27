@@ -18,7 +18,6 @@ import copy
 import wx.grid as gridlib
 import Outils.gridlabelrenderer as glr
 import GestionDB
-import six
 from Ctrl import CTRL_Bouton_image
 from Utils import UTILS_Dates
 from Utils import UTILS_Divers

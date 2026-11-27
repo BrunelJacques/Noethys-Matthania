@@ -9,19 +9,17 @@
 #------------------------------------------------------------------------
 
 
-import Chemins
 from Utils.UTILS_Traduction import _
 import wx
-from Ctrl import CTRL_Bouton_image
 import wx.html
 from PIL import Image
 import datetime
 import calendar
 import GestionDB
 from Utils import UTILS_Dates
-import six
+import io
 
-from numpy import arange, sqrt, array, asarray, ones, exp, convolve, linspace
+from numpy import asarray, ones, exp, convolve, linspace
 
 import matplotlib
 matplotlib.use('Agg')
@@ -489,10 +487,7 @@ class Graphe(Objet):
         self.categorie = "graphe"
         self.taille = (300, 300)
         self.bitmap = None
-        if six.PY2:
-            self.decalage_x = 0.25
-        else:
-            self.decalage_x = 0.5
+        self.decalage_x = 0.5
 
     def MemoriseImage(self, figure=None):
         self.nomImage = "image-%s" % self.code
@@ -517,7 +512,7 @@ class Graphe(Objet):
         inchesV = 1.0 * self.taille[1] / dpi
         
         # Convert figure matplotlib to python.Image object 
-        imgdata = six.BytesIO()
+        imgdata = io.BytesIO()
         figure.set_size_inches(inchesH, inchesV)
         figure.savefig(imgdata, format='png', dpi=dpi)#, facecolor='r')
         imgdata.seek(0)

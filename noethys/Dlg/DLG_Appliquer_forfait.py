@@ -16,7 +16,6 @@ import wx
 from Ctrl import CTRL_Bouton_image
 import datetime
 import wx.lib.agw.hypertreelist as HTL
-import six
 from Ctrl import CTRL_Bandeau
 from Utils import UTILS_Identification
 from Utils import UTILS_Gestion
@@ -26,8 +25,7 @@ from Ctrl import CTRL_Saisie_date
 import GestionDB
 from Ctrl.CTRL_Tarification_calcul import CHAMPS_TABLE_LIGNES
 
-if six.PY3:
-    import functools
+import functools
 
 
 
@@ -503,10 +501,7 @@ class Forfaits():
                                                             listeCombiValides.append(dictTmp)
 
                                                     # Tri des combinaisons par nombre d'unités max dans les combinaisons
-                                                    if six.PY2:
-                                                        listeCombiValides.sort(cmp=self.TriTarifs)
-                                                    else:
-                                                        listeCombiValides.sort(key=functools.cmp_to_key(self.TriTarifs))
+                                                    listeCombiValides.sort(key=functools.cmp_to_key(self.TriTarifs))
 
                                                     # On conserve le combi qui a le plus grand nombre d'unités dedans
                                                     if len(listeCombiValides) > 0 :

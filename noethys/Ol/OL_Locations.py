@@ -16,7 +16,6 @@ import wx
 import datetime
 import GestionDB
 import FonctionsPerso
-import six
 from Utils import UTILS_Titulaires
 from Utils import UTILS_Interface
 from Utils import UTILS_Questionnaires

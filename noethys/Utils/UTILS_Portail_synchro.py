@@ -26,6 +26,7 @@ import sys
 import importlib
 import platform
 import time
+from Crypto.Hash import SHA256
 from dateutil import relativedelta
 import paramiko
 
@@ -360,32 +361,36 @@ class Synchro():
         else :
             pass
 
-    def Upload_data(self, full_synchro=False) :
-        self.log.EcritLog(_("Lancement de la synchronisation des données..."))
+    def Upload_data(self, full_synchro=False):
+        self.log.EcritLog(_(u"Lancement de la synchronisation des données..."))
         t1 = time.time()
 
-        last_synchro = UTILS_Parametres.Parametres(mode="get", categorie="portail", nom="last_synchro", valeur="")
+        last_synchro = UTILS_Parametres.Parametres(mode="get", categorie="portail",
+                                                   nom="last_synchro", valeur="")
 
         resultats = self.Connexion()
-        if resultats == False :
+        if resultats == False:
             return False
-        else :
+        else:
             ftp, ssh = resultats
 
         # Envoi du fichier de config
-        self.log.EcritLog(_("Synchro du fichier de configuration..."))
+        self.log.EcritLog(_(u"Synchro du fichier de configuration..."))
         self.Pulse_gauge()
         resultat = self.Upload_config(ftp=ftp)
-        if resultat == False :
-            self.log.EcritLog(_("[ERREUR] Synchro du fichier de configuration impossible."))
+        if resultat == False:
+            self.log.EcritLog(
+                _(u"[ERREUR] Synchro du fichier de configuration impossible."))
             self.Deconnexion(ftp)
             return False
 
         # Récupération du fichier models
-        self.log.EcritLog(_("Récupération des modèles de données..."))
-        resultat = self.TelechargeFichier(ftp=ftp, nomFichier="models.py", repFichier="application")
-        if resultat == False :
-            self.log.EcritLog(_("[ERREUR] Récupération des modèles de données impossible."))
+        self.log.EcritLog(_(u"Récupération des modèles de données..."))
+        resultat = self.TelechargeFichier(ftp=ftp, nomFichier="models.py",
+                                          repFichier="application")
+        if resultat == False:
+            self.log.EcritLog(
+                _(u"[ERREUR] Récupération des modèles de données impossible."))
             self.Deconnexion(ftp)
             return False
 
@@ -399,7 +404,7 @@ class Synchro():
 
         # Génération d'un nombre secret pour le nom de fichier des données
         secret = ""
-        for x in range(0, 20) :
+        for x in range(0, 20):
             secret += random.choice("1234567890")
         secret = int(secret)
 
@@ -416,16 +421,17 @@ class Synchro():
         session = Session()
 
         # Liste des tables modifiées à importer dans Connecthys
-        liste_tables_modifiees =[]
+        liste_tables_modifiees = []
 
         # Ouverture de la base Noethys
         DB = GestionDB.DB()
 
-        self.log.EcritLog(_("Récupération des données à exporter..."))
+        self.log.EcritLog(_(u"Récupération des données à exporter..."))
         self.Pulse_gauge()
 
         # Préparation du cryptage des valeurs
-        cryptage = UTILS_Cryptage_fichier.AESCipher(self.dict_parametres["secret_key"][10:20], bs=16, prefixe=u"#@#")
+        cryptage = UTILS_Cryptage_fichier.AESCipher(
+            self.dict_parametres["secret_key"][10:20], bs=16, prefixe=u"#@#")
 
         # Création des paramètres
 
@@ -435,154 +441,275 @@ class Synchro():
 
         # Thème
         index = 0
-        for code, label in LISTE_THEMES :
-            if index == self.dict_parametres["theme"] :
+        for code, label in LISTE_THEMES:
+            if index == self.dict_parametres["theme"]:
                 theme = "skin-%s" % code
             index += 1
         session.add(models.Parametre(nom="SKIN", parametre=theme))
 
         # Image de fond identification
-        last_fond = UTILS_Parametres.Parametres(mode="get", categorie="portail", nom="last_fond", valeur="")
-        if self.dict_parametres["image_identification"] != "" :
+        last_fond = UTILS_Parametres.Parametres(mode="get", categorie="portail",
+                                                nom="last_fond", valeur="")
+        if self.dict_parametres["image_identification"] != "":
             chemin_image = self.dict_parametres["image_identification"]
             nom_fichier = os.path.basename(chemin_image)
 
             # Upload du fichier image de fond
-            if nom_fichier != last_fond or full_synchro == True :
-                self.UploadFichier(ftp=ftp, nomFichierComplet=chemin_image, repDest="application/static/fonds")
+            if nom_fichier != last_fond or full_synchro == True:
+                self.UploadFichier(ftp=ftp, nomFichierComplet=chemin_image,
+                                   repDest="application/static/fonds")
 
-        else :
+        else:
             nom_fichier = ""
 
-        if last_fond != nom_fichier :
-            UTILS_Parametres.Parametres(mode="set", categorie="portail", nom="last_fond", valeur=nom_fichier)
+        if last_fond != nom_fichier:
+            UTILS_Parametres.Parametres(mode="set", categorie="portail", nom="last_fond",
+                                        valeur=nom_fichier)
 
         session.add(models.Parametre(nom="IMAGE_FOND", parametre=nom_fichier))
 
         # Cadre logo organisateur
-        if self.dict_parametres["cadre_logo"] == 0 :
+        if self.dict_parametres["cadre_logo"] == 0:
             rond = False
-        else :
+        else:
             rond = True
         session.add(models.Parametre(nom="ORGANISATEUR_IMAGE_ROND", parametre=str(rond)))
 
         # Données organisateur
         dict_organisateur = UTILS_Organisateur.GetDonnees(tailleLogo=(200, 200))
 
-        session.add(models.Parametre(nom="ORGANISATEUR_NOM", parametre=dict_organisateur["nom"]))
-        session.add(models.Parametre(nom="ORGANISATEUR_RUE", parametre=dict_organisateur["rue"].replace("\n", "")))
-        session.add(models.Parametre(nom="ORGANISATEUR_CP", parametre=dict_organisateur["cp"]))
-        session.add(models.Parametre(nom="ORGANISATEUR_VILLE", parametre=dict_organisateur["ville"]))
-        session.add(models.Parametre(nom="ORGANISATEUR_TEL", parametre=dict_organisateur["tel"]))
-        session.add(models.Parametre(nom="ORGANISATEUR_FAX", parametre=dict_organisateur["fax"]))
-        session.add(models.Parametre(nom="ORGANISATEUR_EMAIL", parametre=dict_organisateur["mail"]))
+        session.add(
+            models.Parametre(nom="ORGANISATEUR_NOM", parametre=dict_organisateur["nom"]))
+        session.add(models.Parametre(nom="ORGANISATEUR_RUE",
+                                     parametre=dict_organisateur["rue"].replace("\n",
+                                                                                "")))
+        session.add(
+            models.Parametre(nom="ORGANISATEUR_CP", parametre=dict_organisateur["cp"]))
+        session.add(models.Parametre(nom="ORGANISATEUR_VILLE",
+                                     parametre=dict_organisateur["ville"]))
+        session.add(
+            models.Parametre(nom="ORGANISATEUR_TEL", parametre=dict_organisateur["tel"]))
+        session.add(
+            models.Parametre(nom="ORGANISATEUR_FAX", parametre=dict_organisateur["fax"]))
+        session.add(models.Parametre(nom="ORGANISATEUR_EMAIL",
+                                     parametre=dict_organisateur["mail"]))
 
         # Logo organisateur
         logo = dict_organisateur["logo"]
-        if logo != None :
+        if logo != None:
             nomFichier = "logo.png"
             session.add(models.Parametre(nom="ORGANISATEUR_IMAGE", parametre=nomFichier))
 
             # Upload du logo
-            if dict_organisateur["logo_update"] > last_synchro or full_synchro == True :
+            if dict_organisateur["logo_update"] > last_synchro or full_synchro == True:
                 cheminLogo = UTILS_Fichiers.GetRepTemp(fichier=nomFichier)
                 logo.SaveFile(cheminLogo, type=wx.BITMAP_TYPE_PNG)
                 print("Upload du logo")
-                self.UploadFichier(ftp=ftp, nomFichierComplet=cheminLogo, repDest="application/static")
+                self.UploadFichier(ftp=ftp, nomFichierComplet=cheminLogo,
+                                   repDest="application/static")
 
-        else :
+        else:
             session.add(models.Parametre(nom="ORGANISATEUR_IMAGE", parametre=""))
 
         # Autres
-        session.add(models.Parametre(nom="RECEVOIR_DOCUMENT_EMAIL", parametre=str(self.dict_parametres["recevoir_document_email"])))
-        session.add(models.Parametre(nom="RECEVOIR_DOCUMENT_POSTE", parametre=str(self.dict_parametres["recevoir_document_courrier"])))
-        session.add(models.Parametre(nom="RECEVOIR_DOCUMENT_RETIRER", parametre=str(self.dict_parametres["recevoir_document_site"])))
-        session.add(models.Parametre(nom="RECEVOIR_DOCUMENT_RETIRER_LIEU", parametre=self.dict_parametres["recevoir_document_site_lieu"]))
-        session.add(models.Parametre(nom="PAIEMENT_EN_LIGNE_ACTIF", parametre=str(self.dict_parametres["paiement_ligne_actif"])))
-        session.add(models.Parametre(nom="MDP_FORCER_MODIFICATION", parametre=str(self.dict_parametres["mdp_forcer_modification"])))
-        session.add(models.Parametre(nom="MDP_AUTORISER_MODIFICATION", parametre=str(self.dict_parametres["mdp_autoriser_modification"])))
-        session.add(models.Parametre(nom="MDP_AUTORISER_REINITIALISATION", parametre=str(self.dict_parametres["mdp_autoriser_reinitialisation"])))
+        session.add(models.Parametre(nom="RECEVOIR_DOCUMENT_EMAIL", parametre=str(
+            self.dict_parametres["recevoir_document_email"])))
+        session.add(models.Parametre(nom="RECEVOIR_DOCUMENT_POSTE", parametre=str(
+            self.dict_parametres["recevoir_document_courrier"])))
+        session.add(models.Parametre(nom="RECEVOIR_DOCUMENT_RETIRER", parametre=str(
+            self.dict_parametres["recevoir_document_site"])))
+        session.add(models.Parametre(nom="RECEVOIR_DOCUMENT_RETIRER_LIEU",
+                                     parametre=self.dict_parametres[
+                                         "recevoir_document_site_lieu"]))
+        session.add(models.Parametre(nom="PAIEMENT_EN_LIGNE_ACTIF", parametre=str(
+            self.dict_parametres["paiement_ligne_actif"])))
+        session.add(models.Parametre(nom="MDP_FORCER_MODIFICATION", parametre=str(
+            self.dict_parametres["mdp_forcer_modification"])))
+        session.add(models.Parametre(nom="MDP_AUTORISER_MODIFICATION", parametre=str(
+            self.dict_parametres["mdp_autoriser_modification"])))
+        session.add(models.Parametre(nom="MDP_AUTORISER_REINITIALISATION", parametre=str(
+            self.dict_parametres["mdp_autoriser_reinitialisation"])))
 
-        if self.dict_parametres["paiement_ligne_actif"] == 1 :
-            session.add(models.Parametre(nom="PAIEMENT_EN_LIGNE_SYSTEME", parametre=str(self.dict_parametres["paiement_ligne_systeme"])))
-            session.add(models.Parametre(nom="PAIEMENT_EN_LIGNE_MULTI_FACTURES", parametre=str(self.dict_parametres["paiement_ligne_multi_factures"])))
-            session.add(models.Parametre(nom="PAIEMENT_EN_LIGNE_MONTANT_MINIMAL", parametre=str(self.dict_parametres["paiement_ligne_montant_minimal"])))
-            session.add(models.Parametre(nom="PAIEMENT_OFF_SI_PRELEVEMENT", parametre=str(self.dict_parametres["paiement_off_si_prelevement"])))
+        if self.dict_parametres["paiement_ligne_actif"] == 1:
+            session.add(models.Parametre(nom="PAIEMENT_EN_LIGNE_SYSTEME", parametre=str(
+                self.dict_parametres["paiement_ligne_systeme"])))
+            session.add(models.Parametre(nom="PAIEMENT_EN_LIGNE_MULTI_FACTURES",
+                                         parametre=str(self.dict_parametres[
+                                                           "paiement_ligne_multi_factures"])))
+            session.add(models.Parametre(nom="PAIEMENT_EN_LIGNE_MONTANT_MINIMAL",
+                                         parametre=str(self.dict_parametres[
+                                                           "paiement_ligne_montant_minimal"])))
+            session.add(models.Parametre(nom="PAIEMENT_OFF_SI_PRELEVEMENT", parametre=str(
+                self.dict_parametres["paiement_off_si_prelevement"])))
             if "paiement_ligne_tipi_saisie" in self.dict_parametres:
-                session.add(models.Parametre(nom="PAIEMENT_EN_LIGNE_TIPI_SAISIE", parametre=str(self.dict_parametres["paiement_ligne_tipi_saisie"])))
+                session.add(models.Parametre(nom="PAIEMENT_EN_LIGNE_TIPI_SAISIE",
+                                             parametre=str(self.dict_parametres[
+                                                               "paiement_ligne_tipi_saisie"])))
             if "payzen_site_id" in self.dict_parametres:
-                session.add(models.Parametre(nom="PAYZEN_SITE_ID", parametre=str(self.dict_parametres["payzen_site_id"])))
+                session.add(models.Parametre(nom="PAYZEN_SITE_ID", parametre=str(
+                    self.dict_parametres["payzen_site_id"])))
             if "payzen_mode" in self.dict_parametres:
-                session.add(models.Parametre(nom="PAYZEN_MODE", parametre=str(self.dict_parametres["payzen_mode"])))
+                session.add(models.Parametre(nom="PAYZEN_MODE", parametre=str(
+                    self.dict_parametres["payzen_mode"])))
             if "payzen_certificat_test" in self.dict_parametres:
-                session.add(models.Parametre(nom="PAYZEN_CERTIFICAT_TEST", parametre=str(self.dict_parametres["payzen_certificat_test"])))
+                session.add(models.Parametre(nom="PAYZEN_CERTIFICAT_TEST", parametre=str(
+                    self.dict_parametres["payzen_certificat_test"])))
             if "payzen_certificat_production" in self.dict_parametres:
-                session.add(models.Parametre(nom="PAYZEN_CERTIFICAT_PRODUCTION", parametre=str(self.dict_parametres["payzen_certificat_production"])))
+                session.add(models.Parametre(nom="PAYZEN_CERTIFICAT_PRODUCTION",
+                                             parametre=str(self.dict_parametres[
+                                                               "payzen_certificat_production"])))
             if "payzen_echelonnement" in self.dict_parametres:
-                session.add(models.Parametre(nom="PAYZEN_ECHELONNEMENT", parametre=str(self.dict_parametres["payzen_echelonnement"])))
+                session.add(models.Parametre(nom="PAYZEN_ECHELONNEMENT", parametre=str(
+                    self.dict_parametres["payzen_echelonnement"])))
 
-        session.add(models.Parametre(nom="ACCUEIL_TITRE", parametre=self.dict_parametres["accueil_titre"]))
-        session.add(models.Parametre(nom="ACCUEIL_BIENVENUE", parametre=self.dict_parametres["accueil_bienvenue"]))
-        session.add(models.Parametre(nom="ACCUEIL_MESSAGES_AFFICHER", parametre=str(self.dict_parametres["accueil_messages_afficher"])))
-        session.add(models.Parametre(nom="ACCUEIL_ETAT_DOSSIER_AFFICHER", parametre=str(self.dict_parametres["accueil_etat_dossier_afficher"])))
-        session.add(models.Parametre(nom="RENSEIGNEMENTS_AFFICHER", parametre=str(self.dict_parametres["renseignements_afficher"])))
-        session.add(models.Parametre(nom="RENSEIGNEMENTS_INTRO", parametre=self.dict_parametres["renseignements_intro"]))
-        session.add(models.Parametre(nom="RENSEIGNEMENTS_MODIFIER", parametre=str(self.dict_parametres["renseignements_modifier"])))
-        session.add(models.Parametre(nom="RENSEIGNEMENTS_ADULTE_NOM", parametre=self.dict_parametres["renseignements_adulte_nom"]))
-        session.add(models.Parametre(nom="RENSEIGNEMENTS_ENFANT_NOM", parametre=self.dict_parametres["renseignements_enfant_nom"]))
-        session.add(models.Parametre(nom="RENSEIGNEMENTS_ADULTE_NAISSANCE", parametre=self.dict_parametres["renseignements_adulte_naissance"]))
-        session.add(models.Parametre(nom="RENSEIGNEMENTS_ENFANT_NAISSANCE", parametre=self.dict_parametres["renseignements_enfant_naissance"]))
-        session.add(models.Parametre(nom="RENSEIGNEMENTS_ADRESSE", parametre=self.dict_parametres["renseignements_adresse"]))
-        session.add(models.Parametre(nom="RENSEIGNEMENTS_ADULTE_COORDS", parametre=self.dict_parametres["renseignements_adulte_coords"]))
-        session.add(models.Parametre(nom="RENSEIGNEMENTS_ENFANT_COORDS", parametre=self.dict_parametres["renseignements_enfant_coords"]))
-        session.add(models.Parametre(nom="RENSEIGNEMENTS_ADULTE_PROFESSION", parametre=self.dict_parametres["renseignements_adulte_profession"]))
-        session.add(models.Parametre(nom="ACTIVITES_AFFICHER", parametre=str(self.dict_parametres["activites_afficher"])))
-        session.add(models.Parametre(nom="ACTIVITES_INTRO", parametre=self.dict_parametres["activites_intro"]))
-        session.add(models.Parametre(nom="ACTIVITES_AUTORISER_INSCRIPTION", parametre=str(self.dict_parametres["activites_autoriser_inscription"])))
-        session.add(models.Parametre(nom="ACTIVITES_BLOQUER_COMPLET", parametre=str(self.dict_parametres["activites_bloquer_complet"])))
-        session.add(models.Parametre(nom="RESERVATIONS_AFFICHER", parametre=str(self.dict_parametres["reservations_afficher"])))
-        session.add(models.Parametre(nom="RESERVATIONS_INTRO", parametre=self.dict_parametres["reservations_intro"]))
-        session.add(models.Parametre(nom="PLANNING_INTRO", parametre=self.dict_parametres["planning_intro"]))
-        session.add(models.Parametre(nom="FACTURES_AFFICHER", parametre=str(self.dict_parametres["factures_afficher"])))
-        session.add(models.Parametre(nom="FACTURES_INTRO", parametre=self.dict_parametres["factures_intro"]))
-        session.add(models.Parametre(nom="FACTURES_DEMANDE_FACTURE", parametre=str(self.dict_parametres["factures_demande_facture"])))
-        session.add(models.Parametre(nom="FACTURES_PREFACTURATION", parametre=str(self.dict_parametres["factures_prefacturation"])))
-        session.add(models.Parametre(nom="REGLEMENTS_AFFICHER", parametre=str(self.dict_parametres["reglements_afficher"])))
-        session.add(models.Parametre(nom="REGLEMENTS_INTRO", parametre=self.dict_parametres["reglements_intro"]))
-        session.add(models.Parametre(nom="REGLEMENTS_DEMANDE_RECU", parametre=str(self.dict_parametres["reglements_demande_recu"])))
-        session.add(models.Parametre(nom="PIECES_AFFICHER", parametre=str(self.dict_parametres["pieces_afficher"])))
-        session.add(models.Parametre(nom="PIECES_INTRO", parametre=self.dict_parametres["pieces_intro"]))
-        session.add(models.Parametre(nom="PIECES_AUTORISER_TELECHARGEMENT", parametre=str(self.dict_parametres["pieces_autoriser_telechargement"])))
-        session.add(models.Parametre(nom="PIECES_AUTORISER_UPLOAD", parametre=str(self.dict_parametres["pieces_autoriser_upload"])))
-        session.add(models.Parametre(nom="COTISATIONS_AFFICHER", parametre=str(self.dict_parametres["cotisations_afficher"])))
-        session.add(models.Parametre(nom="COTISATIONS_INTRO", parametre=self.dict_parametres["cotisations_intro"]))
-        session.add(models.Parametre(nom="LOCATIONS_AFFICHER", parametre=str(self.dict_parametres["locations_afficher"])))
-        session.add(models.Parametre(nom="LOCATIONS_INTRO", parametre=self.dict_parametres["locations_intro"]))
-        session.add(models.Parametre(nom="LOCATIONS_PERIODE_SAISIE", parametre=self.dict_parametres["locations_periode_saisie"]))
-        session.add(models.Parametre(nom="PLANNING_LOCATIONS_INTRO", parametre=self.dict_parametres["planning_locations_intro"]))
-        session.add(models.Parametre(nom="LOCATIONS_HEURE_MIN", parametre=self.dict_parametres["locations_heure_min"]))
-        session.add(models.Parametre(nom="LOCATIONS_HEURE_MAX", parametre=self.dict_parametres["locations_heure_max"]))
-        session.add(models.Parametre(nom="LOCATIONS_AFFICHER_AUTRES_LOUEURS", parametre=str(self.dict_parametres["locations_afficher_autres_loueurs"])))
-        session.add(models.Parametre(nom="HISTORIQUE_AFFICHER", parametre=str(self.dict_parametres["historique_afficher"])))
-        session.add(models.Parametre(nom="HISTORIQUE_INTRO", parametre=self.dict_parametres["historique_intro"]))
-        session.add(models.Parametre(nom="HISTORIQUE_DELAI", parametre=str(self.dict_parametres["historique_delai"])))
-        session.add(models.Parametre(nom="CONTACT_AFFICHER", parametre=str(self.dict_parametres["contact_afficher"])))
-        session.add(models.Parametre(nom="CONTACT_INTRO", parametre=self.dict_parametres["contact_intro"]))
-        session.add(models.Parametre(nom="CONTACT_CARTE_AFFICHER", parametre=str(False))) #self.dict_parametres["contact_carte_afficher"])))
-        session.add(models.Parametre(nom="MENTIONS_AFFICHER", parametre=str(self.dict_parametres["mentions_afficher"])))
-        session.add(models.Parametre(nom="AIDE_AFFICHER", parametre=str(self.dict_parametres["aide_afficher"])))
+        session.add(models.Parametre(nom="ACCUEIL_TITRE",
+                                     parametre=self.dict_parametres["accueil_titre"]))
+        session.add(models.Parametre(nom="ACCUEIL_BIENVENUE",
+                                     parametre=self.dict_parametres["accueil_bienvenue"]))
+        session.add(models.Parametre(nom="ACCUEIL_MESSAGES_AFFICHER", parametre=str(
+            self.dict_parametres["accueil_messages_afficher"])))
+        session.add(models.Parametre(nom="ACCUEIL_ETAT_DOSSIER_AFFICHER", parametre=str(
+            self.dict_parametres["accueil_etat_dossier_afficher"])))
+        session.add(models.Parametre(nom="RENSEIGNEMENTS_AFFICHER", parametre=str(
+            self.dict_parametres["renseignements_afficher"])))
+        session.add(models.Parametre(nom="RENSEIGNEMENTS_INTRO",
+                                     parametre=self.dict_parametres[
+                                         "renseignements_intro"]))
+        session.add(models.Parametre(nom="RENSEIGNEMENTS_MODIFIER", parametre=str(
+            self.dict_parametres["renseignements_modifier"])))
+        session.add(models.Parametre(nom="RENSEIGNEMENTS_ADULTE_NOM",
+                                     parametre=self.dict_parametres[
+                                         "renseignements_adulte_nom"]))
+        session.add(models.Parametre(nom="RENSEIGNEMENTS_ENFANT_NOM",
+                                     parametre=self.dict_parametres[
+                                         "renseignements_enfant_nom"]))
+        session.add(models.Parametre(nom="RENSEIGNEMENTS_ADULTE_NAISSANCE",
+                                     parametre=self.dict_parametres[
+                                         "renseignements_adulte_naissance"]))
+        session.add(models.Parametre(nom="RENSEIGNEMENTS_ENFANT_NAISSANCE",
+                                     parametre=self.dict_parametres[
+                                         "renseignements_enfant_naissance"]))
+        session.add(models.Parametre(nom="RENSEIGNEMENTS_ADRESSE",
+                                     parametre=self.dict_parametres[
+                                         "renseignements_adresse"]))
+        session.add(models.Parametre(nom="RENSEIGNEMENTS_ADULTE_COORDS",
+                                     parametre=self.dict_parametres[
+                                         "renseignements_adulte_coords"]))
+        session.add(models.Parametre(nom="RENSEIGNEMENTS_ENFANT_COORDS",
+                                     parametre=self.dict_parametres[
+                                         "renseignements_enfant_coords"]))
+        session.add(models.Parametre(nom="RENSEIGNEMENTS_ADULTE_PROFESSION",
+                                     parametre=self.dict_parametres[
+                                         "renseignements_adulte_profession"]))
+        session.add(models.Parametre(nom="ACTIVITES_AFFICHER", parametre=str(
+            self.dict_parametres["activites_afficher"])))
+        session.add(models.Parametre(nom="ACTIVITES_INTRO",
+                                     parametre=self.dict_parametres["activites_intro"]))
+        session.add(models.Parametre(nom="ACTIVITES_AUTORISER_INSCRIPTION", parametre=str(
+            self.dict_parametres["activites_autoriser_inscription"])))
+        session.add(models.Parametre(nom="ACTIVITES_BLOQUER_COMPLET", parametre=str(
+            self.dict_parametres["activites_bloquer_complet"])))
+        session.add(models.Parametre(nom="RESERVATIONS_AFFICHER", parametre=str(
+            self.dict_parametres["reservations_afficher"])))
+        session.add(models.Parametre(nom="RESERVATIONS_INTRO",
+                                     parametre=self.dict_parametres[
+                                         "reservations_intro"]))
+        session.add(models.Parametre(nom="PLANNING_INTRO",
+                                     parametre=self.dict_parametres["planning_intro"]))
+        session.add(models.Parametre(nom="FACTURES_AFFICHER", parametre=str(
+            self.dict_parametres["factures_afficher"])))
+        session.add(models.Parametre(nom="FACTURES_INTRO",
+                                     parametre=self.dict_parametres["factures_intro"]))
+        session.add(models.Parametre(nom="FACTURES_DEMANDE_FACTURE", parametre=str(
+            self.dict_parametres["factures_demande_facture"])))
+        session.add(models.Parametre(nom="FACTURES_PREFACTURATION", parametre=str(
+            self.dict_parametres["factures_prefacturation"])))
+        session.add(models.Parametre(nom="FACTURES_AFFICHER_SOLDE_TOTAL", parametre=str(
+            self.dict_parametres["factures_afficher_solde_total"])))
+        session.add(models.Parametre(nom="FACTURES_AFFICHER_SOLDE_FAMILLE", parametre=str(
+            self.dict_parametres["factures_afficher_solde_famille"])))
+        session.add(models.Parametre(nom="FACTURES_AFFICHER_SOLDE_DETAIL", parametre=str(
+            self.dict_parametres["factures_afficher_solde_detail"])))
+        session.add(models.Parametre(nom="REGLEMENTS_AFFICHER", parametre=str(
+            self.dict_parametres["reglements_afficher"])))
+        session.add(models.Parametre(nom="REGLEMENTS_INTRO",
+                                     parametre=self.dict_parametres["reglements_intro"]))
+        session.add(models.Parametre(nom="REGLEMENTS_DEMANDE_RECU", parametre=str(
+            self.dict_parametres["reglements_demande_recu"])))
+        session.add(models.Parametre(nom="PIECES_AFFICHER", parametre=str(
+            self.dict_parametres["pieces_afficher"])))
+        session.add(models.Parametre(nom="PIECES_INTRO",
+                                     parametre=self.dict_parametres["pieces_intro"]))
+        session.add(models.Parametre(nom="PIECES_AUTORISER_TELECHARGEMENT", parametre=str(
+            self.dict_parametres["pieces_autoriser_telechargement"])))
+        session.add(models.Parametre(nom="PIECES_AUTORISER_UPLOAD", parametre=str(
+            self.dict_parametres["pieces_autoriser_upload"])))
+        session.add(models.Parametre(nom="COTISATIONS_AFFICHER", parametre=str(
+            self.dict_parametres["cotisations_afficher"])))
+        session.add(models.Parametre(nom="COTISATIONS_INTRO",
+                                     parametre=self.dict_parametres["cotisations_intro"]))
+        session.add(models.Parametre(nom="LOCATIONS_AFFICHER", parametre=str(
+            self.dict_parametres["locations_afficher"])))
+        session.add(models.Parametre(nom="LOCATIONS_INTRO",
+                                     parametre=self.dict_parametres["locations_intro"]))
+        session.add(models.Parametre(nom="LOCATIONS_PERIODE_SAISIE",
+                                     parametre=self.dict_parametres[
+                                         "locations_periode_saisie"]))
+        session.add(models.Parametre(nom="PLANNING_LOCATIONS_INTRO",
+                                     parametre=self.dict_parametres[
+                                         "planning_locations_intro"]))
+        session.add(models.Parametre(nom="LOCATIONS_HEURE_MIN",
+                                     parametre=self.dict_parametres[
+                                         "locations_heure_min"]))
+        session.add(models.Parametre(nom="LOCATIONS_HEURE_MAX",
+                                     parametre=self.dict_parametres[
+                                         "locations_heure_max"]))
+        session.add(models.Parametre(nom="LOCATIONS_AFFICHER_AUTRES_LOUEURS",
+                                     parametre=str(self.dict_parametres[
+                                                       "locations_afficher_autres_loueurs"])))
+        session.add(models.Parametre(nom="HISTORIQUE_AFFICHER", parametre=str(
+            self.dict_parametres["historique_afficher"])))
+        session.add(models.Parametre(nom="HISTORIQUE_INTRO",
+                                     parametre=self.dict_parametres["historique_intro"]))
+        session.add(models.Parametre(nom="HISTORIQUE_DELAI", parametre=str(
+            self.dict_parametres["historique_delai"])))
+        session.add(models.Parametre(nom="CONTACT_AFFICHER", parametre=str(
+            self.dict_parametres["contact_afficher"])))
+        session.add(models.Parametre(nom="CONTACT_INTRO",
+                                     parametre=self.dict_parametres["contact_intro"]))
+        session.add(models.Parametre(nom="CONTACT_CARTE_AFFICHER", parametre=str(
+            False)))  # self.dict_parametres["contact_carte_afficher"])))
+        session.add(models.Parametre(nom="MENTIONS_AFFICHER", parametre=str(
+            self.dict_parametres["mentions_afficher"])))
+        session.add(models.Parametre(nom="AIDE_AFFICHER", parametre=str(
+            self.dict_parametres["aide_afficher"])))
 
+        # Calcule des soldes des familles
+        dictPrestations = {}
+        dictReglements = {}
+        if self.dict_parametres["factures_afficher_solde_famille"]:
+            req = """SELECT IDfamille, SUM(montant) AS total_prestations FROM prestations GROUP BY IDfamille;"""
+            DB.ExecuterReq(req)
+            for IDfamille, total_prestations in DB.ResultatReq():
+                dictPrestations[IDfamille] = total_prestations
+
+            req = """SELECT IDfamille, SUM(montant) AS total_reglements FROM reglements 
+            LEFT JOIN comptes_payeurs ON comptes_payeurs.IDcompte_payeur = reglements.IDcompte_payeur
+            GROUP BY IDfamille;"""
+            DB.ExecuterReq(req)
+            for IDfamille, total_reglements in DB.ResultatReq():
+                dictReglements[IDfamille] = total_reglements
 
         # Recherche des adresses emails des familles
         req = """SELECT rattachements.IDindividu, rattachements.IDfamille, mail
         FROM rattachements
         LEFT JOIN individus ON individus.IDindividu = rattachements.IDindividu
         WHERE IDcategorie=1 AND titulaire=1 AND etat IS NULL AND deces<>1 AND mail IS NOT NULL;"""
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req)
         listeEmails = DB.ResultatReq()
         dictEmailsFamilles = {}
         for IDindividu, IDfamille, mail in listeEmails:
-            if (IDfamille in dictEmailsFamilles) == False :
+            if (IDfamille in dictEmailsFamilles) == False:
                 dictEmailsFamilles[IDfamille] = []
             dictEmailsFamilles[IDfamille].append(mail)
 
@@ -591,51 +718,63 @@ class Synchro():
 
         req = """SELECT IDfamille, internet_actif, internet_identifiant, internet_mdp, email_recus, etat, prelevement_activation
         FROM familles;"""
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req)
         listeDonnees = DB.ResultatReq()
         listeFamilles = []
         for IDfamille, internet_actif, internet_identifiant, internet_mdp, email_recus, etat, prelevement_activation in listeDonnees:
-            listeFamilles.append({"ID" : IDfamille, "internet_actif" : internet_actif, "internet_identifiant" : internet_identifiant,
-                                  "internet_mdp" : internet_mdp, "email_recus" : email_recus, "etat" : etat,
+            listeFamilles.append({"ID": IDfamille, "internet_actif": internet_actif,
+                                  "internet_identifiant": internet_identifiant,
+                                  "internet_mdp": internet_mdp,
+                                  "email_recus": email_recus, "etat": etat,
                                   "prelevement_activation": prelevement_activation})
 
         req = """SELECT IDutilisateur, internet_actif, internet_identifiant, internet_mdp, nom, prenom
         FROM utilisateurs;"""
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req)
         listeDonnees = DB.ResultatReq()
         listeUtilisateurs = []
         for IDutilisateur, internet_actif, internet_identifiant, internet_mdp, nom, prenom in listeDonnees:
-            listeUtilisateurs.append({"ID": IDutilisateur, "internet_actif": internet_actif, "internet_identifiant": internet_identifiant,
-                                  "internet_mdp": internet_mdp, "nom": nom, "prenom" : prenom, "etat" : None})
-
+            listeUtilisateurs.append(
+                {"ID": IDutilisateur, "internet_actif": internet_actif,
+                 "internet_identifiant": internet_identifiant,
+                 "internet_mdp": internet_mdp, "nom": nom, "prenom": prenom,
+                 "etat": None})
 
         listeIDfamille = []
-        for profil, listeDonnees in [("famille", listeFamilles), ("utilisateur", listeUtilisateurs)]:
-            for dictDonnee in listeDonnees :
-                if dictDonnee["internet_identifiant"] not in ("", None) and dictDonnee["internet_mdp"] not in ("", None) :
+        for profil, listeDonnees in [("famille", listeFamilles),
+                                     ("utilisateur", listeUtilisateurs)]:
+            for dictDonnee in listeDonnees:
+                if dictDonnee["internet_identifiant"] not in ("", None) and dictDonnee[
+                    "internet_mdp"] not in ("", None):
 
-                    if profil == "famille" :
+                    if profil == "famille":
                         IDfamille = dictDonnee["ID"]
                         IDutilisateur = None
-                    if profil == "utilisateur" :
+                    if profil == "utilisateur":
                         IDutilisateur = dictDonnee["ID"]
                         IDfamille = None
 
                     # Recherche du nom complet
-                    if profil == "famille" :
-                        nomDossier = cryptage.encrypt(dictTitulaires[IDfamille]["titulairesSansCivilite"])
-                    if profil == "utilisateur" :
-                        nomDossier = "%s %s" % (dictDonnee["prenom"], dictDonnee["nom"])
+                    if profil == "famille":
+                        nomDossier = cryptage.encrypt(
+                            dictTitulaires[IDfamille]["titulairesSansCivilite"])
+                    if profil == "utilisateur":
+                        nomDossier = u"%s %s" % (dictDonnee["prenom"], dictDonnee["nom"])
 
                     # Cryptage du mot de passe
                     if "custom" not in dictDonnee["internet_mdp"]:
                         mdp = dictDonnee["internet_mdp"]
                         if mdp.startswith("#@#"):
                             mdp = UTILS_Internet.DecrypteMDP(mdp, IDfichier=IDfichier)
-                        dictDonnee["internet_mdp"] = sha256(mdp.encode('utf-8')).hexdigest()
+                        dictDonnee["internet_mdp"] = SHA256.new(
+                            mdp.encode('utf-8')).hexdigest()
 
                     # Génération du session_token
-                    session_token = "%s-%d-%s-%s-%d" % (profil, dictDonnee["ID"], dictDonnee["internet_identifiant"], dictDonnee["internet_mdp"][:20], dictDonnee["internet_actif"])
+                    session_token = "%s-%d-%s-%s-%d" % (profil, dictDonnee["ID"],
+                                                        dictDonnee[
+                                                            "internet_identifiant"],
+                                                        dictDonnee["internet_mdp"][:20],
+                                                        dictDonnee["internet_actif"])
 
                     # Récupération de l email de recu
                     email = ""
@@ -647,41 +786,54 @@ class Synchro():
                     # Autre paramètres
                     liste_parametres = []
                     if profil == "famille":
+                        # Prélèvement auto
                         prelevement_auto = dictDonnee.get("prelevement_activation", 0)
                         if not prelevement_auto:
                             prelevement_auto = 0
                         liste_parametres.append("prelevement_auto==%d" % prelevement_auto)
+                        # Solde de la famille
+                        try:
+                            solde = dictReglements.get(IDfamille,
+                                                       0.0) - dictPrestations.get(
+                                IDfamille, 0.0)
+                        except:
+                            solde = 0
+                        liste_parametres.append("solde==%s" % solde)
                     parametres = "##".join(liste_parametres)
 
                     # Si famille archivée ou effacée
                     if dictDonnee["etat"] != None:
                         dictDonnee["internet_actif"] = 0
 
-                    if profil == "famille" and dictDonnee["internet_actif"] == 1 :
+                    if profil == "famille" and dictDonnee["internet_actif"] == 1:
                         listeIDfamille.append(IDfamille)
-                        
-                    if dictDonnee["internet_actif"] == 0 :
+
+                    if dictDonnee["internet_actif"] == 0:
                         # Anonymise les infos des comptes désactivés
                         nomDossier = "XXX"
                         email = ""
 
                     # Création du user
-                    m = models.User(IDuser=None, identifiant=dictDonnee["internet_identifiant"], cryptpassword=dictDonnee["internet_mdp"],
-                                    nom=nomDossier, email=email, role=profil, IDfamille=IDfamille, IDutilisateur=IDutilisateur, actif=dictDonnee["internet_actif"],
+                    m = models.User(IDuser=None,
+                                    identifiant=dictDonnee["internet_identifiant"],
+                                    cryptpassword=dictDonnee["internet_mdp"],
+                                    nom=nomDossier, email=email, role=profil,
+                                    IDfamille=IDfamille, IDutilisateur=IDutilisateur,
+                                    actif=dictDonnee["internet_actif"],
                                     session_token=session_token)
                     if hasattr(models.User, "parametres"):
                         m.parametres = parametres
                     session.add(m)
 
-
         # Création des factures
         self.Pulse_gauge()
 
-        if self.dict_parametres["factures_selection"] == 0 :
+        if self.dict_parametres["factures_selection"] == 0:
             conditions_factures = ""
-        else :
+        else:
             nbre_mois = self.dict_parametres["factures_selection"]
-            date_limite = datetime.date.today() + relativedelta.relativedelta(months=-nbre_mois)
+            date_limite = datetime.date.today() + relativedelta.relativedelta(
+                months=-nbre_mois)
             conditions_factures = "WHERE factures.date_edition >= '%s'" % date_limite
 
         # Récupération des totaux des prestations pour chaque facture
@@ -693,11 +845,11 @@ class Synchro():
         %s
         GROUP BY prestations.IDfacture
         ;""" % conditions_factures
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req)
         listeDonnees = DB.ResultatReq()
         dictPrestations = {}
-        for IDfacture, totalPrestations in listeDonnees :
-            if IDfacture != None :
+        for IDfacture, totalPrestations in listeDonnees:
+            if IDfacture != None:
                 dictPrestations[IDfacture] = totalPrestations
 
         # Récupération des factures
@@ -713,7 +865,7 @@ class Synchro():
         %s
         ORDER BY factures.date_edition
         ;""" % conditions_factures
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req)
         listeFactures = DB.ResultatReq()
 
         # Récupération de la ventilation
@@ -726,42 +878,48 @@ class Synchro():
         %s
         GROUP BY prestations.IDfacture
         ;""" % conditions_factures
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req)
         listeVentilation = DB.ResultatReq()
         dictVentilation = {}
-        for IDfacture, montantVentilation in listeVentilation :
-            if IDfacture != None :
+        for IDfacture, montantVentilation in listeVentilation:
+            if IDfacture != None:
                 dictVentilation[IDfacture] = montantVentilation
 
-        for IDfacture, IDprefixe, prefixe, numero, IDcompte_payeur, date_edition, date_echeance, IDutilisateur, date_debut, date_fin, total, regle, solde, IDregie, IDfamille, etat in listeFactures :
-            if IDfamille in listeIDfamille :
-                if numero == None : numero = 0
-                if IDprefixe != None :
+        for IDfacture, IDprefixe, prefixe, numero, IDcompte_payeur, date_edition, date_echeance, IDutilisateur, date_debut, date_fin, total, regle, solde, IDregie, IDfamille, etat in listeFactures:
+            if IDfamille in listeIDfamille:
+                if numero == None: numero = 0
+                if IDprefixe != None:
                     # On supprime le tiret séparateur du préfixe et du numéro de facture pour TIPI (le tiret est proscrit)
-                    if "paiement_ligne_systeme" in self.dict_parametres and (self.dict_parametres["paiement_ligne_systeme"] == 1 or self.dict_parametres["paiement_ligne_systeme"] == 2) :
-                        numero = "%s%06d" % (prefixe, numero)
-                    else :
-                        numero = "%s-%06d" % (prefixe, numero)
-                else :
-                    numero = "%06d" % numero
+                    if "paiement_ligne_systeme" in self.dict_parametres and (
+                            self.dict_parametres["paiement_ligne_systeme"] == 1 or
+                            self.dict_parametres["paiement_ligne_systeme"] == 2):
+                        numero = u"%s%06d" % (prefixe, numero)
+                    else:
+                        numero = u"%s-%06d" % (prefixe, numero)
+                else:
+                    numero = u"%06d" % numero
 
                 date_edition = UTILS_Dates.DateEngEnDateDD(date_edition)
                 date_debut = UTILS_Dates.DateEngEnDateDD(date_debut)
                 date_fin = UTILS_Dates.DateEngEnDateDD(date_fin)
                 date_echeance = UTILS_Dates.DateEngEnDateDD(date_echeance)
                 total = FloatToDecimal(total)
-                if IDfacture in dictVentilation :
+                if IDfacture in dictVentilation:
                     totalVentilation = FloatToDecimal(dictVentilation[IDfacture])
-                else :
+                else:
                     totalVentilation = FloatToDecimal(0.0)
-                if IDfacture in dictPrestations :
+                if IDfacture in dictPrestations:
                     totalPrestations = FloatToDecimal(dictPrestations[IDfacture])
-                else :
+                else:
                     totalPrestations = FloatToDecimal(0.0)
                 solde_actuel = totalPrestations - totalVentilation
 
-                m = models.Facture(IDfacture=IDfacture, IDfamille=IDfamille, numero=numero, date_edition=date_edition, date_debut=date_debut,\
-                            date_fin=date_fin, montant=float(totalPrestations), montant_regle=float(totalVentilation), montant_solde=float(solde_actuel), IDregie=IDregie)
+                m = models.Facture(IDfacture=IDfacture, IDfamille=IDfamille,
+                                   numero=numero, date_edition=date_edition,
+                                   date_debut=date_debut, \
+                                   date_fin=date_fin, montant=float(totalPrestations),
+                                   montant_regle=float(totalVentilation),
+                                   montant_solde=float(solde_actuel), IDregie=IDregie)
                 session.add(m)
 
         liste_tables_modifiees.append("factures")
@@ -769,11 +927,12 @@ class Synchro():
         # Création des règlements
         self.Pulse_gauge()
 
-        if self.dict_parametres["reglements_selection"] == 0 :
+        if self.dict_parametres["reglements_selection"] == 0:
             conditions_reglements = ""
-        else :
+        else:
             nbre_mois = self.dict_parametres["reglements_selection"]
-            date_limite = datetime.date.today() + relativedelta.relativedelta(months=-nbre_mois)
+            date_limite = datetime.date.today() + relativedelta.relativedelta(
+                months=-nbre_mois)
             conditions_reglements = "WHERE reglements.date >= '%s'" % date_limite
 
         req = """SELECT
@@ -787,17 +946,19 @@ class Synchro():
         %s
         GROUP BY reglements.IDreglement
         ;""" % conditions_reglements
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req)
         listeReglements = DB.ResultatReq()
 
-        for IDreglement, IDfamille, date, mode, numero, montant, date_encaissement in listeReglements :
-            if IDfamille in listeIDfamille :
+        for IDreglement, IDfamille, date, mode, numero, montant, date_encaissement in listeReglements:
+            if IDfamille in listeIDfamille:
                 date = UTILS_Dates.DateEngEnDateDD(date)
                 date_encaissement = UTILS_Dates.DateEngEnDateDD(date_encaissement)
-                if numero not in ("", None) :
+                if numero not in ("", None):
                     numero = "****%s" % numero[3:]
-                m = models.Reglement(IDreglement=IDreglement, IDfamille=IDfamille, date=date, mode=mode,
-                                numero=numero, montant=montant, date_encaissement=date_encaissement)
+                m = models.Reglement(IDreglement=IDreglement, IDfamille=IDfamille,
+                                     date=date, mode=mode,
+                                     numero=numero, montant=montant,
+                                     date_encaissement=date_encaissement)
                 session.add(m)
 
         liste_tables_modifiees.append("reglements")
@@ -805,10 +966,14 @@ class Synchro():
         # Création des pièces manquantes
         self.Pulse_gauge()
 
-        dictPieces = UTILS_Pieces_manquantes.GetListePiecesManquantes(dateReference=datetime.date.today(), concernes=True)
-        for IDfamille, dictValeurs in dictPieces.items() :
-            for IDfamille, IDtype_piece, nomPiece, publicPiece, prenom, IDindividu, valide, label in dictValeurs["liste"] :
-                m = models.Piece_manquante(IDfamille=IDfamille, IDtype_piece=IDtype_piece, IDindividu=IDindividu, nom=cryptage.encrypt(label))
+        dictPieces = UTILS_Pieces_manquantes.GetListePiecesManquantes(
+            dateReference=datetime.date.today(), concernes=True)
+        for IDfamille, dictValeurs in dictPieces.items():
+            for IDfamille, IDtype_piece, nomPiece, publicPiece, prenom, IDindividu, valide, label in \
+            dictValeurs["liste"]:
+                m = models.Piece_manquante(IDfamille=IDfamille, IDtype_piece=IDtype_piece,
+                                           IDindividu=IDindividu,
+                                           nom=cryptage.encrypt(label))
                 session.add(m)
 
         liste_tables_modifiees.append("pieces_manquantes")
@@ -819,32 +984,36 @@ class Synchro():
         # Recherche des documents associées aux types de pièces
         DB2 = GestionDB.DB(suffixe="DOCUMENTS")
         req = "SELECT IDdocument, IDtype_piece, document, type, label, last_update FROM documents WHERE IDtype_piece IS NOT NULL AND document IS NOT NULL;"
-        DB2.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB2.ExecuterReq(req)
         listeDocuments = DB2.ResultatReq()
         DB2.Close()
         dictDocuments = {}
-        for IDdocument, IDtype_piece, document, extension, label, last_update in listeDocuments :
-            if IDtype_piece not in dictDocuments :
+        for IDdocument, IDtype_piece, document, extension, label, last_update in listeDocuments:
+            if IDtype_piece not in dictDocuments:
                 dictDocuments[IDtype_piece] = []
-            dictDocuments[IDtype_piece].append({"IDdocument" : IDdocument, "document" : document, "extension" : extension, "label" : label, "last_update" : last_update})
+            dictDocuments[IDtype_piece].append(
+                {"IDdocument": IDdocument, "document": document, "extension": extension,
+                 "label": label, "last_update": last_update})
 
         # Recherche des types de pièces
         req = """
         SELECT IDtype_piece, nom, public
         FROM types_pieces;"""
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req)
         listeTypesPieces = DB.ResultatReq()
-        for IDtype_piece, nom, public in listeTypesPieces :
+        for IDtype_piece, nom, public in listeTypesPieces:
 
             # Recherche de documents associés
             fichiers = []
-            if IDtype_piece in dictDocuments :
-                for dict_document in dictDocuments[IDtype_piece] :
+            if IDtype_piece in dictDocuments:
+                for dict_document in dictDocuments[IDtype_piece]:
 
-                    nomFichier = "document%d.%s" % (dict_document["IDdocument"], dict_document["extension"])
+                    nomFichier = "document%d.%s" % (dict_document["IDdocument"],
+                                                    dict_document["extension"])
                     fichiers.append(u"%s;%s" % (dict_document["label"], nomFichier))
 
-                    if dict_document["last_update"] > last_synchro or full_synchro == True :
+                    if dict_document[
+                        "last_update"] > last_synchro or full_synchro == True:
                         cheminFichier = UTILS_Fichiers.GetRepTemp(fichier=nomFichier)
                         buffer = dict_document["document"]
                         fichier = open(cheminFichier, "wb")
@@ -853,9 +1022,11 @@ class Synchro():
 
                         # Upload de la pièce
                         print("Upload du fichier", nomFichier)
-                        self.UploadFichier(ftp=ftp, nomFichierComplet=cheminFichier, repDest="application/static/pieces")
+                        self.UploadFichier(ftp=ftp, nomFichierComplet=cheminFichier,
+                                           repDest="application/static/pieces")
 
-            m = models.Type_piece(IDtype_piece=IDtype_piece, nom=nom, public=public, fichiers=u"##".join(fichiers))
+            m = models.Type_piece(IDtype_piece=IDtype_piece, nom=nom, public=public,
+                                  fichiers=u"##".join(fichiers))
             session.add(m)
 
         liste_tables_modifiees.append("types_pieces")
@@ -863,20 +1034,26 @@ class Synchro():
         # Création des cotisations manquantes
         self.Pulse_gauge()
 
-        dictCotisations = UTILS_Cotisations_manquantes.GetListeCotisationsManquantes(dateReference=datetime.date.today(), concernes=True)
-        for IDfamille, dictValeurs in dictCotisations.items() :
-            for IDfamille, IDtype_cotisation, nomCotisation, typeCotisation, prenom, IDindividu, valide, label in dictValeurs["liste"] :
-                m = models.Cotisation_manquante(IDfamille=IDfamille, IDindividu=IDindividu, IDtype_cotisation=IDtype_cotisation, nom=label)
+        dictCotisations = UTILS_Cotisations_manquantes.GetListeCotisationsManquantes(
+            dateReference=datetime.date.today(), concernes=True)
+        for IDfamille, dictValeurs in dictCotisations.items():
+            for IDfamille, IDtype_cotisation, nomCotisation, typeCotisation, prenom, IDindividu, valide, label in \
+            dictValeurs["liste"]:
+                m = models.Cotisation_manquante(IDfamille=IDfamille,
+                                                IDindividu=IDindividu,
+                                                IDtype_cotisation=IDtype_cotisation,
+                                                nom=label)
                 session.add(m)
 
         liste_tables_modifiees.append("cotisations_manquantes")
 
         # Création de la liste des cotisations
-        if self.dict_parametres["cotisations_selection"] == 0 :
+        if self.dict_parametres["cotisations_selection"] == 0:
             conditions_cotisations = ""
-        else :
+        else:
             nbre_mois = self.dict_parametres["cotisations_selection"]
-            date_limite = datetime.date.today() + relativedelta.relativedelta(months=-nbre_mois)
+            date_limite = datetime.date.today() + relativedelta.relativedelta(
+                months=-nbre_mois)
             conditions_cotisations = "WHERE cotisations.date_fin >= '%s'" % date_limite
 
         req = """SELECT IDcotisation, IDfamille, cotisations.IDindividu, cotisations.numero, cotisations.date_debut, cotisations.date_fin, 
@@ -887,19 +1064,21 @@ class Synchro():
         LEFT JOIN individus ON individus.IDindividu = cotisations.IDindividu
         %s
         ;""" % conditions_cotisations
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req)
         listeCotisations = DB.ResultatReq()
         for IDcotisation, IDfamille, IDindividu, numero, date_debut, date_fin, nom_cotisation, nom_unite, prenom_individu in listeCotisations:
             date_debut = UTILS_Dates.DateEngEnDateDD(date_debut)
             date_fin = UTILS_Dates.DateEngEnDateDD(date_fin)
-            if prenom_individu != None :
+            if prenom_individu != None:
                 prenom_individu = cryptage.encrypt(prenom_individu)
-            m = models.Cotisation(IDcotisation=IDcotisation, IDfamille=IDfamille, IDindividu=IDindividu, numero=numero, date_debut=date_debut,
-                                  date_fin = date_fin, nom_cotisation=nom_cotisation, nom_unite=nom_unite, prenom_individu=prenom_individu)
+            m = models.Cotisation(IDcotisation=IDcotisation, IDfamille=IDfamille,
+                                  IDindividu=IDindividu, numero=numero,
+                                  date_debut=date_debut,
+                                  date_fin=date_fin, nom_cotisation=nom_cotisation,
+                                  nom_unite=nom_unite, prenom_individu=prenom_individu)
             session.add(m)
 
         liste_tables_modifiees.append("cotisations")
-
 
         # Création des locations
         self.Pulse_gauge()
@@ -908,7 +1087,7 @@ class Synchro():
 
             # Création de la liste des catégories de produits
             req = """SELECT IDcategorie, nom FROM produits_categories;"""
-            DB.ExecuterReq(req,MsgBox="ExecuterReq")
+            DB.ExecuterReq(req)
             listeCatProduits = DB.ResultatReq()
             for IDcategorie, nom in listeCatProduits:
                 m = models.Categorie_produit(IDcategorie=IDcategorie, nom=nom)
@@ -921,32 +1100,39 @@ class Synchro():
             FROM produits
             LEFT JOIN produits_categories ON produits_categories.IDcategorie = produits.IDcategorie
             ;"""
-            DB.ExecuterReq(req,MsgBox="ExecuterReq")
+            DB.ExecuterReq(req)
             listeProduits = DB.ResultatReq()
             for IDproduit, IDcategorie, nom, quantite, montant, nom_categorie, activation_partage in listeProduits:
-                m = models.Produit(IDproduit=IDproduit, IDcategorie=IDcategorie, nom=nom, quantite=quantite, montant=montant, nom_categorie=nom_categorie, activation_partage=activation_partage)
+                m = models.Produit(IDproduit=IDproduit, IDcategorie=IDcategorie, nom=nom,
+                                   quantite=quantite, montant=montant,
+                                   nom_categorie=nom_categorie,
+                                   activation_partage=activation_partage)
                 session.add(m)
 
             liste_tables_modifiees.append("produits")
 
             # Création de la liste des locations
-            if self.dict_parametres["locations_selection"] == 0 :
+            if self.dict_parametres["locations_selection"] == 0:
                 conditions_locations = ""
-            else :
+            else:
                 nbre_mois = self.dict_parametres["locations_selection"]
-                date_limite = datetime.date.today() + relativedelta.relativedelta(months=-nbre_mois)
+                date_limite = datetime.date.today() + relativedelta.relativedelta(
+                    months=-nbre_mois)
                 conditions_locations = "WHERE locations.date_fin >= '%s'" % date_limite
 
             req = """SELECT IDlocation, IDfamille, IDproduit, date_saisie, date_debut, date_fin, quantite, partage, description
             FROM locations 
             %s
             ;""" % conditions_locations
-            DB.ExecuterReq(req,MsgBox="ExecuterReq")
+            DB.ExecuterReq(req)
             listeLocations = DB.ResultatReq()
             for IDlocation, IDfamille, IDproduit, date_saisie, date_debut, date_fin, quantite, partage, description in listeLocations:
                 date_debut = UTILS_Dates.DateEngEnDateDDT(date_debut)
                 date_fin = UTILS_Dates.DateEngEnDateDDT(date_fin)
-                m = models.Location(IDlocation=IDlocation, IDfamille=IDfamille, IDproduit=IDproduit, date_debut=date_debut, date_fin=date_fin, quantite=quantite, partage=partage, description=description)
+                m = models.Location(IDlocation=IDlocation, IDfamille=IDfamille,
+                                    IDproduit=IDproduit, date_debut=date_debut,
+                                    date_fin=date_fin, quantite=quantite, partage=partage,
+                                    description=description)
                 session.add(m)
 
             liste_tables_modifiees.append("locations")
@@ -959,28 +1145,37 @@ class Synchro():
         portail_inscriptions_date_fin, portail_reservations_affichage, portail_unites_multiples,
         portail_reservations_limite, portail_reservations_absenti, nbre_inscrits_max
         FROM activites;"""
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req)
         listeActivites = DB.ResultatReq()
         dict_activites = {}
-        for IDactivite, nom, inscriptions_affichage, inscriptions_date_debut, inscriptions_date_fin, reservations_affichage, unites_multiples, portail_reservations_limite, portail_reservations_absenti, nbre_inscrits_max in listeActivites :
-            inscriptions_date_debut = UTILS_Dates.DateEngEnDateDDT(inscriptions_date_debut)
+        for IDactivite, nom, inscriptions_affichage, inscriptions_date_debut, inscriptions_date_fin, reservations_affichage, unites_multiples, portail_reservations_limite, portail_reservations_absenti, nbre_inscrits_max in listeActivites:
+            inscriptions_date_debut = UTILS_Dates.DateEngEnDateDDT(
+                inscriptions_date_debut)
             inscriptions_date_fin = UTILS_Dates.DateEngEnDateDDT(inscriptions_date_fin)
 
-            m = models.Activite(IDactivite=IDactivite, nom=nom, inscriptions_affichage=inscriptions_affichage, \
-                         inscriptions_date_debut=inscriptions_date_debut, inscriptions_date_fin=inscriptions_date_fin, \
-                         reservations_affichage=reservations_affichage, unites_multiples=unites_multiples, \
-                         reservations_limite=portail_reservations_limite, reservations_absenti=portail_reservations_absenti,
-                         nbre_inscrits_max=nbrMaxi,
-                         )
+            m = models.Activite(IDactivite=IDactivite, nom=nom,
+                                inscriptions_affichage=inscriptions_affichage, \
+                                inscriptions_date_debut=inscriptions_date_debut,
+                                inscriptions_date_fin=inscriptions_date_fin, \
+                                reservations_affichage=reservations_affichage,
+                                unites_multiples=unites_multiples, \
+                                reservations_limite=portail_reservations_limite,
+                                reservations_absenti=portail_reservations_absenti,
+                                nbre_inscrits_max=nbre_inscrits_max,
+                                )
             session.add(m)
 
             dict_activites[IDactivite] = {
-                "IDactivite" : IDactivite, "nom" : nom, "inscriptions_affichage" : inscriptions_affichage, \
-                 "inscriptions_date_debut" : inscriptions_date_debut, "inscriptions_date_fin" : inscriptions_date_fin, \
-                 "reservations_affichage" : reservations_affichage, "unites_multiples" : unites_multiples, \
-                 "reservations_limite" : portail_reservations_limite, "reservations_absenti" : portail_reservations_absenti,
-                 "nbrMaxi" : nbrMaxi,
-                }
+                "IDactivite": IDactivite, "nom": nom,
+                "inscriptions_affichage": inscriptions_affichage, \
+                "inscriptions_date_debut": inscriptions_date_debut,
+                "inscriptions_date_fin": inscriptions_date_fin, \
+                "reservations_affichage": reservations_affichage,
+                "unites_multiples": unites_multiples, \
+                "reservations_limite": portail_reservations_limite,
+                "reservations_absenti": portail_reservations_absenti,
+                "nbre_inscrits_max": nbre_inscrits_max,
+            }
 
         liste_tables_modifiees.append("activites")
 
@@ -988,13 +1183,14 @@ class Synchro():
         self.Pulse_gauge()
 
         req = """
-        SELECT IDgroupe, IDactivite, nom, ordre, nbrMaxi
+        SELECT IDgroupe, IDactivite, nom, ordre, nbre_inscrits_max
         FROM groupes;"""
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req)
         listeGroupes = DB.ResultatReq()
 
-        for IDgroupe, IDactivite, nom, ordre, nbrMaxi in listeGroupes :
-            m = models.Groupe(IDgroupe=IDgroupe, nom=nom, IDactivite=IDactivite, ordre=ordre, nbrMaxi=nbrMaxi)
+        for IDgroupe, IDactivite, nom, ordre, nbre_inscrits_max in listeGroupes:
+            m = models.Groupe(IDgroupe=IDgroupe, nom=nom, IDactivite=IDactivite,
+                              ordre=ordre, nbre_inscrits_max=nbre_inscrits_max)
             session.add(m)
 
         liste_tables_modifiees.append("groupes")
@@ -1002,59 +1198,105 @@ class Synchro():
         # Création des individus
         self.Pulse_gauge()
 
-        champs_individus = ["IDrattachement", "rattachements.IDindividu", "rattachements.IDfamille", "titulaire", "IDcategorie",
-                            "IDcivilite", "nom", "prenom", "date_naiss", "cp_naiss", "ville_naiss", "adresse_auto", "rue_resid", "cp_resid", "ville_resid",
-                            "tel_domicile", "tel_mobile", "mail", "profession", "employeur", "travail_tel", "travail_mail"]
+        champs_individus = ["IDrattachement", "rattachements.IDindividu",
+                            "rattachements.IDfamille", "titulaire", "IDcategorie",
+                            "IDcivilite", "nom", "prenom", "date_naiss", "cp_naiss",
+                            "ville_naiss", "adresse_auto", "rue_resid", "cp_resid",
+                            "ville_resid",
+                            "tel_domicile", "tel_mobile", "mail", "profession",
+                            "employeur", "travail_tel", "travail_mail"]
         req = """SELECT %s
         FROM rattachements
         LEFT JOIN individus ON individus.IDindividu = rattachements.IDindividu
-        WHERE (IDcategorie=2 OR (IDcategorie=1 AND titulaire=1)) AND etat IS NULL AND deces<>1;""" % ", ".join(champs_individus)
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        WHERE (IDcategorie=2 OR (IDcategorie=1 AND titulaire=1)) AND etat IS NULL AND deces<>1;""" % ", ".join(
+            champs_individus)
+        DB.ExecuterReq(req)
         listeRattachements = DB.ResultatReq()
-        for donnees in listeRattachements :
+        for donnees in listeRattachements:
             dictTemp = {}
-            for index in range(0, len(champs_individus)) :
+            for index in range(0, len(champs_individus)):
                 champ = champs_individus[index]
                 valeur = donnees[index]
 
                 # Formatage date de naissance
-                if champ == "date_naiss" :
+                if champ == "date_naiss":
                     valeur = UTILS_Dates.DateEngEnDateDD(valeur)
-                    if valeur != None :
+                    if valeur != None:
                         valeur = str(valeur)
 
                 # Renseignements à masquer
-                if champ == "nom" and dictTemp["IDcategorie"] == 1 and (self.dict_parametres["renseignements_adulte_nom"] == "masquer" or self.dict_parametres["renseignements_afficher"] == False) :
+                if champ == "nom" and dictTemp["IDcategorie"] == 1 and (
+                        self.dict_parametres["renseignements_adulte_nom"] == "masquer" or
+                        self.dict_parametres["renseignements_afficher"] == False):
                     valeur = None
-                if champ == "nom" and dictTemp["IDcategorie"] == 2 and (self.dict_parametres["renseignements_enfant_nom"] == "masquer" or self.dict_parametres["renseignements_afficher"] == False) :
+                if champ == "nom" and dictTemp["IDcategorie"] == 2 and (
+                        self.dict_parametres["renseignements_enfant_nom"] == "masquer" or
+                        self.dict_parametres["renseignements_afficher"] == False):
                     valeur = None
-                if champ in ("cp_naiss", "ville_naiss") and dictTemp["IDcategorie"] == 1 and (self.dict_parametres["renseignements_adulte_naissance"] == "masquer" or self.dict_parametres["renseignements_afficher"] == False) :
+                if champ in ("cp_naiss", "ville_naiss") and dictTemp[
+                    "IDcategorie"] == 1 and (self.dict_parametres[
+                                                 "renseignements_adulte_naissance"] == "masquer" or
+                                             self.dict_parametres[
+                                                 "renseignements_afficher"] == False):
                     valeur = None
-                if champ in ("cp_naiss", "ville_naiss") and dictTemp["IDcategorie"] == 2 and (self.dict_parametres["renseignements_enfant_naissance"] == "masquer" or self.dict_parametres["renseignements_afficher"] == False) :
+                if champ in ("cp_naiss", "ville_naiss") and dictTemp[
+                    "IDcategorie"] == 2 and (self.dict_parametres[
+                                                 "renseignements_enfant_naissance"] == "masquer" or
+                                             self.dict_parametres[
+                                                 "renseignements_afficher"] == False):
                     valeur = None
-                if champ in ("tel_domicile", "tel_mobile", "mail") and dictTemp["IDcategorie"] == 1 and (self.dict_parametres["renseignements_adulte_coords"] == "masquer" or self.dict_parametres["renseignements_afficher"] == False) :
+                if champ in ("tel_domicile", "tel_mobile", "mail") and dictTemp[
+                    "IDcategorie"] == 1 and (self.dict_parametres[
+                                                 "renseignements_adulte_coords"] == "masquer" or
+                                             self.dict_parametres[
+                                                 "renseignements_afficher"] == False):
                     valeur = None
-                if champ in ("tel_domicile", "tel_mobile", "mail") and dictTemp["IDcategorie"] == 2 and (self.dict_parametres["renseignements_enfant_coords"] == "masquer" or self.dict_parametres["renseignements_afficher"] == False) :
+                if champ in ("tel_domicile", "tel_mobile", "mail") and dictTemp[
+                    "IDcategorie"] == 2 and (self.dict_parametres[
+                                                 "renseignements_enfant_coords"] == "masquer" or
+                                             self.dict_parametres[
+                                                 "renseignements_afficher"] == False):
                     valeur = None
-                if champ in ("adresse_auto", "rue_resid", "cp_resid", "ville_resid") and (self.dict_parametres["renseignements_adresse"] == "masquer" or self.dict_parametres["renseignements_afficher"] == False) :
+                if champ in ("adresse_auto", "rue_resid", "cp_resid", "ville_resid") and (
+                        self.dict_parametres["renseignements_adresse"] == "masquer" or
+                        self.dict_parametres["renseignements_afficher"] == False):
                     valeur = None
-                if champ in ("profession", "employeur", "travail_tel", "travail_mail") and (self.dict_parametres["renseignements_adulte_profession"] == "masquer" or self.dict_parametres["renseignements_afficher"] == False):
+                if champ in ("profession", "employeur", "travail_tel",
+                             "travail_mail") and (self.dict_parametres[
+                                                      "renseignements_adulte_profession"] == "masquer" or
+                                                  self.dict_parametres[
+                                                      "renseignements_afficher"] == False):
                     valeur = None
 
                 # Cryptage des données
-                if champ in ("nom", "prenom", "date_naiss", "cp_naiss", "ville_naiss", "tel_domicile", "tel_mobile", "mail", "rue_resid","cp_resid", "ville_resid", "profession", "employeur", "travail_tel", "travail_mail"):
+                if champ in ("nom", "prenom", "date_naiss", "cp_naiss", "ville_naiss",
+                             "tel_domicile", "tel_mobile", "mail", "rue_resid",
+                             "cp_resid", "ville_resid", "profession", "employeur",
+                             "travail_tel", "travail_mail"):
                     valeur = cryptage.encrypt(valeur)
 
                 dictTemp[champ] = valeur
 
-            if dictTemp["rattachements.IDfamille"] in listeIDfamille :
-                m = models.Individu(IDindividu=dictTemp["rattachements.IDindividu"], IDfamille=dictTemp["rattachements.IDfamille"], IDcategorie=dictTemp["IDcategorie"],
-                                    nom=dictTemp["nom"], prenom=dictTemp["prenom"], IDcivilite=dictTemp["IDcivilite"],
-                                    date_naiss=dictTemp["date_naiss"], cp_naiss=dictTemp["cp_naiss"], ville_naiss=dictTemp["ville_naiss"],
-                                    adresse_auto=dictTemp["adresse_auto"], rue_resid=dictTemp["rue_resid"], cp_resid=dictTemp["cp_resid"], ville_resid=dictTemp["ville_resid"],
-                                    tel_domicile=dictTemp["tel_domicile"], tel_mobile=dictTemp["tel_mobile"], mail=dictTemp["mail"],
-                                    profession=dictTemp["profession"], employeur=dictTemp["employeur"],
-                                    travail_tel=dictTemp["travail_tel"], travail_mail=dictTemp["travail_mail"],
+            if dictTemp["rattachements.IDfamille"] in listeIDfamille:
+                m = models.Individu(IDindividu=dictTemp["rattachements.IDindividu"],
+                                    IDfamille=dictTemp["rattachements.IDfamille"],
+                                    IDcategorie=dictTemp["IDcategorie"],
+                                    nom=dictTemp["nom"], prenom=dictTemp["prenom"],
+                                    IDcivilite=dictTemp["IDcivilite"],
+                                    date_naiss=dictTemp["date_naiss"],
+                                    cp_naiss=dictTemp["cp_naiss"],
+                                    ville_naiss=dictTemp["ville_naiss"],
+                                    adresse_auto=dictTemp["adresse_auto"],
+                                    rue_resid=dictTemp["rue_resid"],
+                                    cp_resid=dictTemp["cp_resid"],
+                                    ville_resid=dictTemp["ville_resid"],
+                                    tel_domicile=dictTemp["tel_domicile"],
+                                    tel_mobile=dictTemp["tel_mobile"],
+                                    mail=dictTemp["mail"],
+                                    profession=dictTemp["profession"],
+                                    employeur=dictTemp["employeur"],
+                                    travail_tel=dictTemp["travail_tel"],
+                                    travail_mail=dictTemp["travail_mail"],
                                     )
                 session.add(m)
 
@@ -1065,13 +1307,16 @@ class Synchro():
 
         req = """SELECT IDinscription, IDindividu, IDfamille, IDactivite, IDgroupe, date_desinscription
         FROM inscriptions
-        WHERE (NOT inscriptions.statut LIKE 'ko%%');"""
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        WHERE inscriptions.statut='ok';"""
+        DB.ExecuterReq(req)
         listeInscriptions = DB.ResultatReq()
-        for IDinscription, IDindividu, IDfamille, IDactivite, IDgroupe, date_desinscription in listeInscriptions :
-            if True :#IDfamille in listeIDfamille : Modifié pour connaître le nombre d'inscrits par activité
+        for IDinscription, IDindividu, IDfamille, IDactivite, IDgroupe, date_desinscription in listeInscriptions:
+            if True:  # IDfamille in listeIDfamille : Modifié pour connaître le nombre d'inscrits par activité
                 date_desinscription = UTILS_Dates.DateEngEnDateDD(date_desinscription)
-                m = models.Inscription(IDinscription=IDinscription, IDindividu=IDindividu, IDfamille=IDfamille, IDactivite=IDactivite, IDgroupe=IDgroupe, date_desinscription=date_desinscription)
+                m = models.Inscription(IDinscription=IDinscription, IDindividu=IDindividu,
+                                       IDfamille=IDfamille, IDactivite=IDactivite,
+                                       IDgroupe=IDgroupe,
+                                       date_desinscription=date_desinscription)
                 session.add(m)
 
         liste_tables_modifiees.append("inscriptions")
@@ -1082,12 +1327,13 @@ class Synchro():
         req = """SELECT IDunite, IDactivite, nom, unites_principales, unites_secondaires, ordre
         FROM portail_unites
         ORDER BY IDactivite, ordre;"""
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req)
         listeUnites = DB.ResultatReq()
-        for IDunite, IDactivite, nom, unites_principales, unites_secondaires, ordre in listeUnites :
+        for IDunite, IDactivite, nom, unites_principales, unites_secondaires, ordre in listeUnites:
             if IDactivite in dict_activites:
-                m = models.Unite(IDunite=IDunite, nom=nom, IDactivite=IDactivite, unites_principales=unites_principales, \
-                          unites_secondaires=unites_secondaires, ordre=ordre)
+                m = models.Unite(IDunite=IDunite, nom=nom, IDactivite=IDactivite,
+                                 unites_principales=unites_principales, \
+                                 unites_secondaires=unites_secondaires, ordre=ordre)
                 session.add(m)
 
         liste_tables_modifiees.append("unites")
@@ -1098,55 +1344,66 @@ class Synchro():
         req = """SELECT IDperiode, IDactivite, nom, date_debut, date_fin, affichage, affichage_date_debut, affichage_date_fin, introduction, prefacturation
         FROM portail_periodes
         WHERE affichage=1;"""
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req)
         listePeriodes = DB.ResultatReq()
         dict_dates_activites = {}
         dict_periodes = {}
-        for IDperiode, IDactivite, nom, date_debut, date_fin, affichage, affichage_date_debut, affichage_date_fin, introduction, prefacturation in listePeriodes :
+        for IDperiode, IDactivite, nom, date_debut, date_fin, affichage, affichage_date_debut, affichage_date_fin, introduction, prefacturation in listePeriodes:
             date_debut = UTILS_Dates.DateEngEnDateDD(date_debut)
             date_fin = UTILS_Dates.DateEngEnDateDD(date_fin)
             affichage_date_debut = UTILS_Dates.DateEngEnDateDDT(affichage_date_debut)
             affichage_date_fin = UTILS_Dates.DateEngEnDateDDT(affichage_date_fin)
 
-            m = models.Periode(IDperiode=IDperiode, IDactivite=IDactivite, nom=nom, date_debut=date_debut, date_fin=date_fin, \
-                                affichage_date_debut=affichage_date_debut, affichage_date_fin=affichage_date_fin, introduction=introduction,
-                                prefacturation=prefacturation)
+            m = models.Periode(IDperiode=IDperiode, IDactivite=IDactivite, nom=nom,
+                               date_debut=date_debut, date_fin=date_fin, \
+                               affichage_date_debut=affichage_date_debut,
+                               affichage_date_fin=affichage_date_fin,
+                               introduction=introduction,
+                               prefacturation=prefacturation)
             session.add(m)
 
             # Mémorise les activités pour lesquelles il y a des périodes...
             if affichage_date_fin == None or date_fin >= datetime.date.today() or affichage_date_fin >= datetime.datetime.now():
-                if IDactivite not in dict_dates_activites :
-                    dict_dates_activites[IDactivite] = {"date_min" : None, "date_max" : None}
-                if dict_dates_activites[IDactivite]["date_min"] == None or dict_dates_activites[IDactivite]["date_min"] > date_debut :
+                if IDactivite not in dict_dates_activites:
+                    dict_dates_activites[IDactivite] = {"date_min": None,
+                                                        "date_max": None}
+                if dict_dates_activites[IDactivite]["date_min"] == None or \
+                        dict_dates_activites[IDactivite]["date_min"] > date_debut:
                     dict_dates_activites[IDactivite]["date_min"] = date_debut
-                if dict_dates_activites[IDactivite]["date_max"] == None or dict_dates_activites[IDactivite]["date_max"] < date_fin :
+                if dict_dates_activites[IDactivite]["date_max"] == None or \
+                        dict_dates_activites[IDactivite]["date_max"] < date_fin:
                     dict_dates_activites[IDactivite]["date_max"] = date_fin
 
             # Mémorise période pour préfacturation
-            if prefacturation == 1 :
-                if (IDactivite in dict_periodes) == False :
+            if prefacturation == 1:
+                if (IDactivite in dict_periodes) == False:
                     dict_periodes[IDactivite] = []
-                dict_periodes[IDactivite].append({"date_debut": date_debut, "date_fin": date_fin, "IDperiode": IDperiode})
+                dict_periodes[IDactivite].append(
+                    {"date_debut": date_debut, "date_fin": date_fin,
+                     "IDperiode": IDperiode})
 
         liste_tables_modifiees.append("periodes")
 
         # Création de la condition pour les ouvertures et les consommations
         listeConditions = []
-        for IDactivite, periode in dict_dates_activites.items() :
-            listeConditions.append("(IDactivite=%d AND date>='%s' AND date<='%s')" % (IDactivite, periode["date_min"], periode["date_max"]))
+        for IDactivite, periode in dict_dates_activites.items():
+            listeConditions.append(
+                "(IDactivite=%d AND date>='%s' AND date<='%s')" % (IDactivite,
+                                                                   periode["date_min"],
+                                                                   periode["date_max"]))
         texteConditions = "(%s)" % " OR ".join(listeConditions)
 
         # Création des ouvertures
         self.Pulse_gauge()
 
-        if len(listeConditions) > 0 :
+        if len(listeConditions) > 0:
 
             req = """SELECT IDouverture, IDactivite, IDunite, IDgroupe, date
             FROM ouvertures
             WHERE %s;""" % texteConditions
-            DB.ExecuterReq(req,MsgBox="ExecuterReq")
+            DB.ExecuterReq(req)
             listeOuvertures = DB.ResultatReq()
-            for IDouverture, IDactivite, IDunite, IDgroupe, date in listeOuvertures :
+            for IDouverture, IDactivite, IDunite, IDgroupe, date in listeOuvertures:
                 date = UTILS_Dates.DateEngEnDateDD(date)
                 m = models.Ouverture(date=date, IDunite=IDunite, IDgroupe=IDgroupe)
                 session.add(m)
@@ -1156,7 +1413,7 @@ class Synchro():
             # req = """SELECT IDevenement, IDactivite, IDunite, IDgroupe, date, nom, description, heure_debut, heure_fin
             # FROM evenements
             # WHERE %s;""" % texteConditions
-            # DB.ExecuterReq(req,MsgBox="ExecuterReq")
+            # DB.ExecuterReq(req)
             # listeEvenements = DB.ResultatReq()
             # for IDevenement, IDactivite, IDunite, IDgroupe, date, nom, description, heure_debut, heure_fin in listeEvenements :
             #     date = UTILS_Dates.DateEngEnDateDD(date)
@@ -1169,10 +1426,11 @@ class Synchro():
 
             req = """SELECT type, nom, jour, mois, annee
             FROM jours_feries ;"""
-            DB.ExecuterReq(req,MsgBox="ExecuterReq")
+            DB.ExecuterReq(req)
             listeFeries = DB.ResultatReq()
             for typeFerie, nom, jour, mois, annee in listeFeries:
-                m = models.Ferie(type=typeFerie, nom=nom, jour=jour, mois=mois, annee=annee)
+                m = models.Ferie(type=typeFerie, nom=nom, jour=jour, mois=mois,
+                                 annee=annee)
                 session.add(m)
 
             liste_tables_modifiees.append("feries")
@@ -1180,24 +1438,26 @@ class Synchro():
         # Création des consommations
         self.Pulse_gauge()
 
-        if len(listeConditions) > 0 :
+        if len(listeConditions) > 0:
 
             req = """SELECT IDconso, date, IDunite, IDinscription, etat, IDevenement
             FROM consommations
             WHERE %s;""" % texteConditions
-            DB.ExecuterReq(req,MsgBox="ExecuterReq")
+            DB.ExecuterReq(req)
             listeConsommations = DB.ResultatReq()
-            for IDconso, date, IDunite, IDinscription, etat, IDevenement in listeConsommations :
+            for IDconso, date, IDunite, IDinscription, etat, IDevenement in listeConsommations:
                 date = UTILS_Dates.DateEngEnDateDD(date)
-                try :
-                    m = models.Consommation(date=date, IDunite=IDunite, IDinscription=IDinscription, etat=etat, IDevenement=IDevenement)
+                try:
+                    m = models.Consommation(date=date, IDunite=IDunite,
+                                            IDinscription=IDinscription, etat=etat,
+                                            IDevenement=IDevenement)
                 except Exception as err:
                     print((err,))
-                    m = models.Consommation(date=date, IDunite=IDunite, IDinscription=IDinscription, etat=etat)
+                    m = models.Consommation(date=date, IDunite=IDunite,
+                                            IDinscription=IDinscription, etat=etat)
                 session.add(m)
 
             liste_tables_modifiees.append("consommations")
-
 
             # Création de la pré-facturation
 
@@ -1207,7 +1467,7 @@ class Synchro():
             LEFT JOIN prestations ON prestations.IDprestation = ventilation.IDprestation
             WHERE IDfacture IS NULL AND %s
             GROUP BY prestations.IDPrestation;""" % texteConditions
-            DB.ExecuterReq(req,MsgBox="ExecuterReq")
+            DB.ExecuterReq(req)
             listeVentilations = DB.ResultatReq()
             dict_ventilation = {}
             for IDprestation, montant in listeVentilations:
@@ -1217,34 +1477,46 @@ class Synchro():
             req = """SELECT IDprestation, IDfamille, IDactivite, date, montant
             FROM prestations
             WHERE IDfacture IS NULL AND %s;""" % texteConditions
-            DB.ExecuterReq(req,MsgBox="ExecuterReq")
+            DB.ExecuterReq(req)
             listePrestations = DB.ResultatReq()
             dict_prestations = {}
             for IDprestation, IDfamille, IDactivite, date, montant in listePrestations:
                 date = UTILS_Dates.DateEngEnDateDD(date)
                 montant = FloatToDecimal(montant)
-                if (IDfamille in dict_prestations) == False :
+                if (IDfamille in dict_prestations) == False:
                     dict_prestations[IDfamille] = {}
 
                 # Recherche la période correspondante
                 IDperiode = None
                 if IDactivite in dict_periodes:
                     for dictPeriode in dict_periodes[IDactivite]:
-                        if date >= dictPeriode["date_debut"] and date <= dictPeriode["date_fin"]:
+                        if date >= dictPeriode["date_debut"] and date <= dictPeriode[
+                            "date_fin"]:
                             IDperiode = dictPeriode["IDperiode"]
 
-                if IDperiode != None :
-                    if (IDperiode in dict_prestations[IDfamille]) == False :
-                        dict_prestations[IDfamille][IDperiode] = {"montant" : FloatToDecimal(0.0), "montant_regle" : FloatToDecimal(0.0), "montant_solde" : FloatToDecimal(0.0)}
+                if IDperiode != None:
+                    if (IDperiode in dict_prestations[IDfamille]) == False:
+                        dict_prestations[IDfamille][IDperiode] = {
+                            "montant": FloatToDecimal(0.0),
+                            "montant_regle": FloatToDecimal(0.0),
+                            "montant_solde": FloatToDecimal(0.0)}
                     dict_prestations[IDfamille][IDperiode]["montant"] += montant
-                    dict_prestations[IDfamille][IDperiode]["montant_regle"] += dict_ventilation.get(IDprestation, FloatToDecimal(0.0))
-                    dict_prestations[IDfamille][IDperiode]["montant_solde"] = dict_prestations[IDfamille][IDperiode]["montant"] - dict_prestations[IDfamille][IDperiode]["montant_regle"]
+                    dict_prestations[IDfamille][IDperiode][
+                        "montant_regle"] += dict_ventilation.get(IDprestation,
+                                                                 FloatToDecimal(0.0))
+                    dict_prestations[IDfamille][IDperiode]["montant_solde"] = \
+                    dict_prestations[IDfamille][IDperiode]["montant"] - \
+                    dict_prestations[IDfamille][IDperiode]["montant_regle"]
 
             # Enregistrement de la table prefacturation
             for IDfamille, dictPeriode in dict_prestations.items():
                 for IDperiode, dict_montants in dictPeriode.items():
-                    m = models.Prefacturation(IDfamille=IDfamille, IDperiode=IDperiode, montant=float(dict_montants["montant"]),
-                                              montant_regle=float(dict_montants["montant_regle"]), montant_solde=float(dict_montants["montant_solde"]))
+                    m = models.Prefacturation(IDfamille=IDfamille, IDperiode=IDperiode,
+                                              montant=float(dict_montants["montant"]),
+                                              montant_regle=float(
+                                                  dict_montants["montant_regle"]),
+                                              montant_solde=float(
+                                                  dict_montants["montant_solde"]))
                     session.add(m)
 
             liste_tables_modifiees.append("prefacturation")
@@ -1254,16 +1526,22 @@ class Synchro():
 
         req = """SELECT IDaction, horodatage, IDfamille, IDindividu, categorie, action, description, commentaire, parametres, etat, traitement_date, IDperiode, ref_unique, reponse, IDpaiement, ventilation
         FROM portail_actions
-        WHERE horodatage>='%s';""" % (datetime.datetime.now() - datetime.timedelta(days=(self.dict_parametres["historique_delai"]+1)*30))
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        WHERE horodatage>='%s';""" % (datetime.datetime.now() - datetime.timedelta(
+            days=(self.dict_parametres["historique_delai"] + 1) * 30))
+        DB.ExecuterReq(req)
         listeActions = DB.ResultatReq()
-        for IDaction, horodatage, IDfamille, IDindividu, categorie, action, description, commentaire, parametres, etat, traitement_date, IDperiode, ref_unique, reponse, IDpaiement, ventilation in listeActions :
-            if IDfamille in listeIDfamille :
+        for IDaction, horodatage, IDfamille, IDindividu, categorie, action, description, commentaire, parametres, etat, traitement_date, IDperiode, ref_unique, reponse, IDpaiement, ventilation in listeActions:
+            if IDfamille in listeIDfamille:
                 traitement_date = UTILS_Dates.DateEngEnDateDD(traitement_date)
                 horodatage = UTILS_Dates.DateEngEnDateDDT(horodatage)
-                m = models.Action(horodatage=horodatage, IDfamille=IDfamille, IDindividu=IDindividu, categorie=categorie, action=action, description=description,
-                                  commentaire=commentaire, parametres=parametres, etat=etat, traitement_date=traitement_date, IDperiode=IDperiode, ref_unique=ref_unique,
-                                  reponse=reponse, IDpaiement=IDpaiement, ventilation=ventilation)
+                m = models.Action(horodatage=horodatage, IDfamille=IDfamille,
+                                  IDindividu=IDindividu, categorie=categorie,
+                                  action=action, description=description,
+                                  commentaire=commentaire, parametres=parametres,
+                                  etat=etat, traitement_date=traitement_date,
+                                  IDperiode=IDperiode, ref_unique=ref_unique,
+                                  reponse=reponse, IDpaiement=IDpaiement,
+                                  ventilation=ventilation)
                 session.add(m)
 
         liste_tables_modifiees.append("actions")
@@ -1272,14 +1550,15 @@ class Synchro():
         req = """SELECT IDmessage, titre, texte, affichage_date_debut, affichage_date_fin
         FROM portail_messages
         ORDER BY titre;"""
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req)
         listeMessages = DB.ResultatReq()
-        for IDmessage, titre, texte, affichage_date_debut, affichage_date_fin in listeMessages :
+        for IDmessage, titre, texte, affichage_date_debut, affichage_date_fin in listeMessages:
             affichage_date_debut = UTILS_Dates.DateEngEnDateDDT(affichage_date_debut)
             affichage_date_fin = UTILS_Dates.DateEngEnDateDDT(affichage_date_fin)
 
             m = models.Message(IDmessage=IDmessage, titre=titre, texte=texte, \
-                               affichage_date_debut=affichage_date_debut, affichage_date_fin=affichage_date_fin)
+                               affichage_date_debut=affichage_date_debut,
+                               affichage_date_fin=affichage_date_fin)
             session.add(m)
 
         liste_tables_modifiees.append("messages")
@@ -1287,23 +1566,25 @@ class Synchro():
         # Création des régies
         req = """SELECT IDregie, nom, numclitipi, email_regisseur
         FROM factures_regies;"""
-        DB.ExecuterReq(req,MsgBox="ExecuterReq")
+        DB.ExecuterReq(req)
         listeRegies = DB.ResultatReq()
-        for IDregie, nom, numclitipi, email_regisseur in listeRegies :
-            m = models.Regie(IDregie=IDregie, nom=nom, numclitipi=numclitipi, email_regisseur=email_regisseur)
+        for IDregie, nom, numclitipi, email_regisseur in listeRegies:
+            m = models.Regie(IDregie=IDregie, nom=nom, numclitipi=numclitipi,
+                             email_regisseur=email_regisseur)
             session.add(m)
 
         liste_tables_modifiees.append("regies")
 
         # Recherche des pages
-        last_update_pages = UTILS_Parametres.Parametres(mode="get", categorie="portail", nom="last_update_pages")
+        last_update_pages = UTILS_Parametres.Parametres(mode="get", categorie="portail",
+                                                        nom="last_update_pages")
         if last_update_pages == None or last_update_pages > last_synchro or full_synchro == True:
 
             req = """SELECT IDpage, titre, couleur, ordre
             FROM portail_pages;"""
-            DB.ExecuterReq(req,MsgBox="ExecuterReq")
+            DB.ExecuterReq(req)
             listePages = DB.ResultatReq()
-            for IDpage, titre, couleur, ordre in listePages :
+            for IDpage, titre, couleur, ordre in listePages:
                 m = models.Page(IDpage=IDpage, titre=titre, couleur=couleur, ordre=ordre)
                 session.add(m)
 
@@ -1311,65 +1592,73 @@ class Synchro():
 
             req = """SELECT IDbloc, IDpage, titre, couleur, categorie, ordre, parametres
             FROM portail_blocs;"""
-            DB.ExecuterReq(req,MsgBox="ExecuterReq")
+            DB.ExecuterReq(req)
             listeBlocs = DB.ResultatReq()
-            for IDbloc, IDpage, titre, couleur, categorie, ordre, parametres in listeBlocs :
-                m = models.Bloc(IDbloc=IDbloc, IDpage=IDpage, titre=titre, couleur=couleur, categorie=categorie, ordre=ordre, parametres=parametres)
+            for IDbloc, IDpage, titre, couleur, categorie, ordre, parametres in listeBlocs:
+                m = models.Bloc(IDbloc=IDbloc, IDpage=IDpage, titre=titre,
+                                couleur=couleur, categorie=categorie, ordre=ordre,
+                                parametres=parametres)
                 session.add(m)
 
             liste_tables_modifiees.append("blocs")
 
             req = """SELECT IDelement, IDbloc, ordre, titre, categorie, date_debut, date_fin, parametres, texte_html
             FROM portail_elements;"""
-            DB.ExecuterReq(req,MsgBox="ExecuterReq")
+            DB.ExecuterReq(req)
             listeElements = DB.ResultatReq()
-            for IDelement, IDbloc, ordre, titre, categorie, date_debut, date_fin, parametres, texte_html in listeElements :
+            for IDelement, IDbloc, ordre, titre, categorie, date_debut, date_fin, parametres, texte_html in listeElements:
                 date_debut = UTILS_Dates.DateEngEnDateDDT(date_debut)
                 date_fin = UTILS_Dates.DateEngEnDateDDT(date_fin)
-                if texte_html != None :
+                if texte_html != None:
                     if isinstance(texte_html, str):
-                        texte_html = texte_html.encode('utf-8')
-                    texte_html = texte_html.replace(b"<img ", b"<img class='img-responsive' ")
+                            texte_html = texte_html.encode('utf-8')
+                    texte_html = texte_html.replace(b"<img ",
+                                                        b"<img class='img-responsive' ")
 
-                m = models.Element(IDelement=IDelement, IDbloc=IDbloc, ordre=ordre, titre=titre, categorie=categorie, date_debut=date_debut, date_fin=date_fin,
-                                parametres=parametres, texte_html=texte_html)
+                m = models.Element(IDelement=IDelement, IDbloc=IDbloc, ordre=ordre,
+                                   titre=titre, categorie=categorie,
+                                   date_debut=date_debut, date_fin=date_fin,
+                                   parametres=parametres, texte_html=texte_html)
                 session.add(m)
 
             liste_tables_modifiees.append("elements")
 
-
-
-
         # Mémorise les tables modifiées qui seront à importées dans Connecthys
         texte_tables_modifiees = ";".join(liste_tables_modifiees)
-        session.add(models.Parametre(nom="tables_modifiees_synchro", parametre=texte_tables_modifiees))
+        session.add(models.Parametre(nom="tables_modifiees_synchro",
+                                     parametre=texte_tables_modifiees))
 
         # Fermeture de la base de données Noethys
         DB.Close()
 
         # Commit
-        self.log.EcritLog(_("Enregistrement des données à exporter..."))
+        self.log.EcritLog(_(u"Enregistrement des données à exporter..."))
         self.Pulse_gauge()
         session.commit()
 
         # Compression du fichier
-        self.log.EcritLog(_("Compression du fichier d'export..."))
+        self.log.EcritLog(_(u"Compression du fichier d'export..."))
         self.Pulse_gauge()
 
         nomFichierZIP = nomFichierDB.replace(".db", ".zip")
         fichierZip = zipfile.ZipFile(nomFichierZIP, "w", compression=zipfile.ZIP_DEFLATED)
         fichierZip.write(nomFichierDB, os.path.basename(nomFichierDB))
         fichierZip.close()
-        #os.remove(nomFichierDB)
+        # os.remove(nomFichierDB)
 
         # Cryptage du fichier
-        self.log.EcritLog(_("Cryptage du fichier d'export..."))
+        self.log.EcritLog(_(u"Cryptage du fichier d'export..."))
         self.Pulse_gauge()
 
-        cryptage_mdp = self.dict_parametres["secret_key"][:10] #base64.b64decode(password)
+        cryptage_mdp = self.dict_parametres["secret_key"][
+            :10]  # base64.b64decode(password)
         nomFichierCRYPT = nomFichierZIP.replace(".zip", ".crypt")
-        ancienne_methode = UTILS_Customize.GetValeur("version_cryptage", "connecthys", "1", ajouter_si_manquant=False) in ("1", None)
-        UTILS_Cryptage_fichier.CrypterFichier(nomFichierZIP, nomFichierCRYPT, cryptage_mdp, ancienne_methode=ancienne_methode)
+        ancienne_methode = UTILS_Customize.GetValeur("version_cryptage", "connecthys",
+                                                     "2",
+                                                     ajouter_si_manquant=False) == "1"
+        UTILS_Cryptage_fichier.CrypterFichier(nomFichierZIP, nomFichierCRYPT,
+                                              cryptage_mdp,
+                                              ancienne_methode=ancienne_methode)
         os.remove(nomFichierZIP)
 
         # Pour contrer le bug de Pickle dans le cryptage
@@ -1387,27 +1676,30 @@ class Synchro():
         fichier3.close()
 
         # Envoi du fichier de données
-        self.log.EcritLog(_("Envoi du fichier de données..."))
+        self.log.EcritLog(_(u"Envoi du fichier de données..."))
         self.Pulse_gauge()
         time.sleep(0.5)
 
-        self.UploadFichier(ftp=ftp, nomFichierComplet=nomFichierCRYPT, repDest="application/data")
+        self.UploadFichier(ftp=ftp, nomFichierComplet=nomFichierCRYPT,
+                           repDest="application/data")
 
         # Fermeture connexion FTP ou SFTP
         self.Deconnexion(ftp)
 
         # Envoi de la requête de traitement du fichier d'import
-        self.log.EcritLog(_("Envoi de la requête de traitement du fichier d'export..."))
+        self.log.EcritLog(_(u"Envoi de la requête de traitement du fichier d'export..."))
         self.Pulse_gauge()
         time.sleep(0.5)
 
         page = None
-        try :
-            if self.dict_parametres["serveur_type"] == 0 :
+        try:
+            if self.dict_parametres["serveur_type"] == 0:
                 url = self.dict_parametres["url_connecthys"]
-            if self.dict_parametres["serveur_type"] == 1 :
-                url = self.dict_parametres["url_connecthys"] + ("" if self.dict_parametres["url_connecthys"][-1] == "/" else "/") + self.dict_parametres["serveur_cgi_file"]
-            if self.dict_parametres["serveur_type"] == 2 :
+            if self.dict_parametres["serveur_type"] == 1:
+                url = self.dict_parametres["url_connecthys"] + (
+                    "" if self.dict_parametres["url_connecthys"][-1] == "/" else "/") + \
+                      self.dict_parametres["serveur_cgi_file"]
+            if self.dict_parametres["serveur_type"] == 2:
                 url = self.dict_parametres["url_connecthys"]
             url += ("" if url[-1] == "/" else "/") + "syncup/%d" % secret
             print("URL syncup =", url)
@@ -1416,25 +1708,28 @@ class Synchro():
             reponse = urlopen(req)
             page = reponse.read()
 
-        except Exception as err :
+        except Exception as err:
             print(err)
-            self.log.EcritLog(_("[ERREUR] Erreur dans le traitement du fichier"))
+            self.log.EcritLog(_(u"[ERREUR] Erreur dans le traitement du fichier"))
 
         # Suppression du fichier
-        #ftp = ftplib.FTP(hote, identifiant, mdp)
-        #ftp.cwd(repertoire)
-        #ftp.delete(os.path.basename(nomFichierDB))
-        #ftp.quit()
+        # ftp = ftplib.FTP(hote, identifiant, mdp)
+        # ftp.cwd(repertoire)
+        # ftp.delete(os.path.basename(nomFichierDB))
+        # ftp.quit()
 
-        if page != None and page != "True" and page != b"True" :
+        if page != None and page != "True" and page != b"True":
             # Affichage erreur
             print("Erreur dans le traitement du fichier :", page)
-            self.log.EcritLog(_("[ERREUR] Erreur dans le traitement du fichier. Réponse reçue :"))
+            self.log.EcritLog(
+                _(u"[ERREUR] Erreur dans le traitement du fichier. Réponse reçue :"))
             self.log.EcritLog(page)
 
-        else :
+        else:
             # Mémorisation horodatage synchro
-            UTILS_Parametres.Parametres(mode="set", categorie="portail", nom="last_synchro", valeur=str(datetime.datetime.now()))
+            UTILS_Parametres.Parametres(mode="set", categorie="portail",
+                                        nom="last_synchro",
+                                        valeur=str(datetime.datetime.now()))
 
         print("Temps upload_data = ", time.time() - t1)
         self.Pulse_gauge(0)

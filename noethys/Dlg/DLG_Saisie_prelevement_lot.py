@@ -18,7 +18,6 @@ import wx.html as html
 import os
 import GestionDB
 import datetime
-import six
 from Ctrl import CTRL_Saisie_date
 from Utils import UTILS_Dates
 from Utils import UTILS_Historique
@@ -876,10 +875,7 @@ class Dialog(wx.Dialog):
                 dlg.Destroy()
 
         # Création du fichier texte
-        if six.PY2:
-            flag = "w"
-        else:
-            flag = "wb"
+        flag = "wb"
         f = open(cheminFichier, flag)
         try:
             f.write(xml)

@@ -16,7 +16,6 @@ import wx
 from Ctrl import CTRL_Bouton_image
 import wx.html as html
 import os
-import six
 import GestionDB
 import datetime
 import gzip

@@ -18,7 +18,6 @@ from Ctrl import CTRL_Bouton_image
 import GestionDB
 import wx.lib.agw.hypertreelist as HTL
 from wx.lib.agw.customtreectrl import EVT_TREE_ITEM_CHECKED
-import six
 
 
 DICT_LABELS_CATEGORIES = {

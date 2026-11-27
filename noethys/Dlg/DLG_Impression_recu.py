@@ -15,7 +15,6 @@ import wx
 from Ctrl import CTRL_Bouton_image
 import datetime
 import wx.grid as gridlib
-import six
 from Utils import UTILS_Config
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 

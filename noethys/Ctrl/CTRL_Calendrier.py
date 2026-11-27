@@ -17,7 +17,6 @@ import wx.lib.newevent
 import calendar
 import datetime
 import GestionDB
-import six
 import sys
 
 try :

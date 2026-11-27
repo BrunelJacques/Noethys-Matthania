@@ -9,7 +9,6 @@
 #------------------------------------------------------------------------
 
 import wx
-from Ctrl import CTRL_Bouton_image
 import datetime
 import GestionDB
 

@@ -20,7 +20,6 @@ from Ctrl import CTRL_Saisie_date
 from Utils import UTILS_Dates
 import wx.lib.agw.hyperlink as Hyperlink
 import GestionDB
-import six
 
 
 def FormateDate(date):

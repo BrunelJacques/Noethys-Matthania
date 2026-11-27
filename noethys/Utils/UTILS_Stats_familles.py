@@ -12,14 +12,12 @@
 import Chemins
 from Utils.UTILS_Traduction import _
 import wx
-import six
 import datetime
 import matplotlib
 import matplotlib.pyplot
 from numpy import arange
 from Utils import UTILS_Stats_modeles as MODELES
-if six.PY3:
-    import functools
+import functools
 
 
 DICT_COMPARATIF_NOMBRE = {"dictParametres" : {}, "dictResultats" : {} }
@@ -290,10 +288,7 @@ def TrierQF(listeTranches=[]):
         if tranche1 < tranche2: return -1
         elif tranche1 > tranche2: return 1
         else: return 0
-    if six.PY2:
-        listeTranches.sort(cmp=Tri)
-    else:
-        listeTranches.sort(key=functools.cmp_to_key(Tri))
+    listeTranches.sort(key=functools.cmp_to_key(Tri))
     return listeTranches
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------

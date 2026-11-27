@@ -18,7 +18,6 @@ import datetime
 import os
 import wx.lib.agw.customtreectrl as CT
 import base64
-import six
 from Ctrl import CTRL_Bandeau
 import GestionDB
 from Utils import UTILS_Sauvegarde
@@ -474,8 +473,7 @@ class CTRL_Parametres(wx.Panel) :
                 dlg.Destroy()
                 self.ctrl_confirmation.SetFocus()
                 return False
-            if six.PY3:
-                motdepasse = six.binary_type(motdepasse, "utf-8")
+            motdepasse = motdepasse.encode("utf-8")
             motdepasse = base64.b64encode(motdepasse)
         else:
             motdepasse = None

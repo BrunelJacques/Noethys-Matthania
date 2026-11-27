@@ -15,9 +15,7 @@ from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
 from Ctrl import CTRL_Bandeau
-import GestionDB
 import datetime
-import six
 from Utils import UTILS_Schedule
 from Outils import wxScheduler
 from Outils import wxReportScheduler

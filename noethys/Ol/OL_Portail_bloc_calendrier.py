@@ -13,7 +13,6 @@ from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 import datetime
-import six
 from Utils import UTILS_Interface
 from Utils import UTILS_Dates
 from Ctrl import CTRL_Bouton_image

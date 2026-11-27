@@ -14,7 +14,6 @@ from Utils.UTILS_Traduction import _
 import wx
 import datetime
 import GestionDB
-import six
 
 
 DICT_PROCEDURES = {

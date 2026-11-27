@@ -175,9 +175,6 @@ class Dialog(wx.Dialog):
             dlg.Destroy()
             self.ctrl_confirmation.SetFocus()
             return False
-        # if six.PY3:
-        #     motdepasse = six.binary_type(motdepasse, "utf-8")
-        # motdepasse = base64.b64encode(motdepasse)
 
         # Répertoire
         repertoire = self.ctrl_repertoire.GetValue()

@@ -13,7 +13,6 @@ import Chemins
 from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
-import six
 import wx.lib.agw.ultimatelistctrl as ULC
 
 # Import des assistants pour pouvoir les inclure dans la compilation windows

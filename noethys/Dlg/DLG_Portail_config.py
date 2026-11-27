@@ -23,7 +23,7 @@ import os.path
 import webbrowser
 import GestionDB
 import wx.richtext as rt
-import six
+import io
 
 from Dlg import DLG_Message_html
 
@@ -1414,11 +1414,11 @@ class Page_Conditions(wx.Panel):
         IDelement, texte_xml = listeDonnees[0]
 
         # Insertion du texte
-        out = six.BytesIO()
+        out = io.BytesIO()
         handler = wx.richtext.RichTextXMLHandler()
         buf = self.ctrl_html.GetBuffer()
         buf.AddHandler(handler)
-        if (six.PY3 and not isinstance(texte_xml, bytes)) or (six.PY2 and not isinstance(texte_xml, buffer)):
+        if (not isinstance(texte_xml, bytes)):
             texte_xml = texte_xml.encode("utf8")
         out.write(texte_xml)
         out.seek(0)

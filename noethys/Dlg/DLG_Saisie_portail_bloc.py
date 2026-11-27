@@ -13,7 +13,6 @@ import Chemins
 from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
-import six
 from Utils import UTILS_Dates
 from Ctrl import CTRL_Bouton_image
 import GestionDB
@@ -99,8 +98,7 @@ class PAGE_Texte(wx.Panel):
             dictElement = dictParametres["elements"][0]
             self.IDelement = dictElement["IDelement"]
             xml = dictElement["texte_xml"]
-            if six.PY3 and isinstance(xml, str):
-                xml = xml.encode("utf8")
+            xml = xml.encode("utf8")
             self.ctrl_editeur.SetXML(xml)
 
     def Validation(self):

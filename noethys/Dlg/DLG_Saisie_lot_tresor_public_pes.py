@@ -15,7 +15,6 @@ from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
 import os
-import six
 import GestionDB
 import datetime
 import gzip
@@ -499,11 +498,7 @@ class Dialog(DLG_Saisie_lot_tresor_public.Dialog):
         # Création du fichier texte
         f = open(cheminFichier, "w")
         try:
-            if six.PY2:
-                f.write(doc.toxml(encoding="ISO-8859-1"))
-            else:
-                #f.write(doc.toprettyxml(indent="  "))
-                f.write(doc.toxml())
+            f.write(doc.toxml())
         finally:
             f.close()
 

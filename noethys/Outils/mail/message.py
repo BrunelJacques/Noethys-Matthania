@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import mimetypes
 import os
+import io
 import random
 import time
 from email import (
@@ -14,10 +15,8 @@ from email.mime.message import MIMEMessage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formatdate, getaddresses, parseaddr
-from io import BytesIO
 
 from Outils.mail.utils import DNS_NAME
-import six
 from Outils.mail.encoding import force_text
 
 # Don't BASE64-encode UTF-8 messages so that we avoid unwanted attention from
@@ -140,13 +139,6 @@ def sanitize_address(addr, encoding):
     except UnicodeEncodeError:  # IDN or non-ascii in the local part
         localpart, domain = split_addr(addr, encoding)
 
-    if six.PY2:
-        # On Python 2, use the stdlib since `email.headerregistry` doesn't exist.
-        from email.utils import formataddr
-        if localpart and domain:
-            addr = '@'.join([localpart, domain])
-        return formataddr((nm, addr))
-
     # On Python 3, an `email.headerregistry.Address` object is used since
     # email.utils.formataddr() naively encodes the name as ascii (see #25986).
     from email.headerregistry import Address
@@ -173,18 +165,12 @@ class MIMEMixin():
         This overrides the default as_string() implementation to not mangle
         lines that begin with 'From '. See bug #13433 for details.
         """
-        fp = six.StringIO()
+        fp = io.StringIO()
         g = generator.Generator(fp, mangle_from_=False)
-        if six.PY2:
-            g.flatten(self, unixfrom=unixfrom)
-        else:
-            g.flatten(self, unixfrom=unixfrom, linesep=linesep)
+        g.flatten(self, unixfrom=unixfrom, linesep=linesep)
         return fp.getvalue()
 
-    if six.PY2:
-        as_bytes = as_string
-    else:
-        def as_bytes(self, unixfrom=False, linesep='\n'):
+    def as_bytes(self, unixfrom=False, linesep='\n'):
             """Return the entire formatted message as bytes.
             Optional `unixfrom' when True, means include the Unix From_ envelope
             header.
@@ -192,7 +178,7 @@ class MIMEMixin():
             This overrides the default as_bytes() implementation to not mangle
             lines that begin with 'From '. See bug #13433 for details.
             """
-            fp = BytesIO()
+            fp = io.BytesIO()
             g = generator.BytesGenerator(fp, mangle_from_=False)
             g.flatten(self, unixfrom=unixfrom, linesep=linesep)
             return fp.getvalue()
@@ -259,25 +245,25 @@ class EmailMessage(object):
         necessary encoding conversions.
         """
         if to:
-            if isinstance(to, six.string_types):
+            if isinstance(to, io.string_types):
                 raise TypeError('"to" argument must be a list or tuple')
             self.to = list(to)
         else:
             self.to = []
         if cc:
-            if isinstance(cc, six.string_types):
+            if isinstance(cc, io.string_types):
                 raise TypeError('"cc" argument must be a list or tuple')
             self.cc = list(cc)
         else:
             self.cc = []
         if bcc:
-            if isinstance(bcc, six.string_types):
+            if isinstance(bcc, io.string_types):
                 raise TypeError('"bcc" argument must be a list or tuple')
             self.bcc = list(bcc)
         else:
             self.bcc = []
         if reply_to:
-            if isinstance(reply_to, six.string_types):
+            if isinstance(reply_to, io.string_types):
                 raise TypeError('"reply_to" argument must be a list or tuple')
             self.reply_to = list(reply_to)
         else:
@@ -373,7 +359,7 @@ class EmailMessage(object):
             basetype, subtype = mimetype.split('/', 1)
 
             if basetype == 'text':
-                if isinstance(content, six.binary_type):
+                if isinstance(content, io.binary_type):
                     try:
                         content = content.decode('utf-8')
                     except UnicodeDecodeError:
@@ -457,8 +443,6 @@ class EmailMessage(object):
             try:
                 filename.encode('ascii')
             except UnicodeEncodeError:
-                if six.PY2:
-                    filename = filename.encode('utf-8')
                 filename = ('utf-8', '', filename)
             attachment.add_header('Content-Disposition', 'attachment',
                                   filename=filename)

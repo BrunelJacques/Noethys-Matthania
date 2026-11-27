@@ -19,7 +19,6 @@ import GestionDB
 from Dlg import DLG_Saisie_utilisateur_reseau
 from Ctrl import CTRL_Bandeau
 from Utils import UTILS_Utilisateurs
-import six
 
 
 LISTE_SUFFIXES = ("data", "photos", "documents")
@@ -316,8 +315,6 @@ class ListCtrl(wx.ListCtrl, CheckListCtrlMixin):
                 if host == hostTmp and user == userTmp :
                     autorisation = True
 
-            if six.PY2:
-                host = host.decode("utf8")
             listeDonnees.append([user, host, autorisation])
         return listeDonnees
 

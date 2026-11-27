@@ -13,7 +13,6 @@ import Chemins
 from Utils.UTILS_Traduction import _
 from xml.dom.minidom import Document
 from lxml import etree
-import six
 import wx
 import FonctionsPerso
 from urllib.request import urlretrieve

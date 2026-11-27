@@ -8,32 +8,26 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-import Chemins
+
 from Utils.UTILS_Traduction import _
 import wx
-import GestionDB
 import traceback
 import datetime
-import six
+import io
 import sys
-from Utils import UTILS_Dates
 from Utils import UTILS_Texte
 from Utils import UTILS_Filtres_questionnaires
-
-from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
 
 from Data import DATA_Civilites as Civilites
 DICT_CIVILITES = Civilites.GetDictCivilites()
 
 import GestionDB
-import FonctionsPerso
+
 from Utils import UTILS_Titulaires
 from Utils import UTILS_Questionnaires
 from Utils import UTILS_Dates
 from Dlg import DLG_Apercu_location
-from Utils import UTILS_Conversion
 from Utils import UTILS_Infos_individus
-from Utils import UTILS_Divers
 from Utils import UTILS_Fichiers
 
 
@@ -167,28 +161,6 @@ class Location():
                 famille_rue = ""
                 famille_cp = ""
                 famille_ville = ""
-
-            # Facturation
-            # montant = 0.0
-            # ventilation = 0.0
-            # dateReglement = None
-            # modeReglement = None
-            #
-            # if dictFacturation.has_key(IDcotisation):
-            #     montant = dictFacturation[IDcotisation]["montant"]
-            #     ventilation = dictFacturation[IDcotisation]["ventilation"]
-            #     dateReglement = dictFacturation[IDcotisation]["dateReglement"]
-            #     modeReglement = dictFacturation[IDcotisation]["modeReglement"]
-            #
-            # solde = float(FloatToDecimal(montant) - FloatToDecimal(ventilation))
-            #
-            # montantStr = "%.02f %s" % (montant, SYMBOLE)
-            # regleStr = "%.02f %s" % (ventilation, SYMBOLE)
-            # soldeStr = "%.02f %s" % (solde, SYMBOLE)
-            # montantStrLettres = UTILS_Conversion.trad(montant, MONNAIE_SINGULIER, MONNAIE_DIVISION)
-            # regleStrLettres = UTILS_Conversion.trad(ventilation, MONNAIE_SINGULIER, MONNAIE_DIVISION)
-            # soldeStrLettres = UTILS_Conversion.trad(solde, MONNAIE_SINGULIER, MONNAIE_DIVISION)
-
 
             # Mémorisation des données
             dictDonnee = {
@@ -355,7 +327,7 @@ class Location():
                 fichier = open(cheminFichier, "rb")
                 data = fichier.read()
                 fichier.close()
-                buffer = six.BytesIO(data)
+                buffer = io.BytesIO(data)
                 blob = buffer.read()
                 # Recherche l'IDreponse
                 if IDlocation in dictReponses:

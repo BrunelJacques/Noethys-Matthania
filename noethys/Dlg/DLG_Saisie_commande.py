@@ -18,7 +18,6 @@ from Ctrl import CTRL_Bouton_image
 import datetime
 import FonctionsPerso
 import sys
-import six
 import GestionDB
 from Utils import UTILS_Organisateur
 from Utils import UTILS_Divers

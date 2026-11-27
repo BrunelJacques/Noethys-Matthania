@@ -135,19 +135,14 @@ Version 0.9
 
 import wx
 import os
-import time
+import io
 import zlib
 
-import six
-if six.PY3:
-    import _thread as thread
-else:
-    import thread
+import _thread as thread
+
 from math import pi
 
 import PIL.Image as Image
-
-
 
 #----------------------------------------------------------------------
 # Get Default Icon/Data
@@ -167,7 +162,7 @@ def GetMondrianBitmap():
     return wx.BitmapFromImage(GetMondrianImage())
 
 def GetMondrianImage():
-    stream = six.BytesIO(GetMondrianData())
+    stream = io.BytesIO(GetMondrianData())
     return wx.ImageFromStream(stream)
 
 
@@ -209,13 +204,11 @@ b'x\xda\xeb\x0c\xf0s\xe7\xe5\x92\xe2b``\xe0\xf5\xf4p\t\x02\xd2\xac \xcc\xc1\
 \xce)\xa1\t\x00"\xf9$\x83' )
 
 def getShadow():
-    if 'phoenix' in wx.PlatformInfo:
-        fonction = wx.Image
-    else :
-        fonction = wx.ImageFromStream
-    sh_tr = fonction(six.BytesIO(getDataTR())).ConvertToBitmap()
-    sh_bl = fonction(six.BytesIO(getDataBL())).ConvertToBitmap()
-    sh_sh = fonction(six.BytesIO(getDataSH())).Rescale(500, 500, wx.IMAGE_QUALITY_HIGH)
+    fonction = wx.Image
+
+    sh_tr = fonction(io.BytesIO(getDataTR())).ConvertToBitmap()
+    sh_bl = fonction(io.BytesIO(getDataBL())).ConvertToBitmap()
+    sh_sh = fonction(io.BytesIO(getDataSH())).Rescale(500, 500, wx.IMAGE_QUALITY_HIGH)
     return (sh_tr, sh_bl, sh_sh.ConvertToBitmap())
 
 

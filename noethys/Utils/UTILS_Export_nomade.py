@@ -15,7 +15,6 @@ import wx
 from Ctrl import CTRL_Bouton_image
 import GestionDB
 import sqlite3
-import six
 import time
 import traceback
 import sys
@@ -244,8 +243,7 @@ class Export():
             # Cryptage
             cryptage_actif = UTILS_Config.GetParametre("synchro_cryptage_activer", defaut=False)
             cryptage_mdp = base64.b64decode(UTILS_Config.GetParametre("synchro_cryptage_mdp", defaut=""))
-            if six.PY3:
-                cryptage_mdp = cryptage_mdp.decode()
+            cryptage_mdp = cryptage_mdp.decode()
             if cryptage_actif == True and cryptage_mdp != "" :
                 ancienne_methode = UTILS_Customize.GetValeur("version_cryptage", "nomadhys", "1", ajouter_si_manquant=False) in ("1", None)
                 UTILS_Cryptage_fichier.CrypterFichier(self.nomFichier + EXTENSION_DECRYPTE, self.nomFichier + EXTENSION_CRYPTE, cryptage_mdp, ancienne_methode=ancienne_methode)
@@ -285,8 +283,7 @@ class Export():
         identifiant = UTILS_Config.GetParametre("synchro_ftp_identifiant", defaut="")
         mdp = base64.b64decode(UTILS_Config.GetParametre("synchro_ftp_mdp", defaut=""))
         repertoire = UTILS_Config.GetParametre("synchro_ftp_repertoire", defaut="")
-        if six.PY3:
-            mdp = mdp.decode("utf-8")
+        mdp = mdp.decode("utf-8")
 
         # Envoyer le fichier
         dlgAttente = wx.BusyInfo(_("Envoi du fichier de données vers un répertoire FTP..."), None)

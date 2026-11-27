@@ -10,7 +10,6 @@
 
 import Chemins
 from Utils.UTILS_Traduction import _
-import six
 from urllib.request import urlopen
 import datetime, json, codecs
 from Utils import UTILS_Dates

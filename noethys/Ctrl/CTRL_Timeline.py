@@ -25,7 +25,6 @@ from Utils.UTILS_Traduction import _
 import logging
 import os.path
 from datetime import datetime as dt
-import six
 import wx
 import wx.html
 import wx.lib.colourselect as colourselect
@@ -47,8 +46,7 @@ else :
     import wx.lib.hyperlink as HL
     from wx import GenericDatePickerCtrl, DP_DROPDOWN, DP_SHOWCENTURY, EVT_DATE_CHANGED
 
-if six.PY3:
-    import functools
+import functools
 
 # Border, in pixels, between controls in a window (should always be used when
 # border is needed)
@@ -1876,10 +1874,7 @@ class TxtException(ValueError):
 
 def sort_categories(categories):
     sorted_categories = list(categories)
-    if six.PY2:
-        sorted_categories.sort(cmp, lambda x: x.name.lower())
-    else:
-        sorted_categories.sort(key=(lambda x: x.name.lower()))
+    sorted_categories.sort(key=(lambda x: x.name.lower()))
 
     return sorted_categories
 

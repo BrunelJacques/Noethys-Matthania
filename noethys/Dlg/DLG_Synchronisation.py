@@ -15,7 +15,6 @@ from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
 import os
-import six
 import datetime
 from Ctrl import CTRL_Bandeau
 from Ctrl import CTRL_Ultrachoice
@@ -56,8 +55,7 @@ def AnalyserFichier(nomFichier="", tailleFichier=None, typeTransfert=None):
     if nomFichier.endswith(UTILS_Export_nomade.EXTENSION_CRYPTE) :
         nouveauCheminFichier = cheminFichier.replace(UTILS_Export_nomade.EXTENSION_CRYPTE, UTILS_Export_nomade.EXTENSION_DECRYPTE)
         mdp = base64.b64decode(UTILS_Config.GetParametre("synchro_cryptage_mdp", defaut=""))
-        if six.PY3:
-            mdp = mdp.decode()
+        mdp = mdp.decode()
         resultat = UTILS_Cryptage_fichier.DecrypterFichier(cheminFichier, nouveauCheminFichier, mdp)
         os.remove(cheminFichier)
     else :
@@ -261,8 +259,7 @@ class Page_ftp(wx.Panel):
     def GetParametres(self, encoder_mdp=True):
         mdp = self.ctrl_mdp.GetValue()
         if encoder_mdp == True :
-            if six.PY3:
-                mdp = mdp.encode("utf-8")
+            mdp = mdp.encode("utf-8")
             mdp = base64.b64encode(mdp)
         return {"synchro_ftp_hote" : self.ctrl_hote.GetValue(), "synchro_ftp_identifiant" : self.ctrl_identifiant.GetValue(), "synchro_ftp_mdp" : mdp, "synchro_ftp_repertoire" : self.ctrl_repertoire.GetValue()}
     
@@ -319,8 +316,7 @@ class Page_cryptage(wx.Panel):
         
     def GetParametres(self):
         mdp = self.ctrl_mdp.GetValue()
-        if six.PY3:
-            mdp = mdp.encode("utf-8")
+        mdp = mdp.encode("utf-8")
         mdp = base64.b64encode(mdp)
         return {"synchro_cryptage_activer" : self.check_activer.GetValue(), "synchro_cryptage_mdp" : mdp}
     
@@ -623,8 +619,7 @@ class Dialog(wx.Dialog):
         mdp = base64.b64decode(UTILS_Config.GetParametre("synchro_ftp_mdp", defaut=""))
         repertoire = UTILS_Config.GetParametre("synchro_ftp_repertoire", defaut="")
         IDfichier = FonctionsPerso.GetIDfichier()
-        if six.PY3:
-            mdp = mdp.decode("utf-8")
+        mdp = mdp.decode("utf-8")
 
         nbreFichiersSupprimes = 0
         try :
@@ -716,8 +711,7 @@ class Dialog(wx.Dialog):
         mdp = base64.b64decode(UTILS_Config.GetParametre("synchro_ftp_mdp", defaut=""))
         repertoire = UTILS_Config.GetParametre("synchro_ftp_repertoire", defaut="")
         IDfichier = FonctionsPerso.GetIDfichier()
-        if six.PY3:
-            mdp = mdp.decode("utf-8")
+        mdp = mdp.decode("utf-8")
         
         # Récupération des fichiers
         listeFichiersRecus = []

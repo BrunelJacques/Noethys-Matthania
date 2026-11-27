@@ -15,7 +15,6 @@ import wx
 from Ctrl import CTRL_Bouton_image
 import datetime
 import sys
-import six
 import GestionDB
 from Ctrl import CTRL_Bandeau
 from Ctrl import CTRL_Selection_activites_groupes

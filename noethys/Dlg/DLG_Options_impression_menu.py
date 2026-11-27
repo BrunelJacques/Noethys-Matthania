@@ -23,7 +23,7 @@ import wx.propgrid as wxpg
 import copy
 import GestionDB
 from PIL import Image
-import six
+import io
 
 
 LISTE_MODELES = [
@@ -955,7 +955,7 @@ class CTRL_Modeles(CTRL_Vignettes_documents.CTRL):
 
     def ChargeImage(self, fichier):
         """Read a file into PIL Image object. Return the image and file size"""
-        buf = six.BytesIO()
+        buf = io.BytesIO()
         f = open(fichier, "rb")
         while 1:
             rdbuf = f.read(8192)

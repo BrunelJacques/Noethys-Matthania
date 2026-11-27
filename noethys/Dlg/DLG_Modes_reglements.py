@@ -10,14 +10,14 @@
 
 
 import Chemins
-from Utils import UTILS_Adaptations
+
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
 from Ctrl import CTRL_Bandeau
 from Ol import OL_Modes_reglements
 import GestionDB
-import six
+import io
 from PIL import Image
 
 
@@ -153,7 +153,7 @@ class Dialog(wx.Dialog):
         IDmode = DB.ReqInsert("modes_reglements", listeDonnees)
 
         # Sauvegarde de l'image
-        buffer = six.BytesIO()
+        buffer = io.BytesIO()
         img = Image.open(Chemins.GetStaticPath("Images/Special/Prelevement.png"))
         img = img.convert("RGB")
         img.save(buffer, format='JPEG', quality=100)

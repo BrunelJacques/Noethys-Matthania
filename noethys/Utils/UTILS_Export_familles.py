@@ -18,7 +18,6 @@ from Utils import UTILS_Dates
 from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
 from Utils import UTILS_Config
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
-import six
 
 
 class Export():
@@ -572,10 +571,7 @@ class Export():
     def Enregistrer(self, nomFichier=""):
         """ Enregistre le fichier XML """
         pretty_xml = self.GetPrettyXML()
-        if six.PY2:
-            flag = "w"
-        else:
-            flag = "wb"
+        flag = "wb"
         f = open(nomFichier, flag)
         try:
             f.write(pretty_xml)

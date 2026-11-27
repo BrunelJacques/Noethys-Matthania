@@ -23,7 +23,6 @@ from Utils import UTILS_Fichiers
 from Utils import UTILS_Customize
 from Utils import UTILS_Portail_synchro
 from Dlg.DLG_Portail_config import LISTE_DELAIS_SYNCHRO
-import six
 CUSTOMIZE = UTILS_Customize.Customize()
 
 class Abort(Exception):

@@ -27,7 +27,6 @@ from Ctrl import CTRL_Bandeau
 from Ctrl import CTRL_Saisie_adresse
 from Dlg import DLG_Famille
 from Utils import UTILS_Parametres
-import six
 from Utils import UTILS_Interface
 from Ctrl.CTRL_ObjectListView import ObjectListView, FastObjectListView, ColumnDefn, Filter, CTRL_Outils
 

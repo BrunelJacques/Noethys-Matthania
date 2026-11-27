@@ -22,7 +22,6 @@ import FonctionsPerso
 import sys
 import operator
 import os
-import six
 
 from Ctrl import CTRL_Calendrier
 from Ctrl import CTRL_Photo

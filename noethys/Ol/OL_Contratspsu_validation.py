@@ -17,7 +17,6 @@ import GestionDB
 from Utils import UTILS_Dates
 import datetime
 import calendar
-import six
 from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
 from Utils import UTILS_Config
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")

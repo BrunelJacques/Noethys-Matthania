@@ -17,7 +17,6 @@ from Ctrl import CTRL_Bouton_image
 import wx.html as html
 import FonctionsPerso
 from Ctrl import CTRL_Liste_fichiers
-import six
 
 
 VERSION_LOGICIEL = FonctionsPerso.GetVersionLogiciel()
@@ -150,8 +149,7 @@ class Dialog(wx.Dialog):
         index = self.ctrl_fichiers.GetFirstSelected()
         dictItem = self.ctrl_fichiers.GetItemPyData(index)
         nomFichier = dictItem["titre"]
-        if six.PY2:
-            nomFichier = nomFichier.decode('cp1252')
+
         return nomFichier
 
 

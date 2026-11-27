@@ -13,7 +13,6 @@ import Chemins
 from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
-import six
 from Ctrl import CTRL_Bouton_image
 import GestionDB
 import datetime
@@ -701,8 +700,6 @@ class Dialog(wx.Dialog):
             messagerie.Fermer()
         except Exception as err:
             err = str(err)
-            if six.PY2:
-                err = err.decode('cp1252')
             intro = _("L'envoi de l'email de test est impossible :")
             conclusion = _("Vérifiez votre connexion internet ou les paramètres de votre adresse d'expédition.")
             dlgErreur = DLG_Messagebox.Dialog(self, titre=_("Erreur"), introduction=intro, detail=err, conclusion=conclusion, icone=wx.ICON_ERROR, boutons=[_("Ok"),])

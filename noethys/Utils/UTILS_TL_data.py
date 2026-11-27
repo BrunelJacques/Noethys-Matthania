@@ -29,7 +29,7 @@ from datetime import datetime as dt
 from datetime import time
 import calendar
 import base64
-import six
+import io
 import os.path
 import locale
 
@@ -328,14 +328,14 @@ class IconEventDataPlugin(EventDataPlugin):
 
     def encode(self, data):
         """Data is wx.Bitmap."""
-        output = six.BytesIO()
+        output = io.BytesIO()
         image = wx.ImageFromBitmap(data)
         image.SaveStream(output, wx.BITMAP_TYPE_PNG)
         return base64.b64encode(output.getvalue())
 
     def decode(self, string):
         """Return is wx.Bitmap."""
-        input = six.BytesIO(base64.b64decode(string))
+        input = io.BytesIO(base64.b64decode(string))
         image = wx.ImageFromStream(input, wx.BITMAP_TYPE_PNG)
         return image.ConvertToBitmap()
 
@@ -520,9 +520,9 @@ class TimePeriod(object):
         delta = mult_timedelta(self.delta(), times / 10.0)
         new_delta = self.delta() - 2 * delta
         if new_delta > MAX_ZOOM_DELTA:
-            raise ValueError(_("Can't zoom wider than 120 years"))
+            raise ValueError("Can't zoom wider than 120 years")
         if new_delta < MIN_ZOOM_DELTA:
-            raise ValueError(_("Can't zoom deeper than 1 hour"))
+            raise ValueError("Can't zoom deeper than 1 hour")
         self.update(self.start_time, self.end_time, delta, -delta)
 
     def move(self, direction):

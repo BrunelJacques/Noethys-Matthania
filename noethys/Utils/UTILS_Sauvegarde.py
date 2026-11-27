@@ -10,7 +10,6 @@
 
 from Utils.UTILS_Traduction import _
 import wx
-import six
 import os
 import sys
 import base64
@@ -127,18 +126,13 @@ def Sauvegarde(listeFichiersLocaux=[], listeFichiersReseau=[], nom="", repertoir
 
             args = """"%sbin/mysqldump" --defaults-extra-file="%s" --column-statistics=0 --single-transaction --opt --databases %s > "%s" """ % (repMySQL, nomFichierLoginTemp, nomFichier, fichierSave)
             print(("Chemin mysqldump =", args))
-            if six.PY2:
-                args = args.encode('utf8')
+
             proc = subprocess.Popen(args, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
             out, temp = proc.communicate()
 
             if out not in ("", b""):
                 print((out,))
-                try :
-                    if six.PY2:
-                        out = str(out).decode('cp1252')
-                except :
-                    pass
+
                 dlgprogress.Destroy()
                 dlgErreur = wx.MessageDialog(None, _("Une erreur a été détectée dans la procédure de sauvegarde !\n\nErreur : %s") % out, _("Erreur"), wx.OK | wx.ICON_ERROR)
                 dlgErreur.ShowModal() 
@@ -151,11 +145,7 @@ def Sauvegarde(listeFichiersLocaux=[], listeFichiersReseau=[], nom="", repertoir
             except Exception as err :
                 dlgprogress.Destroy()
                 print(("insertion sql dans zip : ", err,))
-                try :
-                    if six.PY2:
-                        err = str(err).decode('cp1252')
-                except :
-                    pass
+
                 dlgErreur = wx.MessageDialog(None, _("Une erreur est survenue dans la sauvegarde !\n\nErreur : %s") % err, _("Erreur"), wx.OK | wx.ICON_ERROR)
                 dlgErreur.ShowModal() 
                 dlgErreur.Destroy()
@@ -172,8 +162,7 @@ def Sauvegarde(listeFichiersLocaux=[], listeFichiersReseau=[], nom="", repertoir
         dlgprogress.Update(numEtape, _("Cryptage du fichier..."));numEtape += 1
         fichierCrypte = "%s.%s" % (nom, EXTENSIONS["crypte"])
         motdepasse = base64.b64decode(motdepasse)
-        if six.PY3:
-            motdepasse = motdepasse.decode('utf8')
+        motdepasse = motdepasse.decode('utf8')
         ancienne_methode = UTILS_Customize.GetValeur("version_cryptage", "sauvegarde", "1", ajouter_si_manquant=False) in ("1", None)
         UTILS_Cryptage_fichier.CrypterFichier(UTILS_Fichiers.GetRepTemp(fichier=nomFichierTemp), UTILS_Fichiers.GetRepTemp(fichier=fichierCrypte), motdepasse, ancienne_methode=ancienne_methode)
         nomFichierTemp = fichierCrypte
@@ -207,8 +196,6 @@ def Sauvegarde(listeFichiersLocaux=[], listeFichiersReseau=[], nom="", repertoir
         except Exception as err:
             dlgprogress.Destroy()
             print((err,))
-            if six.PY2:
-                err = str(err).decode('cp1252')
             dlgErreur = wx.MessageDialog(None, _("Une erreur a été détectée dans l'envoi par Email !\n\nErreur : %s") % err, _("Erreur"), wx.OK | wx.ICON_ERROR)
             dlgErreur.ShowModal() 
             dlgErreur.Destroy()
@@ -350,15 +337,13 @@ def Restauration(parent=None, fichier="", listeFichiersLocaux=[], listeFichiersR
 
             args = """"%sbin/mysql" --defaults-extra-file="%s" %s < "%s" """ % (repMySQL, nomFichierLoginTemp, fichier, fichierRestore)
             print(("Chemin mysql =", args))
-            if six.PY2:
-                args = args.encode('cp1252')
+
             proc = subprocess.Popen(args, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
             out, temp = proc.communicate()
 
             if out not in ("", b"") :
                 print(("subprocess de restauration mysql :", out))
-                if six.PY2:
-                    out = str(out).decode('cp1252')
+
                 dlgprogress.Destroy()
                 dlgErreur = wx.MessageDialog(None, _("Une erreur a été détectée dans la procédure de restauration !\n\nErreur : %s") % out, _("Erreur"), wx.OK | wx.ICON_ERROR)
                 dlgErreur.ShowModal() 

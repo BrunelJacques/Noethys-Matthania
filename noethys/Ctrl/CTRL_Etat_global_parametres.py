@@ -23,7 +23,6 @@ try:
     from wx.combo import ComboCtrl
 except:
     from wx import ComboCtrl
-import six
 
 COULEUR_FOND_REGROUPEMENT = (200, 200, 200)
 COULEUR_TEXTE_REGROUPEMENT = (140, 140, 140)

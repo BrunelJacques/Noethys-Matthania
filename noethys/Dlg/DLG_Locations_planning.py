@@ -18,7 +18,6 @@ from Ctrl import CTRL_Bandeau
 import GestionDB
 import datetime
 import random
-import six
 from Outils import wxScheduler
 from Ctrl import CTRL_Agenda
 

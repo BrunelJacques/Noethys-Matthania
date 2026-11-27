@@ -8,7 +8,6 @@
 #------------------------------------------------------------------------
 
 import os
-import six
 
 class DataType(object):
     """
@@ -32,8 +31,6 @@ class DataType(object):
 
         # s'assure que la donnée soit bien en unicode
         if type(data) is str:
-            if six.PY2:
-                data = data.decode('cp1252')
             data = str(data)
 
         # si l'on veux des entiers

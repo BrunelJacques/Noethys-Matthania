@@ -24,9 +24,7 @@ SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 from Utils import UTILS_Organisateur
 from Utils import UTILS_Dates
 from Utils import UTILS_Infos_individus
-from Utils import UTILS_Texte
 from Utils import UTILS_Titulaires
-import six
 
 
 def PeriodeComplete(mois, annee):

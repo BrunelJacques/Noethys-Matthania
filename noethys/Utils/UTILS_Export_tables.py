@@ -13,7 +13,7 @@ import Chemins
 from Utils.UTILS_Traduction import _
 import wx
 import os
-import six
+import io
 import GestionDB
 from Utils import UTILS_Json
 
@@ -24,8 +24,6 @@ def InfosFichier(fichier=""):
         print("Pas de fichier a cet emplacement !")
         return None
 
-    if six.PY2:
-        fichier = fichier.encode('cp1252')
     data = UTILS_Json.Lire(fichier)
     return data
 
@@ -129,7 +127,7 @@ class Exporter():
                 
                 # Pour les champs BLOB
                 if (typeChamp == "BLOB" or typeChamp == "LONGBLOB") and donnee != None :
-                    buffer = six.BytesIO(donnee)
+                    buffer = io.BytesIO(donnee)
                     donnee = buffer.read()
                 
                 # Remplacement
@@ -149,8 +147,7 @@ class Exporter():
             "categorie": self.categorie,
             "contenu": self.contenu,
         }
-        if six.PY2:
-            fichier = fichier.encode('cp1252')
+
         UTILS_Json.Ecrire(nom_fichier=fichier, data=data)
 
     

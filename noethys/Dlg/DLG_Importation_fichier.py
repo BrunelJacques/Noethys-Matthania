@@ -19,7 +19,6 @@ from Ctrl import CTRL_Bandeau
 from Ctrl import CTRL_Liste_fichiers
 from Data import DATA_Tables as Tables
 import GestionDB
-import six
 
 
 
@@ -314,9 +313,7 @@ class Dialog(wx.Dialog):
         # Version LOCAL
         if modeLocal == True :
             nomFichier = dictItem["titre"]
-            if six.PY2:
-                nomFichier = nomFichier.decode('cp1252')
-    
+
         # Version RESEAU
         if modeLocal == False :
             dictCodes = self.GetCodesReseau() 

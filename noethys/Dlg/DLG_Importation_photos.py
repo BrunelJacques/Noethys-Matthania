@@ -15,11 +15,10 @@ import wx
 from Ctrl import CTRL_Bouton_image
 from Ctrl import CTRL_Bandeau
 import GestionDB
-import six
+import io
 from Utils import UTILS_Interface
 from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter
-from PIL import Image
-import numpy as np
+import PIL.Image
 import cv2
 from Ol import OL_Individus_grille_ajouter
 
@@ -384,13 +383,13 @@ class Dialog(wx.Dialog):
         img = bmp.ConvertToImage()
         largeur1, hauteur1 = img.GetSize()
         if largeur1 > hauteur1 :
-            largeur = TAILLE_IMAGE_ORIGINALE[0]
-            hauteur = hauteur1 * TAILLE_IMAGE_ORIGINALE[0] / largeur1
+            largeur = int(TAILLE_IMAGE_ORIGINALE[0])
+            hauteur = int(hauteur1 * TAILLE_IMAGE_ORIGINALE[0] / largeur1)
         else :
-            hauteur = TAILLE_IMAGE_ORIGINALE[1]
-            largeur = largeur1 * TAILLE_IMAGE_ORIGINALE[1] / hauteur1
-        img.Rescale(width=largeur, height=hauteur, quality=wx.IMAGE_QUALITY_HIGH)
-        position = (((TAILLE_IMAGE_ORIGINALE[0]/2.0) - (largeur/2.0)), ((TAILLE_IMAGE_ORIGINALE[1]/2.0) - (hauteur/2.0)))
+            hauteur = int(TAILLE_IMAGE_ORIGINALE[1])
+            largeur = int(largeur1 * TAILLE_IMAGE_ORIGINALE[1] / hauteur1)
+        img.Rescale(largeur, hauteur, wx.IMAGE_QUALITY_HIGH)
+        position = (int((TAILLE_IMAGE_ORIGINALE[0]/2.0) - (largeur/2.0)), int((TAILLE_IMAGE_ORIGINALE[1]/2.0) - (hauteur/2.0)))
         img.Resize(TAILLE_IMAGE_ORIGINALE, position, 0, 0, 0)
         bmp = wx.Bitmap(img)
 
@@ -418,11 +417,11 @@ class Dialog(wx.Dialog):
             
             # Transforme l'image en buffer
             image = track.bmp.ConvertToImage()
-            pil = Image.new('RGB', (image.GetWidth(), image.GetHeight()))
+            pil = PIL.Image.new('RGB', (image.GetWidth(), image.GetHeight()))
             data = image.GetData()
             data = bytes(data)
             pil.frombytes(data)
-            buffer = six.BytesIO()
+            buffer = io.BytesIO()
             pil.save(buffer, format="JPEG", quality=100)
             buffer.seek(0)
             buffer = buffer.read()

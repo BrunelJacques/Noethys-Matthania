@@ -17,7 +17,6 @@ from Ctrl import CTRL_Bouton_image
 from Ctrl import CTRL_Bandeau
 from Ol import OL_Langues
 import wx.lib.agw.hyperlink as Hyperlink
-import six
 import os
 import FonctionsPerso
 import datetime

@@ -25,7 +25,6 @@ import FonctionsPerso
 from Utils import UTILS_Fichiers
 from Utils import UTILS_Config
 from Utils import UTILS_Export_nomade
-import six
 from Dlg.DLG_Synchronisation import AnalyserFichier
 
 
@@ -121,8 +120,7 @@ class Echo(Protocol):
         self.log.SetImage("upload")
         tailleFichier = os.path.getsize(nomFichier)
         texte = json.dumps({"action": "envoyer", "nom": os.path.basename(nomFichier), "taille": tailleFichier})
-        if six.PY3:
-            texte = texte.encode('utf-8')
+        texte = texte.encode('utf-8')
         self.transport.write(texte)
         self.EcritLog(_("Envoi du fichier (%s)") % FonctionsPerso.Formate_taille_octets(tailleFichier))
         self.log.SetImage("on")
@@ -163,8 +161,7 @@ class Echo(Protocol):
                     "fichier" : fichier,
                     }
                 texte = "pret_pour_reception"
-                if six.PY3:
-                    texte = texte.encode('utf-8')
+                texte = texte.encode('utf-8')
                 self.transport.write(texte)
                 self.EcritLog(_("Réception en cours"))
                 self.log.SetImage("download")

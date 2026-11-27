@@ -15,7 +15,6 @@ from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
 import socket
-import six
 
 from Dlg import DLG_Sauvegarde
 from Ctrl import CTRL_Saisie_heure
@@ -136,10 +135,7 @@ class CTRL_Conditions(wx.Panel) :
         self.box_poste_staticbox = wx.StaticBox(self, wx.ID_ANY, _("Poste"))
         self.check_poste = wx.CheckBox(self, wx.ID_ANY, _("Si le poste est :"))
         try :
-            if six.PY2:
-                labelPoste = _("Ce poste (%s)") % socket.gethostname().decode('cp1252')
-            else :
-                labelPoste = _("Ce poste (%s)") % socket.gethostname()
+            labelPoste = _("Ce poste (%s)") % socket.gethostname()
         except :
             labelPoste = _("Ce poste")
         self.radio_poste_1 = wx.RadioButton(self, wx.ID_ANY, labelPoste, style=wx.RB_GROUP)

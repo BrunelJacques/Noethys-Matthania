@@ -19,7 +19,6 @@ from time import sleep
 from threading import Thread 
 from urllib.request import Request, urlopen, urlretrieve
 import os
-import six
 import zipfile
 import glob, codecs
 
@@ -38,12 +37,8 @@ def AffichetailleFichier(fichierURL):
     tailleFichier = 0
     try :
         fichier = urlopen(fichierURL)
-        if six.PY3:
-            tailleFichier = fichier.headers['Content-Length']
-        else:
-            infoFichier = (fichier.info().getheaders('Content-Length'))
-            if len(infoFichier) > 0 :
-                tailleFichier = infoFichier[0]
+        tailleFichier = fichier.headers['Content-Length']
+
     except IOError :
         tailleFichier = 0
     return tailleFichier
@@ -291,10 +286,7 @@ class Page_recherche(wx.Panel):
                 fichierVersions = urlopen('https://raw.githubusercontent.com/Noethys/Noethys/master/noethys/Versions.txt', timeout=10)
             else:
                 # Version Windows
-                if six.PY2:
-                    fichierVersions = urlopen('http://www.noethys.com/fichiers/windows/Versions.txt', timeout=10)
-                else:
-                    fichierVersions = urlopen('http://www.noethys.com/fichiers/windows/phoenix/Versions.txt', timeout=10)
+                fichierVersions = urlopen('http://www.noethys.com/fichiers/windows/phoenix/Versions.txt', timeout=10)
             self.texteNouveautes= fichierVersions.read()
             fichierVersions.close()
         except :
@@ -302,8 +294,7 @@ class Page_recherche(wx.Panel):
             return
 
         # Recherche du numéro de version
-        if six.PY3:
-            self.texteNouveautes = self.texteNouveautes.decode('cp1252')
+        self.texteNouveautes = self.texteNouveautes.decode('cp1252')
         pos_debut_numVersion = self.texteNouveautes.find("n")
         pos_fin_numVersion = self.texteNouveautes.find("(")
         self.versionData = self.texteNouveautes[pos_debut_numVersion+1:pos_fin_numVersion].strip()
@@ -363,8 +354,7 @@ class Page_recherche(wx.Panel):
                 texteIntro1 = _("La version ") + self.versionData + " de Noethys est disponible (" + self.tailleFichier + ")."
                 self.parent.GetPage("page_disponible").label_introduction1.SetLabel(texteIntro1)
                 texteNouveautes = self.texteNouveautes
-                if six.PY2:
-                    texteNouveautes = texteNouveautes.decode('cp1252')
+
                 self.parent.GetPage("page_disponible").textCtrl_nouveautes.SetValue(texteNouveautes)
                 self.parent.Active_page("page_disponible")
               
@@ -841,10 +831,7 @@ class Dialog(wx.Dialog):
         else:
             # Version Windows
             self.nomFichier = "Noethys.exe"
-            if six.PY2:
-                self.fichierURL = "http://www.noethys.com/fichiers/windows/" + self.nomFichier
-            else:
-                self.fichierURL = "http://www.noethys.com/fichiers/windows/phoenix/" + self.nomFichier
+            self.fichierURL = "http://www.noethys.com/fichiers/windows/phoenix/" + self.nomFichier
             
         self.fichierDest = ""
         self.tailleFichier = 0

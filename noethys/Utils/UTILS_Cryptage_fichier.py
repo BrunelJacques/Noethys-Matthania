@@ -18,7 +18,6 @@ except :
 import hashlib
 import pickle
 import base64
-import six
 
 class CypherText:
 	def __init__(self):
@@ -40,8 +39,7 @@ class CypherText:
 
 def hashPassword_MD5(Password):
 	m = hashlib.md5()
-	if six.PY3:
-		Password = str(Password).encode('utf-8')
+	Password = str(Password).encode('utf-8')
 	m.update(Password)
 	return m.hexdigest()
 
@@ -50,10 +48,7 @@ def encrypt(message, key):
 	TrailLen = 0
 	while (len(message) % 16) != 0:
 		message = message + '_'
-		# if six.PY2:
-		# 	message  = message + '_'
-		# else :
-		# 	message = message + b'_'
+
 		TrailLen = TrailLen + 1
 	
 	CypherOut = CypherText()
@@ -69,8 +64,7 @@ def encrypt(message, key):
 
 
 def decrypt(ciphertext, key):
-	if six.PY3 and not isinstance(key, bytes):
-		key = key.encode("utf8")
+	key = key.encode("utf8")
 	cryptu = AES.new(key, AES.MODE_ECB)
 	
 	#Try to delete the key from memory
@@ -89,10 +83,7 @@ def cryptFile(filename_in, filename_out, key):
 	
 # def decryptFile(filename_in, filename_out, key):
 # 	fr = open(filename_in, 'rb')
-# 	if six.PY2:
-# 		cyphertext = pickle.load(fr)
-# 	else:
-# 		cyphertext = pickle.load(fr, encoding="bytes")
+# 	cyphertext = pickle.load(fr, encoding="bytes")
 # 	message = decrypt(cyphertext, key)
 # 	fw = open(filename_out, 'wb')
 # 	fw.write(message)
@@ -111,24 +102,19 @@ def encrypt2(message, key, key_size=256):
 	iv = get_random_bytes(AES.block_size)
 	cipher = AES.new(key, AES.MODE_CFB, iv)
 	enc_bytes = iv + cipher.encrypt(message)
-	if six.PY2:
-		enc_bytes += bytearray([padding_size])
-	else:
-		enc_bytes += bytes([padding_size])
+	enc_bytes += bytes([padding_size])
 	return enc_bytes
 
 def decrypt2(ciphertext, key):
 	iv = ciphertext[:AES.block_size]
 	cipher = AES.new(key, AES.MODE_CFB, iv)
 	plaintext = cipher.decrypt(ciphertext[AES.block_size:-1])
-	if six.PY2:
-		ciphertext = bytearray(ciphertext)
+
 	padding_size = ciphertext[-1] * (-1)
 	return plaintext[:padding_size]
 
 def cryptFile2(filename_in, filename_out, key):
-	if six.PY3:
-		key = key.encode("utf8")
+	key = key.encode("utf8")
 	with open(filename_in, 'rb') as fo:
 		contenu = fo.read()
 	enc = encrypt2(contenu, key)
@@ -137,8 +123,7 @@ def cryptFile2(filename_in, filename_out, key):
 		fo.write(enc)
 
 # def decryptFile2(filename_in, filename_out, key):
-# 	if six.PY3:
-# 		key = key.encode("utf8")
+# 	key = key.encode("utf8")
 # 	with open(filename_in, 'rb') as fo:
 # 		ciphertext = fo.read()
 # 	ciphertext = ciphertext[2:]
@@ -150,8 +135,7 @@ def cryptFile2(filename_in, filename_out, key):
 def DecrypterFichier(fichierCrypte="", fichierDecrypte="", motdepasse=""):
 	# Formatage du mot de passe
 	motdepasse = hashPassword_MD5(motdepasse)
-	if six.PY3:
-		motdepasse = motdepasse.encode("utf8")
+	motdepasse = motdepasse.encode("utf8")
 
 	# Lecture du fichier
 	with open(fichierCrypte, 'rb') as fo:
@@ -165,10 +149,7 @@ def DecrypterFichier(fichierCrypte="", fichierDecrypte="", motdepasse=""):
 	else:
 		# Ancienne version
 		with open(fichierCrypte, 'rb') as fo:
-			if six.PY2:
-				contenu2 = pickle.load(fo)
-			else:
-				contenu2 = pickle.load(fo, encoding="bytes")
+			contenu2 = pickle.load(fo, encoding="bytes")
 			dec = decrypt(contenu2, motdepasse)
 
 	# Enregistrement du fichier décrypté
@@ -177,7 +158,7 @@ def DecrypterFichier(fichierCrypte="", fichierDecrypte="", motdepasse=""):
 
 
 def CrypterFichier(fichierDecrypte="", fichierCrypte="", motdepasse="", ancienne_methode=False):
-	if not ancienne_methode or six.PY3:
+	if not ancienne_methode:
 		fonction = cryptFile2
 	else:
 		fonction = cryptFile

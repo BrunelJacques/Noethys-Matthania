@@ -10,7 +10,6 @@
 
 
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
@@ -18,7 +17,7 @@ import wx.lib.colourselect as csel
 import wx.richtext as rt
 import sys
 import re
-import six
+import io
 import FonctionsPerso
 import GestionDB
 
@@ -478,7 +477,7 @@ class Dialog(wx.Dialog):
         else:
             handler.SetFlags(rt.RICHTEXT_HANDLER_SAVE_IMAGES_TO_MEMORY)
         handler.SetFontSizeMapping([7,9,11,12,14,22,100])
-        stream = six.BytesIO()
+        stream = io.BytesIO()
         if self.ctrl_texte == None and self.nb.GetPageCount()>0 :
             self.ctrl_texte = self.nb.GetPage(self.nb.GetSelection())
 
@@ -490,12 +489,11 @@ class Dialog(wx.Dialog):
                 return False
 
         source = stream.getvalue()
-        if six.PY2:
-            source = source.decode("utf-8")
+
         return source
     
     def SaveTexte(self):
-        out = six.BytesIO()
+        out = io.BytesIO()
         handler = wx.richtext.RichTextXMLHandler()
         buffer = self.ctrl_texte.GetBuffer()
         if 'phoenix' in wx.PlatformInfo:
@@ -507,7 +505,7 @@ class Dialog(wx.Dialog):
         return content
     
     def LoadTexte(self, texteXml=""):
-        out = six.BytesIO()
+        out = io.BytesIO()
         handler = wx.richtext.RichTextXMLHandler()
         buffer = self.ctrl_texte.GetBuffer()
         buffer.AddHandler(handler)

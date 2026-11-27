@@ -8,12 +8,8 @@
 # Licence:         Licence GNU GPL
 #-----------------------------------------------------------
 
-
-import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
-import six
 import datetime
 from Utils import UTILS_Dates
 

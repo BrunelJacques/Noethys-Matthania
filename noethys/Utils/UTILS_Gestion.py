@@ -17,7 +17,6 @@ from Ctrl import CTRL_Bouton_image
 import wx.lib.dialogs
 import GestionDB
 from Utils import UTILS_Dates
-import six
 
 
 class Track_periode(object):

@@ -14,7 +14,6 @@ from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 import os
-import six
 import GestionDB
 import datetime, calendar
 import shutil
@@ -1012,24 +1011,19 @@ class Dialog(DLG_Saisie_lot_tresor_public.Dialog):
         if lignes:
             contenu_lignes = "\n".join(lignes)
             with open(os.path.join(repertoire, "WTAMC001.txt"), 'w') as fichier:
-                if six.PY2:
-                    contenu_lignes = contenu_lignes.encode('cp1252')
                 fichier.write(contenu_lignes)
 
         # Enregistrement du fichier ECRITURES_ASAP (Détail)
         if lignes_detail:
             contenu_lignes_detail = "\n".join(lignes_detail)
             with open(os.path.join(repertoire, "WTAMC001AS.txt"), 'w') as fichier:
-                if six.PY2:
-                    contenu_lignes_detail = contenu_lignes_detail.encode('cp1252')
                 fichier.write(contenu_lignes_detail)
 
         # Enregistrement du fichier ECRITURES_PJ
         if lignes_pj:
             contenu_lignes_pj = "\n".join(lignes_pj)
             with open(os.path.join(repertoire, "WTAMC001PJ.txt"), 'w') as fichier:
-                if six.PY2:
-                    contenu_lignes_pj = contenu_lignes_pj.encode('cp1252')
+
                 fichier.write(contenu_lignes_pj)
 
         return True

@@ -21,7 +21,6 @@ import wx.html as html
 from urllib.request import urlopen
 import traceback
 import datetime
-import six
 from Utils import UTILS_Config
 from Utils import UTILS_Utilisateurs
 from Utils.UTILS_Dates import  DateEngEnDateDD, DateEngFr
@@ -70,8 +69,7 @@ def GetValidite(identifiant="", code=""):
     except :
         return False
 
-    if six.PY3:
-        html = html.decode('cp1252')
+    html = html.decode('cp1252')
 
     # Analyse l'état
     if html.startswith("codeok") :
@@ -264,8 +262,7 @@ class Dialog(wx.Dialog):
             traceback.print_exc(file=sys.stdout)
             return False
 
-        if six.PY3:
-            html = html.decode('cp1252')
+        html = html.decode('cp1252')
 
         # Analyse l'état
         if html.startswith("codeok") :

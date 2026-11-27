@@ -14,7 +14,7 @@ from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
-from PIL import Image
+import PIL.Image
 import os
 import io
 import FonctionsPerso
@@ -48,7 +48,7 @@ def ChargeImage(fichier):
         buf.write(rdbuf)
     f.close()
     buf.seek(0)
-    image = Image.open(buf).convert("RGB")
+    image = PIL.Image.open(buf).convert("RGB")
     return image, len(buf.getvalue())
 
 ##def wxtopil(image):
@@ -66,13 +66,13 @@ def ChargeImage(fichier):
 ##    return imagewx        
 
 def wxtopil(wxImage, wantAlpha=True):  
-    pilImage = Image.new( 'RGB', (wxImage.GetWidth(), wxImage.GetHeight()), color=(255, 255, 255) )
+    pilImage = PIL.Image.new( 'RGB', (wxImage.GetWidth(), wxImage.GetHeight()), color=(255, 255, 255) )
     pilImage.frombytes(wxImage.GetData())
     if wxImage.HasAlpha() and wantAlpha :  
         pilImage.convert( 'RGBA' )            
         wxAlphaStr = wxImage.GetAlphaData()    
-        pilAlphaImage = Image.new( 'L', (wxImage.GetWidth(), wxImage.GetHeight()) )
-        pilAlphaImage = Image.frombytes( 'L', (wxImage.GetWidth(), wxImage.GetHeight()), wxAlphaStr )
+        pilAlphaImage = PIL.Image.new( 'L', (wxImage.GetWidth(), wxImage.GetHeight()) )
+        pilAlphaImage = PIL.Image.frombytes( 'L', (wxImage.GetWidth(), wxImage.GetHeight()), wxAlphaStr )
         pilImage.putalpha(pilAlphaImage) 
     return pilImage
 
@@ -104,13 +104,13 @@ class Track(object):
             # else :
             #     img = wx.ImageFromStream(io, wx.BITMAP_TYPE_JPEG)
             # img = wxtopil(img)
-            img = Image.open(buff).convert("RGBA")
+            img = PIL.Image.open(buff).convert("RGBA")
             self.isImage = True
             return img
         # Si c'est un document :
         if self.type in DICT_TYPES :        
             cheminImage = DICT_TYPES[self.type]
-            img = Image.open(Chemins.GetStaticPath(cheminImage))
+            img = PIL.Image.open(Chemins.GetStaticPath(cheminImage))
             self.isImage = False
             return img
         return None
@@ -302,7 +302,7 @@ Tous les fichiers (*.*)|*.*"
             else:
                 largeur = largeur * tailleMaxi / hauteur
                 hauteur = tailleMaxi
-            imgPIL = imgPIL.resize((largeur, hauteur), Image.ANTIALIAS) #.Rescale(width=largeur, height=hauteur, quality=qualite)
+            imgPIL = imgPIL.resize((largeur, hauteur), PIL.Image.ANTIALIAS) #.Rescale(width=largeur, height=hauteur, quality=qualite)
 
         # Met l'image dans un buffer
         buffer = io.BytesIO()
