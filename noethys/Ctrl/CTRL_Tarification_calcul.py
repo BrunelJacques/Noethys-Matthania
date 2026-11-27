@@ -14,7 +14,7 @@ from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 
-from six.moves import cPickle
+import pickle
 import copy
 from Ctrl import CTRL_Bouton_image
 import wx.grid as gridlib
@@ -986,7 +986,7 @@ class Tableau(gridlib.Grid):
         # Envoi vers le clipboard
         if len(data_lignes) > 0 :
             objet = wx.CustomDataObject("lignes_calcul")
-            objet.SetData(cPickle.dumps(data_lignes, 1))
+            objet.SetData(pickle.dumps(data_lignes, 1))
             if wx.TheClipboard.Open():
                 wx.TheClipboard.SetData(objet)
                 wx.TheClipboard.Close()
@@ -1008,7 +1008,7 @@ class Tableau(gridlib.Grid):
             return
 
         data = objet.GetData()
-        data_lignes = cPickle.loads(data)
+        data_lignes = pickle.loads(data)
 
         # Demande la ligne de collage
         if len(self.GetSelectedRows()) > 0 :

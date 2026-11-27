@@ -15,14 +15,11 @@ from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
 import GestionDB
-import six
+import io
 from Ctrl import CTRL_Bandeau
 from Ol import OL_Emetteurs
 import os
-if 'phoenix' in wx.PlatformInfo:
-    from wx.adv import BitmapComboBox
-else :
-    from wx.combo import BitmapComboBox
+from wx.adv import BitmapComboBox
 
 
 TAILLE_IMAGE = (132/2.0, 72/2.0)
@@ -68,11 +65,8 @@ class CTRL_Mode(BitmapComboBox):
 
         # Recherche de l'image
         if bufferImage != None :
-            io = six.BytesIO(bufferImage)
-            if 'phoenix' in wx.PlatformInfo:
-                img = wx.Image(io, wx.BITMAP_TYPE_JPEG)
-            else :
-                img = wx.ImageFromStream(io, wx.BITMAP_TYPE_JPEG)
+            buff = io.BytesIO(bufferImage)
+            img = wx.Image(buff, wx.BITMAP_TYPE_JPEG)
             bmp = img.Rescale(width=int(TAILLE_IMAGE[0]), height=int(TAILLE_IMAGE[1]), quality=qualite)
             bmp = bmp.ConvertToBitmap()
             return bmp

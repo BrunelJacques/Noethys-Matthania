@@ -19,7 +19,7 @@ import re
 import json
 import socket 
 import time
-from six.moves.urllib.request import urlopen
+from urllib.request import urlopen
 from threading import Thread 
 import FonctionsPerso
 from Utils import UTILS_Fichiers

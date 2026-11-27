@@ -11,16 +11,23 @@
 
 import Chemins
 import wx
+import copy
+import datetime
 import wx.lib.colourselect as csel
 
 import GestionDB
-from Ctrl import CTRL_Bouton_image
-
-from Utils import UTILS_Config
-from Utils import UTILS_Impression_tableau
-from Utils.UTILS_Dates import  DateDDEnDateEng, DateEngFr
 from Ctrl import CTRL_Bandeau
+from Ctrl import CTRL_Bouton_image
 from Ol import OL_Releve_prestations
+import FonctionsPerso
+from Utils import UTILS_Titulaires
+from Utils import UTILS_Envoi_email
+from Utils import UTILS_Config
+from Utils import UTILS_Organisateur
+
+from Utils import UTILS_Impression_tableau
+from Utils.UTILS_Dates import  DateEngEnDateDD, DateDDEnDateEng, DateEngFr
+
 
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "€")
 

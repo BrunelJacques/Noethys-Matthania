@@ -19,7 +19,7 @@ from Ctrl import CTRL_Saisie_date
 from Ol import OL_Contrats_planning_elements
 import GestionDB
 from Utils import UTILS_Dates
-from six.moves import cPickle
+import pickle
 import copy
 import wx.lib.dialogs as dialogs
 
@@ -53,7 +53,7 @@ class CTRL_Modeles(wx.Choice):
         self.dictDonnees = {}
         index = 0
         for IDmodele, nom, donnees in listeDonnees :
-            donnees = cPickle.loads(str(donnees))
+            donnees = pickle.loads(str(donnees))
             self.dictDonnees[index] = { "ID" : IDmodele, "nom " : nom, "donnees" : donnees}
             listeItems.append(nom)
             index += 1

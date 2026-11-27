@@ -16,7 +16,7 @@ from lxml import etree
 import six
 import wx
 import FonctionsPerso
-from six.moves.urllib.request import urlretrieve
+from urllib.request import urlretrieve
 from Utils import UTILS_Fichiers
 import zipfile
 

@@ -16,14 +16,13 @@ import FonctionsPerso
 import re
 import traceback
 import base64
-from Utils import UTILS_Html2text
-from Utils import UTILS_Parametres
-from Utils import UTILS_Titulaires
+import UTILS_Html2text
+import UTILS_Parametres
+import UTILS_Titulaires
 from Dlg import DLG_Messagebox
 from Dlg import DLG_Mailer
 
 import smtplib
-import six
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email.mime.text import MIMEText

@@ -92,12 +92,16 @@ class Track(object):
         self.IDquestion = donnees["IDquestion"]
         self.choix = donnees["choix"]
         self.criteres = donnees["criteres"]
-        
-        self.controle = DICT_QUESTIONS[self.IDquestion]["controle"]
-        self.filtre = DICT_CONTROLES[self.controle]["filtre"]
-        
-        # Création du label de la question
-        self.label = DICT_QUESTIONS[self.IDquestion]["label"]
+
+        if self.IDquestion in DICT_QUESTIONS:
+            self.controle = DICT_QUESTIONS[self.IDquestion]["controle"]
+            self.filtre = DICT_CONTROLES[self.controle]["filtre"]
+            self.label = DICT_QUESTIONS[self.IDquestion]["label"]
+        else:
+            self.controle = None
+            self.filtre = None
+            self.label = ""
+
         
         # Création de la description
         self.condition = GetCondition(self.filtre, self.choix, self.criteres)

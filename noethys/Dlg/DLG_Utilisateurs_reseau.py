@@ -7,7 +7,7 @@
 # Copyright:       (c) 2010-11 Ivan LUCAS
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
-
+import sys
 
 import Chemins
 from Utils import UTILS_Adaptations
@@ -201,10 +201,8 @@ class ListCtrl(wx.ListCtrl, CheckListCtrlMixin):
                 autorisationStr = "Oui"
             else:
                 autorisationStr = "Non"
-            if 'phoenix' in wx.PlatformInfo:
-                index = self.InsertItem(six.MAXSIZE, autorisationStr)
-            else:
-                index = self.InsertStringItem(six.MAXSIZE, autorisationStr)
+            index = self.InsertItem(sys.maxsize, autorisationStr)
+
             if user == "root" :
                 user = _("root (Administrateur)")
             if 'phoenix' in wx.PlatformInfo:

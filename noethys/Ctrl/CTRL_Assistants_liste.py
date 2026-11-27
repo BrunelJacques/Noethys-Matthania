@@ -7,7 +7,7 @@
 # Copyright:       (c) 2010-18 Ivan LUCAS
 # Licence:         Licence GNU GPL
 #-----------------------------------------------------------
-
+import sys
 
 import Chemins
 from Utils import UTILS_Adaptations
@@ -121,7 +121,7 @@ class CTRL(ULC.UltimateListCtrl):
         self.InsertColumn(0, "Column 1") 
 
         for dictItem in LISTE_ASSISTANTS:
-            index = self.InsertStringItem(six.MAXSIZE, "")
+            index = self.InsertStringItem(sys.maxsize, "")
 
             klass = FirstColumnRenderer(self, dictItem)
             self.SetItemCustomRenderer(index, 0, klass)

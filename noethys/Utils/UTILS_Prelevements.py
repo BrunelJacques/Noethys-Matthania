@@ -9,16 +9,12 @@
 #------------------------------------------------------------------------
 
 
-import Chemins
-from Utils.UTILS_Traduction import _
-import datetime
 import string
-import six
 from xml.dom.minidom import Document
-from six.moves.urllib.request import urlretrieve
+#from urllib.request import urlretrieve
 from Utils import UTILS_Fichiers, UTILS_Texte
-import zipfile
-from lxml import etree
+
+
 
 
 def GetLigneEmetteur(dictDonnees={}) :
@@ -614,10 +610,9 @@ def EnregistrerXML(doc=None, nomFichier=""):
     finally:
         f.close()
 
-
+"""
 def ValidationXSD(xml=""):
     try :
-
         # Téléchargement du fichier XSD
         url = "http://www.noethys.com/fichiers/sepa/schema_sepa.zip"
         fichier_dest = UTILS_Fichiers.GetRepTemp(fichier="schema_sepa.zip")
@@ -635,7 +630,7 @@ def ValidationXSD(xml=""):
         xsd = etree.XMLSchema(xmlschema_doc)
 
         # Lecture du XML
-        doc = etree.parse(six.BytesIO(xml))
+        doc = etree.parse(io.BytesIO(xml))
 
         # Validation du XML avec le XSD
         if xsd.validate(doc) == True :
@@ -651,7 +646,7 @@ def ValidationXSD(xml=""):
         print("Erreur dans validation XSD :")
         print(err)
         return True
-
+"""
     
     
 if __name__ == "__main__":
@@ -662,4 +657,4 @@ if __name__ == "__main__":
     from xml.dom import minidom
     doc = minidom.parse("")
     xml = doc.toprettyxml(encoding="UTF-8")
-    print(ValidationXSD(xml))
+

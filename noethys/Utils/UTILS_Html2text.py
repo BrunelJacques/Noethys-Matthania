@@ -19,15 +19,15 @@ def has_key(x, y):
     else: return y in x
 
 try:
-    import htmlentitydefs
-    import urlparse
-    import HTMLParser
-except ImportError: #Python3
     import html.entities as htmlentitydefs
-    from six.moves.urllib import parse as urlparse
+    from urllib import parse as urlparse
+    from urllib.request import urlopen
     import html.parser as HTMLParser
-from six.moves import urllib
-import optparse, re, sys, codecs, types, six
+except ImportError:
+    import wx
+    wx.MessageBox(ImportError,"Erreur import")
+
+import optparse, re, sys, codecs
 
 try: from textwrap import wrap
 except: pass
@@ -89,10 +89,7 @@ def charref(name):
     if not UNICODE_SNOB and c in list(unifiable_n.keys()):
         return unifiable_n[c]
     else:
-        try:
-            return unichr(c)
-        except NameError: #Python3
-            return chr(c)
+        return chr(c)
 
 def entityref(c):
     if not UNICODE_SNOB and c in list(unifiable.keys()):
@@ -101,10 +98,7 @@ def entityref(c):
         try: name2cp(c)
         except KeyError: return "&" + c + ';'
         else:
-            try:
-                return unichr(name2cp(c))
-            except NameError: #Python3
-                return chr(name2cp(c))
+            return chr(name2cp(c))
 
 def replaceEntities(s):
     s = s.group(1)
@@ -738,7 +732,7 @@ if __name__ == "__main__":
 
         if file_.startswith('http://') or file_.startswith('https://'):
             baseurl = file_
-            j = urllib.urlopen(baseurl)
+            j = urlopen(baseurl)
             text = j.read()
             if encoding is None:
                 try:

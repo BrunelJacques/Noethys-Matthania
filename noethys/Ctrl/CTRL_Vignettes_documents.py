@@ -16,7 +16,7 @@ import wx
 from Ctrl import CTRL_Bouton_image
 from PIL import Image
 import os
-import six
+import io
 import FonctionsPerso
 import datetime
 from Utils import UTILS_Fichiers
@@ -40,7 +40,7 @@ DICT_TYPES = {
     
 def ChargeImage(fichier):
     """Read a file into PIL Image object. Return the image and file size"""
-    buf = six.BytesIO()
+    buf = io.BytesIO()
     f=open(fichier,"rb")
     while 1:
         rdbuf=f.read(8192)
@@ -98,13 +98,13 @@ class Track(object):
     def GetImage(self):
         # Si c'est une image :
         if self.type in ("jpg", "jpeg", "bmp", "png", "gif", "PNG", "JPG", "JPEG", None) :
-            io = six.BytesIO(self.buffer)
+            buff = io.BytesIO(self.buffer)
             # if 'phoenix' in wx.PlatformInfo:
             #     img = wx.Image(io, wx.BITMAP_TYPE_JPEG)
             # else :
             #     img = wx.ImageFromStream(io, wx.BITMAP_TYPE_JPEG)
             # img = wxtopil(img)
-            img = Image.open(io).convert("RGBA")
+            img = Image.open(buff).convert("RGBA")
             self.isImage = True
             return img
         # Si c'est un document :
@@ -281,7 +281,7 @@ Tous les fichiers (*.*)|*.*"
             file.close()
 
             # Met le fichier dans un buffer
-            buffer = six.BytesIO(data)
+            buffer = io.BytesIO(data)
             blob = buffer.read()
         return blob, extension
 
@@ -305,7 +305,7 @@ Tous les fichiers (*.*)|*.*"
             imgPIL = imgPIL.resize((largeur, hauteur), Image.ANTIALIAS) #.Rescale(width=largeur, height=hauteur, quality=qualite)
 
         # Met l'image dans un buffer
-        buffer = six.BytesIO()
+        buffer = io.BytesIO()
         imgPIL.save(buffer, format="JPEG", quality=85)
         buffer.seek(0)
         blob = buffer.read()

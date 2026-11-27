@@ -15,7 +15,6 @@ from Utils.UTILS_Traduction import _
 import wx
 import datetime
 import GestionDB
-from six.moves import range
 from Utils import UTILS_Interface
 from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, CTRL_Outils
 from Ctrl.CTRL_Questionnaire import LISTE_CONTROLES

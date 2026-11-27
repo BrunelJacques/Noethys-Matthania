@@ -9,8 +9,7 @@
 #-----------------------------------------------------------
 
 
-import Chemins
-from Utils import UTILS_Adaptations
+from Utils.UTILS_Dates import  DateEngEnDateDD
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
@@ -19,11 +18,6 @@ import datetime
 import GestionDB
 
 
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-        
-    
 class Calendrier(HTL.HyperTreeList):
     def __init__(self, parent, IDactivite=None): 
         HTL.HyperTreeList.__init__(self, parent, -1, style = wx.TR_DEFAULT_STYLE)
@@ -174,14 +168,6 @@ class Calendrier(HTL.HyperTreeList):
         self.DeleteRoot() 
         self.Initialisation()
 
-    def GetListeDates(self, annee, mois) :
-        tmp, nbreJours = calendar.monthrange(annee, mois)
-        listeDates = []
-        for numJour in range(1, nbreJours+1):
-            date = datetime.date(annee, mois, numJour)
-            listeDates.append(date)
-        return listeDates
-        
     def GetListeUnites(self, date_debut, date_fin):
         db = GestionDB.DB()
         req = """SELECT IDunite, nom, abrege, type, date_debut, date_fin, ordre

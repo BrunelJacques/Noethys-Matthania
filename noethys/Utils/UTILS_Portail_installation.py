@@ -16,7 +16,7 @@ import os
 import os.path
 import ftplib
 import time
-from six.moves.urllib.request import Request, urlopen, urlretrieve
+from urllib.request import Request, urlopen, urlretrieve
 import zipfile
 import shutil
 from Utils import UTILS_Fichiers

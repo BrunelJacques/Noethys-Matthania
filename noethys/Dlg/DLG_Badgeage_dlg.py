@@ -14,7 +14,7 @@ from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 import wx.lib.agw.gradientbutton as GB
-from six.moves import range
+
 from wx.lib.wordwrap import wordwrap
 
 if 'phoenix' in wx.PlatformInfo:

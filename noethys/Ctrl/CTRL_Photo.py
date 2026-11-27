@@ -13,7 +13,7 @@ import Chemins
 from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
-import six
+import io
 from PIL import Image
 import os
 import base64
@@ -36,11 +36,11 @@ def GetPhoto(IDindividu=None, nomFichier=None, taillePhoto=(128, 128), qualite=w
             if len(listeDonnees) > 0 :
                 IDphoto, bufferPhoto = listeDonnees[0]
                 # Transformation du buffer en wx.bitmap
-                io = six.BytesIO(bufferPhoto)
+                iobuf = io.BytesIO(bufferPhoto)
                 if 'phoenix' in wx.PlatformInfo:
-                    img = wx.Image(io, wx.BITMAP_TYPE_JPEG)
+                    img = wx.Image(iobuf, wx.BITMAP_TYPE_JPEG)
                 else :
-                    img = wx.ImageFromStream(io, wx.BITMAP_TYPE_JPEG)
+                    img = wx.ImageFromStream(iobuf, wx.BITMAP_TYPE_JPEG)
                 img = img.Rescale(width=taillePhoto[0], height=taillePhoto[1], quality=qualite) 
                 bmp = img.ConvertToBitmap()
                 return (IDphoto, bmp)
@@ -94,11 +94,8 @@ def GetPhotos(listeIndividus=[], taillePhoto=None, qualite=wx.IMAGE_QUALITY_HIGH
             # Si photo existe dans DB
             IDphoto = dictPhotosDB[IDindividu]["IDphoto"]
             bufferPhoto = dictPhotosDB[IDindividu]["bufferPhoto"]
-            io = six.BytesIO(bufferPhoto)
-            if 'phoenix' in wx.PlatformInfo:
-                img = wx.Image(io, wx.BITMAP_TYPE_JPEG)
-            else :
-                img = wx.ImageFromStream(io, wx.BITMAP_TYPE_JPEG)
+            iobuf = io.BytesIO(bufferPhoto)
+            img = wx.Image(iobuf, wx.BITMAP_TYPE_JPEG)
             if taillePhoto != None :
                 img = img.Rescale(width=taillePhoto[0], height=taillePhoto[1], quality=qualite) 
             bmp = img.ConvertToBitmap()    
@@ -142,11 +139,8 @@ class CTRL_Photo(wx.StaticBitmap):
         # Affiche une photo base64
         if imgbase64 != None :
             self.image_base64 = imgbase64
-            io = six.BytesIO(base64.b64decode(imgbase64))
-            if 'phoenix' in wx.PlatformInfo:
-                img = wx.Image(io, wx.BITMAP_TYPE_JPEG)
-            else:
-                img = wx.ImageFromStream(io, wx.BITMAP_TYPE_JPEG)
+            iobuf = io.BytesIO(base64.b64decode(imgbase64))
+            img = wx.Image(iobuf, wx.BITMAP_TYPE_JPEG)
             bmp = img.ConvertToBitmap()
             self.SetBitmap(bmp)
             return
@@ -323,25 +317,11 @@ class CTRL_Photo(wx.StaticBitmap):
             nomFichier = Chemins.GetStaticPath("Images/128x128/%s" % nomFichier)
             # Applique l'image par défaut
             self.SetPhoto(self.IDindividu, nomFichier)
-        
-    def Menu_Imprimer(self, event):
-        """ Impression de la photo de la personne """
-        # Récupération de la liste des personnes
-        DB = GestionDB.DB()        
-        req = """SELECT IDpersonne, nom, prenom FROM personnes WHERE IDpersonne=%d; """ % self.IDpersonne
-        DB.executerReq(req)
-        donnees = DB.resultatReq()[0]
-        DB.close()
-        # Ouverture de la frame d'impression des photos  
-        import Impression_photo
-        frame = Impression_photo.MyFrame(None, listePersonnes=[[self.IDpersonne, donnees[1], donnees[2], None],])
-        frame.Show()
 
     def wxtopil(self, image):
         """Convert wx.Image to PIL Image."""
         data = image.GetData()
-        if 'phoenix' in wx.PlatformInfo:
-            data = bytes(data)
+        data = bytes(data)
         pil = Image.new('RGB', (image.GetWidth(), image.GetHeight()))
         pil.frombytes(data)
         return pil

@@ -9,14 +9,13 @@
 #-----------------------------------------------------------
 
 
-import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 import wx.lib.agw.ultimatelistctrl as ULC
 
 import os
-import six
+import io
+import sys
 import datetime
 import sqlite3
 import GestionDB
@@ -212,7 +211,7 @@ class CTRL(ULC.UltimateListCtrl):
         self.InsertColumn(1, "Column 2") 
         
         for dictFichier in self.listeFichiers :
-            index = self.InsertStringItem(six.MAXSIZE, "")
+            index = self.InsertStringItem(sys.maxsize, "")
 
             klass = FirstColumnRenderer(self, titre=dictFichier["titre"], image=dictFichier["image"], description=dictFichier["description"])
             self.SetItemCustomRenderer(index, 0, klass)
@@ -274,11 +273,8 @@ class CTRL(ULC.UltimateListCtrl):
 
                 if logo != None :
                     try :
-                        io = six.BytesIO(logo)
-                        if 'phoenix' in wx.PlatformInfo:
-                            img = wx.Image(io, wx.BITMAP_TYPE_ANY)
-                        else :
-                            img = wx.ImageFromStream(io, wx.BITMAP_TYPE_ANY)
+                        iobuf = io.BytesIO(logo)
+                        img = wx.Image(iobuf, wx.BITMAP_TYPE_ANY)
                         img = RecadreImg(img)
                         image = img.ConvertToBitmap()
                     except :
@@ -363,11 +359,8 @@ class CTRL(ULC.UltimateListCtrl):
 
                 if logo != None :
                     try :
-                        io = six.BytesIO(logo)
-                        if 'phoenix' in wx.PlatformInfo:
-                            img = wx.Image(io, wx.BITMAP_TYPE_ANY)
-                        else :
-                            img = wx.ImageFromStream(io, wx.BITMAP_TYPE_ANY)
+                        iobuff = io.BytesIO(logo)
+                        img = wx.Image(iobuff, wx.BITMAP_TYPE_ANY)
                         img = RecadreImg(img)
                         image = img.ConvertToBitmap()
                     except :

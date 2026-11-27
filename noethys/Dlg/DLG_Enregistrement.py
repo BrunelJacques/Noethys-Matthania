@@ -10,7 +10,7 @@
 
 
 import Chemins
-from Utils import UTILS_Adaptations
+
 from Utils.UTILS_Traduction import _
 import wx
 import sys
@@ -18,12 +18,13 @@ from Ctrl import CTRL_Bouton_image
 from Ctrl import CTRL_Bandeau
 import wx.lib.masked as masked
 import wx.html as html
-from six.moves.urllib.request import urlopen
+from urllib.request import urlopen
 import traceback
 import datetime
 import six
 from Utils import UTILS_Config
 from Utils import UTILS_Utilisateurs
+from Utils.UTILS_Dates import  DateEngEnDateDD, DateEngFr
 
 
 ##TEXTE = """
@@ -58,14 +59,6 @@ que vous souhaitez contribuer à son développement, offrez à votre structure un a
 <P>Pour en savoir davantage, <A HREF="publicite">cliquez ici</A>.</P>
 </FONT>
 """
-
-def DateEngFr(textDate):
-    text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
-    return text
-
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
 
 
 def GetValidite(identifiant="", code=""):

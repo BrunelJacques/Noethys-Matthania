@@ -14,7 +14,7 @@ from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 import os
-import six
+import io
 import GestionDB
 from Dlg import DLG_Saisie_mode_reglement
 from Utils import UTILS_Interface
@@ -34,11 +34,8 @@ def GetImage(bufferImage):
         
     # Recherche de l'image
     if bufferImage != None :
-        io = six.BytesIO(bufferImage)
-        if 'phoenix' in wx.PlatformInfo:
-            img = wx.Image(io, wx.BITMAP_TYPE_JPEG)
-        else :
-            img = wx.ImageFromStream(io, wx.BITMAP_TYPE_JPEG)
+        iobuf = io.BytesIO(bufferImage)
+        img = wx.Image(iobuf, wx.BITMAP_TYPE_JPEG)
         try :
             bmp = img.Rescale(width=int(TAILLE_IMAGE[0]), height=int(TAILLE_IMAGE[1]), quality=qualite)
             bmp = bmp.ConvertToBitmap()

@@ -10,7 +10,7 @@
 
 import GestionDB
 import wx
-import six
+import io
 
 
 def GetNom():
@@ -62,11 +62,11 @@ def GetDonnees(tailleLogo=(40, 40)) :
     if num_siret == None : num_siret = ""
     if code_ape == None : code_ape = ""
     if logo != None :
-        io = six.BytesIO(logo)
+        iobuf = io.BytesIO(logo)
         if 'phoenix' in wx.PlatformInfo:
-            img = wx.Image(io, wx.BITMAP_TYPE_ANY)
+            img = wx.Image(iobuf, wx.BITMAP_TYPE_ANY)
         else :
-            img = wx.ImageFromStream(io, wx.BITMAP_TYPE_ANY)
+            img = wx.ImageFromStream(iobuf, wx.BITMAP_TYPE_ANY)
         img = RecadreImg(img, tailleLogo)
         logo = img.ConvertToBitmap()
     dictDonnees = {

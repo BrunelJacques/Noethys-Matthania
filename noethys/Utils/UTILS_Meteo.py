@@ -8,7 +8,7 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-from six.moves.urllib.request import urlopen
+from urllib.request import urlopen
 
 
 def RechercheData(xml, nom="", positionDebut=0):

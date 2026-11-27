@@ -18,7 +18,7 @@ import datetime
 import GestionDB
 from Utils import UTILS_Dates
 from Dlg import DLG_Saisie_contrat_conso_detail
-from six.moves import cPickle
+import pickle
 import copy
 
 from Utils import UTILS_Interface
@@ -302,11 +302,11 @@ class ListView(FastObjectListView):
         self.MAJ() 
 
     def GetElementsStr(self):
-        return cPickle.dumps(self.listeDonnees)
+        return pickle.dumps(self.listeDonnees)
     
     def SetElementsStr(self, donnees=""):
         if donnees == None : return
-        self.listeDonnees = cPickle.loads(str(donnees))
+        self.listeDonnees = pickle.loads(str(donnees))
         self.MAJ() 
 
     def GetListeVacances(self):

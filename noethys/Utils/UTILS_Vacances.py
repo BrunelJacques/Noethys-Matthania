@@ -11,7 +11,7 @@
 import Chemins
 from Utils.UTILS_Traduction import _
 import six
-from six.moves.urllib.request import urlopen
+from urllib.request import urlopen
 import datetime, json, codecs
 from Utils import UTILS_Dates
 
@@ -51,10 +51,7 @@ class Calendrier():
                     liste_items.append(periode)
 
         # Tri par date de début
-        if six.PY2:
-            liste_items.sort(lambda x, y: cmp(x["date_debut"], y["date_debut"]))
-        else:
-            liste_items.sort(key=lambda x: x["date_debut"])
+        liste_items.sort(key=lambda x: x["date_debut"])
 
         return liste_items
 

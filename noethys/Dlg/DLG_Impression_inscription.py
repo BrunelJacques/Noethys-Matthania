@@ -10,13 +10,10 @@
 
 
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
 import datetime
-import os
-
 
 from Utils import UTILS_Config
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
@@ -28,13 +25,12 @@ import FonctionsPerso
 import GestionDB
 from Data import DATA_Civilites as Civilites
 from Utils import UTILS_Historique
-from Utils import UTILS_Identification
 from Utils import UTILS_Titulaires
 from Utils import UTILS_Questionnaires
 from Utils import UTILS_Parametres
 from Utils import UTILS_Infos_individus
+from Utils.UTILS_Dates import  DateComplete, DateEngFr
 
-from Utils.UTILS_Decimal import FloatToDecimal as FloatToDecimal
 
 
 DICT_CIVILITES = Civilites.GetDictCivilites()
@@ -61,28 +57,6 @@ TEXTE_INTRO = _("Je soussigné{SIGNATAIRE_GENRE} {SIGNATAIRE_NOM}, {SIGNATAIRE_FO
 DICT_DONNEES = {}
 
 
-def DateComplete(dateDD):
-    """ Transforme une date DD en date complète : Ex : lundi 15 janvier 2008 """
-    if dateDD == None or dateDD == "" : return ""
-    listeJours = (_("Lundi"), _("Mardi"), _("Mercredi"), _("Jeudi"), _("Vendredi"), _("Samedi"), _("Dimanche"))
-    listeMois = (_("janvier"), _("février"), _("mars"), _("avril"), _("mai"), _("juin"), _("juillet"), _("août"), _("septembre"), _("octobre"), _("novembre"), _("décembre"))
-    dateComplete = listeJours[dateDD.weekday()] + " " + str(dateDD.day) + " " + listeMois[dateDD.month-1] + " " + str(dateDD.year)
-    return dateComplete
-
-def DateEngEnDateDD(dateEng):
-    if not isinstance(dateEng,str): dateEng = str(dateEng)
-    if dateEng == None or dateEng == "" : return ""
-    return datetime.date(int(dateEng[:4]), int(dateEng[5:7]), int(dateEng[8:10]))
-
-def DateEngFr(textDate):
-    if textDate == None or textDate == "" : return ""
-    text = str(textDate[8:10]) + "/" + str(textDate[5:7]) + "/" + str(textDate[:4])
-    return text
-
-def DateFrEng(textDate):
-    if textDate == None or textDate == "" : return ""
-    text = str(textDate[6:10]) + "-" + str(textDate[3:5]) + "-" + str(textDate[:2])
-    return text
 
 def FormateStr(valeur=u""):
     try :

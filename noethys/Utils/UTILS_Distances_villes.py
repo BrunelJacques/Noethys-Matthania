@@ -9,8 +9,8 @@
 #------------------------------------------------------------------------
 
 
-from six.moves.urllib.parse import quote
-from six.moves.urllib.request import urlopen
+from urllib.parse import quote
+from urllib.request import urlopen
 
 
 def GetDistances(origine="", destinations=[], moyen="voiture") :

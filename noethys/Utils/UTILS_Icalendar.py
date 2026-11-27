@@ -12,11 +12,9 @@
 import Chemins
 from Utils.UTILS_Traduction import _
 import icalendar
-import six
-from six.moves.urllib.request import urlopen
+from urllib.request import urlopen
 import datetime
-if six.PY3:
-    import functools
+import functools
 
 
 class Calendrier():
@@ -99,10 +97,7 @@ class Calendrier():
                 listeResultats.append({"annee" : annee, "nom" : _("Eté"), "date_debut" : dictDates["date_debut"], "date_fin" : dictDates["date_fin"]})
 
         # Tri par date de début
-        if six.PY2:
-            listeResultats.sort(lambda x,y: cmp(x["date_debut"], y["date_debut"]))
-        else:
-            listeResultats.sort(key=lambda x: x["date_debut"])
+        listeResultats.sort(key=lambda x: x["date_debut"])
 
         return listeResultats
         

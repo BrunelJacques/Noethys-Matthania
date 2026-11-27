@@ -9,11 +9,10 @@
 #-----------------------------------------------------------
 
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 import GestionDB
-import six
+import io
 from Utils import UTILS_Images
 import wx.lib.agw.ultimatelistctrl as ULC
 from Ctrl import CTRL_Bouton_image
@@ -70,11 +69,8 @@ class CTRL(ULC.UltimateListCtrl):
 
             # Conversion en bmp de l'image
             if image != None :
-                io = six.BytesIO(image)
-                if 'phoenix' in wx.PlatformInfo:
-                    img = wx.Image(io, wx.BITMAP_TYPE_PNG)
-                else:
-                    img = wx.ImageFromStream(io, wx.BITMAP_TYPE_PNG)
+                iobuf = io.BytesIO(image)
+                img = wx.Image(iobuf, wx.BITMAP_TYPE_PNG)
                 img = UTILS_Images.RecadreImg(img, self.taillePhoto)
                 bmp = img.ConvertToBitmap()
             else :

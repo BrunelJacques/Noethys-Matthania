@@ -13,7 +13,7 @@ import Chemins
 from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
-import six
+import io
 import os
 import GestionDB
 from Dlg import DLG_Saisie_emetteur
@@ -39,11 +39,8 @@ class Track(object):
         """ Récupère une image """            
         # Recherche de l'image
         if self.bufferImage != None :
-            io = six.BytesIO(self.bufferImage)
-            if 'phoenix' in wx.PlatformInfo:
-                img = wx.Image(io, wx.BITMAP_TYPE_JPEG)
-            else :
-                img = wx.ImageFromStream(io, wx.BITMAP_TYPE_JPEG)
+            iobuff = io.BytesIO(self.bufferImage)
+            img = wx.Image(iobuff, wx.BITMAP_TYPE_JPEG)
             bmp = img.Rescale(width=int(TAILLE_IMAGE[0]), height=int(TAILLE_IMAGE[1]), quality=wx.IMAGE_QUALITY_HIGH)
             bmp = bmp.ConvertToBitmap()
             return bmp

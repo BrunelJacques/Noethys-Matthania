@@ -12,7 +12,7 @@ import Chemins
 from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
-import six
+import io
 import datetime
 import decimal
 import GestionDB
@@ -283,8 +283,8 @@ class ListView(FastObjectListView):
         """ Récupère une image mode ou émetteur depuis un buffer """            
         # Recherche de l'image
         if buffer != None :
-            io = six.BytesIO(buffer)
-            img = wx.Image(io, wx.BITMAP_TYPE_JPEG)
+            iobuff = io.BytesIO(buffer)
+            img = wx.Image(iobuff, wx.BITMAP_TYPE_JPEG)
             bmp = img.Rescale(width=int(taille[0]), height=int(taille[1]), quality=wx.IMAGE_QUALITY_HIGH)
             bmp = bmp.ConvertToBitmap()
             return bmp

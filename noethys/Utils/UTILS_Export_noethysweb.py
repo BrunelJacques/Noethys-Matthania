@@ -8,9 +8,8 @@
 # Licence:         Licence GNU GPL
 #------------------------------------------------------------------------
 
-import Chemins
 import wx
-import six, os, copy, json, datetime, uuid, base64, re, shutil
+import io, os, copy, json, datetime, uuid, base64, re, shutil
 import GestionDB
 from Data.DATA_Tables import DB_DATA as DICT_CHAMPS
 from PIL import Image
@@ -101,7 +100,7 @@ class Table():
                             os.makedirs(rep_images_complet)
 
                         # Ouverture de l'image
-                        image = Image.open(six.BytesIO(valeur))
+                        image = Image.open(io.BytesIO(valeur))
 
                         # Création du nom du fichier image
                         nom_fichier_image = "%s.%s" % (uuid.uuid4(), image.format.lower())
@@ -658,7 +657,7 @@ class Table_individus(Table):
     def photo(self, data={}):
         IDindividu = data["pk"]
         if IDindividu in self.dictPhotos:
-            image = Image.open(six.BytesIO(self.dictPhotos[IDindividu]))
+            image = Image.open(io.BytesIO(self.dictPhotos[IDindividu]))
             nom_fichier_image = "%s.%s" % (uuid.uuid4(), image.format.lower())
             image.save(os.path.join(self.rep_images_complet, nom_fichier_image), format=image.format)
             valeur = os.path.join(self.rep_images, nom_fichier_image)
@@ -877,9 +876,9 @@ class Table_documents_modeles(Table):
 
                 # Image
                 if dict_objet["categorie"] == "image" and dict_objet["typeImage"].startswith("fichier"):
-                    image = Image.open(six.BytesIO(dict_objet["image"]))
+                    image = Image.open(io.BytesIO(dict_objet["image"]))
                     taille_image = image.size
-                    buffer = six.BytesIO()
+                    buffer = io.BytesIO()
                     image.save(buffer, format=image.format)
                     image64 = base64.b64encode(buffer.getvalue())
 
@@ -915,11 +914,8 @@ class Table_documents_modeles(Table):
                     self.parent.DB.ExecuterReq(req,MsgBox="ExecuterReq")
                     logo = self.parent.DB.ResultatReq()[0][0]
                     if logo != None:
-                        io = six.BytesIO(logo)
-                        if 'phoenix' in wx.PlatformInfo:
-                            img = wx.Image(io, wx.BITMAP_TYPE_ANY)
-                        else:
-                            img = wx.ImageFromStream(io, wx.BITMAP_TYPE_ANY)
+                        iobuff = io.BytesIO(logo)
+                        img = wx.Image(iobuff, wx.BITMAP_TYPE_ANY)
                         taille_logo = img.GetSize()
 
                         objet = json.loads("""{"type":"image","version":"3.4.0","originX":"left","originY":"top","left":11.49,"top":54.99,"width":500,"height":500,"fill":"rgb(0,0,0)","stroke":"rgba(0,0,0,0)","strokeWidth":0,"strokeDashArray":null,"strokeLineCap":"butt","strokeDashOffset":0,"strokeLineJoin":"miter","strokeMiterLimit":4,"scaleX":0.37,"scaleY":0.37,"angle":0,"flipX":false,"flipY":false,"opacity":1,"shadow":null,"visible":true,"clipTo":null,"backgroundColor":"","fillRule":"nonzero","paintFirst":"fill","globalCompositeOperation":"source-over","transformMatrix":null,"skewX":0,"skewY":0,"crossOrigin":"","cropX":0,"cropY":0,"nom":"Logo organisateur","categorie":"logo","src":"/media/organisateur/logo.png","filters":[]}""")
@@ -1139,8 +1135,7 @@ class Table_modeles_emails(Table):
         ctrl_editeur = self.parent.dlg.ctrl_editeur
         html = None
         if texte_xml:
-            if six.PY3 and isinstance(texte_xml, str):
-                texte_xml = texte_xml.encode("utf8")
+            texte_xml = texte_xml.encode("utf8")
             ctrl_editeur.SetXML(texte_xml)
             html = ctrl_editeur.GetHTML()[0]
             for balise in ("<html>", "</html>", "<head>", "</head>", "<body>", "</body>", "\r\n", "</font>"):

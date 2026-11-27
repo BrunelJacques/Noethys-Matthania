@@ -23,7 +23,7 @@ from Utils import UTILS_Dates
 import copy
 from Utils import UTILS_Identification
 from Ol import OL_Activites
-from six.moves import cPickle
+import pickle
 import wx.lib.dialogs as dialogs
 
 
@@ -361,7 +361,7 @@ class Dialog(wx.Dialog):
         self.ctrl_date_fin.SetDate(date_fin)
         self.ctrl_observations.SetValue(observations)
         self.ctrl_tarif.SetID(IDtarif)
-        listePeriodes = cPickle.loads(str(donnees))
+        listePeriodes = pickle.loads(str(donnees))
         self.listePeriodesInitiale = copy.deepcopy(listePeriodes)
         self.ctrl_periodes.SetDonnees(listePeriodes)
         
@@ -525,7 +525,7 @@ class Dialog(wx.Dialog):
 
         if self.mode_modele == True :
             # Sauvegarde du modèle de contrat
-            donneesStr = cPickle.dumps(listePeriodes)
+            donneesStr = pickle.dumps(listePeriodes)
 
             DB = GestionDB.DB()
             listeDonnees = [

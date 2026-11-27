@@ -13,7 +13,7 @@ import Chemins
 from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
-import six
+import io
 
 def ChargeImage(fichier):
     """Read a file into PIL Image object. Return the image and file size"""
@@ -28,15 +28,6 @@ def ChargeImage(fichier):
 ##    image = Image.open(buf).convert("RGBA")
     image = wx.Image(fichier, wx.BITMAP_TYPE_ANY)
     return image
-
-def wxtopil( image):
-    """Convert wx.Image to PIL Image."""
-    data = image.GetData()
-    if 'phoenix' in wx.PlatformInfo:
-        data = bytes(data)
-    pil = Image.new('RGB', (image.GetWidth(), image.GetHeight()))
-    pil.paste(pil.frombytes(data), (10, 10))
-    return pil
 
 def piltowx(image):
     """Convert a PIL image to wx image format"""
@@ -202,14 +193,14 @@ class CTRL(wx.StaticBitmap):
         if buffer == None :
             self.imagewx = None
         else :
-            io = six.BytesIO(buffer)
-            self.imagewx = wx.Image(io, wx.BITMAP_TYPE_PNG)
+            iobuf = io.BytesIO(buffer)
+            self.imagewx = wx.Image(iobuf, wx.BITMAP_TYPE_PNG)
         self.MAJ()
 
     def GetBuffer(self):
         """ Récupère le buffer de l'image """
         if self.imagewx == None : return None
-        buffer = six.BytesIO()
+        buffer = io.BytesIO()
         self.imagewx.SaveFile(buffer, wx.BITMAP_TYPE_PNG)
         buffer.seek(0)
         blob = buffer.read()

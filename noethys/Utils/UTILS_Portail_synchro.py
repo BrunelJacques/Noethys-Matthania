@@ -20,8 +20,8 @@ import ftplib
 import zipfile
 import shutil
 import json
-import six
-from six.moves.urllib.request import Request, urlopen
+
+from urllib.request import Request, urlopen
 import sys
 import importlib
 import platform
@@ -51,9 +51,6 @@ from hashlib import sha256
 
 
 def patch_crypto_be_discovery():
-    """ Patch pour Paramiko contre bug backends missing lors de la compilation sur Windows """
-    from cryptography.hazmat import backends
-
     try:
         from cryptography.hazmat.backends.commoncrypto.backend import backend as be_cc
     except ImportError:
@@ -63,7 +60,7 @@ def patch_crypto_be_discovery():
         from cryptography.hazmat.backends.openssl.backend import backend as be_ossl
     except ImportError:
         be_ossl = None
-
+    import cryptography.hazmat.backends as backends
     backends._available_backends_list = [
         be for be in (be_cc, be_ossl) if be is not None
     ]
@@ -1330,12 +1327,10 @@ class Synchro():
                 date_debut = UTILS_Dates.DateEngEnDateDDT(date_debut)
                 date_fin = UTILS_Dates.DateEngEnDateDDT(date_fin)
                 if texte_html != None :
-                    if six.PY3:
-                        if isinstance(texte_html, str):
-                            texte_html = texte_html.encode('utf-8')
-                        texte_html = texte_html.replace(b"<img ", b"<img class='img-responsive' ")
-                    else:
-                        texte_html = texte_html.replace("<img ", "<img class='img-responsive' ")
+                    if isinstance(texte_html, str):
+                        texte_html = texte_html.encode('utf-8')
+                    texte_html = texte_html.replace(b"<img ", b"<img class='img-responsive' ")
+
                 m = models.Element(IDelement=IDelement, IDbloc=IDbloc, ordre=ordre, titre=titre, categorie=categorie, date_debut=date_debut, date_fin=date_fin,
                                 parametres=parametres, texte_html=texte_html)
                 session.add(m)

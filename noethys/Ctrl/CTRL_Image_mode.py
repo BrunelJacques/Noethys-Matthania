@@ -10,11 +10,11 @@
 
 
 import Chemins
-from Utils import UTILS_Adaptations
+
 from Utils.UTILS_Traduction import _
 import wx
 import os
-import six
+import io
 import GestionDB
 
 
@@ -54,12 +54,9 @@ class CTRL(wx.StaticBitmap):
                 # Si une image est trouvée
                 self.bmpBuffer = listeDonnees[0][0]
                 if self.bmpBuffer != None :
-                    io = six.BytesIO(self.bmpBuffer)
-                    if 'phoenix' in wx.PlatformInfo:
-                        img = wx.Image(io, wx.BITMAP_TYPE_JPEG)
-                    else :
-                        img = wx.ImageFromStream(io, wx.BITMAP_TYPE_JPEG)
-                    bmp = img.Rescale(width=self.tailleImage[0], height=self.tailleImage[1], quality=wx.IMAGE_QUALITY_HIGH) 
+                    iobuf = io.BytesIO(self.bmpBuffer)
+                    img = wx.Image(iobuf, wx.BITMAP_TYPE_JPEG)
+                    bmp = img.Rescale(width=self.tailleImage[0], height=self.tailleImage[1], quality=wx.IMAGE_QUALITY_HIGH)
                     bmp = bmp.ConvertToBitmap()
                     self.modeDefaut = False
                     return bmp

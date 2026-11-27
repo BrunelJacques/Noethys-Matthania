@@ -26,7 +26,7 @@ from Utils import UTILS_Couleurs
 import numpy
 import sys
 import os
-import six
+import io
 import random
 import GestionDB
 import datetime
@@ -2954,7 +2954,7 @@ class MovingObjectMixin:
             # Image d'un fichier
             if self.typeImage.startswith("fichier"):
                 image = self.Image
-                buffer = six.BytesIO()
+                buffer = io.BytesIO()
                 if "png" in self.typeImage : 
                     handler = wx.BITMAP_TYPE_PNG
                 else:
@@ -5443,11 +5443,8 @@ class Dialog(wx.Dialog):
     def GetBufferPhotoPage(self):
         bmp = self.ctrl_canvas.GetPhotoPage()
         img = bmp.ConvertToImage()
-        buffer = six.BytesIO()
-        if 'phoenix' in wx.PlatformInfo:
-            img.SaveFile(buffer, wx.BITMAP_TYPE_PNG)
-        else :
-            img.SaveStream(buffer, wx.BITMAP_TYPE_PNG)
+        buffer = io.BytesIO()
+        img.SaveFile(buffer, wx.BITMAP_TYPE_PNG)
         buffer.seek(0)
         blob = buffer.read()
         return blob
@@ -5466,11 +5463,8 @@ def GetLogo_organisateur():
     if buffer == None : 
         # Si aucun logo, renvoie une image vide
         return wx.Image(Chemins.GetStaticPath("Images/Special/Logo_nb.png"), wx.BITMAP_TYPE_ANY), False
-    io = six.BytesIO(buffer)
-    if 'phoenix' in wx.PlatformInfo:
-        img = wx.Image(io, wx.BITMAP_TYPE_PNG)
-    else :
-        img = wx.ImageFromStream(io, wx.BITMAP_TYPE_PNG)
+    iobuf = io.BytesIO(buffer)
+    img = wx.Image(iobuf, wx.BITMAP_TYPE_PNG)
     return img, True
 
 
@@ -5612,11 +5606,8 @@ def ImportationObjets(IDmodele=None, InForeground=True):
             # Fichier
             if objet["typeImage"].startswith("fichier") :
                 if objet["image"] != None :
-                    io = six.BytesIO(objet["image"])
-                    if 'phoenix' in wx.PlatformInfo:
-                        bmp = wx.Image(io, wx.BITMAP_TYPE_ANY)
-                    else:
-                        bmp = wx.ImageFromStream(io, wx.BITMAP_TYPE_ANY)
+                    iobuf = io.BytesIO(objet["image"])
+                    bmp = wx.Image(iobuf, wx.BITMAP_TYPE_ANY)
             # Photo
             if objet["typeImage"] == "photo" :
                 bmp = wx.Bitmap(Chemins.GetStaticPath("Images/128x128/Femme.png"), wx.BITMAP_TYPE_ANY)
@@ -5839,11 +5830,8 @@ class ModeleDoc():
                     DB.Close()
                     if len(listeDonnees) > 0 :
                         IDphoto, bufferPhoto = listeDonnees[0]
-                        io = six.BytesIO(bufferPhoto)
-                        if 'phoenix' in wx.PlatformInfo:
-                            img = wx.Image(io, wx.BITMAP_TYPE_ANY)
-                        else:
-                            img = wx.ImageFromStream(io, wx.BITMAP_TYPE_ANY)
+                        iobuff = io.BytesIO(bufferPhoto)
+                        img = wx.Image(iobuff, wx.BITMAP_TYPE_ANY)
                         valeur=img
                     else:
                         # Image par défaut
@@ -6019,14 +6007,14 @@ def DessineObjetPDF(objet, canvas, valeur=None):
         imgwx = objet.Image
         if valeur != None :
             imgwx = valeur
-        file = six.BytesIO()
+        file = io.BytesIO()
         if 'phoenix' in wx.PlatformInfo:
             imgwx.SaveFile(file, wx.BITMAP_TYPE_PNG)
         else :
             imgwx.SaveStream(file, wx.BITMAP_TYPE_PNG)
         gif = file.getvalue()
         file.close()                 
-        buf = six.BytesIO(gif)
+        buf = io.BytesIO(gif)
         canvas.drawImage(ImageReader(buf), x, y, largeur, hauteur, mask="auto", preserveAspectRatio=objet.verrouillageProportions)
         
     # ------- BARCODE ------
@@ -6069,7 +6057,7 @@ def DessineObjetPDF(objet, canvas, valeur=None):
                 from pystrich.datamatrix import DataMatrixEncoder
                 encoder = DataMatrixEncoder(valeur)
                 png = encoder.get_imagedata()
-                buf = six.BytesIO(png)
+                buf = io.BytesIO(png)
                 canvas.drawImage(ImageReader(buf), x-3, y-3, largeur*1.11, hauteur*1.11, mask="auto", preserveAspectRatio=objet.verrouillageProportions)
 
             if barcode:

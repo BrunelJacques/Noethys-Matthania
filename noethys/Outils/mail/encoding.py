@@ -5,9 +5,7 @@ import codecs
 import datetime
 import locale
 from decimal import Decimal
-
-import six
-from six.moves.urllib.parse import quote, unquote
+from urllib.parse import quote
 
 class Promise(object):
     """
@@ -17,8 +15,7 @@ class Promise(object):
     """
     pass
 
-if six.PY3:
-    from urllib.parse import unquote_to_bytes
+from urllib.parse import unquote_to_bytes
 
 
 class DjangoUnicodeDecodeError(UnicodeDecodeError):
@@ -30,9 +27,6 @@ class DjangoUnicodeDecodeError(UnicodeDecodeError):
         original = UnicodeDecodeError.__str__(self)
         return '%s. You passed in %r (%s)' % (original, self.obj, type(self.obj))
 
-
-# For backwards compatibility. (originally in Django, then added to six 1.9)
-python_2_unicode_compatible = six.python_2_unicode_compatible
 
 
 def smart_text(s, encoding='utf-8', strings_only=False, errors='strict'):
@@ -48,7 +42,7 @@ def smart_text(s, encoding='utf-8', strings_only=False, errors='strict'):
     return force_text(s, encoding, strings_only, errors)
 
 
-_PROTECTED_TYPES = six.integer_types + (
+_PROTECTED_TYPES = int + (
     type(None), float, Decimal, datetime.datetime, datetime.date, datetime.time
 )
 
@@ -75,12 +69,10 @@ def force_text(s, encoding='utf-8', strings_only=False, errors='strict'):
     if strings_only and is_protected_type(s):
         return s
     try:
-        if not issubclass(type(s), six.string_types):
-            if six.PY3:
-                if isinstance(s, bytes):
+        if not issubclass(type(s), str):
+            s = str(s)
+            if isinstance(s, bytes):
                     s = str(s, encoding, errors)
-                else:
-                    s = str(s)
             elif hasattr(s, '__unicode__'):
                 s = str(s)
             else:
@@ -135,12 +127,9 @@ def force_bytes(s, encoding='utf-8', strings_only=False, errors='strict'):
     #     return bytes(s)
     if isinstance(s, Promise):
         return str(s).encode(encoding, errors)
-    if not isinstance(s, six.string_types):
+    if not isinstance(s, str):
         try:
-            if six.PY3:
-                return str(s).encode(encoding)
-            else:
-                return bytes(s)
+            return str(s).encode(encoding)
         except UnicodeEncodeError:
             if isinstance(s, Exception):
                 # An Exception subclass containing non-ASCII data that doesn't
@@ -153,15 +142,9 @@ def force_bytes(s, encoding='utf-8', strings_only=False, errors='strict'):
         return s.encode(encoding, errors)
 
 
-if six.PY3:
-    smart_str = smart_text
-    force_str = force_text
-else:
-    smart_str = smart_bytes
-    force_str = force_bytes
-    # backwards compatibility for Python 2
-    smart_unicode = smart_text
-    force_unicode = force_text
+smart_str = smart_text
+force_str = force_text
+
 
 smart_str.__doc__ = """
 Apply smart_text in Python 3 and smart_bytes in Python 2.
@@ -217,7 +200,7 @@ def uri_to_iri(uri):
     if uri is None:
         return uri
     uri = force_bytes(uri)
-    iri = unquote_to_bytes(uri) if six.PY3 else unquote(uri)
+    iri = unquote_to_bytes(uri)
     return repercent_broken_unicode(iri).decode('utf-8')
 
 

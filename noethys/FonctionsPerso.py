@@ -517,7 +517,7 @@ def Aide(numItem=None):
         27 : ("Lesvaleursdepoints", "", "Config val_point"),
         28 : ("Rechercherdesmisesjour", "", "Updater"),
         29 : ("Crerunepice", "", "Saisie pièces"),
-        30 : ("Imprimerdesphotosdepersonnes", "", "Impression_photo"),
+        30 : ("Imprimerdesphotosdepersonnes", "", ""),
         31 : ("Lesmodlesdecontrats", "", "wiz création modele contrat"),
         32 : ("Laprotectionparmotdepasse", "", "Saisie pwd"),
         33 : ("Saisirunetcheunique", "", "Saisie d'une présence"),

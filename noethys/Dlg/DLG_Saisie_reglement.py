@@ -16,7 +16,7 @@ import wx
 from Ctrl import CTRL_Bouton_image
 import os
 import sys
-import six
+import io
 import datetime
 import decimal
 import wx.html as html
@@ -96,8 +96,8 @@ class CTRL_Image(wx.StaticBitmap):
                 # Si une image est trouvée
                 bmpBuffer = listeDonnees[0][0]
                 if bmpBuffer != None :
-                    io = six.BytesIO(bmpBuffer)
-                    img = wx.Image(io, wx.BITMAP_TYPE_JPEG)
+                    iobuf = io.BytesIO(bmpBuffer)
+                    img = wx.Image(iobuf, wx.BITMAP_TYPE_JPEG)
                     bmp = img.Rescale(width=self.tailleImage[0], height=self.tailleImage[1], quality=wx.IMAGE_QUALITY_HIGH) 
                     bmp = bmp.ConvertToBitmap()
                     return bmp

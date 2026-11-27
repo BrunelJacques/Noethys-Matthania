@@ -10,7 +10,6 @@
 
 
 import Chemins
-from Utils import UTILS_Adaptations
 from Utils.UTILS_Traduction import _
 import wx
 from Ctrl import CTRL_Bouton_image
@@ -18,7 +17,7 @@ import FonctionsPerso
 import sys 
 from time import sleep 
 from threading import Thread 
-from six.moves.urllib.request import Request, urlopen, urlretrieve
+from urllib.request import Request, urlopen, urlretrieve
 import os
 import six
 import zipfile

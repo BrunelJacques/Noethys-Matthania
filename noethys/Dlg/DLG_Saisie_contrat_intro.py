@@ -16,7 +16,7 @@ import wx
 from Ctrl import CTRL_Bouton_image
 from Ol import OL_Inscriptions
 import GestionDB
-from six.moves import cPickle
+import pickle
 from Utils import UTILS_Dates
 from Utils import UTILS_Config
 SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
@@ -59,7 +59,7 @@ class CTRL_Modeles(wx.Choice):
         for IDmodele, nom, IDactivite, date_debut, date_fin, IDtarif, donnees in listeDonnees :
             date_debut = UTILS_Dates.DateEngEnDateDD(date_debut)
             date_fin = UTILS_Dates.DateEngEnDateDD(date_fin)
-            donnees = cPickle.loads(str(donnees))
+            donnees = pickle.loads(str(donnees))
             self.dictDonnees[index] = { "ID" : IDmodele, "nom " : nom, "IDactivite" : IDactivite, "date_debut" : date_debut, "date_fin" : date_fin, "IDtarif" : IDtarif, "donnees" : donnees}
             label = _("%s - du %s au %s") % (nom, UTILS_Dates.DateDDEnFr(date_debut), UTILS_Dates.DateDDEnFr(date_fin))
             listeItems.append(label)
