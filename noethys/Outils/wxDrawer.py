@@ -3,7 +3,6 @@
 
 from wxSchedulerConstants import *
 from wxScheduleUtils import copyDateTime
-from six.moves import range
 import wx
 
 
