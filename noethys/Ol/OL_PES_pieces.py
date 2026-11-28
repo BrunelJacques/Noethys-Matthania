@@ -30,6 +30,7 @@ SYMBOLE = UTILS_Config.GetParametre("monnaie_symbole", "¤")
 
 from Utils import UTILS_Interface
 from Ctrl.CTRL_ObjectListView import FastObjectListView, ColumnDefn, Filter, CTRL_Outils
+from Dlg import DLG_Saisie_prelevement
 
 from Utils import UTILS_Titulaires
 
