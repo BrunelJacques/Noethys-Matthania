@@ -672,27 +672,27 @@ class Dialog(wx.Dialog):
         self.dictDonnees = {}
 
         # Action
-        self.box_action_staticbox = wx.StaticBox(self, -1, _("Action"))
-        self.notebook = Notebook(self, afficheElements=afficheElements, IDactivite=IDactivite, ctrl_calendrier=ctrl_calendrier)
+        self.stbAction = wx.StaticBox(self, -1, _("Action"))
+        self.notebook = Notebook(self.stbAction, afficheElements=afficheElements, IDactivite=IDactivite, ctrl_calendrier=ctrl_calendrier)
 
         # Période
-        self.box_periode_staticbox = wx.StaticBox(self, -1, _("Période d'application"))
+        self.stbPeriode = wx.StaticBox(self, -1, _("Période d'application"))
         
-        self.label_date_debut = wx.StaticText(self, -1, "Du")
-        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self)
-        self.label_date_fin = wx.StaticText(self, -1, _("au"))
-        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self)
-        self.ctrl_feries = wx.CheckBox(self, -1, _("Inclure les fériés"))
+        self.label_date_debut = wx.StaticText(self.stbPeriode, -1, "Du")
+        self.ctrl_date_debut = CTRL_Saisie_date.Date2(self.stbPeriode)
+        self.label_date_fin = wx.StaticText(self.stbPeriode, -1, _("au"))
+        self.ctrl_date_fin = CTRL_Saisie_date.Date2(self.stbPeriode)
+        self.ctrl_feries = wx.CheckBox(self.stbPeriode, -1, _("Inclure les fériés"))
 
         # Jours
-        self.box_jours_staticbox = wx.StaticBox(self, -1, _("Jours"))
+        self.stbJours = wx.StaticBox(self, -1, _("Jours"))
         
-        self.label_scolaires = wx.StaticText(self, -1, _("Scolaires :"))
-        self.ctrl_scolaires = CTRL_Jours(self, "scolaire")
-        self.label_vacances = wx.StaticText(self, -1, _("Vacances :"))
-        self.ctrl_vacances = CTRL_Jours(self, "vacances")
-        self.label_semaines = wx.StaticText(self, -1, _("Fréquence :"))
-        self.ctrl_semaines = CTRL_Semaines(self)
+        self.label_scolaires = wx.StaticText(self.stbJours, -1, _("Scolaires :"))
+        self.ctrl_scolaires = CTRL_Jours(self.stbJours, "scolaire")
+        self.label_vacances = wx.StaticText(self.stbJours, -1, _("Vacances :"))
+        self.ctrl_vacances = CTRL_Jours(self.stbJours, "vacances")
+        self.label_semaines = wx.StaticText(self.stbJours, -1, _("Fréquence :"))
+        self.ctrl_semaines = CTRL_Semaines(self.stbJours)
 
         self.bouton_aide = CTRL_Bouton_image.CTRL(self, texte=_("Aide"), cheminImage="Images/32x32/Aide.png")
         self.bouton_ok = CTRL_Bouton_image.CTRL(self, texte=_("Ok"), cheminImage="Images/32x32/Valider.png")
@@ -720,14 +720,14 @@ class Dialog(wx.Dialog):
         grid_sizer_base = wx.FlexGridSizer(rows=5, cols=1, vgap=10, hgap=10)
         
         # Action
-        box_action = wx.StaticBoxSizer(self.box_action_staticbox, wx.VERTICAL)
+        box_action = wx.StaticBoxSizer(self.stbAction, wx.VERTICAL)
         box_action.Add(self.notebook, 1, wx.ALL|wx.EXPAND, 10)
         grid_sizer_base.Add(box_action, 1, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 10)
 
         grid_sizer_bas = wx.FlexGridSizer(rows=1, cols=2, vgap=10, hgap=10)
 
         # Périodes
-        box_periode = wx.StaticBoxSizer(self.box_periode_staticbox, wx.VERTICAL)
+        box_periode = wx.StaticBoxSizer(self.stbPeriode, wx.VERTICAL)
         grid_sizer_periode = wx.FlexGridSizer(rows=3, cols=2, vgap=5, hgap=5)
         grid_sizer_periode.Add(self.label_date_debut, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_periode.Add(self.ctrl_date_debut, 0, 0, 0)
@@ -740,7 +740,7 @@ class Dialog(wx.Dialog):
         grid_sizer_bas.Add(box_periode, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, 0)
         
         # Jours
-        box_jours = wx.StaticBoxSizer(self.box_jours_staticbox, wx.VERTICAL)
+        box_jours = wx.StaticBoxSizer(self.stbJours, wx.VERTICAL)
         grid_sizer_jours = wx.FlexGridSizer(rows=4, cols=2, vgap=10, hgap=10)
         grid_sizer_jours.Add(self.label_scolaires, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL, 0)
         grid_sizer_jours.Add(self.ctrl_scolaires, 0, wx.EXPAND, 0)

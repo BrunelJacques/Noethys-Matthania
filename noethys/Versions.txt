@@ -1,3 +1,7 @@
+version 1.3.4.10 (27/11/2026)
+- Bannissement de six et autres deprecated functions
+- quelques staticbox python14
+
 version 1.3.4.9 (25/11/2026)
 - Gestion des staticbox grandParent dans ObjectListView
 

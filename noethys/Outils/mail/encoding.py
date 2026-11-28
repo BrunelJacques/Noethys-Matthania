@@ -42,7 +42,7 @@ def smart_text(s, encoding='utf-8', strings_only=False, errors='strict'):
     return force_text(s, encoding, strings_only, errors)
 
 
-_PROTECTED_TYPES = int + (
+_PROTECTED_TYPES = (int,) + (
     type(None), float, Decimal, datetime.datetime, datetime.date, datetime.time
 )
 
